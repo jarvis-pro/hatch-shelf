@@ -70,7 +70,11 @@ export default function TransferScreen() {
   const url = ip ? `http://${ip}:${LAN_PORT}` : null;
 
   return (
-    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={{ backgroundColor: c.bg }}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}
+    >
       <View style={[styles.card, { backgroundColor: c.card }]}>
         <Text style={[styles.label, { color: c.muted }]}>在电脑浏览器中打开</Text>
         <Text style={[styles.url, { color: c.fg }]} selectable>

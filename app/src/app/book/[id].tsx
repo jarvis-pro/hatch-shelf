@@ -38,7 +38,11 @@ export default function BookInfoScreen() {
   ].filter((r): r is [string, string] => !!r[1]);
 
   return (
-    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={{ backgroundColor: c.bg }}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}
+    >
       <Stack.Screen options={{ title: '书籍信息' }} />
       <View style={styles.hero}>
         <BookCover book={book} width={110} />

@@ -1,0 +1,19 @@
+id: opc-cases
+title: 一人公司案例库
+subtitle: 44 个真实案例：模式、收入、路径与教训
+category: opc/business
+tags: [opc, indie-hacker, case-study, saas, bootstrapping]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-how-to-read.md
+  - 02-overseas-saas.md
+  - 03-overseas-content.md
+  - 04-china-indie.md
+  - 05-china-vertical-b2b.md
+  - 06-service-opc.md
+  - 07-ai-native.md
+  - 08-failures.md
+  - 09-patterns.md
+  - 10-for-hatch-counter.md

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 432" width="360" height="432" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="431" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">44 个案例的模式与获客方式</text>
+<text x="14" y="58" font-size="13" font-weight="600" fill="#1f2328">按模式</text>
+<text x="142" y="85" font-size="12" fill="#1f2328" text-anchor="end">Web 产品与在线服务</text>
+<rect x="150" y="73" width="48" height="16" fill="#2f6fdf"/>
+<rect x="198" y="73" width="132" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="336" y="85" font-size="12" fill="#656d76">15</text>
+<text x="142" y="109" font-size="12" fill="#1f2328" text-anchor="end">客户端 App 与小程序</text>
+<rect x="150" y="97" width="96" height="16" fill="#2f6fdf"/>
+<rect x="246" y="97" width="12" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="264" y="109" font-size="12" fill="#656d76">9</text>
+<text x="142" y="133" font-size="12" fill="#1f2328" text-anchor="end">国内行业与门店软件</text>
+<rect x="150" y="121" width="72" height="16" fill="#2f6fdf"/>
+<text x="228" y="133" font-size="12" fill="#656d76">6</text>
+<text x="142" y="157" font-size="12" fill="#1f2328" text-anchor="end">内容、课程与社群</text>
+<rect x="150" y="145" width="36" height="16" fill="#2f6fdf"/>
+<rect x="186" y="145" width="72" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="264" y="157" font-size="12" fill="#656d76">9</text>
+<text x="142" y="181" font-size="12" fill="#1f2328" text-anchor="end">服务</text>
+<rect x="150" y="169" width="12" height="16" fill="#2f6fdf"/>
+<rect x="162" y="169" width="48" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="216" y="181" font-size="12" fill="#656d76">5</text>
+<text x="14" y="204" font-size="13" font-weight="600" fill="#1f2328">按主要获客方式</text>
+<text x="142" y="231" font-size="12" fill="#1f2328" text-anchor="end">个人影响力</text>
+<rect x="150" y="219" width="12" height="16" fill="#2f6fdf"/>
+<rect x="162" y="219" width="96" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="264" y="231" font-size="12" fill="#656d76">9</text>
+<text x="142" y="255" font-size="12" fill="#1f2328" text-anchor="end">内容与搜索</text>
+<rect x="150" y="243" width="108" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="264" y="255" font-size="12" fill="#656d76">9</text>
+<text x="142" y="279" font-size="12" fill="#1f2328" text-anchor="end">开发者社区与开源</text>
+<rect x="150" y="267" width="72" height="16" fill="#2f6fdf"/>
+<text x="228" y="279" font-size="12" fill="#656d76">6</text>
+<text x="142" y="303" font-size="12" fill="#1f2328" text-anchor="end">应用商店与平台</text>
+<rect x="150" y="291" width="60" height="16" fill="#2f6fdf"/>
+<text x="216" y="303" font-size="12" fill="#656d76">5</text>
+<text x="142" y="327" font-size="12" fill="#1f2328" text-anchor="end">产品自传播</text>
+<rect x="150" y="315" width="12" height="16" fill="#2f6fdf"/>
+<rect x="162" y="315" width="24" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="192" y="327" font-size="12" fill="#656d76">3</text>
+<text x="142" y="351" font-size="12" fill="#1f2328" text-anchor="end">线下与熟人</text>
+<rect x="150" y="339" width="60" height="16" fill="#2f6fdf"/>
+<text x="216" y="351" font-size="12" fill="#656d76">5</text>
+<text x="142" y="375" font-size="12" fill="#1f2328" text-anchor="end">未说明</text>
+<rect x="150" y="363" width="48" height="16" fill="#2f6fdf"/>
+<rect x="198" y="363" width="36" height="16" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/>
+<text x="240" y="375" font-size="12" fill="#656d76">7</text>
+<rect x="90" y="402" width="14" height="12" fill="#2f6fdf"/><text x="110" y="412" font-size="12" fill="#1f2328">国内（22）</text>
+<rect x="190" y="402" width="14" height="12" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="0.6"/><text x="210" y="412" font-size="12" fill="#1f2328">海外（22）</text>
+</svg>

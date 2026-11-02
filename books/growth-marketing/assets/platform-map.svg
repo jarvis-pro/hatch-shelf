@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="360" height="380" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="379" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">平台位置示意：内容寿命 × 搜索属性</text>
+<rect x="206.0" y="52" width="134.0" height="130.0" fill="#dbe7fb"/>
+<rect x="72" y="52" width="268" height="260" fill="none" stroke="#d8dee4"/>
+<line x1="206.0" y1="52" x2="206.0" y2="312" stroke="#d8dee4"/>
+<line x1="72" y1="182.0" x2="340" y2="182.0" stroke="#d8dee4"/>
+<text x="72" y="330" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">以刷为主 →</text>
+<text x="340" y="330" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">以搜为主 →</text>
+<text x="64" y="308" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">寿命短</text>
+<text x="64" y="64" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">寿命长</text>
+<circle cx="286.4" cy="124.8" r="6" fill="#2f6fdf"/>
+<text x="286.4" y="113.80000000000001" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">小红书</text>
+<circle cx="238.2" cy="88.4" r="6" fill="#2f6fdf"/>
+<text x="238.16" y="77.4" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">B 站</text>
+<circle cx="254.2" cy="161.2" r="6" fill="#2f6fdf"/>
+<text x="254.24" y="150.20000000000002" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">公众号</text>
+<circle cx="139.0" cy="234.0" r="6" fill="#656d76"/>
+<text x="139.0" y="223.0" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">抖音</text>
+<circle cx="112.2" cy="270.4" r="6" fill="#656d76"/>
+<text x="112.19999999999999" y="259.4" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">即刻</text>
+<circle cx="160.4" cy="208.0" r="6" fill="#656d76"/>
+<text x="160.44" y="197.0" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">视频号</text>
+<text x="180" y="358" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">主观示意 · 浅蓝区域：一人公司优先投入</text>
+</svg>

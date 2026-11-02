@@ -1,0 +1,17 @@
+id: growth-marketing
+title: 获客与增长
+subtitle: 一个人做产品，怎么让对的人找到它
+category: opc/growth
+tags: [growth, marketing, seo, aso, community]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-growth-models.md
+  - 02-seo.md
+  - 03-social-media.md
+  - 04-community.md
+  - 05-aso.md
+  - 06-cold-start.md
+  - 07-retention.md
+  - 08-channel-evaluation.md

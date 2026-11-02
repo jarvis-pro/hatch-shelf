@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" width="360" height="300" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="299" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">40 万存款怎么分层</text>
+<text x="180.0" y="50.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">每月必要支出 1.2 万、总支出 1.5 万的示例家庭</text>
+<rect x="20.0" y="66" width="57.6" height="34" fill="#2f6fdf" stroke="#ffffff" stroke-width="1"/>
+<rect x="77.6" y="66" width="8.0" height="34" fill="#656d76" stroke="#ffffff" stroke-width="1"/>
+<rect x="85.6" y="66" width="40.0" height="34" fill="#e6e9ed" stroke="#ffffff" stroke-width="1"/>
+<rect x="125.6" y="66" width="214.4" height="34" fill="#dbe7fb" stroke="#ffffff" stroke-width="1"/>
+<text x="20.0" y="116.0" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal">0</text>
+<text x="340.0" y="116.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">40 万</text>
+<rect x="24" y="128" width="14" height="14" rx="2" fill="#2f6fdf" stroke="#d8dee4"/>
+<text x="46.0" y="140.0" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">应急金</text>
+<text x="116.0" y="140.0" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">6 个月必要支出</text>
+<text x="336.0" y="140.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">7.2 万</text>
+<rect x="24" y="158" width="14" height="14" rx="2" fill="#656d76" stroke="#d8dee4"/>
+<text x="46.0" y="170.0" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">已知大额</text>
+<text x="116.0" y="170.0" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">年缴保险、补税等</text>
+<text x="336.0" y="170.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">1.0 万</text>
+<rect x="24" y="188" width="14" height="14" rx="2" fill="#e6e9ed" stroke="#d8dee4"/>
+<text x="46.0" y="200.0" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">不动的钱</text>
+<text x="116.0" y="200.0" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">已有用途，不算跑道</text>
+<text x="336.0" y="200.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">5.0 万</text>
+<rect x="24" y="218" width="14" height="14" rx="2" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="46.0" y="230.0" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">跑道资金</text>
+<text x="116.0" y="230.0" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">用来覆盖每月净消耗</text>
+<text x="336.0" y="230.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">26.8 万</text>
+<line x1="24" y1="246" x2="336" y2="246" stroke="#d8dee4"/>
+<text x="46.0" y="266.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">跑道 = 26.8 ÷ 1.5 ≈ 17.9 个月（无收入时）</text>
+<text x="180.0" y="294.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">示例数据，按第 4 章公式计算</text>
+</svg>

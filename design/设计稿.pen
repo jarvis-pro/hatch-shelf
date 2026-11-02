@@ -153,7 +153,7 @@
               "name": "Header",
               "width": "fill_container",
               "justifyContent": "space_between",
-              "alignItems": "end",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
@@ -162,16 +162,6 @@
                   "layout": "vertical",
                   "gap": 2,
                   "children": [
-                    {
-                      "type": "text",
-                      "id": "k2J3ca",
-                      "name": "Date",
-                      "fill": "#4B5060",
-                      "content": "11 月 2 日 · 周一",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
-                      "fontWeight": "500"
-                    },
                     {
                       "type": "text",
                       "id": "I3vGd",
@@ -12990,7 +12980,7 @@
               "name": "Header",
               "width": "fill_container",
               "justifyContent": "space_between",
-              "alignItems": "end",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
@@ -12999,16 +12989,6 @@
                   "layout": "vertical",
                   "gap": 2,
                   "children": [
-                    {
-                      "type": "text",
-                      "id": "fcb1N",
-                      "name": "Sub",
-                      "fill": "#4B5060",
-                      "content": "5 本书 · 41 条高亮",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
-                      "fontWeight": "500"
-                    },
                     {
                       "type": "text",
                       "id": "g89UD",
@@ -13861,7 +13841,7 @@
               "name": "Header",
               "width": "fill_container",
               "justifyContent": "space_between",
-              "alignItems": "end",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
@@ -13870,16 +13850,6 @@
                   "layout": "vertical",
                   "gap": 2,
                   "children": [
-                    {
-                      "type": "text",
-                      "id": "u9rK34",
-                      "name": "Sub",
-                      "fill": "#4B5060",
-                      "content": "局域网 · 已开启",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
-                      "fontWeight": "500"
-                    },
                     {
                       "type": "text",
                       "id": "C5i0G2",
@@ -14581,7 +14551,7 @@
               "name": "Header",
               "width": "fill_container",
               "justifyContent": "space_between",
-              "alignItems": "end",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
@@ -14590,16 +14560,6 @@
                   "layout": "vertical",
                   "gap": 2,
                   "children": [
-                    {
-                      "type": "text",
-                      "id": "kcP0h",
-                      "name": "Sub",
-                      "fill": "#4B5060",
-                      "content": "局域网 · 已开启",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
-                      "fontWeight": "500"
-                    },
                     {
                       "type": "text",
                       "id": "JqvcA",
@@ -15661,16 +15621,6 @@
               "children": [
                 {
                   "type": "text",
-                  "id": "QSqDk",
-                  "name": "Sub",
-                  "fill": "#4B5060",
-                  "content": "本机 · 不联网",
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 13,
-                  "fontWeight": "500"
-                },
-                {
-                  "type": "text",
                   "id": "pBpe9",
                   "name": "H1",
                   "fill": "#111318",
@@ -16692,16 +16642,6 @@
               "children": [
                 {
                   "type": "text",
-                  "id": "ggRlm",
-                  "name": "Sub",
-                  "fill": "#4B5060",
-                  "content": "0 本",
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 13,
-                  "fontWeight": "500"
-                },
-                {
-                  "type": "text",
                   "id": "Eq40E",
                   "name": "H1",
                   "fill": "#111318",
@@ -17708,7 +17648,7 @@
               "name": "Header",
               "width": "fill_container",
               "justifyContent": "space_between",
-              "alignItems": "end",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
@@ -17717,16 +17657,6 @@
                   "layout": "vertical",
                   "gap": 2,
                   "children": [
-                    {
-                      "type": "text",
-                      "id": "jFR5L",
-                      "name": "Sub",
-                      "fill": "#4B5060",
-                      "content": "局域网 · 未开启",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
-                      "fontWeight": "500"
-                    },
                     {
                       "type": "text",
                       "id": "kRzRB",
@@ -18287,7 +18217,7 @@
               "name": "Header",
               "width": "fill_container",
               "justifyContent": "space_between",
-              "alignItems": "end",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
@@ -18296,16 +18226,6 @@
                   "layout": "vertical",
                   "gap": 2,
                   "children": [
-                    {
-                      "type": "text",
-                      "id": "M8k6wl",
-                      "name": "Sub",
-                      "fill": "#4B5060",
-                      "content": "局域网 · 已停止",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
-                      "fontWeight": "500"
-                    },
                     {
                       "type": "text",
                       "id": "DZSC9",
@@ -28095,7 +28015,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -28104,16 +28024,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "kgzWi",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 未开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "Xndz0",
@@ -28871,7 +28781,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -28880,16 +28790,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "E7HdO0",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 未开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "jtxZE",
@@ -29650,7 +29550,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -29659,16 +29559,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "lRvhp",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 已开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "oYqVS",
@@ -30621,7 +30511,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -30630,16 +30520,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "I33D3R",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 已开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "i7C7NU",
@@ -32158,7 +32038,7 @@
                     {
                       "type": "frame",
                       "id": "fZIDo",
-                      "name": "状态点 · 副标题 · 停止",
+                      "name": "状态点 · 停止",
                       "width": "fill_container",
                       "height": 30,
                       "alignItems": "center",
@@ -32170,7 +32050,7 @@
                           "fill": "#4B5060",
                           "textGrowth": "fixed-width",
                           "width": 150,
-                          "content": "状态点 · 副标题 · 停止",
+                          "content": "状态点 · 停止",
                           "fontFamily": "Noto Sans SC",
                           "fontSize": 12,
                           "fontWeight": "500"
@@ -32599,7 +32479,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -32608,16 +32488,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "kbZV6",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 已开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "EYsqn",
@@ -33478,7 +33348,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -33487,16 +33357,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "r9LCH",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 已开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "rMB7k",
@@ -34399,7 +34259,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -34408,16 +34268,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "kF0TY",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 未开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "A0rgn0",
@@ -35179,7 +35029,7 @@
                                       "name": "Header",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
-                                      "alignItems": "end",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
@@ -35188,16 +35038,6 @@
                                           "layout": "vertical",
                                           "gap": 2,
                                           "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "eFAy4",
-                                              "name": "Sub",
-                                              "fill": "#4B5060",
-                                              "content": "局域网 · 未开启",
-                                              "fontFamily": "Noto Sans SC",
-                                              "fontSize": 13,
-                                              "fontWeight": "500"
-                                            },
                                             {
                                               "type": "text",
                                               "id": "hYwaM",
@@ -36497,7 +36337,7 @@
                     {
                       "type": "frame",
                       "id": "C0RBaN",
-                      "name": "状态点 · 副标题",
+                      "name": "状态点",
                       "width": "fill_container",
                       "height": 30,
                       "alignItems": "center",
@@ -36509,7 +36349,7 @@
                           "fill": "#4B5060",
                           "textGrowth": "fixed-width",
                           "width": 150,
-                          "content": "状态点 · 副标题",
+                          "content": "状态点",
                           "fontFamily": "Noto Sans SC",
                           "fontSize": 12,
                           "fontWeight": "500"

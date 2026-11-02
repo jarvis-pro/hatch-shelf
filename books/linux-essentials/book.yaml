@@ -1,0 +1,18 @@
+id: linux-essentials
+title: Linux 系统与命令行
+subtitle: 登上服务器不再心虚：从命令行到 systemd 与排障
+category: ops/linux
+tags: [linux, shell, systemd, ubuntu, ops]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-shell-basics.md
+  - 02-filesystem-permissions.md
+  - 03-processes-signals.md
+  - 04-systemd.md
+  - 05-journald-logs.md
+  - 06-package-management.md
+  - 07-disks-mounts.md
+  - 08-shell-scripting.md
+  - 09-troubleshooting.md

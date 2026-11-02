@@ -1,0 +1,10 @@
+{
+  "name": "hatch-shelf",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "app": "pnpm --filter app",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}

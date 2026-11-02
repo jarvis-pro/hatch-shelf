@@ -1,0 +1,15 @@
+id: opc-finance
+title: 财务与税务
+subtitle: 个体户与一人有限公司的记账、税种、发票和现金流框架
+category: opc/legal
+tags: [opc, finance, tax, bookkeeping, cash-flow]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-bookkeeping-basics.md
+  - 02-taxes.md
+  - 03-invoices.md
+  - 04-cash-flow.md
+  - 05-separate-money.md
+  - 06-tools-and-bookkeeper.md

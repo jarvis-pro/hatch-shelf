@@ -1,0 +1,18 @@
+id: contracts-legal
+title: 合同与法律文书
+subtitle: 用户协议、SaaS 服务合同、外包合同，一个人读懂、写对、签稳
+category: opc/legal
+tags: [opc, contracts, saas, legal, dispute]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-contract-basics.md
+  - 02-saas-service-agreement.md
+  - 03-user-terms-privacy.md
+  - 04-outsourcing-dev.md
+  - 05-nda-dpa.md
+  - 06-ip-clauses.md
+  - 07-esign-evidence.md
+  - 08-collections-disputes.md
+  - 09-when-to-hire-lawyer.md

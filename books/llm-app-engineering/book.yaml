@@ -1,0 +1,18 @@
+id: llm-app-engineering
+title: 大模型应用工程
+subtitle: 用 TypeScript 把模型 API 做成靠得住的产品功能
+category: ai/app
+tags: [llm, claude-api, typescript, prompt]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-api-basics.md
+  - 02-prompt-engineering.md
+  - 03-structured-output.md
+  - 04-tool-use.md
+  - 05-streaming.md
+  - 06-prompt-caching.md
+  - 07-cost-latency.md
+  - 08-model-selection.md
+  - 09-errors-retries.md

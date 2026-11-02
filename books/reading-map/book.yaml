@@ -1,0 +1,17 @@
+id: reading-map
+title: 书架导读
+subtitle: 通往一人公司的 52 本书
+category: guide
+tags: [roadmap, opc]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-how-to-use.md
+  - 02-stack.md
+  - 03-ops.md
+  - 04-ai.md
+  - 05-agent.md
+  - 06-opc.md
+  - 07-reading-paths.md
+  - 08-progress.md

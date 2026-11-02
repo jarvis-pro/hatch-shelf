@@ -1,0 +1,17 @@
+id: nginx-gateway
+title: Nginx 与反向代理
+subtitle: 一台 VPS 前面那道门：路由、HTTPS、缓存、限流与长连接
+category: ops/network
+tags: [nginx, reverse-proxy, https, sse, devops]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-config-model.md
+  - 02-reverse-proxy.md
+  - 03-https-acme.md
+  - 04-static-cache.md
+  - 05-rate-limit.md
+  - 06-websocket-sse.md
+  - 07-logging-debug.md
+  - 08-alternatives.md

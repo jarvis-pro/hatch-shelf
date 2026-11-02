@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 326" width="360" height="326" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="325" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">同样四条 SSE 消息，开 / 关缓冲</text>
+<text x="20" y="64" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">proxy_buffering on</text>
+<text x="340" y="64" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">nginx 默认</text>
+<text x="20" y="98" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">后端发出</text>
+<text x="20" y="134" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">客户端收到</text>
+<line x1="92" y1="94" x2="340" y2="94" stroke="#d8dee4" stroke-width="1"/>
+<line x1="92" y1="130" x2="340" y2="130" stroke="#d8dee4" stroke-width="1"/>
+<circle cx="111.84" cy="94" r="4" fill="#2f6fdf"/>
+<line x1="111.84" y1="100" x2="111.84" y2="112" stroke="#d8dee4" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="173.84" cy="94" r="4" fill="#2f6fdf"/>
+<line x1="173.84" y1="100" x2="173.84" y2="112" stroke="#d8dee4" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="235.84" cy="94" r="4" fill="#2f6fdf"/>
+<line x1="235.84" y1="100" x2="235.84" y2="112" stroke="#d8dee4" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="297.84000000000003" cy="94" r="4" fill="#2f6fdf"/>
+<line x1="297.84000000000003" y1="100" x2="297.84000000000003" y2="112" stroke="#d8dee4" stroke-width="1" stroke-dasharray="3 3"/>
+<rect x="92" y="114" width="248" height="24" rx="4" fill="#e6e9ed"/>
+<text x="216.0" y="130" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">全部卡在缓冲区，等攒满一块或连接结束</text>
+<text x="20" y="170" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">proxy_buffering off</text>
+<text x="340" y="170" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">推送应有的样子</text>
+<text x="20" y="204" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">后端发出</text>
+<text x="20" y="240" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">客户端收到</text>
+<line x1="92" y1="200" x2="340" y2="200" stroke="#d8dee4" stroke-width="1"/>
+<line x1="92" y1="236" x2="340" y2="236" stroke="#d8dee4" stroke-width="1"/>
+<circle cx="111.84" cy="200" r="4" fill="#2f6fdf"/>
+<line x1="111.84" y1="206" x2="114.32" y2="230" stroke="#2f6fdf" stroke-width="1"/>
+<circle cx="114.32" cy="236" r="4" fill="#2f6fdf"/>
+<circle cx="173.84" cy="200" r="4" fill="#2f6fdf"/>
+<line x1="173.84" y1="206" x2="176.32" y2="230" stroke="#2f6fdf" stroke-width="1"/>
+<circle cx="176.32" cy="236" r="4" fill="#2f6fdf"/>
+<circle cx="235.84" cy="200" r="4" fill="#2f6fdf"/>
+<line x1="235.84" y1="206" x2="238.32" y2="230" stroke="#2f6fdf" stroke-width="1"/>
+<circle cx="238.32" cy="236" r="4" fill="#2f6fdf"/>
+<circle cx="297.84000000000003" cy="200" r="4" fill="#2f6fdf"/>
+<line x1="297.84000000000003" y1="206" x2="300.32" y2="230" stroke="#2f6fdf" stroke-width="1"/>
+<circle cx="300.32" cy="236" r="4" fill="#2f6fdf"/>
+<line x1="92" y1="268" x2="340" y2="268" stroke="#656d76" stroke-width="1"/>
+<line x1="92.0" y1="268" x2="92.0" y2="272" stroke="#656d76" stroke-width="1"/>
+<text x="92.0" y="286" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0s</text>
+<line x1="154.0" y1="268" x2="154.0" y2="272" stroke="#656d76" stroke-width="1"/>
+<text x="154.0" y="286" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">25s</text>
+<line x1="216.0" y1="268" x2="216.0" y2="272" stroke="#656d76" stroke-width="1"/>
+<text x="216.0" y="286" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">50s</text>
+<line x1="278.0" y1="268" x2="278.0" y2="272" stroke="#656d76" stroke-width="1"/>
+<text x="278.0" y="286" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">75s</text>
+<line x1="340.0" y1="268" x2="340.0" y2="272" stroke="#656d76" stroke-width="1"/>
+<text x="340.0" y="286" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">100s</text>
+<text x="180" y="310" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">每条消息几十字节，远小于一块缓冲区（4–8 KB）</text>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 342" width="360" height="342" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="341" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">接近原则：间距就是分组</text>
+<rect x="24" y="56" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="24.5" y="78.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="24" y="118" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="24.5" y="140.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="24" y="180" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="24.5" y="202.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="24" y="242" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="24.5" y="264.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="196" y="56" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="196.5" y="72.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="196" y="122" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="196.5" y="138.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="196" y="188" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="196.5" y="204.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="196" y="254" width="56" height="10" rx="3" fill="#656d76"/>
+<rect x="196.5" y="270.5" width="139" height="27" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="94" y="324" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">处处 12：分不清谁是谁的</text>
+<text x="266" y="324" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">内 6 外 22：一眼成组</text>
+</svg>

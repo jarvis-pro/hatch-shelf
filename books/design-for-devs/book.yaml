@@ -1,0 +1,16 @@
+id: design-for-devs
+title: 写给开发者的设计课
+subtitle: 不当设计师，也能做出好用、不难看的界面
+category: opc/product
+tags: [design, ui, typography, color, design-system]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-interaction-principles.md
+  - 02-typography.md
+  - 03-color.md
+  - 04-spacing-grid.md
+  - 05-design-system.md
+  - 06-mobile-guidelines.md
+  - 07-states-and-copy.md

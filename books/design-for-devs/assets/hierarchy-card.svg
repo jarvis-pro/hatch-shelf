@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 262" width="360" height="262" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="261" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">同样的信息，有没有层级</text>
+<rect x="16" y="52" width="156" height="168" rx="12" fill="#ffffff" stroke="#d8dee4"/>
+<text x="94" y="244" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">没有层级</text>
+<rect x="188" y="52" width="156" height="168" rx="12" fill="#ffffff" stroke="#d8dee4"/>
+<text x="266" y="244" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">有层级</text>
+<text x="30" y="82" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">今日营收</text>
+<text x="30" y="110" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">¥8,520</text>
+<text x="30" y="138" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">较昨日 +12%</text>
+<text x="30" y="166" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">订单 132 笔</text>
+<text x="30" y="194" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">客单价 ¥64.5</text>
+<text x="202" y="80" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">今日营收</text>
+<text x="202" y="116" font-size="28" fill="#1f2328" text-anchor="start" font-weight="600">¥8,520</text>
+<text x="202" y="140" font-size="12" fill="#2f6fdf" text-anchor="start" font-weight="600">较昨日 +12%</text>
+<line x1="202" y1="158" x2="330" y2="158" stroke="#e6e9ed"/>
+<text x="202" y="180" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">订单</text>
+<text x="330" y="180" font-size="13" fill="#1f2328" text-anchor="end" font-weight="normal">132 笔</text>
+<text x="202" y="204" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">客单价</text>
+<text x="330" y="204" font-size="13" fill="#1f2328" text-anchor="end" font-weight="normal">¥64.5</text>
+</svg>

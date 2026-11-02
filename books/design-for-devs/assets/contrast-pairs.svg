@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 364" width="360" height="364" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="363" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">几组真实配色的对比度</text>
+<text x="24" y="58" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">前景 / 背景</text>
+<text x="250" y="58" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">对比度</text>
+<text x="336" y="58" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">WCAG</text>
+<rect x="24" y="70" width="64" height="30" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="56" y="90" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="90" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">正文 / 白底</text>
+<text x="250" y="90" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">15.80</text>
+<rect x="282" y="76" width="54" height="18" rx="9" fill="#2f6fdf"/>
+<text x="309" y="89" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">AAA</text>
+<rect x="24" y="108" width="64" height="30" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="56" y="128" font-size="13" fill="#656d76" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="128" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">次要字 / 白底</text>
+<text x="250" y="128" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">5.25</text>
+<rect x="282" y="114" width="54" height="18" rx="9" fill="#dbe7fb"/>
+<text x="309" y="127" font-size="11" fill="#2f6fdf" text-anchor="middle" font-weight="600">AA</text>
+<rect x="24" y="146" width="64" height="30" rx="6" fill="#c4532b" stroke="#d8dee4"/>
+<text x="56" y="166" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="166" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">白字 / 赭石按钮</text>
+<text x="250" y="166" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">4.55</text>
+<rect x="282" y="152" width="54" height="18" rx="9" fill="#dbe7fb"/>
+<text x="309" y="165" font-size="11" fill="#2f6fdf" text-anchor="middle" font-weight="600">AA</text>
+<rect x="24" y="184" width="64" height="30" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="56" y="204" font-size="13" fill="#2f8f58" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="204" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">成功绿 / 白底</text>
+<text x="250" y="204" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">4.05</text>
+<rect x="282" y="190" width="54" height="18" rx="9" fill="#e6e9ed"/>
+<text x="309" y="203" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">仅大字</text>
+<rect x="24" y="222" width="64" height="30" rx="6" fill="#f4ecd8" stroke="#d8dee4"/>
+<text x="56" y="242" font-size="13" fill="#7a6a53" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="242" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">次要字 / 护眼底</text>
+<text x="250" y="242" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">4.44</text>
+<rect x="282" y="228" width="54" height="18" rx="9" fill="#e6e9ed"/>
+<text x="309" y="241" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">仅大字</text>
+<rect x="24" y="260" width="64" height="30" rx="6" fill="#da6840" stroke="#d8dee4"/>
+<text x="56" y="280" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="280" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">白字 / 深色主按钮</text>
+<text x="250" y="280" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">3.48</text>
+<rect x="282" y="266" width="54" height="18" rx="9" fill="#e6e9ed"/>
+<text x="309" y="279" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">仅大字</text>
+<rect x="24" y="298" width="64" height="30" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="56" y="318" font-size="13" fill="#a39a90" text-anchor="middle" font-weight="600">Aa 字</text>
+<text x="98" y="318" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">占位字 / 白底</text>
+<text x="250" y="318" font-size="13" fill="#1f2328" text-anchor="end" font-weight="600">2.77</text>
+<rect x="282.5" y="304.5" width="53" height="17" rx="9" fill="#ffffff" stroke="#656d76"/>
+<text x="309" y="317" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">不达标</text>
+<text x="24" y="346" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">AA 正文 ≥ 4.5，大字和图形 ≥ 3，AAA 正文 ≥ 7</text>
+</svg>

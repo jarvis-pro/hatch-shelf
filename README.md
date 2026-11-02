@@ -59,6 +59,11 @@ hatch-shelf/
 ├── tools/
 │   └── shelf-pack/        # CLI：校验 → 打包 → 局域网推送
 ├── notes/                 # 从手机导出的阅读笔记 <book-id>.notes.md
+├── design/                # UI 设计稿（pen.dev），不进安装包
+│   ├── 设计稿.pen
+│   ├── covers/            # 书封，按 <book-id>.png 命名
+│   ├── images/            # 插画、图标等，按用途命名
+│   └── splash/            # 启动流程画面
 └── books/
     ├── AGENTS.md          # 写书规范（agent 在此目录写书时读取）
     └── <book-id>/

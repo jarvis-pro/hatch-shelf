@@ -15,6 +15,7 @@
 | `tools/shelf-pack/` | Node CLI：check / pack / push |
 | `books/` | 书籍内容，不进安装包 |
 | `notes/` | 从手机导出的阅读笔记，供修订书时参考 |
+| `design/` | UI 设计稿 `设计稿.pen`（只能用 pen.dev / Pencil MCP 读写）；图片放 `covers/` `images/` `splash/` 子目录，按书 id 或用途命名，不放在根目录 |
 
 ## 原则
 

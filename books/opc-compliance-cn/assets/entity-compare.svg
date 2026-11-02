@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 350" width="360" height="350" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="349" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">三种身份怎么选</text>
+<text x="144.7" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">个人</text>
+<text x="226.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">个体户</text>
+<text x="307.3" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">一人公司</text>
+<text x="14" y="99.5" font-size="12" fill="#1f2328">责任隔离</text>
+<rect x="106.0" y="81" width="77.3" height="28" rx="5" fill="#e6e9ed"/>
+<text x="144.7" y="99.5" font-size="12" fill="#656d76" text-anchor="middle">无</text>
+<rect x="187.3" y="81" width="77.3" height="28" rx="5" fill="#e6e9ed"/>
+<text x="226.0" y="99.5" font-size="12" fill="#656d76" text-anchor="middle">无</text>
+<rect x="268.7" y="81" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="307.3" y="99.5" font-size="12" fill="#ffffff" text-anchor="middle">有，需自证</text>
+<text x="14" y="133.5" font-size="12" fill="#1f2328">开具发票</text>
+<rect x="106.0" y="115" width="77.3" height="28" rx="5" fill="#e6e9ed"/>
+<text x="144.7" y="133.5" font-size="12" fill="#656d76" text-anchor="middle">需代开</text>
+<rect x="187.3" y="115" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="226.0" y="133.5" font-size="12" fill="#ffffff" text-anchor="middle">可以</text>
+<rect x="268.7" y="115" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="307.3" y="133.5" font-size="12" fill="#ffffff" text-anchor="middle">可以</text>
+<text x="14" y="167.5" font-size="12" fill="#1f2328">企业开发者</text>
+<rect x="106.0" y="149" width="77.3" height="28" rx="5" fill="#e6e9ed"/>
+<text x="144.7" y="167.5" font-size="12" fill="#656d76" text-anchor="middle">不行</text>
+<rect x="187.3" y="149" width="77.3" height="28" rx="5" fill="#dbe7fb"/>
+<text x="226.0" y="167.5" font-size="12" fill="#1f2328" text-anchor="middle">多数认</text>
+<rect x="268.7" y="149" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="307.3" y="167.5" font-size="12" fill="#ffffff" text-anchor="middle">认</text>
+<text x="14" y="201.5" font-size="12" fill="#1f2328">经营性许可</text>
+<rect x="106.0" y="183" width="77.3" height="28" rx="5" fill="#e6e9ed"/>
+<text x="144.7" y="201.5" font-size="12" fill="#656d76" text-anchor="middle">不能</text>
+<rect x="187.3" y="183" width="77.3" height="28" rx="5" fill="#e6e9ed"/>
+<text x="226.0" y="201.5" font-size="12" fill="#656d76" text-anchor="middle">通常不能</text>
+<rect x="268.7" y="183" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="307.3" y="201.5" font-size="12" fill="#ffffff" text-anchor="middle">可申请</text>
+<text x="14" y="235.5" font-size="12" fill="#1f2328">维护成本</text>
+<rect x="106.0" y="217" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="144.7" y="235.5" font-size="12" fill="#ffffff" text-anchor="middle">几乎没有</text>
+<rect x="187.3" y="217" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="226.0" y="235.5" font-size="12" fill="#ffffff" text-anchor="middle">低</text>
+<rect x="268.7" y="217" width="77.3" height="28" rx="5" fill="#dbe7fb"/>
+<text x="307.3" y="235.5" font-size="12" fill="#1f2328" text-anchor="middle">较高</text>
+<text x="14" y="269.5" font-size="12" fill="#1f2328">退出成本</text>
+<rect x="106.0" y="251" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="144.7" y="269.5" font-size="12" fill="#ffffff" text-anchor="middle">无</text>
+<rect x="187.3" y="251" width="77.3" height="28" rx="5" fill="#2f6fdf"/>
+<text x="226.0" y="269.5" font-size="12" fill="#ffffff" text-anchor="middle">低</text>
+<rect x="268.7" y="251" width="77.3" height="28" rx="5" fill="#dbe7fb"/>
+<text x="307.3" y="269.5" font-size="12" fill="#1f2328" text-anchor="middle">要清算</text>
+<rect x="16" y="298" width="12" height="12" rx="3" fill="#2f6fdf"/>
+<text x="33" y="308" font-size="11" fill="#656d76">有利</text>
+<rect x="73" y="298" width="12" height="12" rx="3" fill="#dbe7fb"/>
+<text x="90" y="308" font-size="11" fill="#656d76">一般</text>
+<rect x="130" y="298" width="12" height="12" rx="3" fill="#e6e9ed"/>
+<text x="147" y="308" font-size="11" fill="#656d76">不利</text>
+<text x="16" y="330" font-size="11" fill="#656d76">通常情况，各地和各平台口径不一，以最新要求为准</text>
+</svg>

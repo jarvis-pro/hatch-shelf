@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 366" width="360" height="366" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="365" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">用了大模型，要多做什么</text>
+<text x="131.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">内部</text>
+<text x="131.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">使用</text>
+<text x="193.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">后台</text>
+<text x="193.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">识别抽取</text>
+<text x="255.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">调用已备案</text>
+<text x="255.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">模型生成</text>
+<text x="317.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">自研模型</text>
+<text x="317.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">对外</text>
+<text x="14" y="115.5" font-size="12" fill="#1f2328">备案或登记</text>
+<rect x="102.0" y="97" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="115.5" font-size="12" fill="#656d76" text-anchor="middle">不需要</text>
+<rect x="164.0" y="97" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="115.5" font-size="12" fill="#1f2328" text-anchor="middle">咨询确认</text>
+<rect x="226.0" y="97" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="115.5" font-size="12" fill="#ffffff" text-anchor="middle">登记</text>
+<rect x="288.0" y="97" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="115.5" font-size="12" fill="#ffffff" text-anchor="middle">备案</text>
+<text x="14" y="149.5" font-size="12" fill="#1f2328">公示模型</text>
+<rect x="102.0" y="131" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="149.5" font-size="12" fill="#656d76" text-anchor="middle">—</text>
+<rect x="164.0" y="131" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="149.5" font-size="12" fill="#1f2328" text-anchor="middle">建议</text>
+<rect x="226.0" y="131" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="149.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="131" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="149.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="183.5" font-size="12" fill="#1f2328">内容过滤</text>
+<rect x="102.0" y="165" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="183.5" font-size="12" fill="#656d76" text-anchor="middle">—</text>
+<rect x="164.0" y="165" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="183.5" font-size="12" fill="#1f2328" text-anchor="middle">建议</text>
+<rect x="226.0" y="165" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="183.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="165" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="183.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="217.5" font-size="12" fill="#1f2328">显式标识</text>
+<rect x="102.0" y="199" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="217.5" font-size="12" fill="#656d76" text-anchor="middle">—</text>
+<rect x="164.0" y="199" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="217.5" font-size="12" fill="#1f2328" text-anchor="middle">提示核对</text>
+<rect x="226.0" y="199" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="217.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="199" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="217.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="251.5" font-size="12" fill="#1f2328">投诉入口</text>
+<rect x="102.0" y="233" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="251.5" font-size="12" fill="#656d76" text-anchor="middle">—</text>
+<rect x="164.0" y="233" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="251.5" font-size="12" fill="#1f2328" text-anchor="middle">建议</text>
+<rect x="226.0" y="233" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="251.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="233" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="251.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="285.5" font-size="12" fill="#1f2328">个人信息保护</text>
+<rect x="102.0" y="267" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="131.0" y="285.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="164.0" y="267" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="193.0" y="285.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="226.0" y="267" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="285.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="267" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="285.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="16" y="314" width="12" height="12" rx="3" fill="#2f6fdf"/>
+<text x="33" y="324" font-size="11" fill="#656d76">需要</text>
+<rect x="73" y="314" width="12" height="12" rx="3" fill="#dbe7fb"/>
+<text x="90" y="324" font-size="11" fill="#656d76">建议或确认</text>
+<rect x="166" y="314" width="12" height="12" rx="3" fill="#e6e9ed"/>
+<text x="183" y="324" font-size="11" fill="#656d76">一般不涉及</text>
+<text x="16" y="346" font-size="11" fill="#656d76">面向境内公众时的通常做法，以网信部门最新要求为准</text>
+</svg>

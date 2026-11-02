@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 366" width="360" height="366" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="365" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">不同产品形态的主要手续</text>
+<text x="131.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">纯本地</text>
+<text x="131.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">App</text>
+<text x="193.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">官网</text>
+<text x="193.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">博客</text>
+<text x="255.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">SaaS</text>
+<text x="255.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">有服务端</text>
+<text x="317.0" y="66" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">SaaS</text>
+<text x="317.0" y="82" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">+AI 生成</text>
+<text x="14" y="115.5" font-size="12" fill="#1f2328">公司主体</text>
+<rect x="102.0" y="97" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="131.0" y="115.5" font-size="12" fill="#1f2328" text-anchor="middle">建议</text>
+<rect x="164.0" y="97" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="115.5" font-size="12" fill="#1f2328" text-anchor="middle">个人可</text>
+<rect x="226.0" y="97" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="115.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="97" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="115.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="149.5" font-size="12" fill="#1f2328">ICP 备案</text>
+<rect x="102.0" y="131" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="149.5" font-size="12" fill="#656d76" text-anchor="middle">不涉及</text>
+<rect x="164.0" y="131" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="193.0" y="149.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="226.0" y="131" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="149.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="131" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="149.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="183.5" font-size="12" fill="#1f2328">App 备案</text>
+<rect x="102.0" y="165" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="131.0" y="183.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="164.0" y="165" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="193.0" y="183.5" font-size="12" fill="#656d76" text-anchor="middle">不涉及</text>
+<rect x="226.0" y="165" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="183.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="165" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="183.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="217.5" font-size="12" fill="#1f2328">软件著作权</text>
+<rect x="102.0" y="199" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="131.0" y="217.5" font-size="12" fill="#1f2328" text-anchor="middle">安卓需要</text>
+<rect x="164.0" y="199" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="193.0" y="217.5" font-size="12" fill="#656d76" text-anchor="middle">可选</text>
+<rect x="226.0" y="199" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="217.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="199" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="217.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="251.5" font-size="12" fill="#1f2328">隐私政策</text>
+<rect x="102.0" y="233" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="131.0" y="251.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="164.0" y="233" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="193.0" y="251.5" font-size="12" fill="#1f2328" text-anchor="middle">收集才需</text>
+<rect x="226.0" y="233" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="255.0" y="251.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="288.0" y="233" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="251.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<text x="14" y="285.5" font-size="12" fill="#1f2328">AI 登记</text>
+<rect x="102.0" y="267" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="131.0" y="285.5" font-size="12" fill="#656d76" text-anchor="middle">不涉及</text>
+<rect x="164.0" y="267" width="58.0" height="28" rx="5" fill="#e6e9ed"/>
+<text x="193.0" y="285.5" font-size="12" fill="#656d76" text-anchor="middle">不涉及</text>
+<rect x="226.0" y="267" width="58.0" height="28" rx="5" fill="#dbe7fb"/>
+<text x="255.0" y="285.5" font-size="12" fill="#1f2328" text-anchor="middle">视功能</text>
+<rect x="288.0" y="267" width="58.0" height="28" rx="5" fill="#2f6fdf"/>
+<text x="317.0" y="285.5" font-size="12" fill="#ffffff" text-anchor="middle">需要</text>
+<rect x="16" y="314" width="12" height="12" rx="3" fill="#2f6fdf"/>
+<text x="33" y="324" font-size="11" fill="#656d76">需要</text>
+<rect x="73" y="314" width="12" height="12" rx="3" fill="#dbe7fb"/>
+<text x="90" y="324" font-size="11" fill="#656d76">视情况</text>
+<rect x="142" y="314" width="12" height="12" rx="3" fill="#e6e9ed"/>
+<text x="159" y="324" font-size="11" fill="#656d76">不涉及或可选</text>
+<text x="16" y="346" font-size="11" fill="#656d76">以上架国内安卓市场为目标的通常情况，以最新要求为准</text>
+</svg>

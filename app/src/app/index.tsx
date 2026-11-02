@@ -78,9 +78,14 @@ export default function ShelfScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={() => void pickAndImport()} hitSlop={10}>
-              <Text style={{ color: c.accent, fontSize: 16 }}>导入</Text>
-            </Pressable>
+            <View style={styles.headerButtons}>
+              <Pressable onPress={() => router.push('/transfer')} hitSlop={10}>
+                <Text style={{ color: c.accent, fontSize: 16 }}>传书</Text>
+              </Pressable>
+              <Pressable onPress={() => void pickAndImport()} hitSlop={10}>
+                <Text style={{ color: c.accent, fontSize: 16 }}>导入</Text>
+              </Pressable>
+            </View>
           ),
         }}
       />
@@ -89,7 +94,7 @@ export default function ShelfScreen() {
       {books.length === 0 && (
         <View style={styles.empty}>
           <Text style={[styles.emptyTitle, { color: c.fg }]}>书架还是空的</Text>
-          <Text style={{ color: c.muted, textAlign: 'center' }}>AirDrop 一个 .zip / .md，或点右上角「导入」</Text>
+          <Text style={{ color: c.muted, textAlign: 'center' }}>AirDrop 一个 .zip / .md，或点右上角「传书」「导入」</Text>
         </View>
       )}
 
@@ -136,6 +141,7 @@ function ContinueCard({ info, colors: c, onPress }: { info: ContinueInfo; colors
 }
 
 const styles = StyleSheet.create({
+  headerButtons: { flexDirection: 'row', gap: 18 },
   container: { padding: PAD, paddingBottom: 48, gap: 28 },
   continue: { flexDirection: 'row', gap: 16, padding: 14, borderRadius: 14, alignItems: 'center' },
   continueText: { flex: 1, gap: 4 },

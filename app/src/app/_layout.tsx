@@ -46,6 +46,7 @@ function AppStack() {
         <Stack.Screen name="index" options={{ title: '书架', headerLargeTitle: true, headerTransparent: false }} />
         <Stack.Screen name="read/[id]" options={{ title: '' }} />
         <Stack.Screen name="book/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="transfer" options={{ title: '局域网传书' }} />
       </Stack>
       <StatusBar style="auto" />
     </>

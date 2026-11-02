@@ -139,11 +139,13 @@ chapters:                     # 必填，显式排序
 |---|---|---|
 | GET | `/` | 内置的拖拽上传页面（HTML 打包在 App 内） |
 | POST | `/upload` | `multipart/form-data`，字段 `file`；请求头 `X-Pin`（浏览器页面通过表单字段传递） |
-| GET | `/books` | 返回本地已有书籍的 id、标题、更新时间（便于 CLI 判断是否需要推送） |
+| GET | `/books` | 返回本地已有书籍的 id、标题、更新时间（便于 CLI 判断是否需要推送）；同样需要 `X-Pin` |
 
 响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`
 
 **限制**：单个文件不超过 50 MB；PIN 连续错误 5 次后，本次服务失效。
+
+**实现**：HTTP 解析在 `app/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；会响应 curl 上传大文件时的 `Expect: 100-continue`。上传的文件落成临时文件后交给第 6 节的导入管线，多个上传串行导入。传书页面打开期间保持屏幕常亮，App 进入后台时关闭服务、回到前台后重新启动。
 
 ### 5.3 “文件” App 可见（可选，M4 之后）
 

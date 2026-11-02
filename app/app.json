@@ -48,7 +48,8 @@
             }
           }
         ],
-        "LSSupportsOpeningDocumentsInPlace": false
+        "LSSupportsOpeningDocumentsInPlace": false,
+        "NSLocalNetworkUsageDescription": "用于在同一 Wi-Fi 下从电脑向书架传书"
       },
       "appleTeamId": "9RHJ3C776D"
     },

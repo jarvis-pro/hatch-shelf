@@ -17752,7 +17752,7 @@
               "fill": {
                 "type": "image",
                 "enabled": true,
-                "url": "images/transfer-hero.png",
+                "url": "images/transfer-hero-base.png",
                 "mode": "cover"
               },
               "cornerRadius": 26,
@@ -18331,7 +18331,7 @@
               "fill": {
                 "type": "image",
                 "enabled": true,
-                "url": "images/transfer-hero.png",
+                "url": "images/transfer-hero-base.png",
                 "mode": "cover"
               },
               "cornerRadius": 26,
@@ -27942,7 +27942,7 @@
               "id": "rxAco",
               "name": "Notes",
               "fill": "#4B5060",
-              "content": "开启 ≈ 760ms，关闭 ≈ 640ms：退场比入场快，旧内容先走、场景再变、新内容最后进。\n离开页面或进入后台自动关闭时不播（页面已不可见），回来直接是未开启。\n系统开启「减弱动态效果」时：全部改为 200ms 交叉淡化，无位移、无数字滚动、头图高度直接跳变。",
+              "content": "开启 ≈ 760ms，关闭 ≈ 640ms：退场比入场快，旧内容先走、场景再变、新内容最后进。\n未开启时头图完全静止，两台设备之间只有一条淡淡的虚线；光带和流动只在服务运行时出现，避免误以为已开启。\n离开页面或进入后台自动关闭时不播（页面已不可见），回来直接是未开启。\n系统开启「减弱动态效果」时：全部改为 200ms 交叉淡化，无位移、无数字滚动，光带直接出现、不流动。",
               "lineHeight": 1.6,
               "textAlign": "right",
               "fontFamily": "Noto Sans SC",
@@ -28139,7 +28139,7 @@
                                       "fill": {
                                         "type": "image",
                                         "enabled": true,
-                                        "url": "images/transfer-hero.png",
+                                        "url": "images/transfer-hero-base.png",
                                         "mode": "cover"
                                       },
                                       "cornerRadius": 26,
@@ -28915,7 +28915,7 @@
                                       "fill": {
                                         "type": "image",
                                         "enabled": true,
-                                        "url": "images/transfer-hero.png",
+                                        "url": "images/transfer-hero-base.png",
                                         "mode": "cover"
                                       },
                                       "cornerRadius": 26,
@@ -30351,7 +30351,7 @@
                               "id": "jYD3u",
                               "name": "t",
                               "fill": "#FFFFFF",
-                              "content": "遮罩 1→0 · 400ms · easeOutCubic",
+                              "content": "遮罩 1→0 · 光带从左画出 · 600ms",
                               "fontFamily": "Noto Sans SC",
                               "fontSize": 11,
                               "fontWeight": "600"
@@ -30491,7 +30491,7 @@
                           "fill": "#4B5060",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "头图遮罩 opacity 1→0，光带由暗变亮；状态点灰 → 绿，外圈扩散一次后转入呼吸；页眉副标题交叉淡化，「停止」从右侧 12pt 滑入。",
+                          "content": "头图遮罩 opacity 1→0；光带从电脑画向手机（600ms，easeInOutCubic），画到六成后光点和纸页淡入开始流动；状态点灰 → 绿，外圈扩散一次；「停止」从右侧 12pt 滑入。",
                           "lineHeight": 1.6,
                           "textAlign": "center",
                           "fontFamily": "Noto Sans SC",
@@ -32144,7 +32144,7 @@
                                   "id": "Ub4OY",
                                   "name": "t",
                                   "fill": "#FFFFFF",
-                                  "content": "遮罩 1 → 0 · easeOutCubic",
+                                  "content": "遮罩褪去 · 光带从电脑画向手机",
                                   "fontFamily": "Noto Sans SC",
                                   "fontSize": 11,
                                   "fontWeight": "600"
@@ -34443,7 +34443,7 @@
                                       "fill": {
                                         "type": "image",
                                         "enabled": true,
-                                        "url": "images/transfer-hero.png",
+                                        "url": "images/transfer-hero-base.png",
                                         "mode": "cover"
                                       },
                                       "cornerRadius": 26,
@@ -34947,7 +34947,7 @@
                               "id": "QxmK3",
                               "name": "t",
                               "fill": "#FFFFFF",
-                              "content": "高度 168→200 · 遮罩 0→1 · 300ms",
+                              "content": "光带收回 · 高度 168→200 · 遮罩 0→1",
                               "fontFamily": "Noto Sans SC",
                               "fontSize": 11,
                               "fontWeight": "600"
@@ -35049,7 +35049,7 @@
                           "fill": "#4B5060",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "头图高度 168 → 200（弹簧），遮罩 opacity 0→1（300ms，easeInOutCubic）；状态点绿 → 灰并停止呼吸，文字交叉淡化为「未开启」；光带继续流动，只是被压暗。",
+                          "content": "光带收回电脑（360ms，easeInCubic），光点和纸页随之消失，换回静止的虚线；头图高度 168 → 200，遮罩 0→1；状态点绿 → 灰，文字交叉淡化为「未开启」。",
                           "lineHeight": 1.6,
                           "textAlign": "center",
                           "fontFamily": "Noto Sans SC",
@@ -35223,7 +35223,7 @@
                                       "fill": {
                                         "type": "image",
                                         "enabled": true,
-                                        "url": "images/transfer-hero.png",
+                                        "url": "images/transfer-hero-base.png",
                                         "mode": "cover"
                                       },
                                       "cornerRadius": 26,
@@ -36483,7 +36483,7 @@
                                   "id": "TzO4o",
                                   "name": "t",
                                   "fill": "#FFFFFF",
-                                  "content": "遮罩 0 → 1 · easeInOutCubic",
+                                  "content": "光带收回电脑 · 遮罩 0 → 1",
                                   "fontFamily": "Noto Sans SC",
                                   "fontSize": 11,
                                   "fontWeight": "600"

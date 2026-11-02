@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 426" width="360" height="426" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="425" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="32" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">客服工单的四层分流</text>
+<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#656d76"/></marker></defs>
+<rect x="24" y="56" width="312" height="62" rx="8" fill="#e6e9ed"/>
+<text x="40" y="81" font-size="14" font-weight="600" fill="#1f2328">L0 自助</text>
+<text x="320" y="81" font-size="12" fill="#1f2328" text-anchor="end">用户自己解决</text>
+<text x="40" y="103" font-size="12" fill="#656d76">说清后果的报错 · 文档 · 应用内帮助</text>
+<line x1="180" y1="121" x2="180" y2="135" stroke="#656d76" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="192" y="133" font-size="11" fill="#656d76">解决不了就往下一层</text>
+<rect x="24" y="140" width="312" height="62" rx="8" fill="#dbe7fb"/>
+<text x="40" y="165" font-size="14" font-weight="600" fill="#1f2328">L1 自动回复</text>
+<text x="320" y="165" font-size="12" fill="#1f2328" text-anchor="end">agent 直接发</text>
+<text x="40" y="187" font-size="12" fill="#656d76">只答 kb 里有原文的用法问题</text>
+<line x1="180" y1="205" x2="180" y2="219" stroke="#656d76" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="192" y="217" font-size="11" fill="#656d76">解决不了就往下一层</text>
+<rect x="24" y="224" width="312" height="62" rx="8" fill="#dbe7fb"/>
+<text x="40" y="249" font-size="14" font-weight="600" fill="#1f2328">L2 起草待审</text>
+<text x="320" y="249" font-size="12" fill="#1f2328" text-anchor="end">agent 起草，你批准</text>
+<text x="40" y="271" font-size="12" fill="#656d76">故障、建议、一般咨询</text>
+<line x1="180" y1="289" x2="180" y2="303" stroke="#656d76" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="192" y="301" font-size="11" fill="#656d76">解决不了就往下一层</text>
+<rect x="24" y="308" width="312" height="62" rx="8" fill="#2f6fdf"/>
+<text x="40" y="333" font-size="14" font-weight="600" fill="#ffffff">L3 人来处理</text>
+<text x="320" y="333" font-size="12" fill="#ffffff" text-anchor="end">agent 只做摘要</text>
+<text x="40" y="355" font-size="12" fill="#ffffff">退款 · 投诉 · 法务 · 安全 · 个人信息</text>
+<text x="180" y="396" font-size="11" fill="#656d76" text-anchor="middle">越往下越贵、越慢，但越不能出错</text>
+<text x="180" y="414" font-size="11" fill="#656d76" text-anchor="middle">把工单往上层挪，是客服岗最主要的优化方向</text>
+</svg>

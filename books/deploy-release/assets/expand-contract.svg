@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 334" width="360" height="334" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="333" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">把 name 改名为 display_name</text>
+<text x="20" y="66" font-size="12" fill="#656d76" text-anchor="start" font-weight="600">发版</text>
+<text x="78" y="66" font-size="12" fill="#656d76" text-anchor="start" font-weight="600">迁移</text>
+<text x="168" y="66" font-size="12" fill="#656d76" text-anchor="start" font-weight="600">代码写</text>
+<text x="258" y="66" font-size="12" fill="#656d76" text-anchor="start" font-weight="600">代码读</text>
+<line x1="16" y1="76" x2="344" y2="76" stroke="#d8dee4"/>
+<text x="20" y="105" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">起点</text>
+<rect x="74" y="84" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="80" y="105" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">—</text>
+<rect x="164" y="84" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="170" y="105" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">name</text>
+<rect x="254" y="84" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="260" y="105" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">name</text>
+<text x="20" y="145" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">第 1 版</text>
+<rect x="74" y="124" width="86" height="32" rx="4" fill="#dbe7fb"/>
+<text x="80" y="145" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">加新列</text>
+<rect x="164" y="124" width="86" height="32" rx="4" fill="#dbe7fb"/>
+<text x="170" y="145" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">两列都写</text>
+<rect x="254" y="124" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="260" y="145" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">name</text>
+<text x="20" y="185" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">第 2 版</text>
+<rect x="74" y="164" width="86" height="32" rx="4" fill="#dbe7fb"/>
+<text x="80" y="185" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">回填新列</text>
+<rect x="164" y="164" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="170" y="185" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">两列都写</text>
+<rect x="254" y="164" width="86" height="32" rx="4" fill="#dbe7fb"/>
+<text x="260" y="185" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">display_name</text>
+<text x="20" y="225" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">第 3 版</text>
+<rect x="74" y="204" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="80" y="225" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">—</text>
+<rect x="164" y="204" width="86" height="32" rx="4" fill="#dbe7fb"/>
+<text x="170" y="225" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">display_name</text>
+<rect x="254" y="204" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="260" y="225" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">display_name</text>
+<text x="20" y="265" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">第 4 版</text>
+<rect x="74" y="244" width="86" height="32" rx="4" fill="#dbe7fb"/>
+<text x="80" y="265" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">删 name 列</text>
+<rect x="164" y="244" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="170" y="265" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">display_name</text>
+<rect x="254" y="244" width="86" height="32" rx="4" fill="#f6f8fa"/>
+<text x="260" y="265" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">display_name</text>
+<text x="180" y="296" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">蓝底是这一版的变化。每一版的代码都能在</text>
+<text x="180" y="314" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">上一版的库结构上跑，回滚一版也不出错</text>
+</svg>

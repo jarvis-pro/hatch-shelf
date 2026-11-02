@@ -1,0 +1,17 @@
+id: deploy-release
+title: 部署与 CI/CD
+subtitle: 一个人把代码稳稳送上线：脚本、密钥、零停机、流水线与回滚
+category: ops/deploy
+tags: [deploy, ci-cd, github-actions, release, docker]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-vps-setup.md
+  - 02-deploy-scripts.md
+  - 03-env-secrets.md
+  - 04-zero-downtime.md
+  - 05-ci-cd.md
+  - 06-versioning-changelog.md
+  - 07-rollback.md
+  - 08-mobile-desktop-release.md

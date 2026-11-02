@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="306" viewBox="0 0 360 306" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="305" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="20" y="30" font-size="15" font-weight="600" fill="#1f2328">每月新增 8 家付费要触达多少家</text>
+<text x="20" y="48" font-size="12" fill="#656d76">按四个假设转化率倒推，单位：家/月</text>
+<text x="20" y="84" font-size="13" fill="#1f2328">触达</text>
+<rect x="88" y="68" width="200.0" height="24" rx="4" fill="#dbe7fb"/>
+<text x="296.0" y="85" font-size="13" font-weight="600" fill="#1f2328">180</text>
+<text x="20" y="124" font-size="13" fill="#1f2328">需求发现</text>
+<rect x="88" y="108" width="60.0" height="24" rx="4" fill="#dbe7fb"/>
+<text x="156.0" y="125" font-size="13" font-weight="600" fill="#1f2328">54</text>
+<text x="340" y="125" font-size="12" fill="#656d76" text-anchor="end">×30%</text>
+<text x="20" y="164" font-size="13" fill="#1f2328">演示</text>
+<rect x="88" y="148" width="30.0" height="24" rx="4" fill="#dbe7fb"/>
+<text x="126.0" y="165" font-size="13" font-weight="600" fill="#1f2328">27</text>
+<text x="340" y="165" font-size="12" fill="#656d76" text-anchor="end">×50%</text>
+<text x="20" y="204" font-size="13" fill="#1f2328">开试用</text>
+<rect x="88" y="188" width="17.8" height="24" rx="4" fill="#dbe7fb"/>
+<text x="113.8" y="205" font-size="13" font-weight="600" fill="#1f2328">16</text>
+<text x="340" y="205" font-size="12" fill="#656d76" text-anchor="end">×60%</text>
+<text x="20" y="244" font-size="13" fill="#1f2328">付费</text>
+<rect x="88" y="228" width="8.9" height="24" rx="4" fill="#2f6fdf"/>
+<text x="104.9" y="245" font-size="13" font-weight="600" fill="#1f2328">8</text>
+<text x="340" y="245" font-size="12" fill="#656d76" text-anchor="end">×50%</text>
+<text x="20" y="276" font-size="12" fill="#656d76">右侧为上一级到本级的转化率（假设值）</text>
+<text x="20" y="294" font-size="12" fill="#656d76">16.2 家试用按 16 家显示，付费 8.1 家按 8 家显示</text>
+</svg>

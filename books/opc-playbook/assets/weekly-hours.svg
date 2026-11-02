@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 288" width="360" height="288" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="287" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600" >每周时间怎么分（一种建议）</text>
+<text x="24" y="62" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600" >副业期 · 20 小时</text>
+<rect x="24.0" y="72" width="69.3" height="30" fill="#2f6fdf" stroke="#d8dee4"/>
+<text x="58.66666666666667" y="92" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600" >10</text>
+<rect x="93.3" y="72" width="41.6" height="30" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="114.13333333333334" y="92" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600" >6</text>
+<rect x="134.9" y="72" width="13.9" height="30" fill="#e6e9ed" stroke="#d8dee4"/>
+<rect x="148.8" y="72" width="13.9" height="30" fill="#ffffff" stroke="#d8dee4"/>
+<text x="24" y="140" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600" >全职期 · 45 小时</text>
+<rect x="24.0" y="150" width="124.8" height="30" fill="#2f6fdf" stroke="#d8dee4"/>
+<text x="86.4" y="170" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600" >18</text>
+<rect x="148.8" y="150" width="104.0" height="30" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="200.8" y="170" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600" >15</text>
+<rect x="252.8" y="150" width="48.5" height="30" fill="#e6e9ed" stroke="#d8dee4"/>
+<text x="277.06666666666666" y="170" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600" >7</text>
+<rect x="301.3" y="150" width="34.7" height="30" fill="#ffffff" stroke="#d8dee4"/>
+<text x="318.6666666666667" y="170" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600" >5</text>
+<text x="24" y="200" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal" >数字为小时。副业期按工作日晚上各 2 小时、</text>
+<text x="24" y="216" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal" >周末两天各 5 小时估算</text>
+<rect x="24" y="234" width="12" height="12" rx="2" fill="#2f6fdf" stroke="#d8dee4"/>
+<text x="42" y="244" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal" >构建产品</text>
+<rect x="184" y="234" width="12" height="12" rx="2" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="202" y="244" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal" >获客与内容</text>
+<rect x="24" y="256" width="12" height="12" rx="2" fill="#e6e9ed" stroke="#d8dee4"/>
+<text x="42" y="266" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal" >客服运营</text>
+<rect x="184" y="256" width="12" height="12" rx="2" fill="#ffffff" stroke="#d8dee4"/>
+<text x="202" y="266" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal" >复盘学习</text>
+</svg>

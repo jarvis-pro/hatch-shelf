@@ -1,0 +1,16 @@
+id: cloud-and-edge
+title: 云与边缘
+subtitle: 从 VPS 选型到 Cloudflare Workers + R2，一个人的云上架构与账单
+category: ops/cloud
+tags: [cloud, cloudflare, serverless, object-storage, cost]
+level: advanced
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-choosing.md
+  - 02-china-vs-overseas.md
+  - 03-object-storage.md
+  - 04-workers-runtime.md
+  - 05-storage-primitives.md
+  - 06-wrangler-deploy.md
+  - 07-cost-model.md

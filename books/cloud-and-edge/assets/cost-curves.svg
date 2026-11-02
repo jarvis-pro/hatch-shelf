@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 348" width="360" height="348" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="347" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">月成本随流量的变化（示意）</text>
+<line x1="50" y1="230" x2="335" y2="230" stroke="#656d76"/>
+<line x1="50" y1="230" x2="50" y2="55" stroke="#656d76"/>
+<text x="192.5" y="252" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">请求量 →</text>
+<text x="22" y="142.5" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 22 142.5)">月成本 →</text>
+<path d="M50.0,186.2 L164.0,186.2 L164.0,142.5 L278.0,142.5 L278.0,98.8 L335.0,98.8" fill="none" stroke="#656d76" stroke-width="2.5"/>
+<path d="M50.0,230.0 L78.5,230.0 L335.0,72.5" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<circle cx="149.8" cy="186.2" r="4" fill="#ffffff" stroke="#1f2328" stroke-width="1.5"/>
+<text x="145.75" y="176.25" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">交点</text>
+<text x="52.0" y="246.0" font-size="11" fill="#2f6fdf" text-anchor="start" font-weight="normal">免费额度</text>
+<line x1="60" y1="278" x2="84" y2="278" stroke="#656d76" stroke-width="2.5"/>
+<text x="90" y="282" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">VPS：按台计费，阶梯</text>
+<line x1="60" y1="300" x2="84" y2="300" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="90" y="304" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">Serverless：按量计费，斜线</text>
+<text x="180" y="330" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">示意图，不代表任何厂商的实际价格</text>
+</svg>

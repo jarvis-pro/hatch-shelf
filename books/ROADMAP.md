@@ -87,27 +87,27 @@
 
 ### 10. Linux 系统与命令行 `linux-essentials`
 
-- 入门→中级 · `ops/linux` · 状态：未写
+- 入门→中级 · `ops/linux` · 状态：已完成
 - 章节：Shell 与常用命令 · 文件系统与权限 · 进程、信号与资源 · systemd 与服务管理 · journald 与日志 · 包管理 · 磁盘与挂载 · Shell 脚本 · 排障工具箱
 
 ### 11. 计算机网络 `networking`
 
-- 入门→中级 · `ops/network` · 状态：未写
+- 入门→中级 · `ops/network` · 状态：已完成
 - 章节：分层模型 · TCP 与 UDP · DNS 全链路 · HTTP/1.1 → 2 → 3 · TLS 与证书 · CDN · NAT、防火墙与端口 · 局域网与 mDNS · 排障（dig / curl / mtr / tcpdump）
 
 ### 12. 容器技术 `docker-containers`
 
-- 中级 · `ops/container` · 状态：未写
+- 中级 · `ops/container` · 状态：已完成
 - 章节：容器原理（namespace / cgroup / 联合文件系统） · 镜像与分层 · Dockerfile 最佳实践 · 多阶段构建与瘦身 · 网络与存储卷 · Compose 编排 · 镜像仓库 · 容器安全
 
 ### 13. Nginx 与反向代理 `nginx-gateway`
 
-- 中级 · `ops/network` · 状态：未写
+- 中级 · `ops/network` · 状态：已完成
 - 章节：配置模型与 location 匹配 · 反向代理与负载均衡 · HTTPS 与 ACME 自动续期 · 静态资源与缓存 · 限流与防刷 · WebSocket / SSE 代理 · 日志与排障 · Caddy 等替代品
 
 ### 14. 部署与 CI/CD `deploy-release`
 
-- 中级 · `ops/deploy` · 状态：未写
+- 中级 · `ops/deploy` · 状态：已完成
 - 章节：VPS 选型与初始化 · 部署脚本 · 环境变量与密钥 · 零停机发布 · CI/CD（GitHub Actions） · 版本号与 changelog · 回滚 · 移动端与桌面端的发版
 
 ### 15. Kubernetes 入门到实战 `kubernetes`
@@ -172,7 +172,7 @@
 
 ### 26. 大模型应用工程 `llm-app-engineering`
 
-- 中级 · `ai/app` · 状态：未写
+- 中级 · `ai/app` · 状态：已完成
 - 章节：模型 API 与参数 · Prompt 工程 · 结构化输出 · 工具调用 · 流式输出 · Prompt 缓存 · 成本与延迟 · 模型选型 · 错误与重试
 
 ### 27. 多模态应用 `multimodal-ai`
@@ -206,7 +206,7 @@
 
 ### 32. Agent 原理与设计 `agent-principles`
 
-- 中级→进阶 · `ai/agent` · 状态：未写
+- 中级→进阶 · `ai/agent` · 状态：已完成
 - 章节：什么是 Agent · agent loop · 工具与行动 · 规划与反思 · 记忆 · 上下文工程概览 · 多 agent 概览 · MCP 与 Skills · 沙箱与权限 · 常见失败模式
 
 ### 33. 上下文工程 `context-engineering`
@@ -236,12 +236,12 @@
 
 ### 38. 编码 Agent 实战 `coding-agents`
 
-- 中级 · `ai/agent` · 状态：未写
+- 中级 · `ai/agent` · 状态：已完成
 - 章节：编码 agent 怎么工作 · CLAUDE.md / AGENTS.md 怎么写 · rules 与按路径加载 · hooks · 子 agent 与并行 · 用 agent 管理 monorepo · 代码评审与测试 · 常见坑
 
 ### 39. 个人 Agent 工作流 `personal-agent-workflow`
 
-- 中级 · `ai/agent` · 状态：未写
+- 中级 · `ai/agent` · 状态：已完成
 - 章节：把工作拆成 agent 能接的活 · 日常自动化 · 个人知识库 · 定时任务 · 让 agent 写书 · 让 agent 做运维 · 工作流的迭代
 
 ### 40. AI 认知进阶 `ai-cognition`
@@ -255,7 +255,7 @@
 
 ### 41. 一人公司方法论 `opc-playbook`
 
-- 入门 · `opc/business` · 状态：未写
+- 入门 · `opc/business` · 状态：已完成
 - 章节：什么是 OPC · 选方向 · 快速验证 · 从副业到全职 · 精力与节奏 · 什么时候该放弃 · 案例拆解
 
 ### 42. 产品思维 `product-thinking`

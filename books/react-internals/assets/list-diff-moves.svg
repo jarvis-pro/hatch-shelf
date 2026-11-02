@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 364" width="360" height="364" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="363" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">列表重排：移动了哪些节点</text>
+<text x="24" y="56" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">把 D 移到最前</text>
+<text x="336" y="56" font-size="12" fill="#2f6fdf" text-anchor="end" font-weight="600">移动 3 个节点</text>
+<text x="72" y="97" font-size="13" fill="#656d76" text-anchor="end" font-weight="normal">旧</text>
+<rect x="96" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="119.0" y="96" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">A</text>
+<rect x="154" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="177.0" y="96" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">B</text>
+<rect x="212" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="235.0" y="96" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">C</text>
+<rect x="270" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="293.0" y="96" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">D</text>
+<text x="72" y="149" font-size="13" fill="#656d76" text-anchor="end" font-weight="normal">新</text>
+<rect x="96" y="122" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="119.0" y="148" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">D</text>
+<rect x="154" y="122" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="177.0" y="148" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">A</text>
+<rect x="212" y="122" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="235.0" y="148" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">B</text>
+<rect x="270" y="122" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="293.0" y="148" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">C</text>
+<text x="24" y="204" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">把 A 移到最后</text>
+<text x="336" y="204" font-size="12" fill="#2f6fdf" text-anchor="end" font-weight="600">移动 1 个节点</text>
+<text x="72" y="245" font-size="13" fill="#656d76" text-anchor="end" font-weight="normal">旧</text>
+<rect x="96" y="218" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="119.0" y="244" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">A</text>
+<rect x="154" y="218" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="177.0" y="244" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">B</text>
+<rect x="212" y="218" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="235.0" y="244" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">C</text>
+<rect x="270" y="218" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="293.0" y="244" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">D</text>
+<text x="72" y="297" font-size="13" fill="#656d76" text-anchor="end" font-weight="normal">新</text>
+<rect x="96" y="270" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="119.0" y="296" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">B</text>
+<rect x="154" y="270" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="177.0" y="296" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">C</text>
+<rect x="212" y="270" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="235.0" y="296" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">D</text>
+<rect x="270" y="270" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="293.0" y="296" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">A</text>
+<rect x="60" y="330" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="80" y="342" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">标记为移动</text>
+<rect x="180" y="330" width="14" height="14" rx="3" fill="#dbe7fb"/>
+<text x="200" y="342" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">原地复用</text>
+</svg>

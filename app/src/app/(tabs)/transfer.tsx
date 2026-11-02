@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, AppState, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, type BookRow } from '@/db/queries';
 import type { ImportResult } from '@/import/pipeline';
@@ -30,9 +30,8 @@ import { Glass, GlassPill, PrimaryButton } from '@/ui/glass';
 import { FadeInUp, isReduceMotion, ProgressBar } from '@/ui/motion';
 import { PageHeader } from '@/ui/PageHeader';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
-import { FILL_IMAGE, MONO, useTheme, type Theme } from '@/ui/theme';
-
-const HERO = require('../../../assets/images/transfer-hero.jpg');
+import { TransferArt } from '@/ui/TransferArt';
+import { MONO, useTheme, type Theme } from '@/ui/theme';
 
 type Status = 'off' | 'starting' | 'running' | 'locked' | { error: string };
 type Received = ImportResult & { at: number; book?: BookRow | null };
@@ -252,7 +251,7 @@ function Hero({ status, compact }: { status: Status; compact: boolean }) {
   return (
     <FadeInUp>
       <View style={[styles.hero, { height: compact ? 168 : 200, borderColor: t.glassStroke }]}>
-        <Image source={HERO} style={FILL_IMAGE} resizeMode="cover" />
+        <TransferArt />
         {status !== 'running' && <View style={[StyleSheet.absoluteFill, { backgroundColor: `${t.bg}66` }]} />}
         <Glass radius={16} shadow={false} strong style={styles.status}>
           <Pulse color={dot} live={status === 'running'} />

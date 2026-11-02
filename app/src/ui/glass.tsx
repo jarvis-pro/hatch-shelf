@@ -144,10 +144,19 @@ export function Segmented<T extends string>({
 
 export function Toggle({ value, onChange }: { value: boolean; onChange(v: boolean): void }) {
   const t = useTheme();
-  return <Switch value={value} onValueChange={onChange} trackColor={{ true: t.accent, false: t.track }} />;
+  // RN 的 iOS Switch 默认 alignSelf: 'flex-start'，会盖掉父级的 alignItems: 'center'
+  return (
+    <Switch
+      value={value}
+      onValueChange={onChange}
+      trackColor={{ true: t.accent, false: t.track }}
+      style={styles.toggle}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
+  toggle: { alignSelf: 'center' },
   btn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   pill: { height: 40, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14 },
   primaryShadow: { shadowOpacity: 0.3, shadowRadius: 12, shadowOffset: { width: 0, height: 12 }, borderRadius: 27 },

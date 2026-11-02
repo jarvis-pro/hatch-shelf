@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 310" width="360" height="310" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="309" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">重连退避：每次等多久</text>
+<line x1="48" y1="236.0" x2="340" y2="236.0" stroke="#d8dee4"/>
+<text x="42" y="240.0" font-size="11" fill="#656d76" text-anchor="end">0s</text>
+<line x1="48" y1="191.5" x2="340" y2="191.5" stroke="#d8dee4"/>
+<text x="42" y="195.5" font-size="11" fill="#656d76" text-anchor="end">10s</text>
+<line x1="48" y1="147.0" x2="340" y2="147.0" stroke="#d8dee4"/>
+<text x="42" y="151.0" font-size="11" fill="#656d76" text-anchor="end">20s</text>
+<line x1="48" y1="102.5" x2="340" y2="102.5" stroke="#d8dee4"/>
+<text x="42" y="106.5" font-size="11" fill="#656d76" text-anchor="end">30s</text>
+<rect x="59.3" y="231.6" width="26" height="4.4" fill="#2f6fdf"/>
+<line x1="72.3" y1="232.7" x2="72.3" y2="230.4" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="67.3" y1="232.7" x2="77.3" y2="232.7" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="67.3" y1="230.4" x2="77.3" y2="230.4" stroke="#1f2328" stroke-width="1.2"/>
+<text x="72.3" y="224.4" font-size="12" fill="#1f2328" text-anchor="middle">1s</text>
+<text x="72.3" y="252" font-size="12" fill="#656d76" text-anchor="middle">第1次</text>
+<text x="72.3" y="267" font-size="11" fill="#656d76" text-anchor="middle">累计1s</text>
+<rect x="108.0" y="227.1" width="26" height="8.9" fill="#2f6fdf"/>
+<line x1="121.0" y1="229.3" x2="121.0" y2="224.9" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="116.0" y1="229.3" x2="126.0" y2="229.3" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="116.0" y1="224.9" x2="126.0" y2="224.9" stroke="#1f2328" stroke-width="1.2"/>
+<text x="121.0" y="218.9" font-size="12" fill="#1f2328" text-anchor="middle">2s</text>
+<text x="121.0" y="252" font-size="12" fill="#656d76" text-anchor="middle">第2次</text>
+<text x="121.0" y="267" font-size="11" fill="#656d76" text-anchor="middle">累计3s</text>
+<rect x="156.7" y="218.2" width="26" height="17.8" fill="#2f6fdf"/>
+<line x1="169.7" y1="222.7" x2="169.7" y2="213.8" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="164.7" y1="222.7" x2="174.7" y2="222.7" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="164.7" y1="213.8" x2="174.7" y2="213.8" stroke="#1f2328" stroke-width="1.2"/>
+<text x="169.7" y="207.8" font-size="12" fill="#1f2328" text-anchor="middle">4s</text>
+<text x="169.7" y="252" font-size="12" fill="#656d76" text-anchor="middle">第3次</text>
+<text x="169.7" y="267" font-size="11" fill="#656d76" text-anchor="middle">累计7s</text>
+<rect x="205.3" y="200.4" width="26" height="35.6" fill="#2f6fdf"/>
+<line x1="218.3" y1="209.3" x2="218.3" y2="191.5" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="213.3" y1="209.3" x2="223.3" y2="209.3" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="213.3" y1="191.5" x2="223.3" y2="191.5" stroke="#1f2328" stroke-width="1.2"/>
+<text x="218.3" y="185.5" font-size="12" fill="#1f2328" text-anchor="middle">8s</text>
+<text x="218.3" y="252" font-size="12" fill="#656d76" text-anchor="middle">第4次</text>
+<text x="218.3" y="267" font-size="11" fill="#656d76" text-anchor="middle">累计15s</text>
+<rect x="254.0" y="169.2" width="26" height="66.8" fill="#2f6fdf"/>
+<line x1="267.0" y1="185.9" x2="267.0" y2="152.6" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="262.0" y1="185.9" x2="272.0" y2="185.9" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="262.0" y1="152.6" x2="272.0" y2="152.6" stroke="#1f2328" stroke-width="1.2"/>
+<text x="267.0" y="146.6" font-size="12" fill="#1f2328" text-anchor="middle">15s</text>
+<text x="267.0" y="252" font-size="12" fill="#656d76" text-anchor="middle">第5次</text>
+<text x="267.0" y="267" font-size="11" fill="#656d76" text-anchor="middle">累计30s</text>
+<rect x="302.7" y="102.5" width="26" height="133.5" fill="#2f6fdf"/>
+<line x1="315.7" y1="135.9" x2="315.7" y2="69.1" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="310.7" y1="135.9" x2="320.7" y2="135.9" stroke="#1f2328" stroke-width="1.2"/>
+<line x1="310.7" y1="69.1" x2="320.7" y2="69.1" stroke="#1f2328" stroke-width="1.2"/>
+<text x="315.7" y="63.1" font-size="12" fill="#1f2328" text-anchor="middle">30s</text>
+<text x="315.7" y="252" font-size="12" fill="#656d76" text-anchor="middle">第6次</text>
+<text x="315.7" y="267" font-size="11" fill="#656d76" text-anchor="middle">累计60s</text>
+<line x1="48" y1="236" x2="340" y2="236" stroke="#656d76"/>
+<rect x="60" y="284" width="12" height="10" fill="#2f6fdf"/><text x="78" y="293" font-size="11" fill="#656d76">基准等待</text>
+<line x1="150" y1="289" x2="166" y2="289" stroke="#1f2328" stroke-width="1.2"/><text x="172" y="293" font-size="11" fill="#656d76">抖动范围示例（±25%）</text>
+</svg>

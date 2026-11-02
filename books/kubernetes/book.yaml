@@ -1,0 +1,17 @@
+id: kubernetes
+title: Kubernetes 入门到实战
+subtitle: 把一套 Compose 部署迁到 k3s 单机集群，再想清楚值不值
+category: ops/container
+tags: [kubernetes, k3s, helm, devops]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-why-kubernetes.md
+  - 02-core-objects.md
+  - 03-config-secrets.md
+  - 04-networking-ingress.md
+  - 05-storage.md
+  - 06-helm.md
+  - 07-k3s-cluster.md
+  - 08-when-not-k8s.md

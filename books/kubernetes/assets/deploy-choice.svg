@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="360" height="380" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="379" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">部署方式怎么选（示意）</text>
+<rect x="57.0" y="55.0" width="137.0" height="119.0" rx="8" fill="#e6e9ed"/>
+<text x="125.5" y="110.5" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">多机 Compose</text>
+<text x="125.5" y="130.5" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">或托管服务</text>
+<rect x="200.0" y="55.0" width="137.0" height="119.0" rx="8" fill="#dbe7fb"/>
+<text x="268.5" y="110.5" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">托管 K8s</text>
+<text x="268.5" y="130.5" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">有人一起运维</text>
+<rect x="57.0" y="180.0" width="137.0" height="119.0" rx="8" fill="#2f6fdf"/>
+<text x="125.5" y="235.5" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">单机 Compose</text>
+<text x="125.5" y="255.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">+ 脚本 + 备份</text>
+<rect x="200.0" y="180.0" width="137.0" height="119.0" rx="8" fill="#dbe7fb"/>
+<text x="268.5" y="235.5" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">k3s 单机</text>
+<text x="268.5" y="255.5" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">为了学或生态</text>
+<line x1="54" y1="302" x2="340" y2="302" stroke="#656d76"/>
+<line x1="54" y1="52" x2="54" y2="302" stroke="#656d76"/>
+<text x="197.0" y="324" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">服务数量与发布频率 →</text>
+<text x="30" y="177.0" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 30 177.0)">可用性要求 →</text>
+<rect x="24" y="344" width="16" height="14" rx="3" fill="#2f6fdf"/>
+<text x="46" y="356" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">多数一人公司起步所在的格子</text>
+</svg>

@@ -1,0 +1,16 @@
+id: multimodal-ai
+title: 多模态应用
+subtitle: 图像、版面、文档、语音与图像生成的工程实践
+category: ai/app
+tags: [multimodal, vision, ocr, speech, image-generation]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-vision-models.md
+  - 02-image-preprocessing.md
+  - 03-receipt-ocr.md
+  - 04-document-understanding.md
+  - 05-speech.md
+  - 06-image-generation.md
+  - 07-multimodal-prompting.md

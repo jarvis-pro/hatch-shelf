@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 312" width="360" height="312" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="311" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">一张图怎样变成一串 token</text>
+<rect x="40" y="56" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="70" y="56" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="100" y="56" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="130" y="56" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="40" y="86" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="70" y="86" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="100" y="86" width="28" height="28" rx="3" fill="#2f6fdf"/>
+<rect x="130" y="86" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="40" y="116" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="70" y="116" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="100" y="116" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="130" y="116" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="40" y="146" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="70" y="146" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<rect x="100" y="146" width="28" height="28" rx="3" fill="#e6e9ed"/>
+<rect x="130" y="146" width="28" height="28" rx="3" fill="#dbe7fb"/>
+<text x="99" y="194" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">原图切成 4×4 个小块</text>
+<line x1="180" y1="116" x2="215" y2="116" stroke="#656d76" stroke-width="1.5"/>
+<path d="M215 111 L223 116 L215 121 Z" fill="#656d76"/>
+<text x="201" y="104" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">编码</text>
+<rect x="240" y="76" width="90" height="80" rx="8" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="285" y="112" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">视觉编码器</text>
+<text x="285" y="130" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">+ 投影层</text>
+<text x="180" y="230" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">每块变成一个向量，和文字 token 排在一起</text>
+<rect x="41.0" y="238" width="24" height="26" rx="4" fill="#dbe7fb"/>
+<text x="53.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">图</text>
+<rect x="69.0" y="238" width="24" height="26" rx="4" fill="#2f6fdf"/>
+<text x="81.0" y="256" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="normal">图</text>
+<rect x="97.0" y="238" width="24" height="26" rx="4" fill="#dbe7fb"/>
+<text x="109.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">图</text>
+<rect x="125.0" y="238" width="24" height="26" rx="4" fill="#dbe7fb"/>
+<text x="137.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">…</text>
+<rect x="153.0" y="238" width="24" height="26" rx="4" fill="#dbe7fb"/>
+<text x="165.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">图</text>
+<rect x="181.0" y="238" width="24" height="26" rx="4" fill="#e6e9ed"/>
+<text x="193.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">请</text>
+<rect x="209.0" y="238" width="24" height="26" rx="4" fill="#e6e9ed"/>
+<text x="221.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">读</text>
+<rect x="237.0" y="238" width="24" height="26" rx="4" fill="#e6e9ed"/>
+<text x="249.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">出</text>
+<rect x="265.0" y="238" width="24" height="26" rx="4" fill="#e6e9ed"/>
+<text x="277.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">表</text>
+<rect x="293.0" y="238" width="24" height="26" rx="4" fill="#e6e9ed"/>
+<text x="305.0" y="256" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">格</text>
+<text x="180" y="292" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">深色那块对应左图里的深色小块</text>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" width="360" height="260" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="259" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">文字块按纵向重叠聚成行</text>
+<rect x="16" y="58" width="332" height="32" rx="6" fill="#dbe7fb"/>
+<rect x="16" y="106" width="332" height="33" rx="6" fill="#e6e9ed"/>
+<rect x="16" y="158" width="332" height="32" rx="6" fill="#dbe7fb"/>
+<rect x="24" y="62" width="60" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="54.0" y="78" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">土豆</text>
+<rect x="118" y="66" width="34" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="135.0" y="82" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">斤</text>
+<rect x="178" y="60" width="34" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="195.0" y="76" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">20</text>
+<rect x="236" y="64" width="40" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="256.0" y="80" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">2.1</text>
+<rect x="296" y="61" width="40" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="316.0" y="77" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">42</text>
+<rect x="24" y="112" width="60" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="54.0" y="128" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">青椒</text>
+<rect x="118" y="108" width="34" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="135.0" y="124" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">斤</text>
+<rect x="178" y="114" width="34" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="195.0" y="130" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">26</text>
+<rect x="236" y="110" width="40" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="256.0" y="126" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">3.8</text>
+<rect x="296" y="115" width="46" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="319.0" y="131" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">98.8</text>
+<rect x="24" y="162" width="60" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="54.0" y="178" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">蒜苗</text>
+<rect x="118" y="166" width="34" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="135.0" y="182" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">斤</text>
+<rect x="178" y="160" width="34" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="195.0" y="176" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">31</text>
+<rect x="236" y="163" width="40" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="256.0" y="179" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">7.1</text>
+<rect x="290" y="166" width="52" height="22" rx="3" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="316.0" y="182" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">220.1</text>
+<text x="180" y="218" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">每块带坐标；中线落进同一条带的算一行</text>
+<text x="180" y="238" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">行内再按横坐标从左到右拼起来</text>
+</svg>

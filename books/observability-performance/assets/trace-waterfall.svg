@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 356" width="360" height="356" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="355" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">一次请求的 trace 瀑布图</text>
+<line x1="20.0" y1="56" x2="20.0" y2="286" stroke="#d8dee4"/>
+<text x="20.0" y="302" font-size="11" fill="#656d76" text-anchor="middle">0 s</text>
+<line x1="123.2" y1="56" x2="123.2" y2="286" stroke="#d8dee4"/>
+<text x="123.2" y="302" font-size="11" fill="#656d76" text-anchor="middle">2 s</text>
+<line x1="226.5" y1="56" x2="226.5" y2="286" stroke="#d8dee4"/>
+<text x="226.5" y="302" font-size="11" fill="#656d76" text-anchor="middle">4 s</text>
+<line x1="329.7" y1="56" x2="329.7" y2="286" stroke="#d8dee4"/>
+<text x="329.7" y="302" font-size="11" fill="#656d76" text-anchor="middle">6 s</text>
+<text x="20" y="71" font-size="12" fill="#1f2328">POST /v1/purchases/scan<tspan fill="#656d76">  6200 ms</tspan></text>
+<rect x="20.0" y="78" width="320.0" height="14" rx="3" fill="#2f6fdf"/>
+<text x="32" y="117" font-size="12" fill="#1f2328">鉴权与查门店<tspan fill="#656d76">  40 ms</tspan></text>
+<rect x="20.0" y="124" width="3.0" height="14" rx="3" fill="#e6e9ed"/>
+<text x="32" y="163" font-size="12" fill="#1f2328">存图到对象存储<tspan fill="#656d76">  340 ms</tspan></text>
+<rect x="22.1" y="170" width="17.5" height="14" rx="3" fill="#e6e9ed"/>
+<text x="32" y="209" font-size="12" fill="#1f2328">调视觉模型<tspan fill="#656d76">  5520 ms</tspan></text>
+<rect x="39.6" y="216" width="284.9" height="14" rx="3" fill="#2f6fdf"/>
+<text x="32" y="255" font-size="12" fill="#1f2328">写进货单（事务）<tspan fill="#656d76">  250 ms</tspan></text>
+<rect x="324.5" y="262" width="12.9" height="14" rx="3" fill="#e6e9ed"/>
+<text x="20" y="326" font-size="12" fill="#656d76">缩进表示父子关系；深色是根 span 和最耗时的一段</text>
+<text x="20" y="344" font-size="12" fill="#656d76">数字为示意，用来说明怎么读图</text>
+</svg>

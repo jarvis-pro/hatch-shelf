@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 302" width="360" height="302" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="301" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">数据库实际连接数</text>
+<text x="180" y="50" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">每个 api 实例的连接池 max = 10</text>
+<line x1="50" y1="230.0" x2="344" y2="230.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="46" y="234.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">0</text>
+<line x1="50" y1="168.5" x2="344" y2="168.5" stroke="#d8dee4" stroke-width="1"/>
+<text x="46" y="172.46153846153845" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">50</text>
+<line x1="50" y1="106.9" x2="344" y2="106.9" stroke="#d8dee4" stroke-width="1"/>
+<text x="46" y="110.92307692307692" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">100</text>
+<line x1="50" y1="106.9" x2="344" y2="106.9" stroke="#1f2328" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="60" y="100.92307692307692" font-size="11" fill="#1f2328" text-anchor="start" font-weight="600">max_connections = 100</text>
+<rect x="66" y="217.7" width="24" height="12.3" rx="3" fill="#2f6fdf"/>
+<text x="78.0" y="213.69230769230768" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">10</text>
+<rect x="94" y="205.4" width="24" height="24.6" rx="3" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="106.0" y="201.3846153846154" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<text x="92" y="248" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">1 个实例</text>
+<rect x="138" y="193.1" width="24" height="36.9" rx="3" fill="#2f6fdf"/>
+<text x="150.0" y="189.07692307692307" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">30</text>
+<rect x="166" y="205.4" width="24" height="24.6" rx="3" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="178.0" y="201.3846153846154" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<text x="164" y="248" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">3 个实例</text>
+<rect x="210" y="156.2" width="24" height="73.8" rx="3" fill="#2f6fdf"/>
+<text x="222.0" y="152.15384615384613" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">60</text>
+<rect x="238" y="205.4" width="24" height="24.6" rx="3" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="250.0" y="201.3846153846154" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<text x="236" y="248" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">6 个实例</text>
+<rect x="282" y="82.3" width="24" height="147.7" rx="3" fill="#2f6fdf"/>
+<text x="294.0" y="78.30769230769229" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">120</text>
+<rect x="310" y="205.4" width="24" height="24.6" rx="3" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="322.0" y="201.3846153846154" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<text x="308" y="248" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">12 个实例</text>
+<rect x="40" y="268" width="14" height="14" rx="3" fill="#2f6fdf"/><text x="60" y="280" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">直连数据库</text>
+<rect x="150" y="268" width="14" height="14" rx="3" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/><text x="170" y="280" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">经 PgBouncer（池 20）</text>
+</svg>

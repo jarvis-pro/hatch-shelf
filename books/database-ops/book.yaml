@@ -1,0 +1,18 @@
+id: database-ops
+title: PostgreSQL 运维
+subtitle: 调参、备份恢复、复制、连接池到大版本升级，以 PostgreSQL 16 + docker compose 为例
+category: ops/database
+tags: [postgresql, database, backup, docker, devops]
+level: advanced
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-install-tuning.md
+  - 02-backup-restore.md
+  - 03-wal-pitr.md
+  - 04-replication.md
+  - 05-pgbouncer.md
+  - 06-slow-queries.md
+  - 07-vacuum-bloat.md
+  - 08-major-upgrade.md
+  - 09-db-in-containers.md

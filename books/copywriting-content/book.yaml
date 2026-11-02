@@ -1,0 +1,16 @@
+id: copywriting-content
+title: 文案与内容
+subtitle: 从一句报错到一篇长文，写给人看的每一个字
+category: opc/growth
+tags: [copywriting, ux-writing, content, writing, ai-writing]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-product-copy.md
+  - 02-errors-empty-confirm.md
+  - 03-landing-page.md
+  - 04-content-marketing.md
+  - 05-writing-habits.md
+  - 06-personal-brand.md
+  - 07-ai-writing.md

@@ -1,0 +1,16 @@
+id: math-for-ai
+title: AI 数学直觉
+subtitle: 给工程师的向量、概率与梯度，重直觉不重证明
+category: ai/ml
+tags: [math, linear-algebra, probability, calculus, ml]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-vectors-matrices.md
+  - 02-matrix-geometry.md
+  - 03-probability.md
+  - 04-information-theory.md
+  - 05-derivatives-gradients.md
+  - 06-chain-rule-backprop.md
+  - 07-gradient-descent.md

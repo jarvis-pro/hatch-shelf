@@ -1,0 +1,17 @@
+id: docker-containers
+title: 容器技术
+subtitle: 从 namespace 到 Compose，把 Node 服务装进容器跑上线
+category: ops/container
+tags: [docker, container, compose, devops]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-container-internals.md
+  - 02-images-layers.md
+  - 03-dockerfile.md
+  - 04-multi-stage.md
+  - 05-network-storage.md
+  - 06-compose.md
+  - 07-registry.md
+  - 08-security.md

@@ -52,33 +52,33 @@
 
 ### 4. React Native 与 Expo `rn-expo`
 
-- 中级→进阶 · `tech/mobile` · 状态：未写
+- 中级→进阶 · `tech/mobile` · 状态：已完成
 - 章节：RN 新架构（JSI / Fabric / TurboModules） · Hermes · expo-router · dev client 与 prebuild · config plugin · 写一个原生模块 · WebView 与双向桥接 · 本地存储（SQLite / 文件系统） · 性能与动画（Reanimated） · 签名、TestFlight 与上架
 
 ### 5. Electron 桌面应用 `electron-desktop`
 
-- 中级 · `tech/desktop` · 状态：未写
+- 中级 · `tech/desktop` · 状态：已完成
 - 章节：主进程 / preload / 渲染进程 · IPC 设计 · 安全清单（contextIsolation、沙箱） · electron-vite 工程 · 原生能力与系统集成 · 打包、签名与公证 · 自动更新 · 与 Tauri 的取舍
 
 ### 6. NestJS 后端架构 `nestjs-backend`
 
-- 中级 · `tech/backend` · 状态：未写
+- 中级 · `tech/backend` · 状态：已完成
 - 章节：依赖注入与模块 · 请求生命周期 · 守卫、拦截器与管道 · 校验与 DTO · JWT 与权限模型 · 错误处理与错误文案 · 配置与环境变量 · 长连接（SSE / WebSocket） · 测试
 
 ### 7. 数据库原理与实战 `database-practice`
 
-- 中级→进阶 · `tech/database` · 状态：未写
+- 中级→进阶 · `tech/database` · 状态：已完成
 - 开发视角；运维部分见 19 `database-ops`
 - 章节：关系建模与范式 · 索引原理（B+ 树） · 执行计划 · 事务与隔离级别 · MVCC · Drizzle 与迁移 · 常见反模式 · SQLite 与本地优先 · JSON 与全文检索
 
 ### 8. 软件架构与系统设计 `system-design`
 
-- 进阶 · `tech/architecture` · 状态：未写
+- 进阶 · `tech/architecture` · 状态：已完成
 - 章节：单体与模块化单体 · 分层与边界 · 缓存策略 · 队列与异步任务 · 实时推送 · 幂等、重试与一致性 · 文件与对象存储 · 多租户 · 从 1 到 1 万用户的演进
 
 ### 9. 应用安全 `app-security`
 
-- 中级 · `tech/security` · 状态：未写
+- 中级 · `tech/security` · 状态：已完成
 - 章节：认证方案对比（Session / JWT / OAuth / Passkey） · 授权模型 · OWASP Top 10 · 密码与密钥管理 · 依赖与供应链 · 移动端安全 · 日志里的敏感信息 · 安全自查清单
 
 ---
@@ -112,17 +112,17 @@
 
 ### 15. Kubernetes 入门到实战 `kubernetes`
 
-- 中级→进阶 · `ops/container` · 状态：未写
+- 中级→进阶 · `ops/container` · 状态：已完成
 - 章节：K8s 解决什么问题 · 核心对象（Pod / Deployment / Service） · 配置与密钥 · 网络与 Ingress · 存储 · Helm · 用 k3s 搭单机小集群 · 什么时候不该上 K8s
 
 ### 16. 基础设施即代码 `iac-gitops`
 
-- 进阶 · `ops/deploy` · 状态：未写
-- 章节：为什么要 IaC · Terraform / OpenTofu · Ansible 配置管理 · GitOps 与 Argo CD · 密钥管理（SOPS / Vault） · 一个人的 IaC 落地
+- 进阶 · `ops/deploy` · 状态：已完成
+- 章节：为什么要 IaC · Terraform / OpenTofu · Ansible 配置管理 · 密钥管理（SOPS / Vault） · GitOps 与 Argo CD · 一个人的 IaC 落地
 
 ### 17. 云与边缘 `cloud-and-edge`
 
-- 进阶 · `ops/cloud` · 状态：未写
+- 进阶 · `ops/cloud` · 状态：已完成
 - 章节：VPS / Serverless / 托管服务怎么选 · 国内云与海外云 · 对象存储 · Cloudflare Workers 运行模型 · R2 / KV / D1 / Durable Objects · wrangler 与部署 · 成本模型与账单控制
 
 ### 18. 可观测性与性能 `observability-performance`
@@ -305,6 +305,6 @@
 
 ### 51. 用 AI 撑起一人公司 `ai-native-opc`
 
-- 进阶 · `opc/business` · 状态：未写
+- 进阶 · `opc/business` · 状态：已完成
 - 全书单的收尾，串起前面所有系列
-- 章节：AI 原生的一人公司 · 研发 · 客服 · 运营与内容 · 营销 · 财务与行政 · 自动化流水线 · 一个人的组织设计
+- 章节：AI 原生的一人公司 · 研发 · 客服 · 运营与内容 · 营销 · 财务与行政 · 自动化流水线 · 一个人的组织设计 · 结语

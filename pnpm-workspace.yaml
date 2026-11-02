@@ -1,4 +1,5 @@
 packages:
   - app
+  - app/reader-web
   - packages/*
   - tools/*

@@ -53,6 +53,7 @@ hatch-shelf/
 ├── AGENTS.md              # 代码侧规范（开发 App / CLI 时 agent 读取）
 ├── pnpm-workspace.yaml
 ├── app/                   # Expo App（Metro 根目录在此，books/ 不会进安装包）
+│   └── reader-web/        # @shelf/reader-web：阅读器网页，打包成单个 HTML 放进 App
 ├── packages/
 │   └── spec/              # @shelf/spec：book.yaml 的 zod schema + TS 类型，App 与 CLI 共用
 ├── tools/
@@ -177,7 +178,7 @@ documentDirectory/
 
 | 表 | 字段 | 可重建 |
 |---|---|---|
-| books | id, title, subtitle, category, tags(JSON), level, chapter_count, imported_at, updated_at, last_read_at | ✅ |
+| books | id, title, subtitle, category, tags(JSON), level, chapter_count, warnings(JSON), imported_at, updated_at, last_read_at | ✅ |
 | chapters | book_id, idx, file, title | ✅ |
 | progress | book_id, chapter_file, scroll_ratio, anchor, updated_at | ❌ |
 | settings | key, value | ❌ |
@@ -204,6 +205,8 @@ documentDirectory/
 - 宽表格放在可横向滚动的容器里；图片支持点击放大
 - 上一章 / 下一章导航
 - RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
+- 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
+- 示例书在构建时由 `app/scripts/build-samples.mjs` 生成成 TS 模块，首次启动时写入 `books/`，删除后不会再出现
 
 ---
 
@@ -258,3 +261,5 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 仓库 | 单仓库，`books/` 放在顶层 | 个人项目，用分层的 AGENTS.md 隔离上下文即可；拆仓成本低，需要时再拆 |
 | 数据源 | 文件即真相，SQLite 只做索引 | 索引可重建；以后加任何同步通道，阅读器都不用改 |
 | 局域网方向 | 手机做服务端，电脑做客户端 | 与常见的“WiFi 传书”习惯一致，CLI 可以直接 curl / push |
+| 阅读器加载方式 | 单文件 HTML 资源 → 拷到 documentDirectory → `file://` 加载 | 用 `source={{ html }}` 时页面拿不到本地文件读权限，图片只能转 base64；放在 documentDirectory 下与 books/ 同源最简单 |
+| Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |

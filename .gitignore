@@ -15,3 +15,7 @@ app/android/
 
 # 本地构建产物
 *.zip
+
+# 构建产物（pnpm app build:reader / build:samples 生成）
+app/assets/reader/
+app/src/samples.generated.ts

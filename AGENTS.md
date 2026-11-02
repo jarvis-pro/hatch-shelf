@@ -10,6 +10,7 @@
 | 目录 | 内容 |
 |---|---|
 | `app/` | Expo App（expo-router，路由在 `app/src/app/`，其他代码放在 `app/src/` 下的其他目录） |
+| `app/reader-web/` | `@shelf/reader-web`：WebView 里运行的阅读器（markdown-it + highlight.js + KaTeX + Mermaid），`build.mjs` 打成 `app/assets/reader/index.html` |
 | `packages/spec/` | `@shelf/spec`：book.yaml 的 zod schema、容错解析、导入安全规则。App 与 CLI 共用，**不得依赖 Node 或 RN 专有 API** |
 | `tools/shelf-pack/` | Node CLI：check / pack / push |
 | `books/` | 书籍内容，不进安装包 |
@@ -33,13 +34,15 @@
 - `ios/` `android/` 由 `expo prebuild` 生成，不入库、不手改；原生配置写在 `app.json` 或 config plugin 中
 - 用到原生模块，必须使用 dev client（`pnpm app ios`），不能用 Expo Go；新增原生依赖后要重新构建
 - 不使用 EAS Update（见 README 决策记录）
+- 改了 `reader-web/` 或 `books/` 里的示例书后要重新 `pnpm app build:assets`；改了 `metro.config.js` 要重启 Metro
 
 ## 命令
 
 ```bash
 pnpm install                 # 根目录；使用 hoisted node_modules（见 .npmrc）
 pnpm app ios                 # 构建 dev client 并安装到模拟器 / 真机（加 --device 选真机）
-pnpm app start               # 启动 Metro
+pnpm app start               # 启动 Metro（会先执行 build:assets）
+pnpm app build:assets        # 重新生成阅读器 HTML 和示例书模块（两者都不入库）
 pnpm typecheck               # 全仓类型检查
 pnpm test                    # 全仓测试
 pnpm --filter shelf-pack start check books/<id>

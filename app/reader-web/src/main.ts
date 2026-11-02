@@ -1,0 +1,303 @@
+import katexModule from '@vscode/markdown-it-katex';
+import hljs from 'highlight.js/lib/common';
+import MarkdownIt, { type Env, type Token } from 'markdown-it';
+import mermaid from 'mermaid';
+import type {
+  FromReader,
+  ReaderPosition,
+  ReaderTheme,
+  ToReader,
+  TocItem,
+} from '../../src/reader/bridge';
+
+declare global {
+  interface Window {
+    ReactNativeWebView?: { postMessage(data: string): void };
+    __shelf: { receive(msg: ToReader): void };
+  }
+}
+
+function post(msg: FromReader) {
+  window.ReactNativeWebView?.postMessage(JSON.stringify(msg));
+}
+
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+// ---------- Markdown 渲染 ----------
+
+// 该包是带 __esModule 的 CJS；esbuild 按 Node 语义把整个 exports 当作 default
+const katexPlugin =
+  (katexModule as unknown as { default?: typeof katexModule }).default ?? katexModule;
+
+const md = new MarkdownIt({ html: false, linkify: true });
+md.use(katexPlugin, { throwOnError: false });
+
+md.renderer.rules.fence = (tokens, idx) => {
+  const token = tokens[idx];
+  const lang = token.info.trim().split(/\s+/)[0] ?? '';
+  const code = token.content;
+  if (lang === 'mermaid') {
+    return `<div class="mermaid-wrap"><pre class="mermaid">${escapeHtml(code)}</pre></div>`;
+  }
+  const body =
+    lang && hljs.getLanguage(lang)
+      ? hljs.highlight(code, { language: lang, ignoreIllegals: true }).value
+      : escapeHtml(code);
+  return (
+    `<div class="code-block"><div class="code-bar">` +
+    `<span class="code-lang">${escapeHtml(lang || 'text')}</span>` +
+    `<button class="code-copy" type="button">复制</button></div>` +
+    `<pre><code class="hljs">${body}</code></pre></div>`
+  );
+};
+
+md.renderer.rules.table_open = () => '<div class="table-wrap"><table>';
+md.renderer.rules.table_close = () => '</table></div>';
+
+md.renderer.rules.image = (tokens, idx, _opts, env?: Env) => {
+  const token = tokens[idx];
+  const src = String(token.attrGet('src') ?? '');
+  const alt = escapeHtml(token.content);
+  // 写书规范禁止远程图片；即使出现也不加载（CSP 同样会拦截）
+  if (/^[a-z][a-z0-9+.-]*:/i.test(src) && !src.startsWith('data:')) {
+    return `<span class="img-blocked">[远程图片未加载：${alt || escapeHtml(src)}]</span>`;
+  }
+  const resolved = new URL(src, (env as RenderEnv).bookBaseUrl).href;
+  return `<img src="${escapeHtml(resolved)}" alt="${alt}">`;
+};
+
+type RenderEnv = Env & { bookBaseUrl: string };
+
+function slugify(text: string): string {
+  return (
+    text
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\p{L}\p{N}_-]/gu, '') || 'section'
+  );
+}
+
+/** 给 H1–H6 加 id，并收集 H1–H3 作为目录 */
+function assignHeadingIds(tokens: Token[]): TocItem[] {
+  const used = new Map<string, number>();
+  const toc: TocItem[] = [];
+  tokens.forEach((token, i) => {
+    if (token.type !== 'heading_open') return;
+    const inline = tokens[i + 1];
+    const text = inline.children
+      ?.filter((t) => t.type === 'text' || t.type === 'code_inline')
+      .map((t) => t.content)
+      .join('') ?? inline.content;
+    const base = slugify(text);
+    const n = used.get(base) ?? 0;
+    used.set(base, n + 1);
+    const id = n === 0 ? base : `${base}-${n}`;
+    token.attrSet('id', id);
+    const level = Number(token.tag.slice(1));
+    if (level <= 3) toc.push({ level: level as 1 | 2 | 3, text, anchor: id });
+  });
+  return toc;
+}
+
+// ---------- 页面状态 ----------
+
+const content = document.getElementById('content')!;
+let current: Extract<ToReader, { type: 'load' }> | null = null;
+let restoring = false;
+let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+
+function applyTheme(theme: ReaderTheme) {
+  const root = document.documentElement;
+  root.dataset.theme = theme.mode;
+  root.style.setProperty('--font-size', `${theme.fontSize}px`);
+  root.style.setProperty('--line-height', String(theme.lineHeight));
+  root.classList.toggle('wrap-code', theme.wrapCode);
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme: theme.mode === 'dark' ? 'dark' : 'default',
+    // 保持图表原始尺寸，过宽时在容器内横向滚动（缩到屏幕宽会看不清）
+    flowchart: { useMaxWidth: false },
+    sequence: { useMaxWidth: false },
+    class: { useMaxWidth: false },
+    state: { useMaxWidth: false },
+    er: { useMaxWidth: false },
+  });
+}
+
+function footer(hasPrev: boolean, hasNext: boolean) {
+  const btn = (to: 'prev' | 'next', label: string, enabled: boolean) =>
+    `<button class="nav-btn" data-nav="${to}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+  return `<nav class="chapter-nav">${btn('prev', '‹ 上一章', hasPrev)}${btn('next', '下一章 ›', hasNext)}</nav>`;
+}
+
+async function renderMermaid() {
+  const nodes = [...content.querySelectorAll<HTMLElement>('pre.mermaid')];
+  if (nodes.length === 0) return;
+  try {
+    await mermaid.run({ nodes, suppressErrors: true });
+  } catch (e) {
+    post({ type: 'error', message: `Mermaid: ${(e as Error).message}` });
+  }
+}
+
+/** 等图片加载完（或超时），避免恢复进度时页面高度还在变 */
+function waitImages(timeoutMs: number) {
+  const pending = [...content.querySelectorAll('img')]
+    .filter((img) => !img.complete)
+    .map(
+      (img) =>
+        new Promise((r) => {
+          img.addEventListener('load', r);
+          img.addEventListener('error', r);
+        }),
+    );
+  return Promise.race([Promise.all(pending), new Promise((r) => setTimeout(r, timeoutMs))]);
+}
+
+function maxScroll() {
+  return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+}
+
+function scrollToAnchor(anchor: string, smooth = false) {
+  document.getElementById(anchor)?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+}
+
+function restore(pos?: ReaderPosition) {
+  if (!pos) return window.scrollTo(0, 0);
+  if (pos.scrollRatio > 0) return window.scrollTo(0, pos.scrollRatio * maxScroll());
+  if (pos.anchor) return scrollToAnchor(pos.anchor);
+  window.scrollTo(0, 0);
+}
+
+function currentPosition(): ReaderPosition {
+  const max = maxScroll();
+  const scrollRatio = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+  let anchor: string | undefined;
+  for (const h of content.querySelectorAll<HTMLElement>('h1[id], h2[id], h3[id]')) {
+    if (h.getBoundingClientRect().top > 80) break;
+    anchor = h.id;
+  }
+  return { scrollRatio, anchor };
+}
+
+async function load(msg: Extract<ToReader, { type: 'load' }>) {
+  current = msg;
+  restoring = true;
+  // 丢弃上一章还没发出的进度，否则会用新章节的 DOM 算出错误位置
+  clearTimeout(scrollTimer);
+  applyTheme(msg.theme);
+  const env: RenderEnv = { bookBaseUrl: msg.bookBaseUrl };
+  const tokens = md.parse(msg.markdown, env);
+  const toc = assignHeadingIds(tokens);
+  content.innerHTML = md.renderer.render(tokens, md.options, env) + footer(msg.hasPrev, msg.hasNext);
+  post({ type: 'toc', items: toc });
+  await renderMermaid();
+  await waitImages(1500);
+  restore(msg.restore);
+  // 等一帧，让 scrollTo 触发的 scroll 事件先过去
+  requestAnimationFrame(() => {
+    restoring = false;
+    post({ type: 'rendered' });
+    // 打开即记一次进度，没滚动过的章节也会成为「最近阅读」
+    post({ type: 'position', position: currentPosition() });
+  });
+}
+
+window.__shelf = {
+  receive(msg) {
+    switch (msg.type) {
+      case 'load':
+        void load(msg);
+        break;
+      case 'setTheme':
+        // Mermaid 的配色只能在渲染时决定，所以整章重渲染并保持位置
+        if (current) void load({ ...current, theme: msg.theme, restore: currentPosition() });
+        else applyTheme(msg.theme);
+        break;
+      case 'scrollTo':
+        scrollToAnchor(msg.anchor);
+        break;
+    }
+  },
+};
+
+// ---------- 交互 ----------
+
+window.addEventListener(
+  'scroll',
+  () => {
+    if (restoring) return;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => post({ type: 'position', position: currentPosition() }), 400);
+  },
+  { passive: true },
+);
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+}
+
+const overlay = document.getElementById('image-overlay')!;
+const overlayImg = overlay.querySelector('img')!;
+
+document.addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+
+  const copyBtn = target.closest<HTMLButtonElement>('.code-copy');
+  if (copyBtn) {
+    const code = copyBtn.closest('.code-block')?.querySelector('code')?.textContent ?? '';
+    void copyText(code).then(() => {
+      copyBtn.textContent = '已复制';
+      setTimeout(() => (copyBtn.textContent = '复制'), 1500);
+    });
+    return;
+  }
+
+  const navBtn = target.closest<HTMLButtonElement>('[data-nav]');
+  if (navBtn && !navBtn.disabled) {
+    post({ type: 'navigate', to: navBtn.dataset.nav as 'prev' | 'next' });
+    return;
+  }
+
+  if (target.closest('#image-overlay')) {
+    if (target === overlayImg) overlay.classList.toggle('zoomed');
+    else overlay.classList.remove('open', 'zoomed');
+    return;
+  }
+
+  if (target instanceof HTMLImageElement && content.contains(target)) {
+    overlayImg.src = target.src;
+    overlay.classList.add('open');
+    return;
+  }
+
+  const link = target.closest('a');
+  if (link) {
+    e.preventDefault();
+    const href = link.getAttribute('href') ?? '';
+    if (href.startsWith('#')) scrollToAnchor(decodeURIComponent(href.slice(1)), true);
+    else if (href) post({ type: 'link', href });
+  }
+});
+
+window.addEventListener('error', (e) => post({ type: 'error', message: e.message }));
+window.addEventListener('unhandledrejection', (e) =>
+  post({ type: 'error', message: String((e.reason as Error)?.message ?? e.reason) }),
+);
+
+post({ type: 'ready' });

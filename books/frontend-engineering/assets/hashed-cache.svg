@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 328" width="360" height="328" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="327" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">发新版前后，浏览器缓存里的变化</text>
+<text x="95" y="58" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">发版前</text>
+<rect x="20" y="70" width="150" height="44" rx="6" fill="#dbe7fb"/>
+<text x="95" y="89" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">index.html</text>
+<text x="95" y="105" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">no-cache，每次验证</text>
+<rect x="20" y="124" width="150" height="44" rx="6" fill="#dbe7fb"/>
+<text x="95" y="143" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">index-A1.js</text>
+<text x="95" y="159" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">缓存一年</text>
+<rect x="20" y="178" width="150" height="44" rx="6" fill="#dbe7fb"/>
+<text x="95" y="197" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">index-B2.css</text>
+<text x="95" y="213" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">缓存一年</text>
+<rect x="20" y="232" width="150" height="44" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="95" y="251" font-size="12" fill="#656d76" text-anchor="middle" font-weight="600">（没有）</text>
+<text x="95" y="267" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal"></text>
+<text x="265" y="58" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">发版后打开页面</text>
+<rect x="190" y="70" width="150" height="44" rx="6" fill="#2f6fdf"/>
+<text x="265" y="89" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">index.html</text>
+<text x="265" y="105" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">验证发现变了，200</text>
+<rect x="190" y="124" width="150" height="44" rx="6" fill="#ffffff" stroke="#d8dee4"/>
+<text x="265" y="143" font-size="12" fill="#656d76" text-anchor="middle" font-weight="600">index-A1.js</text>
+<text x="265" y="159" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">不再被引用</text>
+<rect x="190" y="178" width="150" height="44" rx="6" fill="#dbe7fb"/>
+<text x="265" y="197" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">index-B2.css</text>
+<text x="265" y="213" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">没变，直接用缓存</text>
+<rect x="190" y="232" width="150" height="44" rx="6" fill="#2f6fdf"/>
+<text x="265" y="251" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">index-C3.js</text>
+<text x="265" y="267" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">新文件，下载</text>
+<line x1="172" y1="92" x2="188" y2="92" stroke="#656d76" stroke-width="1.5"/>
+<line x1="172" y1="146" x2="188" y2="146" stroke="#656d76" stroke-width="1.5"/>
+<line x1="172" y1="200" x2="188" y2="200" stroke="#656d76" stroke-width="1.5"/>
+<line x1="172" y1="254" x2="188" y2="254" stroke="#656d76" stroke-width="1.5"/>
+<rect x="30" y="296" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="50" y="308" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">下载</text>
+<rect x="110" y="296" width="14" height="14" rx="3" fill="#dbe7fb"/>
+<text x="130" y="308" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">本地缓存</text>
+<rect x="214" y="296" width="14" height="14" rx="3" fill="#ffffff" stroke="#d8dee4"/>
+<text x="234" y="308" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">闲置 / 不存在</text>
+</svg>

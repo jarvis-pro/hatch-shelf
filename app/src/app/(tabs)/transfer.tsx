@@ -122,7 +122,6 @@ export default function TransferScreen() {
   useEffect(() => {
     if (!batch) batchToasted.current = false;
   }, [batch]);
-  const sub = status === 'locked' ? '局域网 · 已停止' : on ? '局域网 · 已开启' : '局域网 · 未开启';
   const [shown, leaving] = useGroupSwap(groupOf(status));
   // 开启时说明收起后头图才收窄；关闭时立即放宽
   const compact = (shown === 'on' || shown === null) && on;
@@ -136,7 +135,6 @@ export default function TransferScreen() {
         showsVerticalScrollIndicator={false}
       >
         <PageHeader
-          sub={sub}
           title="传书"
           right={
             shown === 'on' && (

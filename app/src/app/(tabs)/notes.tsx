@@ -31,8 +31,6 @@ export default function NotesTab() {
     }, []),
   );
 
-  const total = rows?.reduce((n, r) => n + r.highlights, 0) ?? 0;
-
   return (
     <View style={styles.flex}>
       <Backdrop />
@@ -41,7 +39,6 @@ export default function NotesTab() {
         showsVerticalScrollIndicator={false}
       >
         <PageHeader
-          sub={`${rows?.length ?? 0} 本书 · ${total} 条高亮`}
           title="笔记"
           right={<GlassButton icon={Search} label="搜索" onPress={() => router.push('/search')} />}
         />

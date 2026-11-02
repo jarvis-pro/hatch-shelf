@@ -30,12 +30,6 @@ interface ContinueInfo {
   chapterTitle: string;
 }
 
-const WEEKDAYS = '日一二三四五六';
-const today = () => {
-  const d = new Date();
-  return `${d.getMonth() + 1} 月 ${d.getDate()} 日 · 周${WEEKDAYS[d.getDay()]}`;
-};
-
 export default function ShelfScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
@@ -84,7 +78,6 @@ export default function ShelfScreen() {
 
   const header = (
     <PageHeader
-      sub={books?.length === 0 ? '0 本' : today()}
       title="书架"
       right={
         books?.length !== 0 && (

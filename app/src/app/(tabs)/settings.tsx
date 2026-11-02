@@ -85,7 +85,7 @@ export default function SettingsTab() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 6, paddingBottom: TAB_BAR_SPACE + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        <PageHeader sub="本机 · 不联网" title="设置" />
+        <PageHeader title="设置" />
 
         <Group title="外观与阅读">
           <Row icon={SunMoon} label="外观">

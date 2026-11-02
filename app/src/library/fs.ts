@@ -5,6 +5,7 @@ export interface BookFile {
   /** 相对书目录的路径，如 `assets/a.png` */
   path: string;
   text?: string;
+  bytes?: Uint8Array;
   base64?: string;
 }
 
@@ -20,7 +21,8 @@ export function writeBookAtomically(id: string, files: BookFile[]) {
   for (const f of files) {
     const file = new File(tmp, f.path);
     file.create({ intermediates: true, overwrite: true });
-    if (f.base64 !== undefined) file.write(f.base64, { encoding: 'base64' });
+    if (f.bytes !== undefined) file.write(f.bytes);
+    else if (f.base64 !== undefined) file.write(f.base64, { encoding: 'base64' });
     else file.write(f.text ?? '');
   }
 
@@ -30,17 +32,4 @@ export function writeBookAtomically(id: string, files: BookFile[]) {
   if (target.exists) target.rename(old.name);
   tmp.rename(id);
   if (old.exists) old.delete();
-}
-
-/** 读取章节第一个 H1（跳过代码块），作为章标题 */
-export function extractTitle(markdown: string): string | null {
-  let inFence = false;
-  for (const line of markdown.split('\n')) {
-    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
-    else if (!inFence) {
-      const m = /^#\s+(.+?)\s*#*\s*$/.exec(line);
-      if (m) return m[1];
-    }
-  }
-  return null;
 }

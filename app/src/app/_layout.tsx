@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useIncomingFiles } from '@/import/incoming';
 import { bootstrap } from '@/library/bootstrap';
 import { useShelfColors } from '@/shelf/colors';
 
@@ -28,6 +29,12 @@ export default function RootLayout() {
     );
   }
 
+  return <AppStack />;
+}
+
+function AppStack() {
+  const c = useShelfColors();
+  useIncomingFiles();
   return (
     <>
       <Stack

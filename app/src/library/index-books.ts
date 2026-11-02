@@ -1,8 +1,7 @@
-import { resolveBook } from '@shelf/spec';
+import { firstHeading, resolveBook } from '@shelf/spec';
 import { Directory, File } from 'expo-file-system';
 import { getDb } from '@/db';
 import { booksDir } from '@/lib/paths';
-import { extractTitle } from './fs';
 
 interface ScannedBook {
   id: string;
@@ -42,7 +41,7 @@ function scanBook(dir: Directory): ScannedBook | null {
     warnings,
     chapters: chapters.map((file) => ({
       file,
-      title: extractTitle(new File(dir, file).textSync()) ?? file.replace(/\.md$/, ''),
+      title: firstHeading(new File(dir, file).textSync()) ?? file.replace(/\.md$/, ''),
     })),
   };
 }

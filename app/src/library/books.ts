@@ -2,6 +2,7 @@ import { getDb } from '@/db';
 import { getSetting, setSetting } from '@/db/queries';
 import { bookDir } from '@/lib/paths';
 import { SAMPLE_BOOKS } from '@/samples.generated';
+import { notifyLibraryChanged } from './events';
 import { writeBookAtomically } from './fs';
 
 /** 首次启动时放入示例书；只放一次，用户删掉后不再出现 */
@@ -23,4 +24,5 @@ export async function deleteBook(id: string) {
     await db.runAsync('DELETE FROM books WHERE id = ?', id);
     await db.runAsync('DELETE FROM progress WHERE book_id = ?', id);
   });
+  notifyLibraryChanged();
 }

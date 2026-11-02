@@ -124,6 +124,7 @@ chapters:                     # 必填，显式排序
 
 - 在 `CFBundleDocumentTypes` 中注册 `.zip` 和 `.md`
 - 选择“用书架打开”后，文件进入导入管线
+- 书架右上角的“导入”可以从“文件” App 里选一个 zip / md，走同一条管线
 
 ### 5.2 局域网传书
 
@@ -154,12 +155,16 @@ chapters:                     # 必填，显式排序
 
 所有通道走同一条管线：
 
+实现：判断与转换在 `@shelf/spec` 的 `prepareImport()`（纯函数，App 与 CLI 共用），落盘与索引在 `app/src/import/pipeline.ts`。
+
 1. 文件落到 `inbox/<uuid>/`
 2. 安全校验
    - 解压时防止 zip slip：拒绝绝对路径和包含 `..` 的条目
    - 只放行这些扩展名：`.md` `.yaml` `.yml` `.png` `.jpg` `.jpeg` `.gif` `.webp` `.svg`
    - 检查单个包大小
 3. 用 `@shelf/spec` 解析并校验 `book.yaml`，或按第 4.4 节的容错规则处理
+   - zip 里可以直接放书的文件，也可以外面再套一层书目录；`__MACOSX/`、`.DS_Store` 直接丢弃
+   - 走容错规则时补写一份 `book.yaml`，让设备上的目录名、id、标题在之后重建索引时保持一致
 4. 原子写入：先完整写到 `books/.tmp-<id>/`，再整体替换 `books/<id>/`
 5. 同 id 更新时：保留仍然存在的章节的阅读进度，删除已不存在章节的进度
 6. 更新 SQLite 索引，清理 `inbox/`
@@ -218,7 +223,7 @@ documentDirectory/
 | 构建 | `expo prebuild` / dev client（用到原生模块，不能用 Expo Go） |
 | 文件 | expo-file-system |
 | 数据库 | expo-sqlite |
-| 解压 | react-native-zip-archive |
+| 解压 | fflate（纯 JS，`@shelf/spec` 内使用） |
 | 局域网服务 | react-native-tcp-socket + 自己实现的最小 HTTP 解析（只支持上表中的接口） |
 | 渲染 | react-native-webview + 本地打包的 reader bundle |
 | 校验 | zod（`@shelf/spec`） |
@@ -263,3 +268,4 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 局域网方向 | 手机做服务端，电脑做客户端 | 与常见的“WiFi 传书”习惯一致，CLI 可以直接 curl / push |
 | 阅读器加载方式 | 单文件 HTML 资源 → 拷到 documentDirectory → `file://` 加载 | 用 `source={{ html }}` 时页面拿不到本地文件读权限，图片只能转 base64；放在 documentDirectory 下与 books/ 同源最简单 |
 | Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |
+| 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |

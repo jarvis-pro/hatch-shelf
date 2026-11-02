@@ -1,7 +1,9 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { getChapters, getLastChapter, listBooks, type BookRow } from '@/db/queries';
+import { pickAndImport } from '@/import/incoming';
+import { useLibraryChanged } from '@/library/events';
 import { rebuildIndex } from '@/library/index-books';
 import { showBookActions } from '@/shelf/actions';
 import { BookCover } from '@/shelf/BookCover';
@@ -41,6 +43,7 @@ export default function ShelfScreen() {
       void load();
     }, [load]),
   );
+  useLibraryChanged(load);
 
   // 下拉时重新扫描 books/，修正被外部改动过的索引
   const refresh = useCallback(async () => {
@@ -72,12 +75,21 @@ export default function ShelfScreen() {
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
     >
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable onPress={() => void pickAndImport()} hitSlop={10}>
+              <Text style={{ color: c.accent, fontSize: 16 }}>导入</Text>
+            </Pressable>
+          ),
+        }}
+      />
       {recent && <ContinueCard info={recent} colors={c} onPress={() => open(recent.book.id)} />}
 
       {books.length === 0 && (
         <View style={styles.empty}>
           <Text style={[styles.emptyTitle, { color: c.fg }]}>书架还是空的</Text>
-          <Text style={{ color: c.muted, textAlign: 'center' }}>通过 AirDrop 或局域网传书把书放进来</Text>
+          <Text style={{ color: c.muted, textAlign: 'center' }}>AirDrop 一个 .zip / .md，或点右上角「导入」</Text>
         </View>
       )}
 

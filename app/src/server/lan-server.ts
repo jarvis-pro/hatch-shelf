@@ -1,9 +1,10 @@
-import { MAX_PACKAGE_BYTES } from '@shelf/spec';
+import { MAX_PACKAGE_BYTES, SLUG_RE } from '@shelf/spec';
 import { Directory, File, Paths } from 'expo-file-system';
 import { strToU8 } from 'fflate';
 import TcpSocket from 'react-native-tcp-socket';
-import { listBooks } from '@/db/queries';
+import { getBook, listBooks } from '@/db/queries';
 import { importFile, type ImportResult } from '@/import/pipeline';
+import { bookDir } from '@/lib/paths';
 import {
   buildResponse,
   CONTINUE_RESPONSE,
@@ -43,6 +44,8 @@ const uploadDir = new Directory(Paths.cache, 'lan-upload');
  * GET  /        上传页面
  * POST /upload  multipart/form-data，字段 file；PIN 放在 X-Pin 请求头或表单字段 pin
  * GET  /books   本地已有书籍（需要 X-Pin）
+ * GET  /cover/<id>  书的封面 cover.png（需要 X-Pin），上传页用来在导入后显示封面
+ * GET  /ping    不需要 PIN，上传页据此判断服务是否还在
  */
 export function startLanServer(pin: string, events: LanServerEvents): LanServer {
   let failures = 0;
@@ -77,6 +80,18 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       return buildResponse(200, 'text/html; charset=utf-8', UPLOAD_PAGE);
     }
 
+    if (req.method === 'GET' && req.path === '/ping') {
+      return jsonResponse(200, { ok: true });
+    }
+
+    if (req.method === 'GET' && req.path.startsWith('/cover/')) {
+      if (!checkPin(req.headers['x-pin'])) return pinError();
+      const id = req.path.slice('/cover/'.length);
+      const cover = SLUG_RE.test(id) ? new File(bookDir(id), 'cover.png') : null;
+      if (!cover?.exists) return jsonResponse(404, { ok: false, error: '这本书没有封面' });
+      return buildResponse(200, 'image/png', await cover.bytes());
+    }
+
     if (req.method === 'GET' && req.path === '/books') {
       if (!checkPin(req.headers['x-pin'])) return pinError();
       const books = await listBooks();
@@ -99,12 +114,20 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       queue = task.catch(() => undefined);
       const result = await task;
       events.onUpload(result);
-      return result.ok
-        ? jsonResponse(200, { ok: true, bookId: result.bookId, status: result.status, warnings: result.warnings })
-        : jsonResponse(422, { ok: false, error: result.error });
+      if (!result.ok) return jsonResponse(422, { ok: false, error: result.error });
+      const book = await getBook(result.bookId);
+      return jsonResponse(200, {
+        ok: true,
+        bookId: result.bookId,
+        status: result.status,
+        title: result.title,
+        chapters: book?.chapterCount ?? 0,
+        cover: new File(bookDir(result.bookId), 'cover.png').exists,
+        warnings: result.warnings,
+      });
     }
 
-    if (['/', '/books', '/upload'].includes(req.path)) {
+    if (['/', '/ping', '/books', '/upload'].includes(req.path) || req.path.startsWith('/cover/')) {
       return jsonResponse(405, { ok: false, error: '不支持的请求方法' });
     }
     return jsonResponse(404, { ok: false, error: '没有这个接口' });

@@ -146,8 +146,12 @@ chapters:                     # 必填，显式排序
 | GET | `/` | 内置的拖拽上传页面（HTML 打包在 App 内） |
 | POST | `/upload` | `multipart/form-data`，字段 `file`；请求头 `X-Pin`（浏览器页面通过表单字段传递） |
 | GET | `/books` | 返回本地已有书籍的 id、标题、更新时间和内容指纹 `hash`（CLI 据此判断是否需要推送）；同样需要 `X-Pin` |
+| GET | `/cover/<id>` | 书的 `cover.png`，上传页在导入成功后用来显示封面；需要 `X-Pin`，没有封面时 404 |
+| GET | `/ping` | 不需要 PIN；上传页每 3 秒请求一次，连续两次失败就提示连接已断开 |
 
-响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`
+响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`；`/upload` 成功时还带 `status`（`added` / `updated`）、`title`、`chapters`（章节数）、`cover`（是否有封面）和 `warnings`。
+
+**上传页**：`app/src/server/upload-page.ts`，设计稿见「传书网页 · 电脑浏览器」。整页内联，背景插图和 App 图标以 data URI 放在 `upload-images.ts`，不加载任何外部资源；整个页面都可以松手上传，多个文件串行上传。一次 PIN 错误后，排队中的文件不再发送，避免把 5 次错误次数用完。
 
 **限制**：单个文件不超过 50 MB；PIN 连续错误 5 次后，本次服务失效。
 

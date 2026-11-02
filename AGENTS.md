@@ -51,3 +51,4 @@ pnpm --filter shelf-pack start check books/<id>
 
 - 代码使用 Conventional Commits：`feat:` / `fix:` / `chore:` / `refactor:` / `docs:` …，可加 scope，如 `feat(app):`、`feat(spec):`
 - 内容使用 `content:`；不要把代码和内容改动混在一个提交里
+- 提交信息和 PR 描述不加任何 AI 署名（如 `Co-Authored-By: Claude …`、`Generated with Claude Code`），作者只有仓库所有者

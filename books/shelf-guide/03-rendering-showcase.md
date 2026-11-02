@@ -113,4 +113,4 @@ sequenceDiagram
 
 页内跳转：[回到「代码」](#代码)；跨章跳转：[回到第一章](01-welcome.md)。
 
-远程图片会被拦截：![远程](https://example.com/x.png)
+远程图片会被阅读器拦截，写书时也不允许使用（`shelf-pack check` 会报错）。

@@ -36,18 +36,18 @@
 
 ### 1. TS 与 Node 进阶 `ts-node-advanced`
 
-- 进阶 · `tech/typescript` · 状态：未写
+- 进阶 · `tech/typescript` · 状态：已完成
 - 只写进阶，跳过语法入门
 - 章节：类型系统的集合论视角 · 泛型、条件类型与 infer 实战 · 类型体操的边界（什么时候该停） · 事件循环与 libuv · V8 编译管线与隐藏类 · 内存与 GC、泄漏排查 · Stream 与背压 · 性能剖析（--cpu-prof / clinic） · Node 直接跑 TS 与 erasableSyntaxOnly
 
 ### 2. React 19 原理与模式 `react-internals`
 
-- 中级→进阶 · `tech/frontend` · 状态：未写
+- 中级→进阶 · `tech/frontend` · 状态：已完成
 - 章节：从 JSX 到 Fiber 树 · 调和与 diff · Hooks 的链表实现 · 并发渲染与优先级 · Suspense 与 use · Actions 与表单 · React Compiler · 状态管理选型 · 性能排查
 
 ### 3. 前端工程化与 Web 平台 `frontend-engineering`
 
-- 中级 · `tech/frontend` · 状态：未写
+- 中级 · `tech/frontend` · 状态：已完成
 - 章节：浏览器渲染流水线 · CSS 布局与层叠 · Web Vitals 与性能 · Vite / esbuild / Rollup · pnpm workspace 与 monorepo · Tailwind 4 与设计令牌 · Radix 等 headless 组件 · ESLint / Prettier 的分工 · Vitest 与 Playwright · CORS / CSP 与前端安全
 
 ### 4. React Native 与 Expo `rn-expo`
@@ -221,17 +221,17 @@
 
 ### 35. 多 Agent 编排 `multi-agent`
 
-- 进阶 · `ai/agent` · 状态：未写
-- 章节：什么时候需要多 agent · 编排模式 · 子 agent 与上下文隔离 · workflow 与确定性编排 · 并行与汇总 · 交叉验证 · 成本控制
+- 进阶 · `ai/agent` · 状态：已完成
+- 章节：什么时候需要多 agent · 编排模式 · 子 agent 与上下文隔离 · workflow 与确定性编排 · 并行与汇总 · 交叉验证 · 成本控制 · 案例：这套书的编排复盘
 
 ### 36. 动手构建 Agent `build-your-agent`
 
-- 进阶 · `ai/agent` · 状态：未写
+- 进阶 · `ai/agent` · 状态：已完成
 - 章节：最小 agent loop · 接入工具 · 加上记忆 · 用 Agent SDK 重写 · 接 MCP · 评测 · 部署成常驻服务
 
 ### 37. Agent 安全 `agent-safety`
 
-- 进阶 · `ai/agent` · 状态：未写
+- 进阶 · `ai/agent` · 状态：已完成
 - 章节：威胁模型 · Prompt 注入 · 沙箱 · 权限边界 · 人在回路 · 审计与回放 · 安全设计清单
 
 ### 38. 编码 Agent 实战 `coding-agents`
@@ -246,7 +246,7 @@
 
 ### 40. AI 认知进阶 `ai-cognition`
 
-- 中级→进阶 · `ai/agent` · 状态：未写
+- 中级→进阶 · `ai/agent` · 状态：已完成
 - 章节：能力边界与幻觉 · 对齐与安全 · AI 原生的产品思维 · 人机分工 · 判断趋势、不被炒作带着走 · 个人在 AI 时代的位置
 
 ---
@@ -265,13 +265,13 @@
 
 ### 43. 写给开发者的设计课 `design-for-devs`
 
-- 入门 · `opc/product` · 状态：未写
+- 入门 · `opc/product` · 状态：已完成
 - 章节：交互原则 · 排版 · 色彩 · 间距与网格 · 设计系统 · 移动端规范 · 空态、错误态与文案
 
 ### 44. 文案与内容 `copywriting-content`
 
-- 入门 · `opc/growth` · 状态：未写
-- 章节：产品文案 · 着陆页 · 内容营销 · 写作习惯 · 个人品牌 · 用 AI 写但不像 AI
+- 入门 · `opc/growth` · 状态：已完成
+- 章节：产品文案 · 报错、空态与确认框 · 着陆页 · 内容营销 · 写作习惯 · 个人品牌 · 用 AI 写但不像 AI
 
 ### 45. 获客与增长 `growth-marketing`
 
@@ -300,8 +300,8 @@
 
 ### 50. 出海实务 `going-global`
 
-- 中级 · `opc/legal` · 状态：未写
-- 章节：海外主体 · Stripe 与海外收款 · App Store 海外区 · GDPR 与隐私政策 · 海外云与域名 · 税务与汇款
+- 中级 · `opc/legal` · 状态：已完成
+- 章节：出海全景 · 海外主体 · Stripe 与海外收款 · App Store 海外区 · GDPR 与隐私政策 · 海外云与域名 · 税务与汇款
 
 ### 51. 用 AI 撑起一人公司 `ai-native-opc`
 

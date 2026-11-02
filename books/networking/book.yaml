@@ -1,0 +1,18 @@
+id: networking
+title: 计算机网络
+subtitle: 给自己运维服务的开发者：从分层模型到抓包排障
+category: ops/network
+tags: [network, dns, http, tls, troubleshooting]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-layers.md
+  - 02-tcp-udp.md
+  - 03-dns.md
+  - 04-http.md
+  - 05-tls.md
+  - 06-cdn.md
+  - 07-nat-firewall.md
+  - 08-lan-mdns.md
+  - 09-troubleshooting.md

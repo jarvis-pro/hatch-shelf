@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 284" width="360" height="284" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="283" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">192.168.1.23/24 怎么读</text>
+<rect x="15" y="56" width="78" height="58" rx="6" fill="#2f6fdf"/>
+<text x="54.0" y="82" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="600">192</text>
+<text x="54.0" y="102" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">11000000</text>
+<rect x="99" y="56" width="78" height="58" rx="6" fill="#2f6fdf"/>
+<text x="138.0" y="82" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="600">168</text>
+<text x="138.0" y="102" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">10101000</text>
+<rect x="183" y="56" width="78" height="58" rx="6" fill="#2f6fdf"/>
+<text x="222.0" y="82" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="600">1</text>
+<text x="222.0" y="102" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">00000001</text>
+<rect x="267" y="56" width="78" height="58" rx="6" fill="#e6e9ed"/>
+<text x="306.0" y="82" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">23</text>
+<text x="306.0" y="102" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">00010111</text>
+<path d="M15 128 V136 H261 V128" fill="none" stroke="#2f6fdf" stroke-width="1.5"/>
+<text x="138.0" y="154" font-size="12" fill="#2f6fdf" text-anchor="middle" font-weight="normal">网络号：前 24 位</text>
+<path d="M267 128 V136 H345 V128" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<text x="306.0" y="154" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">主机号：8 位</text>
+<text x="30" y="184" font-size="13" fill="#656d76" text-anchor="start" font-weight="normal">子网掩码</text>
+<text x="110" y="184" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">255.255.255.0</text>
+<text x="30" y="208" font-size="13" fill="#656d76" text-anchor="start" font-weight="normal">网络地址</text>
+<text x="110" y="208" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">192.168.1.0</text>
+<text x="30" y="232" font-size="13" fill="#656d76" text-anchor="start" font-weight="normal">可用主机</text>
+<text x="110" y="232" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">192.168.1.1 – 192.168.1.254</text>
+<text x="30" y="256" font-size="13" fill="#656d76" text-anchor="start" font-weight="normal">广播地址</text>
+<text x="110" y="256" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">192.168.1.255</text>
+</svg>

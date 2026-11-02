@@ -43953,6 +43953,918 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "j2f0w",
+      "x": 0,
+      "y": 9223,
+      "name": "封面 / 一人公司行动手册",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#5E6420",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "nT0AJ",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "Sk5wG",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "UAbRX",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OqLdS",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "generated-1.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "kFenK",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "a3MWCN",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "一人公司行动手册",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 30,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "LUzf7",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "从副业到全职，一步一步",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "C2pD0",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "x9Gfu8",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "kAKl8",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "BvlRa",
+      "x": 340,
+      "y": 9223,
+      "name": "封面 / 销售与 To B 成交",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#6A3A6E",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "sbMvX",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "tE2nH",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "gB6KO",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FtRqA",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "generated-4.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "onjjf",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "UyH3m",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "销售与 To B 成交",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 30,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "xZBs0",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "找客户、演示、签单、续费",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NPQKh",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "enPX9",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "V2OXb",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nYN2f",
+      "x": 680,
+      "y": 9223,
+      "name": "封面 / 过渡期收入与个人保障",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#4A5868",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "XrNhF",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "oG1ga",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "O2cXE",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jPziI",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "generated-2.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "komeC",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Ll2rZ",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "过渡期收入与个人保障",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "KdCMW",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "撑住现金流，守住保障",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "k8SqY1",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "xBr32",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "CSJFF",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "hKiuc",
+      "x": 1020,
+      "y": 9223,
+      "name": "封面 / 合同与法律文书",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#33363B",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "HHq2s",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "aeXPn",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "jkZDA",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "g81gIj",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "generated.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "z4ZfQ",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "U8m2D",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "合同与法律文书",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 34,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "zXmgU",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "读懂、写对、签稳",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ENrhf",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "YWNcu",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "aSDQT",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "kV93x",
+      "x": 1360,
+      "y": 9223,
+      "name": "封面 / 国内私域与内容平台",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#A0485E",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "a0jbh",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "MxgdE",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "GxqI5",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Cf4Aa",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "generated-3.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "DytiC",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "KrQgb",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "国内私域与内容平台",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 27,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "UT3Ti",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "一个人做内容与社群",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dPr9o",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "L0zOPB",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "ELToe",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "A8a6kU",
+      "x": 1700,
+      "y": 9223,
+      "name": "封面 / 一人公司案例库",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#9C5B2A",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "ZIbzi",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "EGQjC",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "P1UGq",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "cVMc2",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "generated-5.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "WBB6U",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "kTGhE",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "一人公司案例库",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 34,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "a8VT9O",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "44 个真实案例",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "s9alqN",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "KAhOO",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "qFfGP",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {

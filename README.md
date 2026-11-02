@@ -316,3 +316,19 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 传书默认状态 | 进入 Tab 不自动开启，需手动「开启传书」 | 传书成为常驻 Tab 后，切过去就开服务会在无意中暴露端口；手动开启、离开即关更稳妥 |
 | 动效实现 | RN Animated，不引入 Reanimated | 设计稿的动效都是淡入、位移、弹簧这类简单动画，Animated 的原生驱动足够；少一个原生依赖 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
+| 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，构建号写在 app.json 由脚本递增，`ios/` 仍然只由 prebuild 生成 |
+
+---
+
+## 13. 发布到 TestFlight
+
+一次性准备：在 App Store Connect 用 Bundle ID `com.jarvis.shelf` 建好 App；Xcode 的 Settings → Accounts 登录开发者账号（脚本用它签名和上传）。
+
+```bash
+pnpm app testflight              # 构建号 +1 → build:assets → prebuild → archive → 上传
+pnpm app testflight --no-upload  # 只导出 .ipa 到 app/ios/build/export，不改构建号
+```
+
+- 构建号是 `app.json` 的 `expo.ios.buildNumber`，每次上传必须递增，脚本自动 +1，失败时恢复原值；上传成功后把 `app.json` 单独提交（`chore(app): 发布 <版本> (<构建号>)`）
+- 发新版本时手动改 `expo.version`
+- 上传后 App Store Connect 处理 5～15 分钟，构建出现在 TestFlight 的内部测试组即可安装；内部测试不需要审核，构建 90 天后过期

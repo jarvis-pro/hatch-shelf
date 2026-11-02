@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 392" width="360" height="392" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="391" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">验证成本 × 出错代价</text>
+<rect x="60" y="56" width="140" height="128" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="130.0" y="106" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">AI 写，严格把关</text>
+<text x="130.0" y="130" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">迁移、部署、计费</text>
+<text x="130.0" y="150" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">自动检查 + 人审关键处</text>
+<rect x="200" y="56" width="140" height="128" fill="#2f6fdf" stroke="#d8dee4"/>
+<text x="270.0" y="106" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">AI 只整理资料</text>
+<text x="270.0" y="130" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">合规、税务、对外承诺</text>
+<text x="270.0" y="150" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">结论找权威来源</text>
+<rect x="60" y="184" width="140" height="128" fill="#ffffff" stroke="#d8dee4"/>
+<text x="130.0" y="234" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">放手交给 AI</text>
+<text x="130.0" y="258" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">脚本、样式、内部文档</text>
+<text x="130.0" y="278" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">抽查即可</text>
+<rect x="200" y="184" width="140" height="128" fill="#e6e9ed" stroke="#d8dee4"/>
+<text x="270.0" y="234" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">当灵感，不当结论</text>
+<text x="270.0" y="258" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">头脑风暴、竞品初筛</text>
+<text x="270.0" y="278" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">不直接采用</text>
+<text x="130.0" y="334" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">验证便宜</text>
+<text x="270.0" y="334" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">验证昂贵</text>
+<line x1="60" y1="348" x2="340" y2="348" stroke="#656d76" marker-end="url(#a)"/>
+<text x="180" y="368" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">验证成本 →</text>
+<text x="38" y="120.0" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 38 120.0)">代价高</text>
+<text x="38" y="248.0" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 38 248.0)">代价低</text>
+<text x="18" y="184" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 18 184)">出错代价 →</text>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#656d76"/></marker></defs>
+</svg>

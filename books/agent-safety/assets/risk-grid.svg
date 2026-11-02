@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 338" width="360" height="338" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="337" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">agent 风险定位</text>
+<text x="94" y="54" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">能力等级 ↑</text>
+<text x="94" y="96.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">对外 / 不可逆</text>
+<rect x="100" y="62" width="80" height="60" rx="6" fill="#dbe7fb"/>
+<text x="140.0" y="88" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">部署助手</text>
+<text x="140.0" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">中风险</text>
+<rect x="184" y="62" width="80" height="60" rx="6" fill="#2f6fdf"/>
+<text x="224.0" y="88" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">运维 agent</text>
+<text x="224.0" y="106" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">高风险</text>
+<rect x="268" y="62" width="80" height="60" rx="6" fill="#2f6fdf"/>
+<text x="308.0" y="88" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">收发邮件</text>
+<text x="308.0" y="106" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">高风险</text>
+<text x="94" y="160.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">本地写</text>
+<rect x="100" y="126" width="80" height="60" rx="6" fill="#e6e9ed"/>
+<text x="140.0" y="152" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">本地重构</text>
+<text x="140.0" y="170" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">低风险</text>
+<rect x="184" y="126" width="80" height="60" rx="6" fill="#dbe7fb"/>
+<text x="224.0" y="152" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">编码 agent</text>
+<text x="224.0" y="170" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">中风险</text>
+<rect x="268" y="126" width="80" height="60" rx="6" fill="#2f6fdf"/>
+<text x="308.0" y="152" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">处理外部 PR</text>
+<text x="308.0" y="170" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">高风险</text>
+<text x="94" y="224.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">只读</text>
+<rect x="100" y="190" width="80" height="60" rx="6" fill="#e6e9ed"/>
+<text x="140.0" y="216" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">代码问答</text>
+<text x="140.0" y="234" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">低风险</text>
+<rect x="184" y="190" width="80" height="60" rx="6" fill="#e6e9ed"/>
+<text x="224.0" y="216" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">文档检索</text>
+<text x="224.0" y="234" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">低风险</text>
+<rect x="268" y="190" width="80" height="60" rx="6" fill="#dbe7fb"/>
+<text x="308.0" y="216" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">网页调研</text>
+<text x="308.0" y="234" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">中风险</text>
+<text x="140.0" y="268" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">低</text>
+<text x="224.0" y="268" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">中</text>
+<text x="308.0" y="268" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">高</text>
+<text x="224.0" y="288" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">接触不可信内容的程度 →</text>
+<rect x="90" y="306" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="110" y="318" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">低风险</text>
+<rect x="162" y="306" width="14" height="14" rx="3" fill="#dbe7fb"/>
+<text x="182" y="318" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">中风险</text>
+<rect x="234" y="306" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="254" y="318" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">高风险</text>
+</svg>

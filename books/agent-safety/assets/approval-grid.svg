@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 312" width="360" height="312" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="311" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">该不该让人确认</text>
+<text x="223.0" y="52" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">影响范围 →</text>
+<text x="90" y="72" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">可逆性 ↓</text>
+<text x="137.0" y="74" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">只影响本地</text>
+<text x="223.0" y="74" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">共享资源</text>
+<text x="309.0" y="74" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">他人 / 线上</text>
+<text x="90" y="115.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">可撤回</text>
+<rect x="96" y="82" width="82" height="58" rx="6" fill="#e6e9ed"/>
+<text x="137.0" y="107" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">自动</text>
+<text x="137.0" y="125" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">改工作区文件</text>
+<rect x="182" y="82" width="82" height="58" rx="6" fill="#dbe7fb"/>
+<text x="223.0" y="107" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">记录</text>
+<text x="223.0" y="125" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">推到个人分支</text>
+<rect x="268" y="82" width="82" height="58" rx="6" fill="#2f6fdf"/>
+<text x="309.0" y="107" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">确认</text>
+<text x="309.0" y="125" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">切换功能开关</text>
+<text x="90" y="177.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">撤回有成本</text>
+<rect x="96" y="144" width="82" height="58" rx="6" fill="#dbe7fb"/>
+<text x="137.0" y="169" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">记录</text>
+<text x="137.0" y="187" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">安装依赖</text>
+<rect x="182" y="144" width="82" height="58" rx="6" fill="#2f6fdf"/>
+<text x="223.0" y="169" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">确认</text>
+<text x="223.0" y="187" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">数据库迁移</text>
+<rect x="268" y="144" width="82" height="58" rx="6" fill="#2f6fdf"/>
+<text x="309.0" y="169" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">确认</text>
+<text x="309.0" y="187" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">部署新版本</text>
+<text x="90" y="239.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">不可逆</text>
+<rect x="96" y="206" width="82" height="58" rx="6" fill="#2f6fdf"/>
+<text x="137.0" y="231" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">确认</text>
+<text x="137.0" y="249" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">删未提交文件</text>
+<rect x="182" y="206" width="82" height="58" rx="6" fill="#1f2328"/>
+<text x="223.0" y="231" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">禁止</text>
+<text x="223.0" y="249" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">删数据卷</text>
+<rect x="268" y="206" width="82" height="58" rx="6" fill="#1f2328"/>
+<text x="309.0" y="231" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">禁止</text>
+<text x="309.0" y="249" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">对外发消息</text>
+<rect x="60" y="280" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="80" y="292" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">自动</text>
+<rect x="126" y="280" width="14" height="14" rx="3" fill="#dbe7fb"/>
+<text x="146" y="292" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">记录</text>
+<rect x="192" y="280" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="212" y="292" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">确认</text>
+<rect x="258" y="280" width="14" height="14" rx="3" fill="#1f2328"/>
+<text x="278" y="292" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">禁止</text>
+</svg>

@@ -59,7 +59,7 @@ chapters:                     # 必填，显式排序；未列入的 .md 会被�
 
 ### SVG 规范
 
-- **底板**：最外层一个白色圆角矩形（`fill="#ffffff"`、`stroke="#d8dee4"`、`rx="10"`）。阅读器有暗色、护眼主题，`<img>` 里的 SVG 拿不到页面的 CSS 变量，透明底在暗色下会看不清
+- **底板**：最外层一个白色圆角矩形（`fill="#ffffff"`、`stroke="#d8dee4"`、`rx="10"`）。阅读器有暗色主题，`<img>` 里的 SVG 拿不到页面的 CSS 变量，透明底在暗色下会看不清
 - **尺寸**：`viewBox` 宽 360 左右，同时写上相同的 `width` / `height`；高度按内容定。手机正文宽约 343pt，这个宽度基本不缩放
 - **字体**：`font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif"`；标题 15、加粗 600，正文和标签 12–14，不小于 11
 - **配色**（与阅读器亮色主题一致）：

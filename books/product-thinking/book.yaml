@@ -1,0 +1,17 @@
+id: product-thinking
+title: 产品思维
+subtitle: 从听懂需求到排好路线图，一个人也能把产品想清楚
+category: opc/product
+tags: [product, requirements, mvp, prioritization, roadmap]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-where-needs-come-from.md
+  - 02-user-interviews.md
+  - 03-problem-vs-solution.md
+  - 04-mvp-boundary.md
+  - 05-prioritization.md
+  - 06-writing-specs.md
+  - 07-roadmap.md
+  - 08-feedback-to-iteration.md

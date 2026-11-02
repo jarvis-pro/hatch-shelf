@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="360" height="250" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="249" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">LoRA：冻结 W，只训练 B 和 A</text>
+<rect x="24" y="60" width="110" height="110" rx="4" fill="#e6e9ed" stroke="#d8dee4"/>
+<text x="79" y="112" font-size="16" fill="#1f2328" text-anchor="middle" font-weight="600">W</text>
+<text x="79" y="132" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">d × d，冻结</text>
+<text x="150" y="120" font-size="20" fill="#1f2328" text-anchor="middle" font-weight="600">+</text>
+<rect x="172" y="60" width="22" height="110" rx="3" fill="#2f6fdf"/>
+<text x="183" y="188" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">B</text>
+<text x="183" y="205" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">d × r</text>
+<text x="208" y="120" font-size="16" fill="#1f2328" text-anchor="middle" font-weight="normal">×</text>
+<rect x="222" y="104" width="110" height="22" rx="3" fill="#2f6fdf"/>
+<text x="277" y="96" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">A</text>
+<text x="277" y="146" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">r × d</text>
+<text x="180" y="232" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">d = 4096、r = 16 时，B 和 A 只占 W 的 0.8%</text>
+</svg>

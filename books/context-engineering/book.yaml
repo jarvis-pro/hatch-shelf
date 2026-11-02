@@ -1,0 +1,17 @@
+id: context-engineering
+title: 上下文工程
+subtitle: 让 agent 每一步都只看到该看的：提示词、记忆、压缩、检索与长任务
+category: ai/agent
+tags: [agent, context, memory, skills, prompt]
+level: advanced
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-scarce-window.md
+  - 02-system-prompt.md
+  - 03-memory-layers.md
+  - 04-compaction.md
+  - 05-just-in-time-retrieval.md
+  - 06-skills-progressive.md
+  - 07-long-running-state.md
+  - 08-measure-debug.md

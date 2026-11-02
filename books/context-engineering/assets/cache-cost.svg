@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" width="360" height="300" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="299" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">每轮输入成本：不缓存 vs 缓存</text>
+<line x1="58" y1="218.0" x2="340" y2="218.0" stroke="#d8dee4"/>
+<text x="52.0" y="222.0" font-size="12" fill="#656d76" text-anchor="end" >0</text>
+<line x1="58" y1="178.5" x2="340" y2="178.5" stroke="#d8dee4"/>
+<text x="52.0" y="182.5" font-size="12" fill="#656d76" text-anchor="end" >1万</text>
+<line x1="58" y1="139.0" x2="340" y2="139.0" stroke="#d8dee4"/>
+<text x="52.0" y="143.0" font-size="12" fill="#656d76" text-anchor="end" >2万</text>
+<line x1="58" y1="99.4" x2="340" y2="99.4" stroke="#d8dee4"/>
+<text x="52.0" y="103.4" font-size="12" fill="#656d76" text-anchor="end" >3万</text>
+<line x1="58" y1="59.9" x2="340" y2="59.9" stroke="#d8dee4"/>
+<text x="52.0" y="63.9" font-size="12" fill="#656d76" text-anchor="end" >4万</text>
+<line x1="58" y1="218" x2="340" y2="218" stroke="#656d76"/>
+<line x1="58" y1="52" x2="58" y2="218" stroke="#656d76"/>
+<line x1="58.0" y1="218" x2="58.0" y2="222" stroke="#656d76"/>
+<text x="58.0" y="235.0" font-size="12" fill="#656d76" text-anchor="middle" >1</text>
+<line x1="117.4" y1="218" x2="117.4" y2="222" stroke="#656d76"/>
+<text x="117.4" y="235.0" font-size="12" fill="#656d76" text-anchor="middle" >5</text>
+<line x1="191.6" y1="218" x2="191.6" y2="222" stroke="#656d76"/>
+<text x="191.6" y="235.0" font-size="12" fill="#656d76" text-anchor="middle" >10</text>
+<line x1="265.8" y1="218" x2="265.8" y2="222" stroke="#656d76"/>
+<text x="265.8" y="235.0" font-size="12" fill="#656d76" text-anchor="middle" >15</text>
+<line x1="340.0" y1="218" x2="340.0" y2="222" stroke="#656d76"/>
+<text x="340.0" y="235.0" font-size="12" fill="#656d76" text-anchor="middle" >20</text>
+<text x="199.0" y="252.0" font-size="12" fill="#656d76" text-anchor="middle" >轮次</text>
+<text x="16.0" y="135.0" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 16 135.0)">折算成基础价的 token</text>
+<polyline points="58.0,206.1 72.8,198.2 87.7,190.3 102.5,182.4 117.4,174.5 132.2,166.6 147.1,158.7 161.9,150.8 176.7,142.9 191.6,135.0 206.4,127.1 221.3,119.2 236.1,111.3 250.9,103.4 265.8,95.5 280.6,87.6 295.5,79.7 310.3,71.8 325.2,63.9 340.0,56.0" fill="none" stroke="#656d76" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<polyline points="58.0,203.2 72.8,206.9 87.7,206.1 102.5,205.4 117.4,204.6 132.2,203.8 147.1,203.0 161.9,202.2 176.7,201.4 191.6,200.6 206.4,199.8 221.3,199.0 236.1,198.2 250.9,197.4 265.8,196.7 280.6,195.9 295.5,195.1 310.3,194.3 325.2,193.5 340.0,192.7" fill="none" stroke="#2f6fdf" stroke-width="2.5" stroke-linejoin="round" />
+<text x="314.8" y="59.9" font-size="12" fill="#656d76" text-anchor="end" >41000</text>
+<text x="340.0" y="184.0" font-size="12" fill="#2f6fdf" text-anchor="end" >6400</text>
+<line x1="40" y1="274" x2="62" y2="274" stroke="#656d76" stroke-width="2.5" stroke-dasharray="6 4"/>
+<text x="68.0" y="278.0" font-size="12" fill="#1f2328" text-anchor="start" >不缓存，累计 44 万</text>
+<line x1="190" y1="274" x2="212" y2="274" stroke="#2f6fdf" stroke-width="2.5" />
+<text x="218.0" y="278.0" font-size="12" fill="#1f2328" text-anchor="start" >缓存，累计约 9.1 万</text>
+</svg>

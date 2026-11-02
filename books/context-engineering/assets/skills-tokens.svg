@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="360" height="250" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="249" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">装 30 个 Skill 时每轮常驻的 token</text>
+<text x="120.0" y="79.0" font-size="12" fill="#1f2328" text-anchor="end" >全文常驻</text>
+<rect x="128" y="62" width="172.0" height="26" rx="3" fill="#e6e9ed"/>
+<text x="294.0" y="79.0" font-size="12" fill="#1f2328" text-anchor="end" >60000</text>
+<text x="120.0" y="125.0" font-size="12" fill="#1f2328" text-anchor="end" >只放描述</text>
+<rect x="128" y="108" width="6.9" height="26" rx="3" fill="#2f6fdf"/>
+<text x="140.9" y="125.0" font-size="12" fill="#1f2328" text-anchor="start" >2400</text>
+<text x="120.0" y="171.0" font-size="12" fill="#1f2328" text-anchor="end" >描述 + 用到的 1 个</text>
+<rect x="128" y="154" width="12.6" height="26" rx="3" fill="#2f6fdf"/>
+<text x="146.6" y="171.0" font-size="12" fill="#1f2328" text-anchor="start" >4400</text>
+<line x1="128" y1="56" x2="128" y2="188" stroke="#656d76"/>
+<text x="180.0" y="212.0" font-size="12" fill="#656d76" text-anchor="middle" >假设：每个 Skill 的描述约 80 token，</text>
+<text x="180.0" y="230.0" font-size="12" fill="#656d76" text-anchor="middle" >SKILL.md 正文约 2000 token</text>
+</svg>

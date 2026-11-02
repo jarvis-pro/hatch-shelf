@@ -1,0 +1,18 @@
+id: ts-node-advanced
+title: TS 与 Node 进阶
+subtitle: 从类型的集合论到事件循环、V8、内存与背压
+category: tech/typescript
+tags: [typescript, nodejs, v8, performance]
+level: advanced
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-types-as-sets.md
+  - 02-generics-conditional-infer.md
+  - 03-type-gymnastics-limits.md
+  - 04-event-loop-libuv.md
+  - 05-v8-pipeline-hidden-classes.md
+  - 06-memory-gc-leaks.md
+  - 07-streams-backpressure.md
+  - 08-profiling.md
+  - 09-node-runs-ts.md

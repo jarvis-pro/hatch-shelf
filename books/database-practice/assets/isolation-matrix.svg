@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 302" width="360" height="302" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="301" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">PostgreSQL 各隔离级别挡住了什么</text>
+<text x="110.0" y="60" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">脏读</text>
+<text x="162.0" y="60" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">不可重复读</text>
+<text x="214.0" y="60" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">幻读</text>
+<text x="266.0" y="60" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">丢失更新</text>
+<text x="318.0" y="60" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">写偏斜</text>
+<text x="76" y="94.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">读已提交</text>
+<rect x="87" y="70" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="110.0" y="94.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="139" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="162.0" y="94.0" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">会发生</text>
+<rect x="191" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="214.0" y="94.0" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">会发生</text>
+<rect x="243" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="266.0" y="94.0" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">会发生</text>
+<rect x="295" y="70" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="318.0" y="94.0" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">会发生</text>
+<text x="76" y="140.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">可重复读</text>
+<rect x="87" y="116" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="110.0" y="140.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="139" y="116" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="162.0" y="140.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="191" y="116" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="214.0" y="140.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="243" y="116" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="266.0" y="140.0" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">报错</text>
+<rect x="295" y="116" width="46" height="40" rx="6" fill="#e6e9ed"/>
+<text x="318.0" y="140.0" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">会发生</text>
+<text x="76" y="186.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">可串行化</text>
+<rect x="87" y="162" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="110.0" y="186.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="139" y="162" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="162.0" y="186.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="191" y="162" width="46" height="40" rx="6" fill="#2f6fdf"/>
+<text x="214.0" y="186.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">挡住</text>
+<rect x="243" y="162" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="266.0" y="186.0" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">报错</text>
+<rect x="295" y="162" width="46" height="40" rx="6" fill="#dbe7fb"/>
+<text x="318.0" y="186.0" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">报错</text>
+<rect x="24" y="228" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="44" y="239" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">数据库保证不发生</text>
+<rect x="24" y="250" width="14" height="14" rx="3" fill="#dbe7fb"/>
+<text x="44" y="261" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">冲突时让一方失败（40001），需重试</text>
+<rect x="24" y="272" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="44" y="283" font-size="11" fill="#1f2328" text-anchor="start" font-weight="normal">要靠写法或加锁自己防</text>
+</svg>

@@ -1,0 +1,18 @@
+id: database-practice
+title: 数据库原理与实战
+subtitle: 开发者视角的建模、索引、执行计划、事务与 MVCC，以 PostgreSQL 16 + Drizzle 和 SQLite 为例
+category: tech/database
+tags: [postgresql, sqlite, drizzle, sql, database]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-modeling.md
+  - 02-indexes.md
+  - 03-explain.md
+  - 04-transactions.md
+  - 05-mvcc.md
+  - 06-drizzle-migrations.md
+  - 07-anti-patterns.md
+  - 08-sqlite-local-first.md
+  - 09-json-fulltext.md

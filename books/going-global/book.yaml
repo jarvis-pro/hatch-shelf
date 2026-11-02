@@ -1,0 +1,16 @@
+id: going-global
+title: 出海实务
+subtitle: 海外主体、收款、上架、隐私、云与税汇，一个人把产品卖到海外的框架和流程
+category: opc/legal
+tags: [opc, going-global, stripe, gdpr, app-store]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-overview.md
+  - 02-overseas-entity.md
+  - 03-stripe-payments.md
+  - 04-app-store-global.md
+  - 05-gdpr-privacy.md
+  - 06-cloud-and-domains.md
+  - 07-tax-and-remittance.md

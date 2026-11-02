@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="360" height="380" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="379" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">三条路径的取舍（示意）</text>
+<line x1="60" y1="290" x2="330" y2="290" stroke="#656d76" stroke-width="1.2"/>
+<line x1="60" y1="290" x2="60" y2="70" stroke="#656d76" stroke-width="1.2"/>
+<polygon points="330,290 323,286 323,294" fill="#656d76"/>
+<polygon points="60,70 56,77 64,77" fill="#656d76"/>
+<text x="195.0" y="312" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">设立与维护成本 低 → 高</text>
+<text x="46" y="180.0" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 46 180.0)">自主程度 低 → 高</text>
+<circle cx="115" cy="240" r="15" fill="#2f6fdf"/>
+<text x="115" y="245" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">A</text>
+<circle cx="190" cy="190" r="15" fill="#2f6fdf"/>
+<text x="190" y="195" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">B</text>
+<circle cx="285" cy="105" r="15" fill="#2f6fdf"/>
+<text x="285" y="110" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">C</text>
+<text x="137" y="245" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">个人 + 平台代收</text>
+<text x="212" y="195" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">国内主体直接出海</text>
+<text x="265" y="110" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">海外主体 + Stripe</text>
+<rect x="40" y="326" width="280" height="40" rx="6" fill="#dbe7fb"/>
+<text x="180" y="342" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">平台替你扛的越多，抽成越高、自主越少</text>
+<text x="180" y="358" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">自己扛的越多，要懂和要维护的越多</text>
+</svg>

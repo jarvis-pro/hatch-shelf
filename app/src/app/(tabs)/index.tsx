@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { ChevronRight, Plus, Search } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getChapters, listBookProgress, listBooks, type BookProgress, type BookRow } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
@@ -17,6 +17,7 @@ import { Backdrop } from '@/ui/Backdrop';
 import { Glass, GlassButton } from '@/ui/glass';
 import { FadeInUp, PressScale, ProgressBar, useFirstEntry } from '@/ui/motion';
 import { PageHeader } from '@/ui/PageHeader';
+import { PullIndicator, usePullRefresh } from '@/ui/PullRefresh';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
 import { useTheme } from '@/ui/theme';
 
@@ -41,7 +42,6 @@ export default function ShelfScreen() {
   const [books, setBooks] = useState<BookRow[] | null>(null);
   const [progress, setProgress] = useState<Map<string, BookProgress>>(new Map());
   const [recent, setRecent] = useState<ContinueInfo | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const playProgress = useFirstEntry('shelf-progress');
 
   const load = useCallback(async () => {
@@ -66,15 +66,12 @@ export default function ShelfScreen() {
   useLibraryChanged(useCallback(() => void load(), [load]));
 
   // 下拉时重新扫描 books/，修正被外部改动过的索引
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
+  const pull = usePullRefresh(
+    useCallback(async () => {
       await rebuildIndex();
       await load();
-    } finally {
-      setRefreshing(false);
-    }
-  }, [load]);
+    }, [load]),
+  );
 
   const sections = useMemo(() => {
     const map = new Map<string, BookRow[]>();
@@ -103,9 +100,9 @@ export default function ShelfScreen() {
   return (
     <View style={styles.flex}>
       <Backdrop art={ART} />
-      <ScrollView
+      <Animated.ScrollView
+        {...pull.scrollProps}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 6, paddingBottom: TAB_BAR_SPACE + 20 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={t.fg3} />}
         showsVerticalScrollIndicator={false}
       >
         {header}
@@ -157,7 +154,8 @@ export default function ShelfScreen() {
             </FadeInUp>
           );
         })}
-      </ScrollView>
+      </Animated.ScrollView>
+      <PullIndicator scrollY={pull.scrollY} phase={pull.phase} top={insets.top} />
     </View>
   );
 }

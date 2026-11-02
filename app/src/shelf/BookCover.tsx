@@ -101,7 +101,7 @@ function TextCover({ book, width }: { book: CoverBook; width: number }) {
         <View style={[styles.blockInner, { borderColor: '#F3EEE466', margin: 10 * s }]} />
       </View>
       <View style={[styles.imprint, { backgroundColor: color, height: 32 * s, paddingHorizontal: 24 * s }]}>
-        {width >= 90 && <Text style={[styles.imprintText, { fontSize: 9 * s, letterSpacing: 2.5 * s }]}>HATCH SHELF</Text>}
+        {width >= 90 && <Text style={[styles.imprintText, { fontSize: 18 * s }]}>Jarvis</Text>}
         <View style={[styles.mark, { width: 10 * s, height: 10 * s, borderRadius: 5 * s }]} />
       </View>
     </View>
@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  imprintText: { color: '#F3EEE4', fontWeight: '600' },
+  // 署名用 iOS 自带的手写体，与图片封面上的签名一致
+  imprintText: { color: '#F3EEE4', fontFamily: 'Snell Roundhand' },
   mark: { backgroundColor: '#F3EEE4', marginLeft: 'auto' },
 });

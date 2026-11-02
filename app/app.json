@@ -73,7 +73,16 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#E9ECF3",
+          "dark": {
+            "backgroundColor": "#E9ECF3"
+          }
+        }
+      ]
     ]
   }
 }

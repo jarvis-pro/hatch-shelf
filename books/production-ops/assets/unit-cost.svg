@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 326" width="360" height="326" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="325" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">每用户每月成本随用户数的变化</text>
+<line x1="52.0" y1="230.0" x2="340.0" y2="230.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="46.0" y="234.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">0</text>
+<line x1="52.0" y1="191.4" x2="340.0" y2="191.4" stroke="#d8dee4" stroke-width="1"/>
+<text x="46.0" y="195.4" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">5</text>
+<line x1="52.0" y1="152.7" x2="340.0" y2="152.7" stroke="#d8dee4" stroke-width="1"/>
+<text x="46.0" y="156.7" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">10</text>
+<line x1="52.0" y1="114.1" x2="340.0" y2="114.1" stroke="#d8dee4" stroke-width="1"/>
+<text x="46.0" y="118.1" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">15</text>
+<line x1="52.0" y1="75.5" x2="340.0" y2="75.5" stroke="#d8dee4" stroke-width="1"/>
+<text x="46.0" y="79.5" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">20</text>
+<text x="46.0" y="50.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">元</text>
+<text x="52.0" y="248.0" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal">10</text>
+<text x="120.7" y="248.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">30</text>
+<text x="196.0" y="248.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">100</text>
+<text x="264.7" y="248.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">300</text>
+<text x="340.0" y="248.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1000</text>
+<text x="340.0" y="264.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">用户数（对数刻度）</text>
+<line x1="52.0" y1="226.1" x2="340.0" y2="226.1" stroke="#656d76" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polyline points="52.0,71.6 54.9,78.5 57.8,85.2 60.6,91.5 63.5,97.6 66.4,103.4 69.3,108.9 72.2,114.2 75.0,119.2 77.9,124.0 80.8,128.6 83.7,133.0 86.6,137.2 89.4,141.2 92.3,145.0 95.2,148.7 98.1,152.2 101.0,155.5 103.8,158.7 106.7,161.7 109.6,164.6 112.5,167.4 115.4,170.0 118.2,172.5 121.1,175.0 124.0,177.3 126.9,179.5 129.8,181.6 132.6,183.6 135.5,185.5 138.4,187.3 141.3,189.1 144.2,190.7 147.0,192.3 149.9,193.8 152.8,195.3 155.7,196.7 158.6,198.0 161.4,199.3 164.3,200.5 167.2,201.6 170.1,202.7 173.0,203.8 175.8,204.8 178.7,205.8 181.6,206.7 184.5,207.6 187.4,208.4 190.2,209.2 193.1,210.0 196.0,210.7 198.9,211.4 201.8,212.0 204.6,212.7 207.5,213.3 210.4,213.9 213.3,214.4 216.2,214.9 219.0,215.4 221.9,215.9 224.8,216.4 227.7,216.8 230.6,217.2 233.4,217.6 236.3,218.0 239.2,218.4 242.1,218.7 245.0,219.1 247.8,219.4 250.7,219.7 253.6,220.0 256.5,220.3 259.4,220.5 262.2,220.8 265.1,221.0 268.0,221.2 270.9,221.5 273.8,221.7 276.6,221.9 279.5,222.1 282.4,222.3 285.3,222.4 288.2,222.6 291.0,222.8 293.9,222.9 296.8,223.1 299.7,223.2 302.6,223.3 305.4,223.5 308.3,223.6 311.2,223.7 314.1,223.8 317.0,223.9 319.8,224.0 322.7,224.1 325.6,224.2 328.5,224.3 331.4,224.4 334.2,224.4 337.1,224.5 340.0,224.6" fill="none" stroke="#2f6fdf" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="52.0" cy="71.6" r="4" fill="#2f6fdf"/>
+<text x="60.0" y="75.6" font-size="12" fill="#2f6fdf" text-anchor="start" font-weight="600">20.5 元</text>
+<circle cx="196.0" cy="210.7" r="4" fill="#2f6fdf"/>
+<text x="202.0" y="200.7" font-size="12" fill="#2f6fdf" text-anchor="start" font-weight="600">2.5 元</text>
+<circle cx="340.0" cy="224.6" r="4" fill="#2f6fdf"/>
+<text x="340.0" y="212.6" font-size="12" fill="#2f6fdf" text-anchor="end" font-weight="600">0.7 元</text>
+<text x="58.0" y="220.1" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal">变动成本 0.5 元</text>
+<text x="180.0" y="290.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">假设：固定成本 200 元/月，变动成本 0.5 元/用户/月</text>
+<text x="180.0" y="308.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">单位成本 = 200 ÷ 用户数 + 0.5</text>
+</svg>

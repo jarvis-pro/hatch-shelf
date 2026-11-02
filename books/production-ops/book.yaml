@@ -1,0 +1,17 @@
+id: production-ops
+title: 一人运维手册
+subtitle: 加固、容灾、事故、SLO、成本与值班：一个人也能把线上管稳
+category: ops/sre
+tags: [sre, security, backup, incident, on-call]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-hardening.md
+  - 02-backup-dr.md
+  - 03-incident-response.md
+  - 04-postmortem.md
+  - 05-slo-error-budget.md
+  - 06-cost-control.md
+  - 07-on-call.md
+  - 08-checklists.md

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 326" width="360" height="326" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="325" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">告警该怎么通知</text>
+<text x="148.0" y="66.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="600">急，或会恶化</text>
+<text x="284.0" y="66.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="600">不急，也不恶化</text>
+<text x="74.0" y="122.0" font-size="12" fill="#656d76" text-anchor="end" font-weight="600">影响</text>
+<text x="74.0" y="138.0" font-size="12" fill="#656d76" text-anchor="end" font-weight="600">用户</text>
+<text x="74.0" y="226.0" font-size="12" fill="#656d76" text-anchor="end" font-weight="600">不影响</text>
+<text x="74.0" y="242.0" font-size="12" fill="#656d76" text-anchor="end" font-weight="600">用户</text>
+<rect x="84" y="76" width="128" height="96" rx="8" fill="#2f6fdf"/>
+<text x="148.0" y="110.0" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">叫醒你</text>
+<text x="148.0" y="134.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">全站不可用</text>
+<text x="148.0" y="152.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">证书已过期</text>
+<rect x="220" y="76" width="128" height="96" rx="8" fill="#dbe7fb"/>
+<text x="284.0" y="110.0" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">工作时间处理</text>
+<text x="284.0" y="134.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">非核心功能报错</text>
+<text x="284.0" y="152.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">备份心跳超时</text>
+<rect x="84" y="180" width="128" height="96" rx="8" fill="#dbe7fb"/>
+<text x="148.0" y="214.0" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">进摘要或周报</text>
+<text x="148.0" y="238.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">证书 20 天后到期</text>
+<text x="148.0" y="256.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">磁盘缓慢增长</text>
+<rect x="220" y="180" width="128" height="96" rx="8" fill="#e6e9ed"/>
+<text x="284.0" y="214.0" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">删掉</text>
+<text x="284.0" y="238.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">CPU 偶尔冲高</text>
+<text x="284.0" y="256.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">单个请求超时</text>
+<text x="180.0" y="306.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">只有左上角允许打断睡眠</text>
+</svg>

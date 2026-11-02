@@ -1,0 +1,15 @@
+id: iac-gitops
+title: 基础设施即代码
+subtitle: OpenTofu 开机器、Ansible 配系统、SOPS 管密钥、Argo CD 做 GitOps
+category: ops/deploy
+tags: [iac, opentofu, ansible, sops, gitops]
+level: advanced
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-why-iac.md
+  - 02-opentofu.md
+  - 03-ansible.md
+  - 04-secrets.md
+  - 05-gitops-argocd.md
+  - 06-solo-iac.md

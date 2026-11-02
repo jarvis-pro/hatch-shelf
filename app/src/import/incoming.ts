@@ -20,7 +20,7 @@ function enqueue(url: string) {
 }
 
 /**
- * 处理通过 AirDrop / 「用书架打开」传进来的文件。
+ * 处理通过 AirDrop / 「用书巢打开」传进来的文件。
  * iOS 以 file:// URL 打开 App；路由层面由 +native-intent.tsx 把它重定向到首页。
  * 必须在 bootstrap 完成后挂载。
  */

@@ -4,7 +4,7 @@ export const UPLOAD_PAGE = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>书架 · 传书</title>
+<title>书巢 · 传书</title>
 <style>
   :root { --bg:#f5f5f7; --card:#fff; --fg:#1d1d1f; --muted:#6e6e73; --accent:#0071e3; --ok:#1a7f37; --err:#cf222e; --border:#d2d2d7; }
   @media (prefers-color-scheme: dark) {
@@ -35,7 +35,7 @@ export const UPLOAD_PAGE = `<!doctype html>
 </head>
 <body>
 <main>
-  <h1>传书到书架</h1>
+  <h1>传书到书巢</h1>
   <p class="sub">支持 <code>.zip</code>（一本书的目录）和 <code>.md</code>（单章书），单个文件不超过 50 MB。</p>
   <label for="pin">PIN（手机传书页面上显示）</label>
   <input id="pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000">

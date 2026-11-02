@@ -11,7 +11,7 @@
       "bundleIdentifier": "com.jarvis.shelf",
       "buildNumber": "1",
       "infoPlist": {
-        "CFBundleDisplayName": "书架",
+        "CFBundleDisplayName": "书巢",
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleDocumentTypes": [
           {
@@ -50,7 +50,7 @@
           }
         ],
         "LSSupportsOpeningDocumentsInPlace": false,
-        "NSLocalNetworkUsageDescription": "用于在同一 Wi-Fi 下从电脑向书架传书"
+        "NSLocalNetworkUsageDescription": "用于在同一 Wi-Fi 下从电脑向书巢传书"
       },
       "appleTeamId": "9RHJ3C776D"
     },

@@ -70,7 +70,7 @@ export function Splash({ ready, progress, onDone }: { ready: boolean; progress: 
         </Animated.View>
         <View style={[styles.cardWrap, { top: (height * 560) / 844 }]}>
           <Glass radius={30} style={styles.card} forceLight>
-            <Text style={styles.title}>书架</Text>
+            <Text style={styles.title}>书巢</Text>
             <View style={styles.rule} />
             <Text style={styles.tagline}>让每本书慢慢发芽</Text>
           </Glass>

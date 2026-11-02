@@ -56,7 +56,7 @@ export async function importFile(uri: string): Promise<ImportResult> {
     return fail((e as Error).message);
   } finally {
     if (staging.exists) staging.delete();
-    // iOS 把「用书架打开」的文件拷到 Documents/Inbox/，用完即删；App 外的原文件不动
+    // iOS 把「用书巢打开」的文件拷到 Documents/Inbox/，用完即删；App 外的原文件不动
     if (source.exists && source.uri.startsWith(Paths.document.uri)) source.delete();
   }
 }

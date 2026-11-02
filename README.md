@@ -1,9 +1,9 @@
-# hatch-shelf · 书架
+# hatch-shelf · 书巢
 
 个人自用的 iOS 离线 Markdown 书架。AI 在电脑上写书，通过 AirDrop 或局域网传到手机，在本地存储与管理，离线阅读。
 
 - **Bundle ID**：`com.jarvis.shelf`
-- **显示名称**：书架
+- **显示名称**：书巢（内部名 `Shelf` 仍用于 Xcode 工程与 scheme）
 - **平台**：iOS（Expo / React Native，保留以后出 Android 的可能）
 
 ---
@@ -129,7 +129,7 @@ chapters:                     # 必填，显式排序
 ### 5.1 AirDrop / 系统分享
 
 - 在 `CFBundleDocumentTypes` 中注册 `.zip` 和 `.md`
-- 选择“用书架打开”后，文件进入导入管线
+- 选择“用书巢打开”后，文件进入导入管线
 - 书架右上角的“导入”可以从“文件” App 里选一个 zip / md，走同一条管线
 
 ### 5.2 局域网传书
@@ -317,6 +317,7 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 动效实现 | RN Animated，不引入 Reanimated | 设计稿的动效都是淡入、位移、弹簧这类简单动画，Animated 的原生驱动足够；少一个原生依赖 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
 | 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，构建号写在 app.json 由脚本递增，`ios/` 仍然只由 prebuild 生成 |
+| App 名称 | 显示名「书巢」，内部名保留 `Shelf` | 取陆游《书巢记》里堆满书的书房，也呼应 hatch（孵化）：书在电脑上写成，再落进手机里的巢。「书架」仍作为首页 Tab 的名字；`expo.name` 决定 prebuild 的工程名和 TestFlight 脚本的 scheme，不随之改动 |
 
 ---
 

@@ -9,6 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jarvis.shelf",
+      "buildNumber": "1",
       "infoPlist": {
         "CFBundleDisplayName": "书架",
         "ITSAppUsesNonExemptEncryption": false,

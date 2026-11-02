@@ -46,6 +46,7 @@
     "ios": "pnpm build:assets && expo run:ios",
     "android": "pnpm build:assets && expo run:android",
     "prebuild": "expo prebuild --clean",
+    "testflight": "node scripts/testflight.mjs",
     "typecheck": "pnpm build:samples && tsc --noEmit",
     "lint": "expo lint",
     "doctor": "expo-doctor",

@@ -1,0 +1,19 @@
+id: agent-principles
+title: Agent 原理与设计
+subtitle: 从 agent loop 到失败模式，Agent 系列的总纲
+category: ai/agent
+tags: [agent, llm, mcp, tool-use, context]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-what-is-agent.md
+  - 02-agent-loop.md
+  - 03-tools-and-actions.md
+  - 04-planning-reflection.md
+  - 05-memory.md
+  - 06-context-engineering.md
+  - 07-multi-agent.md
+  - 08-mcp-and-skills.md
+  - 09-sandbox-permissions.md
+  - 10-failure-modes.md

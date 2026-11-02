@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 440" width="360" height="440" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="439" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">Agent 的自主程度光谱</text>
+<text x="338" y="62" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">自主程度</text>
+<rect x="16" y="72" width="328" height="48" rx="8" fill="#ffffff" stroke="#d8dee4"/>
+<text x="28" y="92" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">单次调用</text>
+<text x="28" y="110" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">模型只产生文本</text>
+<rect x="258" y="82" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="274" y="82" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="290" y="82" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="306" y="82" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="322" y="82" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="16" y="130" width="328" height="48" rx="8" fill="#ffffff" stroke="#d8dee4"/>
+<text x="28" y="150" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">路由</text>
+<text x="28" y="168" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">从固定分支里选一个</text>
+<rect x="258" y="140" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="274" y="140" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="290" y="140" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="306" y="140" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="322" y="140" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="16" y="188" width="328" height="48" rx="8" fill="#ffffff" stroke="#d8dee4"/>
+<text x="28" y="208" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">Workflow + 工具</text>
+<text x="28" y="226" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">步骤写死，部分步骤可调工具</text>
+<rect x="258" y="198" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="274" y="198" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="290" y="198" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="306" y="198" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="322" y="198" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="16" y="246" width="328" height="48" rx="8" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="28" y="266" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">受限 agent</text>
+<text x="28" y="284" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">自己定步骤，危险操作要确认</text>
+<rect x="258" y="256" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="274" y="256" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="290" y="256" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="306" y="256" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="322" y="256" width="12" height="12" rx="2" fill="#e6e9ed"/>
+<rect x="16" y="304" width="328" height="48" rx="8" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="28" y="324" font-size="14" fill="#1f2328" text-anchor="start" font-weight="600">全自主 agent</text>
+<text x="28" y="342" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">长时间无人值守，自己开子 agent</text>
+<rect x="258" y="314" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="274" y="314" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="290" y="314" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="306" y="314" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<rect x="322" y="314" width="12" height="12" rx="2" fill="#2f6fdf"/>
+<line x1="28" y1="378" x2="332" y2="378" stroke="#656d76" stroke-width="1.5"/>
+<path d="M332 378 l-7 -4 v8 z" fill="#656d76"/>
+<text x="28" y="398" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">越往下：越灵活</text>
+<text x="332" y="398" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">可预测性越低、成本越高</text>
+<text x="180" y="422" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">设计时从上往下挪，只在需要处增加自主性</text>
+</svg>

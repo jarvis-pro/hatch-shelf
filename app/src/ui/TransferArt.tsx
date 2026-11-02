@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { useReduceMotion } from '@/ui/motion';
 import { FILL_IMAGE } from '@/ui/theme';
 
@@ -8,9 +9,9 @@ const ART = require('../../assets/images/transfer-hero.jpg');
 const ART_W = 1584;
 const ART_H = 672;
 
-/** 图中光带的中线（原图像素坐标），从笔记本屏幕流向手机 */
+/** 光带中线（底图像素坐标），从笔记本屏幕上的光点流向手机屏幕上的光点 */
 const STREAM: [number, number][] = [
-  [345, 305], [420, 342], [500, 375], [600, 390], [700, 378], [800, 335], [880, 300],
+  [350, 318], [430, 360], [510, 396], [600, 400], [700, 378], [800, 335], [880, 300],
   [960, 284], [1040, 296], [1120, 335], [1200, 375], [1260, 395], [1305, 392],
 ];
 const STOPS = STREAM.map((_, i) => i / (STREAM.length - 1));
@@ -37,7 +38,15 @@ const PAGES = [0, 0.34, 0.67].map((phase, i) => ({
   dy: -14 - i * 5,
   spin: [-18, 22, -10][i],
 }));
-const SPARKLES = Array.from({ length: 9 }, () => ({
+/** 光带：[中段散开距离 pt, 线宽, 不透明度]，前两条是柔光，其余是丝线 */
+const STRANDS: [number, number, number][] = [
+  [0, 18, 0.07], [0, 8, 0.14], [0, 3, 0.3],
+  [-6, 0.5, 0.35], [-2.5, 0.9, 0.6], [0, 0.7, 0.85], [3, 0.8, 0.5], [7, 0.5, 0.3],
+];
+/** 光带整体明暗呼吸 */
+const shimmer = (clock: Animated.Value) =>
+  Animated.modulo(Animated.multiply(clock, 2), 1).interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.8, 1, 0.8] });
+const SPARKLES =Array.from({ length: 9 }, () => ({
   at: rand(0.08, 0.92),
   dx: rand(-10, 10),
   dy: rand(-18, 18),
@@ -111,8 +120,34 @@ function buildLayers(w: number, h: number, clock: Animated.Value) {
     { translateY: p.interpolate({ inputRange: STOPS, outputRange: ys.map((y) => y + dy - size / 2) }) },
   ];
 
+  // 光带丝线：两端收拢在设备上，中段按 spread 散开
+  const strand = (spread: number) => {
+    const pts = xs.map((x, i) => [x, ys[i] + spread * Math.sin(Math.PI * STOPS[i])] as const);
+    let d = `M${pts[0][0]},${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [p0, p1, p2, p3] = [pts[i - 1] ?? pts[i], pts[i], pts[i + 1], pts[i + 2] ?? pts[i + 1]];
+      d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`;
+    }
+    return d;
+  };
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: shimmer(clock) }]}>
+        <Svg width={w} height={h}>
+          <Defs>
+            <LinearGradient id="band" x1={xs[0]} y1={0} x2={xs[xs.length - 1]} y2={0} gradientUnits="userSpaceOnUse">
+              <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0} />
+              <Stop offset="0.15" stopColor="#FFF4FA" stopOpacity={1} />
+              <Stop offset="0.85" stopColor="#FFF4FA" stopOpacity={1} />
+              <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
+            </LinearGradient>
+          </Defs>
+          {STRANDS.map(([spread, width, opacity], i) => (
+            <Path key={i} d={strand(spread)} stroke="url(#band)" strokeWidth={width} strokeOpacity={opacity} strokeLinecap="round" fill="none" />
+          ))}
+        </Svg>
+      </Animated.View>
       {SPARKLES.map((k, i) => {
         const [x, y] = pointAt(k.at);
         const p = progress(k.speed, k.phase);

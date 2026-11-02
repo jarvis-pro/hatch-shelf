@@ -1,6 +1,7 @@
 import { strFromU8, unzipSync, type UnzipFileInfo } from 'fflate';
 import { stringify as stringifyYaml } from 'yaml';
 import { resolveBook, slugify } from './manifest';
+import { firstHeading } from './markdown';
 import { isAllowedFile, isSafeEntryPath, MAX_PACKAGE_BYTES } from './rules';
 import type { BookManifest } from './schema';
 
@@ -27,19 +28,6 @@ export type PreparedImport =
 
 const fail = (error: string): PreparedImport => ({ ok: false, error });
 const baseName = (fileName: string) => fileName.replace(/^.*[\\/]/, '').replace(/\.(zip|md)$/i, '');
-
-/** 第一个 H1（跳过代码块）；用于给单个 .md 生成书名 */
-export function firstHeading(markdown: string): string | null {
-  let inFence = false;
-  for (const line of markdown.split('\n')) {
-    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
-    else if (!inFence) {
-      const m = /^#\s+(.+?)\s*#*\s*$/.exec(line);
-      if (m) return m[1];
-    }
-  }
-  return null;
-}
 
 /** macOS 压缩时附带的元数据，直接丢弃，不算警告 */
 const isJunk = (path: string) =>

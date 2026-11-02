@@ -45,7 +45,7 @@ pnpm app start               # 启动 Metro（会先执行 build:assets）
 pnpm app build:assets        # 重新生成阅读器 HTML 和示例书模块（两者都不入库）
 pnpm typecheck               # 全仓类型检查
 pnpm test                    # 全仓测试
-pnpm --filter shelf-pack start check books/<id>
+pnpm shelf-pack check books/   # 校验全部书；pack / push 见 README 第 10 节
 ```
 
 声明任务完成前必须通过 `pnpm typecheck` 和 `pnpm test`。

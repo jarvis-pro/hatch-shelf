@@ -102,7 +102,7 @@ chapters:                     # 必填，显式排序
 
 - 每章一个 `.md` 文件，以唯一的 H1 作为章标题
 - 图片只能引用 `assets/` 下的相对路径，**禁止远程图片**（离线时无法显示）
-- 图表优先使用 Mermaid（` ```mermaid `）
+- 图表用 Mermaid（流程、结构类）或 `assets/` 下的 SVG（数据图、坐标图、示意图），**禁止在代码块里用字符画图**；SVG 的底板、尺寸、字体、配色规范见 `books/AGENTS.md`「配图」
 - 代码块必须标注语言
 - 数学公式使用 KaTeX 语法（`$...$` / `$$...$$`）
 - 文件名只使用 `[a-z0-9-]` 和 `.md`
@@ -244,6 +244,13 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 
 理想流程：agent 写完一本书 → `shelf-pack push books/<id> --to ... --pin ...` → 手机上直接可读。
 
+在仓库根目录以 `pnpm shelf-pack <命令>` 运行。
+
+- `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、id 与目录名不一致、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下。规则在 `@shelf/spec` 的 `lintBook()`
+- `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名
+- `push --changed` 用 `book.yaml` 的 `updated` 与设备 `/books` 返回的值比较，相同则跳过；没有 `updated` 的书总是推送。因此改了内容要同时更新 `updated`
+- PIN 错误时立即停止，避免连续失败把手机上的服务锁掉
+
 ---
 
 ## 11. 里程碑
@@ -270,4 +277,5 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 局域网方向 | 手机做服务端，电脑做客户端 | 与常见的“WiFi 传书”习惯一致，CLI 可以直接 curl / push |
 | 阅读器加载方式 | 单文件 HTML 资源 → 拷到 documentDirectory → `file://` 加载 | 用 `source={{ html }}` 时页面拿不到本地文件读权限，图片只能转 base64；放在 documentDirectory 下与 books/ 同源最简单 |
 | Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |
+| 书中配图 | Mermaid + SVG，不用字符画 | 字符画在手机窄屏上会错位、看不清；SVG 是文本、体积小、矢量可放大，能进 git diff。SVG 自带白底，因为 `<img>` 里拿不到阅读器主题变量 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |

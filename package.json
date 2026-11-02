@@ -5,6 +5,7 @@
   "scripts": {
     "app": "pnpm --filter app",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "shelf-pack": "tsx tools/shelf-pack/src/cli.ts"
   }
 }

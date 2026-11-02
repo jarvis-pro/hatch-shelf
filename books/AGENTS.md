@@ -25,7 +25,7 @@ category: tech/go             # 可选，书架分组，用 / 分层
 tags: [go, concurrency]       # 可选
 level: intermediate           # 可选：beginner | intermediate | advanced
 created: 2026-11-02           # 可选，YYYY-MM-DD
-updated: 2026-11-02           # 可选，每次修改内容时更新
+updated: 2026-11-02           # 可选，每次修改内容时更新（push --changed 靠它判断是否需要推送）
 chapters:                     # 必填，显式排序；未列入的 .md 会被忽略
   - 01-goroutine.md
   - 02-channel.md
@@ -39,12 +39,47 @@ chapters:                     # 必填，显式排序；未列入的 .md 会被�
 - 文件名只使用 `[a-z0-9-]` 和 `.md`，建议用两位序号前缀：`01-intro.md`
 - 图片放在本书 `assets/` 下，用相对路径引用：`![说明](assets/xxx.png)`
 - **禁止远程图片**（`http(s)://`），手机离线时无法显示
-- 图表优先使用 Mermaid（` ```mermaid `）
+- 图表用 Mermaid 或 SVG，**禁止用字符画图**，详见下方「配图」
 - 代码块必须标注语言（` ```go `、` ```bash `、` ```text ` …）
 - 数学公式使用 KaTeX 语法：行内 `$...$`，块级 `$$...$$`
 - 图片格式限于 png / jpg / jpeg / gif / webp / svg，其余文件导入时会被丢弃
 
+## 配图
+
+### 选哪种形式
+
+| 要表达的内容 | 用什么 |
+|---|---|
+| 流程、步骤、结构、层级、时序、状态变化 | Mermaid（` ```mermaid `） |
+| 柱状图、折线图、坐标图、网格 / 矩阵示意、带标注的示意图 | SVG，放在 `assets/` |
+| 按行列组织的文字和数字 | Markdown 表格 |
+| 原样的文本：prompt、命令输出、日志、对话示例 | ` ```text ` 代码块 |
+
+**禁止在代码块里用字符拼图**：`│ ╲ └─` 画坐标轴和曲线、`████` 画柱子、空格对齐的 ✓ 矩阵、ASCII 方框图等。它们在手机窄屏上会错位、换行，也看不清。代码块只放「本来就是文本」的内容。
+
+### SVG 规范
+
+- **底板**：最外层一个白色圆角矩形（`fill="#ffffff"`、`stroke="#d8dee4"`、`rx="10"`）。阅读器有暗色、护眼主题，`<img>` 里的 SVG 拿不到页面的 CSS 变量，透明底在暗色下会看不清
+- **尺寸**：`viewBox` 宽 360 左右，同时写上相同的 `width` / `height`；高度按内容定。手机正文宽约 343pt，这个宽度基本不缩放
+- **字体**：`font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif"`；标题 15、加粗 600，正文和标签 12–14，不小于 11
+- **配色**（与阅读器亮色主题一致）：
+
+  | 用途 | 色值 |
+  |---|---|
+  | 主色（数据、强调） | `#2f6fdf` |
+  | 主色浅底 | `#dbe7fb` |
+  | 次要数据、「其余」、未激活 | `#e6e9ed` |
+  | 正文文字 | `#1f2328` |
+  | 次要文字、坐标轴 | `#656d76` |
+  | 边框、网格线 | `#d8dee4` |
+
+- **内容**：每张图带标题；数据图的数字要真实或按公式算出，不要随手编；需要图例时放在图内底部
+- **自包含**：不引用外部字体、图片、脚本，不用 `<foreignObject>`
+- **引用**：`![一句话说明图的内容](assets/xxx.svg)`，alt 写成完整的句子；文件名 `[a-z0-9-]`，按内容命名，如 `causal-mask.svg`
+- **生成方式**：手写或用脚本生成都可以，脚本不要放进书目录
+- **自检**：提交前渲染出来看一遍，确认没有文字重叠、溢出。macOS 上可以用 `qlmanage -t -s 800 -o <输出目录> <文件>.svg` 生成 PNG 预览（它会裁成正方形，高图需先把 viewBox 补成正方形再预览）
+
 ## 提交
 
 - 内容提交使用 `content:` 前缀，例如 `content: add go-concurrency ch3`
-- 写完后运行 `shelf-pack check books/<id>` 自检（M4 起可用）
+- 写完后在仓库根目录运行 `pnpm shelf-pack check books/<id>` 自检，有错误必须修好

@@ -168,7 +168,7 @@ default-src 'none'; img-src file: data: blob:; style-src 'unsafe-inline'; font-s
 
 **3. WebView 只允许加载阅读器本身。** RN 侧限定了 `originWhitelist={['file://*']}`，并且用 `onShouldStartLoadWithRequest` 只放行阅读器页面那一个地址，任何导航到别处的尝试都被拒绝。用户点了书里的外部链接，WebView 不会自己跳转，而是发一条消息给 RN，由 RN 决定是跳到书内的章节还是交给系统浏览器。
 
-**4. 桥接消息有明确的类型。** RN 和 WebView 之间的消息类型只在 `bridge.ts` 里定义，每种消息的字段都是确定的。RN 端收到消息时应当把它当作外部输入：按 `type` 分发，校验字段，比如 `link` 消息里的 `href`，只对 `http:` / `https:` 交给系统浏览器打开，其他 scheme 一律忽略。
+**4. 桥接消息有明确的类型。** RN 和 WebView 之间的消息类型只在 `bridge.ts` 里定义，每种消息的字段都是确定的。RN 端收到消息时应当把它当作外部输入：按 `type` 分发，校验字段。hatch-shelf 处理 `link` 消息就是这样做的：`href` 先按 `xx-xx.md#锚点` 的格式匹配本书章节，匹配上就在 App 内跳转；否则只有 `http:` / `https:` 交给系统浏览器打开，其他 scheme（`tel:`、`sms:`、自定义 URL scheme）一律忽略。
 
 **5. SVG 只作为图片加载。** 书里允许 SVG 图片。SVG 可以内嵌脚本，但通过 `<img>` 标签加载的 SVG 不会执行其中的脚本，这是浏览器的规定。所以 SVG 只能以 `<img>` 的方式出现，而不是内联进页面。
 

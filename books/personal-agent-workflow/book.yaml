@@ -1,0 +1,16 @@
+id: personal-agent-workflow
+title: 个人 Agent 工作流
+subtitle: 让 agent 接手写代码以外的活：自动化、知识库、定时任务、写书与运维
+category: ai/agent
+tags: [agent, automation, workflow, claude-code, opc]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-shaping-tasks.md
+  - 02-daily-automation.md
+  - 03-knowledge-base.md
+  - 04-scheduled-tasks.md
+  - 05-writing-books.md
+  - 06-ops.md
+  - 07-iteration.md

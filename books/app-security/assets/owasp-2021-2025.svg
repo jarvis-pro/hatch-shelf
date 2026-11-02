@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 406" width="360" height="406" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="405" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">OWASP Top 10：2021 → 2025</text>
+<text x="108" y="60" font-size="13" fill="#656d76" text-anchor="end" font-weight="600">2021</text>
+<text x="222" y="60" font-size="13" fill="#656d76" text-anchor="start" font-weight="600">2025</text>
+<text x="132" y="90" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A01 访问控制</text>
+<text x="132" y="118" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A02 加密失败</text>
+<text x="132" y="146" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A03 注入</text>
+<text x="132" y="174" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A04 不安全设计</text>
+<text x="132" y="202" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A05 配置错误</text>
+<text x="132" y="230" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A06 过时组件</text>
+<text x="132" y="258" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A07 认证失败</text>
+<text x="132" y="286" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A08 完整性失败</text>
+<text x="132" y="314" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A09 日志与监控</text>
+<text x="132" y="342" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">A10 SSRF</text>
+<text x="222" y="90" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A01 访问控制</text>
+<text x="222" y="118" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A02 配置错误</text>
+<text x="222" y="146" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A03 供应链失败</text>
+<text x="222" y="174" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A04 加密失败</text>
+<text x="222" y="202" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A05 注入</text>
+<text x="222" y="230" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A06 不安全设计</text>
+<text x="222" y="258" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A07 认证失败</text>
+<text x="222" y="286" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A08 完整性失败</text>
+<text x="222" y="314" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A09 日志与告警</text>
+<text x="222" y="342" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">A10 异常处理不当</text>
+<line x1="140" y1="86" x2="214" y2="86" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="114" x2="214" y2="170" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="142" x2="214" y2="198" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="170" x2="214" y2="226" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="198" x2="214" y2="114" stroke="#2f6fdf" stroke-width="2.4"/>
+<line x1="140" y1="226" x2="214" y2="142" stroke="#2f6fdf" stroke-width="2.4"/>
+<line x1="140" y1="254" x2="214" y2="254" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="282" x2="214" y2="282" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="310" x2="214" y2="310" stroke="#656d76" stroke-width="1"/>
+<line x1="140" y1="338" x2="214" y2="86" stroke="#656d76" stroke-width="1.2" stroke-dasharray="4 3"/>
+<rect x="322" y="329" width="26" height="18" rx="9" fill="#dbe7fb"/>
+<text x="335" y="342" font-size="11" fill="#2f6fdf" text-anchor="middle" font-weight="600">新</text>
+<line x1="20" y1="382" x2="44" y2="382" stroke="#2f6fdf" stroke-width="2.4"/><text x="50" y="386" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">排名上升</text>
+<line x1="122" y1="382" x2="146" y2="382" stroke="#656d76" stroke-width="1"/><text x="152" y="386" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">持平或下降</text>
+<line x1="236" y1="382" x2="260" y2="382" stroke="#656d76" stroke-width="1.2" stroke-dasharray="4 3"/><text x="266" y="386" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">并入</text>
+</svg>

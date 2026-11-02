@@ -1,0 +1,19 @@
+id: rn-expo
+title: React Native 与 Expo
+subtitle: 以书架 App 为例，从新架构到 TestFlight
+category: tech/mobile
+tags: [react-native, expo, ios, mobile]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-new-architecture.md
+  - 02-hermes.md
+  - 03-expo-router.md
+  - 04-dev-client-prebuild.md
+  - 05-config-plugins.md
+  - 06-native-module.md
+  - 07-webview-bridge.md
+  - 08-local-storage.md
+  - 09-performance-reanimated.md
+  - 10-signing-testflight.md

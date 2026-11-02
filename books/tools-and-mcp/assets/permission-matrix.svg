@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 356" width="360" height="356" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="355" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">书库工具的副作用与默认策略</text>
+<text x="156.0" y="62" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">只访问本地</text>
+<text x="280.0" y="62" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">触达外部</text>
+<text x="84" y="128.0" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">只读</text>
+<text x="84" y="236.0" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">会修改</text>
+<rect x="96" y="72" width="120" height="104" rx="8" fill="#dbe7fb"/>
+<text x="156.0" y="100" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">list_books</text>
+<text x="156.0" y="120" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">read_chapter</text>
+<text x="156.0" y="140" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">check_book</text>
+<text x="156.0" y="162" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">自动放行</text>
+<rect x="224" y="72" width="120" height="104" rx="8" fill="#e6e9ed"/>
+<text x="284.0" y="100" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">本 server 没有</text>
+<text x="284.0" y="120" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">例：查询远程 API</text>
+<text x="284.0" y="162" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">通常放行</text>
+<rect x="96" y="184" width="120" height="104" rx="8" fill="#e6e9ed"/>
+<text x="156.0" y="212" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">本 server 没有</text>
+<text x="156.0" y="232" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">例：改写章节文件</text>
+<text x="156.0" y="274" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">首次确认</text>
+<rect x="224" y="184" width="120" height="104" rx="8" fill="#2f6fdf"/>
+<text x="284.0" y="212" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">push_book</text>
+<text x="284.0" y="274" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">每次询问</text>
+<text x="180" y="316" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">注解：readOnlyHint / openWorldHint</text>
+<text x="180" y="336" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">注解由 server 自报，宿主应视为不可信的提示</text>
+</svg>

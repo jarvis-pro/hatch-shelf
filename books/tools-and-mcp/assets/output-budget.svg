@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="360" height="250" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="249" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">Claude Code 的 MCP 工具输出阈值</text>
+<rect x="40" y="90" width="96.7" height="34" fill="#dbe7fb"/>
+<rect x="136.7" y="90" width="145.0" height="34" fill="#2f6fdf" opacity="0.55"/>
+<rect x="281.7" y="90" width="48.3" height="34" fill="#e6e9ed"/>
+<rect x="40" y="90" width="290" height="34" fill="none" stroke="#d8dee4"/>
+<text x="88.33333333333334" y="112" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">正常</text>
+<text x="209.16666666666666" y="112" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">给出警告</text>
+<text x="305.8333333333333" y="112" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">超限</text>
+<line x1="40.0" y1="124" x2="40.0" y2="130" stroke="#656d76"/>
+<text x="40.0" y="144" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<line x1="136.7" y1="124" x2="136.7" y2="130" stroke="#656d76"/>
+<text x="136.66666666666669" y="144" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">1 万</text>
+<line x1="233.3" y1="124" x2="233.3" y2="130" stroke="#656d76"/>
+<text x="233.33333333333334" y="144" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">2 万</text>
+<line x1="330.0" y1="124" x2="330.0" y2="130" stroke="#656d76"/>
+<text x="330.0" y="144" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">3 万</text>
+<line x1="136.7" y1="60" x2="136.7" y2="124" stroke="#1f2328" stroke-dasharray="3 3"/>
+<line x1="281.7" y1="84" x2="281.7" y2="124" stroke="#1f2328" stroke-dasharray="3 3"/>
+<text x="136.66666666666669" y="54" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">1 万：警告阈值</text>
+<text x="281.66666666666663" y="78" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">2.5 万：默认上限</text>
+<text x="180" y="186" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">单位：token。上限可用 MAX_MCP_OUTPUT_TOKENS 调整</text>
+<text x="180" y="206" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">超过 5 万字符的文本结果会被转存为文件</text>
+<text x="180" y="232" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">数据来源：Claude Code 文档，2026 年 11 月</text>
+</svg>

@@ -1,0 +1,17 @@
+id: electron-desktop
+title: Electron 桌面应用
+subtitle: 三个进程、一座桥、一个签好名的 .app
+category: tech/desktop
+tags: [electron, desktop, ipc, security, macos]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-process-model.md
+  - 02-ipc.md
+  - 03-security.md
+  - 04-electron-vite.md
+  - 05-native-integration.md
+  - 06-packaging-signing.md
+  - 07-auto-update.md
+  - 08-electron-vs-tauri.md

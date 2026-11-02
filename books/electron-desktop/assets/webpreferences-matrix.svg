@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 336" width="360" height="336" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="335" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">页面里的恶意脚本能做到什么</text>
+<text x="150.0" y="64" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">直接用</text>
+<text x="150.0" y="80" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">Node</text>
+<text x="206.0" y="64" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">篡改</text>
+<text x="206.0" y="80" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">preload</text>
+<text x="262.0" y="64" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">调用暴露</text>
+<text x="262.0" y="80" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">的函数</text>
+<text x="318.0" y="64" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">漏洞后</text>
+<text x="318.0" y="80" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">系统权限</text>
+<text x="114" y="124.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">开 Node 集成</text>
+<rect x="124" y="100" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="150.0" y="125.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="180" y="100" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="206.0" y="125.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="236" y="100" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="262.0" y="125.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="292" y="100" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="318.0" y="125.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<text x="114" y="168.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">关上下文隔离</text>
+<rect x="124" y="144" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="150.0" y="169.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<rect x="180" y="144" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="206.0" y="169.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="236" y="144" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="262.0" y="169.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="292" y="144" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="318.0" y="169.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<text x="114" y="212.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">隔离，不开沙箱</text>
+<rect x="124" y="188" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="150.0" y="213.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<rect x="180" y="188" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="206.0" y="213.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<rect x="236" y="188" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="262.0" y="213.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="292" y="188" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="318.0" y="213.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<text x="114" y="256.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">隔离 + 沙箱（默认）</text>
+<rect x="124" y="232" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="150.0" y="257.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<rect x="180" y="232" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="206.0" y="257.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<rect x="236" y="232" width="52" height="40" rx="6" fill="#2f6fdf"/>
+<text x="262.0" y="257.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">能</text>
+<rect x="292" y="232" width="52" height="40" rx="6" fill="#e6e9ed"/>
+<text x="318.0" y="257.0" font-size="13" fill="#656d76" text-anchor="middle" font-weight="normal">不能</text>
+<rect x="70" y="295" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="90" y="306" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">攻击者能做到</text>
+<rect x="200" y="295" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="220" y="306" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">被挡住</text>
+</svg>

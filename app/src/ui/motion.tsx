@@ -18,6 +18,7 @@ import {
 export const EASE_OUT_QUINT = Easing.bezier(0.22, 1, 0.36, 1);
 export const EASE_OUT_CUBIC = Easing.bezier(0.33, 1, 0.68, 1);
 export const EASE_IN_OUT_CUBIC = Easing.bezier(0.65, 0, 0.35, 1);
+export const EASE_IN_CUBIC = Easing.bezier(0.32, 0, 0.67, 0);
 
 let reduceMotion = false;
 void AccessibilityInfo.isReduceMotionEnabled().then((v) => (reduceMotion = v));
@@ -105,29 +106,78 @@ export function PressScale({ style, scale = 0.97, children, onPressIn, onPressOu
   );
 }
 
-/** 06 卡片入场：opacity 0→1、y +12→0，按 index 错开 50ms；只在首次挂载时播放 */
-export function FadeInUp({ index = 0, style, children }: { index?: number; style?: StyleProp<ViewStyle>; children: ReactNode }) {
+/**
+ * 06 卡片入场：opacity 0→1、y +12→0，按 index 错开 50ms；只在首次挂载时播放。
+ * leaving 变为 true 时退场：opacity →0、位移到 exitOffset（easeInCubic），按 index 错开 exitStagger；
+ * 退场后由调用方卸载。减弱动态效果时退场只做 200ms 淡出。
+ */
+export function FadeInUp({
+  index = 0,
+  delay = 0,
+  axis = 'y',
+  leaving = false,
+  exitOffset = -8,
+  exitStagger = 0,
+  exitDuration = 180,
+  style,
+  children,
+}: {
+  index?: number;
+  delay?: number;
+  /** x 时从右侧 12pt 滑入 */
+  axis?: 'x' | 'y';
+  leaving?: boolean;
+  exitOffset?: number;
+  exitStagger?: number;
+  exitDuration?: number;
+  style?: StyleProp<ViewStyle>;
+  children: ReactNode;
+}) {
   const v = useState(() => new Animated.Value(reduceMotion ? 1 : 0))[0];
+  // 退场开始后位移改用 exitOffset；在 v = 1 时切换，两种插值都是 0，不会跳
+  const [exiting, setExiting] = useState(leaving);
+  if (leaving && !exiting) setExiting(true);
   useEffect(() => {
     if (reduceMotion) return;
     Animated.timing(v, {
       toValue: 1,
       duration: 420,
-      delay: Math.min(index, 8) * 50,
+      delay: delay + Math.min(index, 8) * 50,
       easing: EASE_OUT_QUINT,
       useNativeDriver: true,
     }).start();
-  }, [v, index]);
+  }, [v, index, delay]);
+  useEffect(() => {
+    if (!exiting) return;
+    Animated.timing(v, {
+      toValue: leaving ? 0 : 1,
+      duration: reduceMotion ? 200 : exitDuration,
+      delay: reduceMotion || !leaving ? 0 : index * exitStagger,
+      easing: EASE_IN_CUBIC,
+      useNativeDriver: true,
+    }).start();
+  }, [v, exiting, leaving, index, exitStagger, exitDuration]);
+  const offset = reduceMotion ? 0 : exiting ? exitOffset : 12;
+  const shift = v.interpolate({ inputRange: [0, 1], outputRange: [offset, 0] });
   return (
-    <Animated.View
-      style={[
-        style,
-        { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] },
-      ]}
-    >
+    <Animated.View style={[style, { opacity: v, transform: [axis === 'x' ? { translateX: shift } : { translateY: shift }] }]}>
       {children}
     </Animated.View>
   );
+}
+
+/** 内容随 value 变化时淡入新内容（150ms）；首次挂载不播 */
+export function CrossFade({ value, style, children }: { value: string; style?: StyleProp<ViewStyle>; children: ReactNode }) {
+  const v = useState(() => new Animated.Value(1))[0];
+  const [prev, setPrev] = useState(value);
+  if (prev !== value) {
+    setPrev(value);
+    if (!reduceMotion) v.setValue(0);
+  }
+  useEffect(() => {
+    Animated.timing(v, { toValue: 1, duration: 150, easing: EASE_OUT_CUBIC, useNativeDriver: true }).start();
+  }, [v, value]);
+  return <Animated.View style={[style, { opacity: v }]}>{children}</Animated.View>;
 }
 
 /** 04 进度显现：进度条从 0 生长到当前值，按 index 错开 40ms */

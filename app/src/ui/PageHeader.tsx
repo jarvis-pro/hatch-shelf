@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { CrossFade } from './motion';
 import { useTheme } from './theme';
 
 /** Tab 页顶部：一行小字副标题 + 大标题，右侧放玻璃按钮 */
@@ -8,7 +9,9 @@ export function PageHeader({ sub, title, right }: { sub: string; title: string; 
   return (
     <View style={styles.row}>
       <View style={styles.titles}>
-        <Text style={[styles.sub, { color: t.fg2 }]}>{sub}</Text>
+        <CrossFade value={sub}>
+          <Text style={[styles.sub, { color: t.fg2 }]}>{sub}</Text>
+        </CrossFade>
         <Text style={[styles.title, { color: t.fg }]} accessibilityRole="header">
           {title}
         </Text>

@@ -1,8 +1,8 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
-import { useReduceMotion } from '@/ui/motion';
+import { EASE_IN_CUBIC, EASE_IN_OUT_CUBIC, useReduceMotion } from '@/ui/motion';
 import { FILL_IMAGE } from '@/ui/theme';
 
 const ART = require('../../assets/images/transfer-hero.jpg');
@@ -46,7 +46,7 @@ const STRANDS: [number, number, number][] = [
 /** 光带整体明暗呼吸 */
 const shimmer = (clock: Animated.Value) =>
   Animated.modulo(Animated.multiply(clock, 2), 1).interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.8, 1, 0.8] });
-const SPARKLES =Array.from({ length: 9 }, () => ({
+const SPARKLES = Array.from({ length: 9 }, () => ({
   at: rand(0.08, 0.92),
   dx: rand(-10, 10),
   dy: rand(-18, 18),
@@ -56,18 +56,35 @@ const SPARKLES =Array.from({ length: 9 }, () => ({
 }));
 
 /**
- * 传书页头图：静态底图上叠一层沿光带流动的光点和纸页，整体缓慢推近拉远。
- * 只在页面可见时运行；系统开启「减弱动态效果」时只显示底图。
+ * 传书页头图。未开启时画面静止，两台设备之间只有一条淡淡的虚线（还没连上）；
+ * 开启后光带从电脑画向手机，光点和纸页随后沿光带流动，整体缓慢推近拉远；关闭时光带收回电脑。
+ * 动画只在开启且页面可见时运行；系统开启「减弱动态效果」时光带直接出现，没有流动。
  */
-export function TransferArt() {
+export function TransferArt({ live }: { live: boolean }) {
   const reduce = useReduceMotion();
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
   const clock = useState(() => new Animated.Value(0))[0];
   const breathe = useState(() => new Animated.Value(0))[0];
+  const link = useState(() => new Animated.Value(live ? 1 : 0))[0];
+  // 关闭时等光带收回后再停掉循环
+  const [active, setActive] = useState(live);
+  if (live && !active) setActive(true);
+
+  useEffect(() => {
+    if (reduce) return link.setValue(live ? 1 : 0);
+    const anim = Animated.timing(link, {
+      toValue: live ? 1 : 0,
+      duration: live ? 600 : 360,
+      easing: live ? EASE_IN_OUT_CUBIC : EASE_IN_CUBIC,
+      useNativeDriver: true,
+    });
+    anim.start(({ finished }) => finished && !live && setActive(false));
+    return () => anim.stop();
+  }, [live, reduce, link]);
 
   useFocusEffect(
     useCallback(() => {
-      if (reduce) return;
+      if (reduce || !active) return;
       const flow = Animated.loop(Animated.timing(clock, { toValue: 1, duration: PERIOD, easing: Easing.linear, useNativeDriver: true }));
       const zoom = Animated.loop(
         Animated.sequence([
@@ -80,11 +97,12 @@ export function TransferArt() {
       return () => {
         flow.stop();
         zoom.stop();
+        breathe.setValue(0);
       };
-    }, [reduce, clock, breathe]),
+    }, [reduce, active, clock, breathe]),
   );
 
-  const layers = useMemo(() => (box && !reduce ? buildLayers(box.w, box.h, clock) : null), [box, reduce, clock]);
+  const layers = useMemo(() => box && buildLayers(box.w, box.h, clock, link, !reduce), [box, reduce, clock, link]);
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout;
@@ -102,7 +120,8 @@ export function TransferArt() {
   );
 }
 
-function buildLayers(w: number, h: number, clock: Animated.Value) {
+/** link：0 = 未连接（虚线），1 = 光带完整；flow 为 false 时不画流动的光点和纸页 */
+function buildLayers(w: number, h: number, clock: Animated.Value, link: Animated.Value, flow: boolean) {
   // 与 resizeMode="cover" 相同的映射：等比放大到铺满，居中裁切
   const s = Math.max(w / ART_W, h / ART_H);
   const ox = (w - ART_W * s) / 2;
@@ -131,90 +150,105 @@ function buildLayers(w: number, h: number, clock: Animated.Value) {
     return d;
   };
 
+  // 光带从左往右揭开：外层裁切窗口向右推进，内层反向位移让光带本身不动
+  const reveal = link.interpolate({ inputRange: [0, 1], outputRange: [-w, 0] });
+  const counter = link.interpolate({ inputRange: [0, 1], outputRange: [w, 0] });
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Animated.View style={[StyleSheet.absoluteFill, { opacity: shimmer(clock) }]}>
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: link.interpolate({ inputRange: [0, 0.4], outputRange: [1, 0], extrapolate: 'clamp' }) }]}>
         <Svg width={w} height={h}>
-          <Defs>
-            <LinearGradient id="band" x1={xs[0]} y1={0} x2={xs[xs.length - 1]} y2={0} gradientUnits="userSpaceOnUse">
-              <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0} />
-              <Stop offset="0.15" stopColor="#FFF4FA" stopOpacity={1} />
-              <Stop offset="0.85" stopColor="#FFF4FA" stopOpacity={1} />
-              <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
-            </LinearGradient>
-          </Defs>
-          {STRANDS.map(([spread, width, opacity], i) => (
-            <Path key={i} d={strand(spread)} stroke="url(#band)" strokeWidth={width} strokeOpacity={opacity} strokeLinecap="round" fill="none" />
-          ))}
+          <Path d={strand(0)} stroke="#FFFFFF" strokeOpacity={0.55} strokeWidth={1.5} strokeDasharray="0.5 6" strokeLinecap="round" fill="none" />
         </Svg>
       </Animated.View>
-      {SPARKLES.map((k, i) => {
-        const [x, y] = pointAt(k.at);
-        const p = progress(k.speed, k.phase);
-        return (
-          <Animated.View
-            key={`s${i}`}
-            style={[
-              styles.glow,
-              {
-                left: x + k.dx - k.size,
-                top: y + k.dy - k.size,
-                width: k.size * 2,
-                height: k.size * 2,
-                borderRadius: k.size,
-                opacity: p.interpolate({ inputRange: [0, 0.15, 0.3, 1], outputRange: [0, 1, 0, 0] }),
-                transform: [{ scale: p.interpolate({ inputRange: [0, 0.15, 0.3, 1], outputRange: [0.4, 1, 0.4, 0.4] }) }],
-              },
-            ]}
-          >
-            <View style={[styles.core, { width: k.size * 0.8, height: k.size * 0.8, borderRadius: k.size }]} />
-          </Animated.View>
-        );
-      })}
-      {PARTICLES.map((k, i) => {
-        const p = progress(k.speed, k.phase);
-        const d = k.size * 2.4;
-        return (
-          <Animated.View
-            key={`p${i}`}
-            style={[
-              styles.glow,
-              {
-                width: d,
-                height: d,
-                borderRadius: d / 2,
-                opacity: p.interpolate({ inputRange: [0, 0.08, 0.88, 1], outputRange: [0, k.alpha, k.alpha, 0] }),
-                transform: along(p, d, k.dy),
-              },
-            ]}
-          >
-            <View style={[styles.core, { width: k.size, height: k.size, borderRadius: k.size / 2 }]} />
-          </Animated.View>
-        );
-      })}
-      {PAGES.map((k, i) => {
-        const p = progress(2, k.phase);
-        return (
-          <Animated.View
-            key={`g${i}`}
-            style={[
-              styles.page,
-              {
-                opacity: p.interpolate({ inputRange: [0, 0.12, 0.82, 1], outputRange: [0, 0.75, 0.75, 0] }),
-                transform: [
-                  ...along(p, PAGE_W, k.dy),
-                  { perspective: 240 },
-                  { rotate: p.interpolate({ inputRange: [0, 1], outputRange: [`${k.spin}deg`, `${-k.spin}deg`] }) },
-                  // 纸页翻飞：斜躺着绕竖轴翻转
-                  { rotateX: '50deg' },
-                  { rotateY: p.interpolate({ inputRange: [0, 1], outputRange: ['0deg', `${k.spin > 0 ? 540 : -540}deg`] }) },
-                  { scale: p.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0.6] }) },
-                ],
-              },
-            ]}
-          />
-        );
-      })}
+      <Animated.View style={[StyleSheet.absoluteFill, styles.clip, { transform: [{ translateX: reveal }] }]}>
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: flow ? shimmer(clock) : 1, transform: [{ translateX: counter }] }]}>
+          <Svg width={w} height={h}>
+            <Defs>
+              <LinearGradient id="band" x1={xs[0]} y1={0} x2={xs[xs.length - 1]} y2={0} gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0} />
+                <Stop offset="0.15" stopColor="#FFF4FA" stopOpacity={1} />
+                <Stop offset="0.85" stopColor="#FFF4FA" stopOpacity={1} />
+                <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
+              </LinearGradient>
+            </Defs>
+            {STRANDS.map(([spread, width, opacity], i) => (
+              <Path key={i} d={strand(spread)} stroke="url(#band)" strokeWidth={width} strokeOpacity={opacity} strokeLinecap="round" fill="none" />
+            ))}
+          </Svg>
+        </Animated.View>
+      </Animated.View>
+      {flow && (
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: link.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 0, 1] }) }]}>
+          {SPARKLES.map((k, i) => {
+            const [x, y] = pointAt(k.at);
+            const p = progress(k.speed, k.phase);
+            return (
+              <Animated.View
+                key={`s${i}`}
+                style={[
+                  styles.glow,
+                  {
+                    left: x + k.dx - k.size,
+                    top: y + k.dy - k.size,
+                    width: k.size * 2,
+                    height: k.size * 2,
+                    borderRadius: k.size,
+                    opacity: p.interpolate({ inputRange: [0, 0.15, 0.3, 1], outputRange: [0, 1, 0, 0] }),
+                    transform: [{ scale: p.interpolate({ inputRange: [0, 0.15, 0.3, 1], outputRange: [0.4, 1, 0.4, 0.4] }) }],
+                  },
+                ]}
+              >
+                <View style={[styles.core, { width: k.size * 0.8, height: k.size * 0.8, borderRadius: k.size }]} />
+              </Animated.View>
+            );
+          })}
+          {PARTICLES.map((k, i) => {
+            const p = progress(k.speed, k.phase);
+            const d = k.size * 2.4;
+            return (
+              <Animated.View
+                key={`p${i}`}
+                style={[
+                  styles.glow,
+                  {
+                    width: d,
+                    height: d,
+                    borderRadius: d / 2,
+                    opacity: p.interpolate({ inputRange: [0, 0.08, 0.88, 1], outputRange: [0, k.alpha, k.alpha, 0] }),
+                    transform: along(p, d, k.dy),
+                  },
+                ]}
+              >
+                <View style={[styles.core, { width: k.size, height: k.size, borderRadius: k.size / 2 }]} />
+              </Animated.View>
+            );
+          })}
+          {PAGES.map((k, i) => {
+            const p = progress(2, k.phase);
+            return (
+              <Animated.View
+                key={`g${i}`}
+                style={[
+                  styles.page,
+                  {
+                    opacity: p.interpolate({ inputRange: [0, 0.12, 0.82, 1], outputRange: [0, 0.75, 0.75, 0] }),
+                    transform: [
+                      ...along(p, PAGE_W, k.dy),
+                      { perspective: 240 },
+                      { rotate: p.interpolate({ inputRange: [0, 1], outputRange: [`${k.spin}deg`, `${-k.spin}deg`] }) },
+                      // 纸页翻飞：斜躺着绕竖轴翻转
+                      { rotateX: '50deg' },
+                      { rotateY: p.interpolate({ inputRange: [0, 1], outputRange: ['0deg', `${k.spin > 0 ? 540 : -540}deg`] }) },
+                      { scale: p.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0.6] }) },
+                    ],
+                  },
+                ]}
+              />
+            );
+          })}
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -222,6 +256,7 @@ function buildLayers(w: number, h: number, clock: Animated.Value) {
 const PAGE_W = 15;
 
 const styles = StyleSheet.create({
+  clip: { overflow: 'hidden' },
   glow: { position: 'absolute', left: 0, top: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF38' },
   core: { backgroundColor: '#FFF7FC' },
   page: {

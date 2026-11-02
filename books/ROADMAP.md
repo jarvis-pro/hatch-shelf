@@ -127,17 +127,17 @@
 
 ### 18. 可观测性与性能 `observability-performance`
 
-- 中级→进阶 · `ops/sre` · 状态：未写
+- 中级→进阶 · `ops/sre` · 状态：已完成
 - 章节：日志 · 指标与 Prometheus · 链路追踪与 OpenTelemetry · 告警设计 · 错误监控 · 可用性监控 · 压测（k6） · 瓶颈定位 · 容量规划
 
 ### 19. PostgreSQL 运维 `database-ops`
 
-- 进阶 · `ops/database` · 状态：未写
-- 章节：安装与参数调优 · 备份与 PITR · 主从复制 · 连接池（PgBouncer） · 慢查询治理 · VACUUM 与膨胀 · 大版本升级 · 容器里跑数据库的取舍
+- 进阶 · `ops/database` · 状态：已完成
+- 章节：安装与参数调优 · 备份与恢复 · WAL 归档与 PITR · 主从复制 · 连接池（PgBouncer） · 慢查询治理 · VACUUM 与膨胀 · 大版本升级 · 容器里跑数据库的取舍
 
 ### 20. 一人运维手册 `production-ops`
 
-- 中级→进阶 · `ops/sre` · 状态：未写
+- 中级→进阶 · `ops/sre` · 状态：已完成
 - 章节：服务器加固（SSH / 防火墙 / fail2ban） · 备份与容灾演练 · 事故响应流程 · 复盘 · SLO 与错误预算 · 成本控制 · 一个人的值班制度 · 运维检查清单
 
 ---
@@ -151,24 +151,24 @@
 
 ### 22. AI 数学直觉 `math-for-ai`
 
-- 入门→中级 · `ai/ml` · 状态：未写
+- 入门→中级 · `ai/ml` · 状态：已完成
 - 章节：向量与矩阵 · 矩阵乘法的几何意义 · 概率与分布 · 信息论（熵、交叉熵） · 导数与梯度 · 链式法则与反向传播 · 优化与梯度下降
 
 ### 23. 面向 AI 的 Python `python-for-ai`
 
-- 入门 · `ai/ml` · 状态：未写
+- 入门 · `ai/ml` · 状态：已完成
 - 写给 TS 开发者
 - 章节：TS 对照速学 Python · uv 与环境管理 · 类型标注与 Pydantic · NumPy · Pandas · Jupyter · 调模型 API · 写个小工具
 
 ### 24. 动手学深度学习 `deep-learning-basics`
 
-- 中级 · `ai/ml` · 状态：未写
+- 中级 · `ai/ml` · 状态：已完成
 - 章节：PyTorch 张量 · 感知机到多层网络 · 训练循环 · 过拟合与正则化 · 卷积网络 · 序列模型 · 手写注意力 · 从零写一个 mini-GPT
 
 ### 25. 大模型原理进阶 `llm-deep-dive`
 
-- 进阶 · `ai/llm` · 状态：未写
-- 章节：注意力的数学推导 · 位置编码（RoPE） · KV Cache · MoE · 长上下文技术 · 推理模型与思维链 · 对齐方法（RLHF / DPO / Constitutional） · 量化原理 · 可解释性
+- 进阶 · `ai/llm` · 状态：已完成
+- 章节：注意力的数学推导 · 位置编码（RoPE） · KV Cache 与解码优化 · MoE · 长上下文技术 · 推理模型与思维链 · 对齐方法（RLHF / DPO / Constitutional） · 量化原理 · 可解释性
 
 ### 26. 大模型应用工程 `llm-app-engineering`
 
@@ -182,7 +182,7 @@
 
 ### 28. RAG 与知识系统 `rag-systems`
 
-- 中级→进阶 · `ai/app` · 状态：未写
+- 中级→进阶 · `ai/app` · 状态：已完成
 - 章节：RAG 解决什么问题 · embedding 模型 · 向量库与 pgvector · 分块策略 · 混合检索 · 重排 · 评测 · RAG 与长上下文的取舍
 
 ### 29. 评测与质量 `llm-evals`
@@ -211,12 +211,12 @@
 
 ### 33. 上下文工程 `context-engineering`
 
-- 进阶 · `ai/agent` · 状态：未写
-- 章节：上下文窗口是稀缺资源 · system prompt 的写法 · 记忆分层 · 压缩与摘要 · 按需检索 · Skills 的渐进式加载 · 长任务的状态管理
+- 进阶 · `ai/agent` · 状态：已完成
+- 章节：上下文窗口是稀缺资源 · system prompt 的写法 · 记忆分层 · 压缩与摘要 · 按需检索 · Skills 的渐进式加载 · 长任务的状态管理 · 度量与调试
 
 ### 34. 工具设计与 MCP `tools-and-mcp`
 
-- 中级→进阶 · `ai/agent` · 状态：未写
+- 中级→进阶 · `ai/agent` · 状态：已完成
 - 章节：好工具的标准 · 工具描述与参数设计 · 错误返回 · MCP 协议 · 写一个 MCP server · 权限与认证 · 工具集的组织
 
 ### 35. 多 Agent 编排 `multi-agent`

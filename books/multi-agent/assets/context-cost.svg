@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="312" viewBox="0 0 360 312" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="311" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">完成同样三项子任务的输入 token 总量</text>
+<text x="24" y="56" font-size="13" fill="#1f2328">单 agent 串行<tspan fill="#656d76" font-size="11">  120 轮，共用材料读一次</tspan></text>
+<rect x="24" y="64" width="276" height="22" rx="4" fill="#e6e9ed"/>
+<rect x="24" y="64" width="256.2" height="22" rx="4" fill="#656d76"/>
+<text x="286.2" y="80" font-size="13" font-weight="600" fill="#1f2328">16.7M</text>
+<text x="24" y="118" font-size="13" fill="#1f2328">3 个子 agent<tspan fill="#656d76" font-size="11">  各 40 轮，各读一遍材料</tspan></text>
+<rect x="24" y="126" width="276" height="22" rx="4" fill="#e6e9ed"/>
+<rect x="24" y="126" width="150.3" height="22" rx="4" fill="#2f6fdf"/>
+<text x="180.3" y="142" font-size="13" font-weight="600" fill="#1f2328">9.8M</text>
+<text x="24" y="180" font-size="13" fill="#1f2328">3 个子 agent<tspan fill="#656d76" font-size="11">  各 40 轮，材料压成简报</tspan></text>
+<rect x="24" y="188" width="276" height="22" rx="4" fill="#e6e9ed"/>
+<rect x="24" y="188" width="104.3" height="22" rx="4" fill="#2f6fdf"/>
+<text x="134.3" y="204" font-size="13" font-weight="600" fill="#1f2328">6.8M</text>
+<text x="24" y="244" font-size="11" fill="#656d76">假设：基础上下文 20k；共用材料 30k（压成简报为 5k）；</text>
+<text x="24" y="261" font-size="11" fill="#656d76">每轮上下文增长 1.5k；编排者 10 轮、每轮增长 2k。</text>
+<text x="24" y="278" font-size="11" fill="#656d76">每轮都重发全部上下文，未计缓存和压缩。</text>
+<text x="24" y="295" font-size="11" fill="#656d76">一次运行的输入总量 = n·s + g·n(n−1)/2</text>
+</svg>

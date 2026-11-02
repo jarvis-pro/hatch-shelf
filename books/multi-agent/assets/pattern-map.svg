@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="359" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">编排模式的位置</text>
+<rect x="56" y="194" width="118" height="102" fill="#dbe7fb" rx="4"/>
+<text x="62" y="210" font-size="11" fill="#2f6fdf">优先考虑</text>
+<rect x="56" y="52" width="280" height="244" fill="none" stroke="#d8dee4"/>
+<line x1="56" y1="296" x2="336" y2="296" stroke="#656d76"/>
+<line x1="56" y1="52" x2="56" y2="296" stroke="#656d76"/>
+<text x="196.0" y="330" text-anchor="middle" font-size="12" fill="#656d76">子任务之间的耦合度</text>
+<text x="56" y="312" font-size="11" fill="#656d76">低</text>
+<text x="336" y="312" text-anchor="end" font-size="11" fill="#656d76">高</text>
+<text x="46" y="296" text-anchor="end" font-size="11" fill="#656d76">代码</text>
+<text x="46" y="62" text-anchor="end" font-size="11" fill="#656d76">模型</text>
+<text transform="translate(22,174.0) rotate(-90)" text-anchor="middle" font-size="12" fill="#656d76">流程由谁决定</text>
+<circle cx="78.4" cy="266.7" r="5" fill="#2f6fdf"/>
+<text x="87.4" y="270.7" font-size="12" fill="#1f2328">并行分片</text>
+<circle cx="128.8" cy="276.5" r="5" fill="#2f6fdf"/>
+<text x="137.8" y="280.5" font-size="12" fill="#1f2328">流水线</text>
+<circle cx="95.2" cy="222.8" r="5" fill="#2f6fdf"/>
+<text x="104.2" y="226.8" font-size="12" fill="#1f2328">路由</text>
+<circle cx="190.4" cy="208.2" r="5" fill="#2f6fdf"/>
+<text x="199.4" y="212.2" font-size="12" fill="#1f2328">生成与评审</text>
+<circle cx="145.6" cy="135.0" r="5" fill="#2f6fdf"/>
+<text x="154.6" y="139.0" font-size="12" fill="#1f2328">主从</text>
+<circle cx="224.0" cy="105.7" r="5" fill="#2f6fdf"/>
+<text x="233.0" y="109.7" font-size="12" fill="#1f2328">交接</text>
+<circle cx="173.6" cy="76.4" r="5" fill="#2f6fdf"/>
+<text x="182.6" y="80.4" font-size="12" fill="#1f2328">层级</text>
+<circle cx="302.4" cy="149.6" r="5" fill="#2f6fdf"/>
+<text x="293.4" y="153.6" text-anchor="end" font-size="12" fill="#1f2328">黑板</text>
+<text x="180" y="346" text-anchor="middle" font-size="11" fill="#656d76">位置为定性比较，不是测量值</text>
+</svg>

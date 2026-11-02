@@ -1,0 +1,17 @@
+id: multi-agent
+title: 多 Agent 编排
+subtitle: 拆分、委派、并行、验证与成本，以及这套书是怎么编排出来的
+category: ai/agent
+tags: [agent, multi-agent, orchestration, workflow, claude-code]
+level: advanced
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-when-multi-agent.md
+  - 02-orchestration-patterns.md
+  - 03-subagent-context.md
+  - 04-workflow-deterministic.md
+  - 05-parallel-aggregation.md
+  - 06-cross-validation.md
+  - 07-cost-control.md
+  - 08-case-bookshelf.md

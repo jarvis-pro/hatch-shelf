@@ -21,9 +21,10 @@ export function writeBookAtomically(id: string, files: BookFile[]) {
   for (const f of files) {
     const file = new File(tmp, f.path);
     file.create({ intermediates: true, overwrite: true });
-    if (f.bytes !== undefined) file.write(f.bytes);
-    else if (f.base64 !== undefined) file.write(f.base64, { encoding: 'base64' });
-    else file.write(f.text ?? '');
+    // SDK 58 起 write() 是异步的；必须同步写完，下面的 rename 才不会抢在写入之前
+    if (f.bytes !== undefined) file.writeSync(f.bytes);
+    else if (f.base64 !== undefined) file.writeSync(f.base64, { encoding: 'base64' });
+    else file.writeSync(f.text ?? '');
   }
 
   const target = bookDir(id);

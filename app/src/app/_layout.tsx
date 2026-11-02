@@ -6,6 +6,8 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useIncomingFiles } from '@/import/incoming';
 import { bootstrap } from '@/library/bootstrap';
 import { NoteComposerHost } from '@/notes/NoteComposer';
+import { CoverFlightHost, FLIGHT_MS } from '@/ui/CoverFlight';
+import { isReduceMotion } from '@/ui/motion';
 import { Splash } from '@/ui/Splash';
 import { loadAppearance, useTheme } from '@/ui/theme';
 
@@ -66,8 +68,11 @@ function AppStack() {
           options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
         />
         <Stack.Screen name="read/[id]" options={{ contentStyle: { backgroundColor: t.paper } }} />
+        {/* 封面飞行时页面本身只做淡入淡出 */}
+        <Stack.Screen name="book/[id]" options={{ animation: 'fade', animationDuration: isReduceMotion() ? 200 : FLIGHT_MS }} />
       </Stack>
       <NoteComposerHost />
+      <CoverFlightHost />
     </>
   );
 }

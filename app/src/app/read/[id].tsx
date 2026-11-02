@@ -133,13 +133,16 @@ export default function ReaderScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeKey, webReady, send]);
 
-  /** 高亮有变化后，重新取当前章节的高亮交给阅读器重绘 */
-  const refreshHighlights = useCallback(async () => {
-    const file = shownFile.current;
-    if (!file) return;
-    const list = await listHighlights(id, file);
-    send({ type: 'setHighlights', highlights: list.map(toMark) });
-  }, [id, send]);
+  /** 高亮有变化后，重新取当前章节的高亮交给阅读器重绘；animate 指定刚新增或删除的那条做落笔动画 */
+  const refreshHighlights = useCallback(
+    async (animate?: { id: string; kind: 'in' | 'out' }) => {
+      const file = shownFile.current;
+      if (!file) return;
+      const list = await listHighlights(id, file);
+      send({ type: 'setHighlights', highlights: list.map(toMark), animate });
+    },
+    [id, send],
+  );
 
   const onSelection = useCallback(
     async (action: SelectionAction, quote: Quote | null) => {
@@ -150,8 +153,8 @@ export default function ReaderScreen() {
         note = await promptNote(quote.text);
         if (note === null) return; // 取消
       }
-      await addHighlight(id, file, quote, note || null);
-      await refreshHighlights();
+      const added = await addHighlight(id, file, quote, note || null);
+      await refreshHighlights({ id: added, kind: 'in' });
     },
     [id, refreshHighlights],
   );
@@ -161,7 +164,10 @@ export default function ReaderScreen() {
       const h = (await listHighlights(id, shownFile.current ?? undefined)).find((x) => x.id === highlightId);
       if (!h) return;
       const action = await chooseHighlightAction(h.text, !!h.note);
-      if (action === 'delete') await deleteHighlight(h.id);
+      if (action === 'delete') {
+        await deleteHighlight(h.id);
+        return refreshHighlights({ id: h.id, kind: 'out' });
+      }
       if (action === 'note') {
         const note = await promptNote(h.text, h.note ?? '');
         if (note === null) return;

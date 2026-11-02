@@ -17,6 +17,7 @@ import { exportNotes, openBook } from '@/shelf/actions';
 import { BookCover, useCoverUri } from '@/shelf/BookCover';
 import { DeleteDialog } from '@/shelf/DeleteDialog';
 import { Backdrop } from '@/ui/Backdrop';
+import { DETAIL_COVER_WIDTH, flyBack, useCoverHidden } from '@/ui/CoverFlight';
 import { Glass, GlassButton, PrimaryButton } from '@/ui/glass';
 import { Menu } from '@/ui/Menu';
 import { FadeInUp } from '@/ui/motion';
@@ -37,6 +38,8 @@ export default function BookDetailScreen() {
   const [read, setRead] = useState<Set<string>>(new Set());
   const [menu, setMenu] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // 封面在飞行时先藏起这里的封面
+  const coverHidden = useCoverHidden(id);
 
   useFocusEffect(
     useCallback(() => {
@@ -76,10 +79,13 @@ export default function BookDetailScreen() {
   return (
     <View style={styles.flex}>
       <Backdrop cover={cover} glows={false} />
-      <NavBar right={<GlassButton icon={Ellipsis} label="更多" onPress={() => setMenu(true)} />} />
+      <NavBar
+        onBack={() => flyBack(book, () => router.back())}
+        right={<GlassButton icon={Ellipsis} label="更多" onPress={() => setMenu(true)} />}
+      />
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 32 }]} showsVerticalScrollIndicator={false}>
         <FadeInUp style={styles.hero}>
-          <BookCover book={book} width={172} radius={14} elevation={2} />
+          <BookCover book={book} width={DETAIL_COVER_WIDTH} radius={14} elevation={2} style={coverHidden && { opacity: 0 }} />
           <View style={styles.titles}>
             <Text style={[styles.title, { color: t.fg }]}>{book.title}</Text>
             {book.subtitle && <Text style={[styles.subtitle, { color: t.fg2 }]}>{book.subtitle}</Text>}

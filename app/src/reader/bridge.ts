@@ -25,8 +25,11 @@ export type ToReader =
   | { type: 'scrollTo'; anchor: string }
   /** 用户点了选择菜单里的「高亮」/「笔记」，请阅读器回报当前选区 */
   | { type: 'captureSelection'; action: SelectionAction }
-  /** 新增、删除高亮或修改笔记后重绘本章高亮 */
-  | { type: 'setHighlights'; highlights: HighlightMark[] };
+  /**
+   * 新增、删除高亮或修改笔记后重绘本章高亮。
+   * animate：刚新增的高亮从左到右扫过（in），刚删除的先反向收回再移除（out）
+   */
+  | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } };
 
 /** WebView → RN，通过 window.ReactNativeWebView.postMessage(JSON.stringify(msg)) */
 export type FromReader =

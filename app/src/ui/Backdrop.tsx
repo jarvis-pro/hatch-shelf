@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, View, type ImageSourcePropType } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { useReduceMotion } from './motion';
+import { EASE_OUT_QUINT, isReduceMotion, useReduceMotion } from './motion';
 import { FILL_IMAGE, useTheme } from './theme';
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
   glows?: boolean;
 }
 
-/** 页面背景：底色 + 顶部配图（淡出到底色）+ 两个缓慢漂移的光斑 */
+/** 页面背景：底色 + 顶部配图（淡出到底色）+ 三个缓慢漂移的光斑 */
 export function Backdrop({ art, cover, glows = true }: Props) {
   const t = useTheme();
   const clear = `${t.bg}00`;
@@ -26,25 +26,32 @@ export function Backdrop({ art, cover, glows = true }: Props) {
           <LinearGradient colors={[clear, `${t.bg}33`, t.bg]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
         </View>
       )}
-      {cover && (
-        <View style={styles.coverArt}>
-          <View style={styles.coverImage}>
-            <Image source={{ uri: cover }} blurRadius={50} style={[FILL_IMAGE, { opacity: t.dark ? 0.4 : 0.85 }]} resizeMode="cover" />
-          </View>
-          <LinearGradient
-            colors={[`${t.bg}33`, `${t.bg}99`, t.bg]}
-            locations={[0, 0.4, 0.75]}
-            style={StyleSheet.absoluteFill}
-          />
-        </View>
-      )}
+      {cover && <CoverArt uri={cover} />}
       {glows && (
         <>
           <Glow color={t.glowA} size={320} x={-80} y={-60} phase={0} />
           <Glow color={t.glowB} size={300} x={200} y={460} phase={0.5} />
+          <Glow color={t.glowC} size={260} x={-60} y={620} phase={0.25} />
         </>
       )}
     </View>
+  );
+}
+
+/** 模糊的封面铺在顶部，从封面取色；进入页面时随封面转场淡入（03） */
+function CoverArt({ uri }: { uri: string }) {
+  const t = useTheme();
+  const [v] = useState(() => new Animated.Value(isReduceMotion() ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(v, { toValue: 1, duration: 360, easing: EASE_OUT_QUINT, useNativeDriver: true }).start();
+  }, [v]);
+  return (
+    <Animated.View style={[styles.coverArt, { opacity: v }]}>
+      <View style={styles.coverImage}>
+        <Image source={{ uri }} blurRadius={50} style={[FILL_IMAGE, { opacity: t.dark ? 0.4 : 0.85 }]} resizeMode="cover" />
+      </View>
+      <LinearGradient colors={[`${t.bg}33`, `${t.bg}99`, t.bg]} locations={[0, 0.4, 0.75]} style={StyleSheet.absoluteFill} />
+    </Animated.View>
   );
 }
 

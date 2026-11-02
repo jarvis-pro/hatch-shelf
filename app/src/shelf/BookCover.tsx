@@ -1,8 +1,9 @@
 import { File } from 'expo-file-system';
-import { useMemo, type ReactNode } from 'react';
-import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useContext, useMemo, type ReactNode, type Ref } from 'react';
+import { Animated, Image, StyleSheet, Text, View, type HostInstance, type StyleProp, type ViewStyle } from 'react-native';
 import type { BookRow } from '@/db/queries';
 import { bookDir } from '@/lib/paths';
+import { PressContext } from '@/ui/motion';
 import { FILL_IMAGE, useTheme } from '@/ui/theme';
 import { categoryLabel } from './categories';
 import { coverColor } from './colors';
@@ -28,28 +29,35 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   /** 叠在封面左下角的徽标（进度） */
   children?: ReactNode;
+  /** 用于测量封面在屏幕上的位置（共享元素转场） */
+  ref?: Ref<HostInstance>;
 }
 
 /** 封面比例 300:428（设计稿原稿尺寸） */
 export const COVER_RATIO = 428 / 300;
 
 /** 有 cover.png 用图片，否则按「书架文库」版式生成文字封面 */
-export function BookCover({ book, width, radius, elevation = 1, style, children }: Props) {
+export function BookCover({ book, width, radius, elevation = 1, style, children, ref }: Props) {
   const t = useTheme();
+  // 在 PressScale 里时，按下会让阴影收紧并上移，像封面被按得贴近了书架
+  const pressed = useContext(PressContext);
   const cover = useCoverUri(book.id);
   const height = Math.round(width * COVER_RATIO);
   const r = radius ?? (width >= 150 ? 14 : width >= 100 ? 12 : width >= 50 ? 8 : 4);
+  const blur = elevation === 2 ? 22 : 12;
+  const offset = elevation === 2 ? 20 : 10;
+  const lerp = (from: number, to: number) => (pressed ? pressed.interpolate({ inputRange: [0, 1], outputRange: [from, to] }) : from);
   const shadow = elevation
     ? {
         shadowColor: t.coverShadow,
         shadowOpacity: t.dark ? 0.5 : elevation === 2 ? 0.28 : 0.18,
-        shadowRadius: elevation === 2 ? 22 : 12,
-        shadowOffset: { width: 0, height: elevation === 2 ? 20 : 10 },
+        shadowRadius: lerp(blur, blur * 0.5),
+        shadowOffset: { width: 0, height: lerp(offset, offset * 0.4) },
       }
     : null;
 
   return (
-    <View style={[{ width, height, borderRadius: r }, shadow, style]}>
+    <Animated.View ref={ref} style={[{ width, height, borderRadius: r }, shadow, style]}>
       <View style={[StyleSheet.absoluteFill, { borderRadius: r, overflow: 'hidden' }]}>
         {cover ? (
           <Image source={{ uri: cover }} style={FILL_IMAGE} resizeMode="cover" />
@@ -59,7 +67,7 @@ export function BookCover({ book, width, radius, elevation = 1, style, children 
         {width >= 40 && <View style={[StyleSheet.absoluteFill, styles.stroke, { borderRadius: r }]} />}
       </View>
       {children}
-    </View>
+    </Animated.View>
   );
 }
 

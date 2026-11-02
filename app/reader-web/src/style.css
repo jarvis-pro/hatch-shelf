@@ -346,8 +346,29 @@ mark.find-hit {
 
 mark.hl {
   color: inherit;
-  background: var(--hl);
+  /* 用背景图而不是背景色，落笔动画才能改变宽度 */
+  background: linear-gradient(var(--hl), var(--hl)) no-repeat 0 0 / 100% 100%;
   border-radius: 3px;
+}
+
+mark.hl.hl-in {
+  animation: hl-sweep-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+mark.hl.hl-out {
+  animation: hl-sweep-out 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes hl-sweep-in {
+  from {
+    background-size: 0% 100%;
+  }
+}
+
+@keyframes hl-sweep-out {
+  to {
+    background-size: 0% 100%;
+  }
 }
 
 mark.hl.has-note {

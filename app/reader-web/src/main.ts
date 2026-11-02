@@ -3,7 +3,7 @@ import katexModule from '@vscode/markdown-it-katex';
 import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
 import mermaid from 'mermaid';
-import { quoteFromRange, renderHighlights, scrollToHighlight } from './highlights';
+import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
 import type {
   FromReader,
   ReaderPosition,
@@ -99,6 +99,9 @@ function assignHeadingIds(tokens: Token[]): TocItem[] {
 // ---------- 页面状态 ----------
 
 const content = document.getElementById('content')!;
+/** 09 高亮落笔：像荧光笔划过选区 */
+const SWEEP_MS = 280;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let current: Extract<ToReader, { type: 'load' }> | null = null;
 let restoring = false;
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
@@ -251,10 +254,19 @@ window.__shelf = {
         lastRange = null;
         break;
       }
-      case 'setHighlights':
+      case 'setHighlights': {
         if (current) current = { ...current, highlights: msg.highlights };
+        const { animate } = msg;
+        if (animate?.kind === 'out' && !reducedMotion.matches) {
+          // 先收回，再按新的列表重绘
+          sweepHighlight(content, animate.id, 'out', SWEEP_MS);
+          setTimeout(() => renderHighlights(content, msg.highlights), SWEEP_MS);
+          break;
+        }
         renderHighlights(content, msg.highlights);
+        if (animate?.kind === 'in' && !reducedMotion.matches) sweepHighlight(content, animate.id, 'in', SWEEP_MS);
         break;
+      }
     }
   },
 };

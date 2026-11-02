@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { useEffect, useEffectEvent, useState, type ReactNode } from 'react';
 import { Animated, Modal, PanResponder, Pressable, StyleSheet, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
 import { EASE_OUT_CUBIC, isReduceMotion } from './motion';
@@ -13,7 +14,7 @@ interface Props {
 }
 
 /**
- * 08 面板与抽屉：从底部 / 左侧滑入，背景同步压暗；跟手拖拽，松手按距离和速度决定开合。
+ * 08 面板与抽屉：从底部 / 左侧滑入，背景同步压暗与轻微模糊；跟手拖拽，松手按距离和速度决定开合。
  */
 export function Panel({ visible, side, onClose, style, children }: Props) {
   const t = useTheme();
@@ -72,6 +73,8 @@ export function Panel({ visible, side, onClose, style, children }: Props) {
         style={[StyleSheet.absoluteFill, { backgroundColor: t.dim, opacity: open }]}
         pointerEvents={visible ? 'auto' : 'none'}
       >
+        {/* 背景压暗的同时轻微模糊 */}
+        <BlurView intensity={8} tint={t.blurTint} style={StyleSheet.absoluteFill} />
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="关闭" />
       </Animated.View>
       <Animated.View

@@ -143,6 +143,21 @@ export function renderHighlights(root: HTMLElement, marks: HighlightMark[]): str
   return missing;
 }
 
+/** 一条高亮可能被拆成多个 <mark>；按文字长度分配时长，让整条高亮像一笔连续扫过 */
+export function sweepHighlight(root: HTMLElement, id: string, kind: 'in' | 'out', totalMs: number) {
+  const marks = [...root.querySelectorAll<HTMLElement>(`mark.hl[data-id="${CSS.escape(id)}"]`)];
+  if (kind === 'out') marks.reverse();
+  const total = marks.reduce((n, m) => n + (m.textContent?.length ?? 0), 0) || 1;
+  let delay = 0;
+  for (const m of marks) {
+    const duration = (totalMs * (m.textContent?.length ?? 0)) / total;
+    m.style.animationDelay = `${delay}ms`;
+    m.style.animationDuration = `${duration}ms`;
+    m.classList.add(kind === 'in' ? 'hl-in' : 'hl-out');
+    delay += duration;
+  }
+}
+
 export function scrollToHighlight(root: HTMLElement, id: string) {
   root.querySelector(`mark.hl[data-id="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'center' });
 }

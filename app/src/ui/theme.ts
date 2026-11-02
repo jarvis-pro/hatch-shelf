@@ -45,6 +45,7 @@ const light = {
   dim: '#1E2A5A2E',
   glowA: '#6E9BFF40',
   glowB: '#B28CFF2E',
+  glowC: '#FFB8D426',
   blurTint: 'light' as const,
 };
 
@@ -85,6 +86,7 @@ const dark: Theme = {
   dim: '#00000073',
   glowA: '#3E63C440',
   glowB: '#6B4FC433',
+  glowC: '#9A4F7A2E',
   blurTint: 'dark',
 };
 

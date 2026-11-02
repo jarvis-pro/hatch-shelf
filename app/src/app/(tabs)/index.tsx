@@ -15,7 +15,7 @@ import { openBook, peekBook } from '@/shelf/actions';
 import { ShelfBook } from '@/shelf/ShelfBook';
 import { Backdrop } from '@/ui/Backdrop';
 import { Glass, GlassButton } from '@/ui/glass';
-import { FadeInUp, PressScale, ProgressBar } from '@/ui/motion';
+import { FadeInUp, PressScale, ProgressBar, useFirstEntry } from '@/ui/motion';
 import { PageHeader } from '@/ui/PageHeader';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
 import { useTheme } from '@/ui/theme';
@@ -42,6 +42,7 @@ export default function ShelfScreen() {
   const [progress, setProgress] = useState<Map<string, BookProgress>>(new Map());
   const [recent, setRecent] = useState<ContinueInfo | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const playProgress = useFirstEntry('shelf-progress');
 
   const load = useCallback(async () => {
     const [all, prog] = await Promise.all([listBooks(), listBookProgress()]);
@@ -111,47 +112,57 @@ export default function ShelfScreen() {
         {books?.length === 0 && <EmptyShelf />}
         {recent && (
           <FadeInUp index={0}>
-            <ContinueCard info={recent} />
+            <ContinueCard info={recent} animate={playProgress} />
           </FadeInUp>
         )}
-        {sections.map(([series, list], i) => (
-          <FadeInUp key={series} index={i + 1} style={styles.section}>
-            <View style={styles.sectionHead}>
-              <View style={styles.sectionTitle}>
-                <Text style={[styles.sectionName, { color: t.fg }]}>{seriesLabel(series)}</Text>
-                <Text style={[styles.count, { color: t.fg3 }]}>{list.length} 本</Text>
+        {sections.map(([series, list], i) => {
+          const first = sections.slice(0, i).reduce((n, [, l]) => n + l.length, 0);
+          return (
+            <FadeInUp key={series} index={i + 1} style={styles.section}>
+              <View style={styles.sectionHead}>
+                <View style={styles.sectionTitle}>
+                  <Text style={[styles.sectionName, { color: t.fg }]}>{seriesLabel(series)}</Text>
+                  <Text style={[styles.count, { color: t.fg3 }]}>{list.length} 本</Text>
+                </View>
+                {list.length > 2 && (
+                  <PressScale
+                    style={styles.all}
+                    hitSlop={10}
+                    onPress={() => router.push({ pathname: '/category/[name]', params: { name: series } })}
+                  >
+                    <Text style={{ color: t.fg2, fontSize: 13 }}>全部</Text>
+                    <ChevronRight size={14} color={t.fg2} />
+                  </PressScale>
+                )}
               </View>
-              {list.length > 2 && (
-                <PressScale
-                  style={styles.all}
-                  hitSlop={10}
-                  onPress={() => router.push({ pathname: '/category/[name]', params: { name: series } })}
-                >
-                  <Text style={{ color: t.fg2, fontSize: 13 }}>全部</Text>
-                  <ChevronRight size={14} color={t.fg2} />
-                </PressScale>
-              )}
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.rowScroll}
-              contentContainerStyle={styles.row}
-              decelerationRate="fast"
-              snapToInterval={BOOK_WIDTH + 14}
-            >
-              {list.map((b) => (
-                <ShelfBook key={b.id} book={b} progress={progress.get(b.id)} width={BOOK_WIDTH} />
-              ))}
-            </ScrollView>
-          </FadeInUp>
-        ))}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.rowScroll}
+                contentContainerStyle={styles.row}
+                decelerationRate="fast"
+                snapToInterval={BOOK_WIDTH + 14}
+              >
+                {list.map((b, j) => (
+                  <ShelfBook
+                    key={b.id}
+                    book={b}
+                    progress={progress.get(b.id)}
+                    width={BOOK_WIDTH}
+                    animateProgress={playProgress}
+                    index={first + j + 1}
+                  />
+                ))}
+              </ScrollView>
+            </FadeInUp>
+          );
+        })}
       </ScrollView>
     </View>
   );
 }
 
-function ContinueCard({ info }: { info: ContinueInfo }) {
+function ContinueCard({ info, animate }: { info: ContinueInfo; animate: boolean }) {
   const t = useTheme();
   const { book, progress, chapterTitle } = info;
   return (
@@ -182,6 +193,7 @@ function ContinueCard({ info }: { info: ContinueInfo }) {
             </View>
             <ProgressBar
               value={progress.ratio}
+              animate={animate}
               track={t.track}
               fill={<LinearGradient colors={[t.accent, t.accent2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />}
             />

@@ -49,6 +49,12 @@ export class RequestParser {
 
   constructor(private readonly maxBodyBytes: number) {}
 
+  /** 请求头解析完之后的接收进度，用于传书页面显示上传进度 */
+  get progress(): { method: string; path: string; received: number; total: number } | null {
+    if (!this.req || !this.body) return null;
+    return { method: this.req.method, path: this.req.path, received: this.received, total: this.body.length };
+  }
+
   push(chunk: Uint8Array): ParseResult {
     if (this.finished) return { type: 'incomplete' };
     if (!this.req) return this.pushHead(chunk);

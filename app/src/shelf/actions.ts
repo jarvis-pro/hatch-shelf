@@ -1,31 +1,30 @@
+import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
-import { ActionSheetIOS, Alert, Platform } from 'react-native';
-import type { BookRow } from '@/db/queries';
-import { deleteBook } from '@/library/books';
+import { Share } from 'react-native';
+import { getBook, getChapters } from '@/db/queries';
+import { buildNotesMarkdown } from '@/notes/export';
+import { listHighlights } from '@/notes/store';
 
-export function confirmDelete(book: BookRow, onDeleted: () => void) {
-  Alert.alert(`删除《${book.title}》？`, '书籍文件、阅读进度、高亮和笔记都会被删除。需要保留笔记请先在笔记页导出。', [
-    { text: '取消', style: 'cancel' },
-    { text: '删除', style: 'destructive', onPress: () => void deleteBook(book.id).then(onDeleted) },
-  ]);
-}
+export const openBook = (id: string, chapter?: string) =>
+  router.push({ pathname: '/read/[id]', params: chapter ? { id, chapter } : { id } });
 
-/** 书架上长按书籍弹出的操作 */
-export function showBookActions(book: BookRow, onDeleted: () => void) {
-  const info = () => router.push({ pathname: '/book/[id]', params: { id: book.id } });
-  if (Platform.OS === 'ios') {
-    ActionSheetIOS.showActionSheetWithOptions(
-      { title: book.title, options: ['书籍信息', '删除', '取消'], destructiveButtonIndex: 1, cancelButtonIndex: 2 },
-      (i) => {
-        if (i === 0) info();
-        if (i === 1) confirmDelete(book, onDeleted);
-      },
-    );
-  } else {
-    Alert.alert(book.title, undefined, [
-      { text: '书籍信息', onPress: info },
-      { text: '删除', style: 'destructive', onPress: () => confirmDelete(book, onDeleted) },
-      { text: '取消', style: 'cancel' },
-    ]);
-  }
+export const openDetail = (id: string) => router.push({ pathname: '/book/[id]', params: { id } });
+
+/** 长按封面：全屏预览 + 快捷操作 */
+export const peekBook = (id: string) => router.push({ pathname: '/peek/[id]', params: { id } });
+
+export const openNotes = (id: string) => router.push({ pathname: '/notes/[id]', params: { id } });
+
+/**
+ * 导出一本书的高亮与笔记为 Markdown，通过系统分享面板 AirDrop 回电脑，
+ * 放到仓库的 notes/ 目录。没有可导出的内容时返回 false。
+ */
+export async function exportNotes(bookId: string): Promise<boolean> {
+  const [book, chapters, items] = await Promise.all([getBook(bookId), getChapters(bookId), listHighlights(bookId)]);
+  if (!book || items.length === 0) return false;
+  const file = new File(Paths.cache, `${book.id}.notes.md`);
+  file.create({ overwrite: true });
+  file.writeSync(buildNotesMarkdown(book, chapters, items));
+  await Share.share({ url: file.uri, title: `${book.title} 阅读笔记` });
+  return true;
 }

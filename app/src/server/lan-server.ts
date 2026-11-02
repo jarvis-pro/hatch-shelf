@@ -20,6 +20,8 @@ export const MAX_PIN_FAILURES = 5;
 
 export interface LanServerEvents {
   onListening(): void;
+  /** 上传中的进度（0–1）；同一个连接用同一个 key，结束时传 null */
+  onReceiving?(key: number, ratio: number | null): void;
   onUpload(result: ImportResult): void;
   /** PIN 连续错误达到上限，服务已自动关闭 */
   onLocked(): void;
@@ -108,18 +110,32 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
     return jsonResponse(404, { ok: false, error: '没有这个接口' });
   }
 
+  let connections = 0;
   const server = TcpSocket.createServer((socket) => {
     const parser = new RequestParser(MAX_BODY_BYTES);
+    const key = ++connections;
     let done = false;
+    let reported = -1;
     const reply = (bytes: Uint8Array) => {
       done = true;
+      if (reported >= 0) events.onReceiving?.(key, null);
       socket.end(bytes);
+    };
+    /** 每 5% 报一次上传进度 */
+    const report = () => {
+      const p = parser.progress;
+      if (!p || p.method !== 'POST' || p.path !== '/upload' || p.total === 0) return;
+      const ratio = Math.floor((p.received / p.total) * 20) / 20;
+      if (ratio === reported) return;
+      reported = ratio;
+      events.onReceiving?.(key, ratio);
     };
 
     socket.on('data', (chunk) => {
       if (done) return;
       const bytes = typeof chunk === 'string' ? strToU8(chunk) : new Uint8Array(chunk);
       const r = parser.push(bytes);
+      report();
       if (r.type === 'continue') socket.write(CONTINUE_RESPONSE);
       else if (r.type === 'error') reply(jsonResponse(r.status, { ok: false, error: r.message }));
       else if (r.type === 'complete') {
@@ -127,6 +143,10 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       }
     });
     socket.on('error', () => socket.destroy());
+    // 浏览器中途断开时也要清掉进度
+    socket.on('close', () => {
+      if (!done && reported >= 0) events.onReceiving?.(key, null);
+    });
   });
 
   server.on('error', (e) => events.onError(e.message));

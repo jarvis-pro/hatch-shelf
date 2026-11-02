@@ -1,59 +1,78 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useIncomingFiles } from '@/import/incoming';
 import { bootstrap } from '@/library/bootstrap';
-import { useShelfColors } from '@/shelf/colors';
+import { NoteComposerHost } from '@/notes/NoteComposer';
+import { Splash } from '@/ui/Splash';
+import { loadAppearance, useTheme } from '@/ui/theme';
+
+// 原生启动图（纯色）一直显示到 JS 的封面接管
+void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const c = useShelfColors();
+  const t = useTheme();
   const [state, setState] = useState<'loading' | 'ready' | Error>('loading');
+  const [splash, setSplash] = useState(true);
+  /** 0 = 封面，1 = 书架；交叉淡化时书架同时 scale 0.98→1 */
+  const progress = useState(() => new Animated.Value(0))[0];
 
   useEffect(() => {
-    bootstrap().then(
-      () => setState('ready'),
-      (e: Error) => setState(e),
-    );
+    bootstrap()
+      .then(loadAppearance)
+      .then(
+        () => setState('ready'),
+        (e: Error) => setState(e),
+      );
   }, []);
 
-  if (state !== 'ready') {
-    return (
-      <View style={[styles.center, { backgroundColor: c.bg }]}>
-        {state === 'loading' ? (
-          <ActivityIndicator />
-        ) : (
-          <Text style={{ color: c.danger, padding: 24 }}>启动失败：{state.message}</Text>
-        )}
-      </View>
-    );
-  }
-
-  return <AppStack />;
+  return (
+    <View style={[styles.flex, { backgroundColor: t.bg }]}>
+      {state === 'ready' && (
+        <Animated.View
+          style={[
+            styles.flex,
+            { opacity: progress, transform: [{ scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }) }] },
+          ]}
+        >
+          <AppStack />
+        </Animated.View>
+      )}
+      {state instanceof Error && (
+        <View style={[styles.flex, styles.center]}>
+          <Text style={{ color: t.danger, padding: 24 }}>启动失败：{state.message}</Text>
+        </View>
+      )}
+      {splash && (
+        <Splash ready={state !== 'loading'} progress={progress} onDone={() => setSplash(false)} />
+      )}
+      <StatusBar style={splash ? 'dark' : 'auto'} />
+    </View>
+  );
 }
 
 function AppStack() {
-  const c = useShelfColors();
+  const t = useTheme();
   useIncomingFiles();
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerBackButtonDisplayMode: 'minimal',
-          contentStyle: { backgroundColor: c.bg },
-        }}
-      >
-        <Stack.Screen name="index" options={{ title: '书架', headerLargeTitle: true }} />
-        <Stack.Screen name="read/[id]" options={{ title: '' }} />
-        <Stack.Screen name="book/[id]" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="transfer" options={{ title: '局域网传书' }} />
-        <Stack.Screen name="notes/[id]" options={{ title: '笔记' }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="search" options={{ animation: 'fade' }} />
+        <Stack.Screen
+          name="peek/[id]"
+          options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
+        />
+        <Stack.Screen name="read/[id]" options={{ contentStyle: { backgroundColor: t.paper } }} />
       </Stack>
-      <StatusBar style="auto" />
+      <NoteComposerHost />
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  flex: { flex: 1 },
+  center: { alignItems: 'center', justifyContent: 'center' },
 });

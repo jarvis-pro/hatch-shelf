@@ -1,31 +1,43 @@
-import { Appearance } from 'react-native';
 import { getSetting, setSetting } from '@/db/queries';
 import type { ReaderTheme, ThemeMode } from './bridge';
 
-export const FONT_SIZE_RANGE = [14, 24] as const;
-export const LINE_HEIGHT_RANGE = [1.4, 2.2] as const;
+/** 字号滑杆的刻度（px） */
+export const FONT_SIZES = [14, 16, 18, 20, 22, 24] as const;
 
-/** 与 reader-web/src/style.css 中的变量保持一致，用于原生部分（标题栏、面板、WebView 底色） */
-export const PALETTE: Record<ThemeMode, { bg: string; fg: string; muted: string; border: string; accent: string; card: string }> = {
-  light: { bg: '#ffffff', fg: '#1f2328', muted: '#656d76', border: '#d8dee4', accent: '#0969da', card: '#f6f8fa' },
-  dark: { bg: '#16181d', fg: '#d6d9de', muted: '#8b949e', border: '#30363d', accent: '#58a6ff', card: '#1f232a' },
-  sepia: { bg: '#f4ecd8', fg: '#3b2f1e', muted: '#7a6a53', border: '#ddceab', accent: '#8a5a17', card: '#ebe1c8' },
-};
+export const LINE_HEIGHTS = [
+  { value: 1.6, label: '紧凑' },
+  { value: 1.85, label: '适中' },
+  { value: 2.1, label: '宽松' },
+] as const;
 
-export const THEME_LABELS: Record<ThemeMode, string> = { light: '亮色', dark: '暗色', sepia: '护眼' };
+export const lineHeightLabel = (v: number) =>
+  LINE_HEIGHTS.reduce((a, b) => (Math.abs(b.value - v) < Math.abs(a.value - v) ? b : a)).label;
+
+/** 阅读设置（不含明暗：阅读页跟随 App 外观） */
+export type ReaderPrefs = Omit<ReaderTheme, 'mode'>;
 
 const KEY = 'readerTheme';
+const DEFAULTS: ReaderPrefs = { fontSize: 16, lineHeight: 1.85, wrapCode: false };
 
-export async function loadReaderTheme(): Promise<ReaderTheme> {
-  const fallback: ReaderTheme = {
-    mode: Appearance.getColorScheme() === 'dark' ? 'dark' : 'light',
-    fontSize: 17,
-    lineHeight: 1.75,
-    wrapCode: false,
+const listeners = new Set<(p: ReaderPrefs) => void>();
+
+export async function loadReaderPrefs(): Promise<ReaderPrefs> {
+  // 旧版本存过 mode（含已移除的护眼主题），这里只取需要的字段
+  const { fontSize, lineHeight, wrapCode } = { ...DEFAULTS, ...(await getSetting<Partial<ReaderTheme>>(KEY, {})) };
+  return { fontSize, lineHeight, wrapCode };
+}
+
+export async function saveReaderPrefs(prefs: ReaderPrefs) {
+  listeners.forEach((l) => l(prefs));
+  await setSetting(KEY, prefs);
+}
+
+/** 设置页与阅读页之间同步 */
+export function onReaderPrefsChange(listener: (p: ReaderPrefs) => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
   };
-  return { ...fallback, ...(await getSetting<Partial<ReaderTheme>>(KEY, {})) };
 }
 
-export function saveReaderTheme(theme: ReaderTheme) {
-  return setSetting(KEY, theme);
-}
+export const toReaderTheme = (prefs: ReaderPrefs, mode: ThemeMode): ReaderTheme => ({ ...prefs, mode });

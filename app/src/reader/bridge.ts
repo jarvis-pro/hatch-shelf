@@ -13,8 +13,8 @@ export type ToReader =
       bookBaseUrl: string;
       theme: ReaderTheme;
       restore?: ReaderPosition;
-      hasPrev: boolean;
-      hasNext: boolean;
+      /** 第几章（从 1 开始），显示在章标题上方 */
+      chapterNo: number;
       /** 搜索跳转时要标亮的关键词：在 restore.anchor 之后找第一处 */
       find?: string;
       highlights: HighlightMark[];
@@ -34,7 +34,6 @@ export type FromReader =
   | { type: 'rendered' }
   | { type: 'toc'; items: TocItem[] }
   | { type: 'position'; position: ReaderPosition }
-  | { type: 'navigate'; to: 'prev' | 'next' }
   /** 点击了非页内锚点的链接；RN 决定是跳章节还是交给系统打开 */
   | { type: 'link'; href: string }
   /** 回应 captureSelection；没有选中文字时 quote 为 null */
@@ -42,7 +41,8 @@ export type FromReader =
   | { type: 'highlightTap'; id: string }
   | { type: 'error'; message: string };
 
-export type ThemeMode = 'light' | 'dark' | 'sepia';
+/** 跟随 App 外观，阅读页不单独设主题 */
+export type ThemeMode = 'light' | 'dark';
 
 export interface ReaderTheme {
   mode: ThemeMode;

@@ -1,22 +1,10 @@
 import { ActionSheetIOS, Alert, Platform } from 'react-native';
+import { composeNote } from './NoteComposer';
 
 const excerpt = (text: string) => (text.length > 60 ? `${text.slice(0, 60)}…` : text);
 
 /** 输入或修改笔记；取消时 resolve(null)，清空内容时 resolve('') */
-export function promptNote(quoteText: string, initial = ''): Promise<string | null> {
-  return new Promise((resolve) => {
-    Alert.prompt(
-      initial ? '编辑笔记' : '添加笔记',
-      `「${excerpt(quoteText)}」`,
-      [
-        { text: '取消', style: 'cancel', onPress: () => resolve(null) },
-        { text: '保存', onPress: (value?: string) => resolve((value ?? '').trim()) },
-      ],
-      'plain-text',
-      initial,
-    );
-  });
-}
+export const promptNote = composeNote;
 
 export type HighlightAction = 'note' | 'delete';
 

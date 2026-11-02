@@ -6,6 +6,8 @@ export interface SearchHit {
   bookTitle: string;
   chapterFile: string;
   chapterTitle: string;
+  /** 章节序号，从 0 开始 */
+  chapterIdx: number;
   /** 小节锚点；章节开头（第一个标题之前）为 null */
   anchor: string | null;
   heading: string | null;
@@ -22,7 +24,7 @@ export async function searchBooks(raw: string): Promise<SearchHit[]> {
   const q = raw.trim();
   if (!q) return [];
   const select = `SELECT s.book_id, s.chapter_file, s.anchor, s.heading, s.body,
-                         b.title AS book_title, c.title AS chapter_title
+                         b.title AS book_title, c.title AS chapter_title, c.idx AS chapter_idx
                   FROM search s
                   JOIN books b ON b.id = s.book_id
                   JOIN chapters c ON c.book_id = s.book_id AND c.file = s.chapter_file`;
@@ -34,6 +36,7 @@ export async function searchBooks(raw: string): Promise<SearchHit[]> {
     body: string;
     book_title: string;
     chapter_title: string;
+    chapter_idx: number;
   };
   const db = getDb();
   const rows =
@@ -52,6 +55,7 @@ export async function searchBooks(raw: string): Promise<SearchHit[]> {
     bookTitle: r.book_title,
     chapterFile: r.chapter_file,
     chapterTitle: r.chapter_title,
+    chapterIdx: r.chapter_idx,
     anchor: r.anchor,
     heading: r.heading,
     snippet: makeSnippet(r.body, q),

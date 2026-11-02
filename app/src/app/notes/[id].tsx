@@ -1,17 +1,26 @@
-import { File, Paths } from 'expo-file-system';
-import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Hash, PenLine, Share } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, getChapters, type BookRow, type ChapterRow } from '@/db/queries';
-import { buildNotesMarkdown } from '@/notes/export';
+import { countLabel } from '@/notes/format';
 import { chooseHighlightAction, promptNote } from '@/notes/prompts';
 import { deleteHighlight, listHighlights, setNote, type Highlight } from '@/notes/store';
-import { useShelfColors } from '@/shelf/colors';
+import { exportNotes } from '@/shelf/actions';
+import { BookCover, useCoverUri } from '@/shelf/BookCover';
+import { Backdrop } from '@/ui/Backdrop';
+import { Glass, GlassPill } from '@/ui/glass';
+import { FadeInUp, PressScale } from '@/ui/motion';
+import { NavBar } from '@/ui/NavBar';
+import { useTheme } from '@/ui/theme';
 
 /** 一本书的全部高亮与笔记，按章节分组；可导出为 Markdown 分享回电脑 */
-export default function NotesScreen() {
+export default function BookNotesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const c = useShelfColors();
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
+  const cover = useCoverUri(id);
   const [book, setBook] = useState<BookRow | null>(null);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
   const [items, setItems] = useState<Highlight[]>([]);
@@ -43,73 +52,81 @@ export default function NotesScreen() {
     await load();
   };
 
-  const exportNotes = async () => {
-    if (!book) return;
-    const file = new File(Paths.cache, `${book.id}.notes.md`);
-    file.create({ overwrite: true });
-    file.writeSync(buildNotesMarkdown(book, chapters, items));
-    // 通过系统分享面板 AirDrop 回电脑，放到仓库的 notes/ 目录
-    await Share.share({ url: file.uri, title: `${book.title} 阅读笔记` });
-  };
-
   const titleOf = (file: string) => {
     const i = chapters.findIndex((ch) => ch.file === file);
-    return i >= 0 ? `${i + 1}. ${chapters[i].title}` : file;
+    return i >= 0 ? `第 ${i + 1} 章 · ${chapters[i].title}` : file;
   };
   const groups = [...new Set(items.map((h) => h.chapterFile))];
+  const notes = items.filter((h) => h.note).length;
 
   return (
-    <ScrollView
-      style={{ backgroundColor: c.bg }}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.container}
-    >
-      <Stack.Screen
-        options={{
-          title: book ? `${book.title} · 笔记` : '笔记',
-          headerRight: () =>
-            items.length > 0 ? (
-              <Pressable onPress={() => void exportNotes()} hitSlop={10}>
-                <Text style={{ color: c.accent, fontSize: 16 }}>导出</Text>
-              </Pressable>
-            ) : null,
-        }}
-      />
-      {items.length === 0 && (
-        <Text style={[styles.empty, { color: c.muted }]}>
-          还没有高亮或笔记。阅读时长按选中文字，在菜单里选「高亮」或「笔记」。
-        </Text>
-      )}
-      {groups.map((file) => (
-        <View key={file} style={styles.group}>
-          <Text style={[styles.chapter, { color: c.fg }]}>{titleOf(file)}</Text>
-          {items
-            .filter((h) => h.chapterFile === file)
-            .map((h) => (
-              <Pressable
-                key={h.id}
-                onPress={() => open(h)}
-                onLongPress={() => void edit(h)}
-                style={[styles.card, { backgroundColor: c.card }]}
-              >
-                <Text style={[styles.quote, { color: c.fg, borderColor: '#f5c518' }]} numberOfLines={6}>
-                  {h.text.trim()}
-                </Text>
-                {h.note && <Text style={{ color: c.fg, fontSize: 15, lineHeight: 22 }}>{h.note}</Text>}
-                <Text style={{ color: c.muted, fontSize: 12 }}>{new Date(h.createdAt).toLocaleDateString()}</Text>
-              </Pressable>
-            ))}
-        </View>
-      ))}
-    </ScrollView>
+    <View style={styles.flex}>
+      <Backdrop cover={cover} glows={false} />
+      <NavBar right={items.length > 0 && <GlassPill icon={Share} label="导出" onPress={() => void exportNotes(id)} />} />
+      <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 32 }]} showsVerticalScrollIndicator={false}>
+        {book && (
+          <View style={styles.head}>
+            <BookCover book={book} width={52} radius={8} />
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={[styles.title, { color: t.fg }]} numberOfLines={2}>
+                {book.title}
+              </Text>
+              <Text style={{ color: t.fg2, fontSize: 13 }}>{countLabel(items.length, notes)}</Text>
+            </View>
+          </View>
+        )}
+        {items.length === 0 && (
+          <Text style={[styles.empty, { color: t.fg3 }]}>
+            还没有高亮或笔记。{'\n'}阅读时长按选中文字，在菜单里选「高亮」或「笔记」。
+          </Text>
+        )}
+        {groups.map((file, gi) => (
+          <FadeInUp key={file} index={gi} style={styles.group}>
+            <Text style={{ color: t.fg3, fontSize: 12, fontWeight: '500' }}>{titleOf(file)}</Text>
+            {items
+              .filter((h) => h.chapterFile === file)
+              .map((h) => (
+                <PressScale key={h.id} scale={0.98} onPress={() => open(h)} onLongPress={() => void edit(h)}>
+                  <Glass radius={20} style={styles.card}>
+                    <View style={styles.quote}>
+                      <View style={[styles.bar, { backgroundColor: t.highlight }]} />
+                      <Text style={[styles.quoteText, { color: t.body }]}>{h.text.trim()}</Text>
+                    </View>
+                    {h.note && (
+                      <View style={[styles.note, { backgroundColor: t.dark ? '#FFFFFF0F' : '#FFFFFF99' }]}>
+                        <PenLine size={14} color={t.accent} style={{ marginTop: 3 }} />
+                        <Text style={{ flex: 1, color: t.ink, fontSize: 13, lineHeight: 21 }}>{h.note}</Text>
+                      </View>
+                    )}
+                    {h.anchor && (
+                      <View style={styles.meta}>
+                        <Hash size={12} color={t.fg3} />
+                        <Text style={{ color: t.fg3, fontSize: 11 }} numberOfLines={1}>
+                          {h.anchor}
+                        </Text>
+                      </View>
+                    )}
+                  </Glass>
+                </PressScale>
+              ))}
+          </FadeInUp>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 20, paddingBottom: 48 },
-  empty: { textAlign: 'center', paddingVertical: 60, lineHeight: 22 },
+  flex: { flex: 1 },
+  body: { paddingHorizontal: 20, paddingTop: 16, gap: 20 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  title: { fontSize: 24, fontWeight: '700', letterSpacing: -0.3 },
+  empty: { textAlign: 'center', lineHeight: 22, paddingVertical: 60 },
   group: { gap: 10 },
-  chapter: { fontSize: 17, fontWeight: '600' },
-  card: { borderRadius: 12, padding: 14, gap: 8 },
-  quote: { borderLeftWidth: 3, paddingLeft: 10, fontSize: 15, lineHeight: 22 },
+  card: { paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
+  quote: { flexDirection: 'row', gap: 10 },
+  bar: { width: 3, borderRadius: 2 },
+  quoteText: { flex: 1, fontSize: 14, lineHeight: 23 },
+  note: { flexDirection: 'row', gap: 8, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });

@@ -1,56 +1,52 @@
+/* 「晨雾玻璃」阅读页配色，与 App 的 src/ui/theme.ts 保持一致 */
 :root {
-  --font-size: 17px;
-  --line-height: 1.75;
-  --bg: #ffffff;
-  --fg: #1f2328;
-  --muted: #656d76;
-  --border: #d8dee4;
-  --code-bg: #f6f8fa;
-  --link: #0969da;
-  --mark: rgba(9, 105, 218, 0.08);
-  --hl-keyword: #cf222e;
-  --hl-string: #0a3069;
-  --hl-number: #0550ae;
-  --hl-comment: #6e7781;
-  --hl-title: #8250df;
-  --hl-type: #953800;
-  --hl-attr: #116329;
+  --font-size: 16px;
+  --line-height: 1.85;
+  --bg: #f6f7fa;
+  --fg: #2a2e38;
+  --heading: #111318;
+  --muted: #8c92a0;
+  --ink: #2d3550;
+  --border: #e3e6ee;
+  --code-bg: #ffffff;
+  --code-bar: #f3f5f9;
+  --inline-code: rgba(30, 42, 90, 0.06);
+  --link: #2f6bff;
+  --link-soft: rgba(47, 107, 255, 0.05);
+  --link-line: rgba(47, 107, 255, 0.12);
+  --mark: rgba(47, 107, 255, 0.08);
+  --hl-keyword: #8b3fd9;
+  --hl-string: #0e7a5f;
+  --hl-number: #c2410c;
+  --hl-comment: #8c92a0;
+  --hl-title: #1f4fd1;
+  --hl-type: #b45309;
+  --hl-attr: #0e9384;
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --bg: #16181d;
-  --fg: #d6d9de;
-  --muted: #8b949e;
-  --border: #30363d;
-  --code-bg: #1f232a;
-  --link: #58a6ff;
-  --mark: rgba(88, 166, 255, 0.1);
-  --hl-keyword: #ff7b72;
-  --hl-string: #a5d6ff;
-  --hl-number: #79c0ff;
-  --hl-comment: #8b949e;
-  --hl-title: #d2a8ff;
-  --hl-type: #ffa657;
-  --hl-attr: #7ee787;
+  --bg: #0e1015;
+  --fg: #d5d9e2;
+  --heading: #f1f3f8;
+  --muted: #6b7180;
+  --ink: #c3c9d6;
+  --border: #252a35;
+  --code-bg: #141821;
+  --code-bar: #1a1f2a;
+  --inline-code: rgba(255, 255, 255, 0.08);
+  --link: #6e9bff;
+  --link-soft: rgba(110, 155, 255, 0.08);
+  --link-line: rgba(110, 155, 255, 0.2);
+  --mark: rgba(110, 155, 255, 0.12);
+  --hl-keyword: #c4a5ff;
+  --hl-string: #7ee0b8;
+  --hl-number: #fdba74;
+  --hl-comment: #6b7180;
+  --hl-title: #9dbbff;
+  --hl-type: #fbbf24;
+  --hl-attr: #5eead4;
   color-scheme: dark;
-}
-
-:root[data-theme='sepia'] {
-  --bg: #f4ecd8;
-  --fg: #3b2f1e;
-  --muted: #7a6a53;
-  --border: #ddceab;
-  --code-bg: #ebe1c8;
-  --link: #8a5a17;
-  --mark: rgba(138, 90, 23, 0.08);
-  --hl-keyword: #a3392b;
-  --hl-string: #4f6b2a;
-  --hl-number: #8a5a17;
-  --hl-comment: #8c7b62;
-  --hl-title: #6b4a8a;
-  --hl-type: #9a5b13;
-  --hl-attr: #3f6b5a;
 }
 
 * {
@@ -62,9 +58,10 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* 上下留出 App 的悬浮顶栏和底部章节导航 */
 body {
   margin: 0;
-  padding: 20px 20px 32px;
+  padding: 104px 26px 150px;
   background: var(--bg);
   color: var(--fg);
   font: var(--font-size) / var(--line-height) -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
@@ -72,32 +69,40 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+.chapter-kicker {
+  margin: 0 0 8px;
+  color: var(--link);
+  font: 600 11px / 1.2 -apple-system, 'Helvetica Neue', sans-serif;
+  letter-spacing: 2px;
+}
+
 h1,
 h2,
 h3,
 h4 {
-  line-height: 1.35;
-  margin: 1.6em 0 0.6em;
-  scroll-margin-top: 12px;
+  color: var(--heading);
+  line-height: 1.4;
+  margin: 1.5em 0 0.6em;
+  scroll-margin-top: 110px;
 }
 h1 {
-  font-size: 1.6em;
-  margin-top: 0.4em;
+  font-size: 1.7em;
+  letter-spacing: -0.3px;
+  margin-top: 0;
+  margin-bottom: 0.9em;
 }
 h2 {
-  font-size: 1.3em;
-  padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--border);
+  font-size: 1.19em;
 }
 h3 {
-  font-size: 1.12em;
+  font-size: 1.06em;
 }
 
 p,
 ul,
 ol,
 blockquote {
-  margin: 0 0 1em;
+  margin: 0 0 1.1em;
 }
 
 a {
@@ -105,10 +110,18 @@ a {
   text-decoration: none;
 }
 
+/* 引用做成提示卡片 */
 blockquote {
-  padding: 0.2em 1em;
-  color: var(--muted);
-  border-left: 3px solid var(--border);
+  padding: 14px 16px;
+  color: var(--ink);
+  font-size: 0.875em;
+  line-height: 1.7;
+  background: var(--link-soft);
+  border: 1px solid var(--link-line);
+  border-radius: 14px;
+}
+blockquote > :last-child {
+  margin-bottom: 0;
 }
 
 hr {
@@ -121,7 +134,7 @@ img {
   display: block;
   max-width: 100%;
   margin: 1em auto;
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .img-blocked {
@@ -133,42 +146,46 @@ img {
 
 code {
   font-family: ui-monospace, Menlo, monospace;
-  font-size: 0.86em;
+  font-size: 0.8em;
 }
 
 :not(pre) > code {
-  padding: 0.15em 0.35em;
-  background: var(--code-bg);
-  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  background: var(--inline-code);
+  border-radius: 5px;
 }
 
 .code-block {
-  margin: 0 -20px 1.2em;
+  margin: 0 0 1.2em;
   background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
 .code-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 12px 0 20px;
-  font-size: 12px;
+  padding: 6px 8px 6px 14px;
+  background: var(--code-bar);
+  font: 11px / 1.4 ui-monospace, Menlo, monospace;
   color: var(--muted);
 }
 
 .code-copy {
+  display: flex;
   border: 0;
   background: none;
-  color: var(--link);
-  font-size: 12px;
-  padding: 4px 8px;
+  color: var(--muted);
+  padding: 4px 6px;
 }
 
 .code-block pre {
   margin: 0;
-  padding: 6px 20px 14px;
+  padding: 12px 14px;
   overflow-x: auto;
-  line-height: 1.55;
+  line-height: 1.6;
   tab-size: 4;
 }
 
@@ -219,8 +236,8 @@ code {
 
 .table-wrap {
   overflow-x: auto;
-  margin: 0 -20px 1.2em;
-  padding: 0 20px;
+  margin: 0 -26px 1.2em;
+  padding: 0 26px;
 }
 
 table {
@@ -237,7 +254,8 @@ td {
 }
 
 th {
-  background: var(--code-bg);
+  color: var(--heading);
+  background: var(--code-bar);
 }
 
 .katex-display {
@@ -256,30 +274,6 @@ pre.mermaid {
   text-align: center;
   background: none;
   font-family: inherit;
-}
-
-/* ---------- 章节导航 ---------- */
-
-.chapter-nav {
-  display: flex;
-  gap: 12px;
-  margin-top: 3em;
-  padding-top: 1.5em;
-  border-top: 1px solid var(--border);
-}
-
-.nav-btn {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--mark);
-  color: var(--fg);
-  font-size: 15px;
-}
-
-.nav-btn:disabled {
-  opacity: 0.35;
 }
 
 /* ---------- 图片放大 ---------- */
@@ -342,21 +336,20 @@ mark.find-hit {
 /* ---------- 高亮与笔记 ---------- */
 
 :root {
-  --hl: rgba(255, 213, 79, 0.55);
+  --hl: rgba(139, 107, 255, 0.16);
+  --hl-note: #8b6bff;
 }
 :root[data-theme='dark'] {
-  --hl: rgba(255, 196, 0, 0.3);
-}
-:root[data-theme='sepia'] {
-  --hl: rgba(230, 170, 40, 0.38);
+  --hl: rgba(165, 139, 255, 0.26);
+  --hl-note: #a58bff;
 }
 
 mark.hl {
   color: inherit;
   background: var(--hl);
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 mark.hl.has-note {
-  border-bottom: 2px dotted var(--link);
+  border-bottom: 2px dotted var(--hl-note);
 }

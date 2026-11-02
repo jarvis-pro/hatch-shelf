@@ -62,6 +62,27 @@ export async function countHighlights(bookId: string): Promise<number> {
   return row?.n ?? 0;
 }
 
+export interface NotesSummary {
+  bookId: string;
+  highlights: number;
+  notes: number;
+  lastAt: number;
+  /** 最近一条：有笔记显示笔记，否则显示原文 */
+  latest: string;
+}
+
+/** 笔记 Tab：每本有高亮的书一行，按最近记录时间倒序 */
+export async function listNotesSummary(): Promise<NotesSummary[]> {
+  const rows = await getDb().getAllAsync<{ book_id: string; n: number; notes: number; last_at: number; latest: string }>(
+    `SELECT book_id, COUNT(*) AS n, COUNT(note) AS notes, MAX(created_at) AS last_at,
+       (SELECT COALESCE(h2.note, h2.text) FROM highlights h2 WHERE h2.book_id = h.book_id
+        ORDER BY h2.created_at DESC LIMIT 1) AS latest
+     FROM highlights h JOIN books b ON b.id = h.book_id
+     GROUP BY book_id ORDER BY last_at DESC`,
+  );
+  return rows.map((r) => ({ bookId: r.book_id, highlights: r.n, notes: r.notes, lastAt: r.last_at, latest: r.latest.trim() }));
+}
+
 export async function addHighlight(bookId: string, chapterFile: string, quote: Quote, note: string | null) {
   const now = Date.now();
   const id = `${now.toString(36)}${Math.random().toString(36).slice(2, 8)}`;

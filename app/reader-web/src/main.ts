@@ -26,6 +26,12 @@ function post(msg: FromReader) {
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
+/** Lucide 的 copy / check 图标，与 App 其他地方一致 */
+const svg = (body: string) =>
+  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+const ICON_COPY = svg('<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>');
+const ICON_CHECK = svg('<path d="M20 6 9 17l-5-5"/>');
+
 // ---------- Markdown 渲染 ----------
 
 // 该包是带 __esModule 的 CJS；esbuild 按 Node 语义把整个 exports 当作 default
@@ -49,7 +55,7 @@ md.renderer.rules.fence = (tokens, idx) => {
   return (
     `<div class="code-block"><div class="code-bar">` +
     `<span class="code-lang">${escapeHtml(lang || 'text')}</span>` +
-    `<button class="code-copy" type="button">复制</button></div>` +
+    `<button class="code-copy" type="button" aria-label="复制">${ICON_COPY}</button></div>` +
     `<pre><code class="hljs">${body}</code></pre></div>`
   );
 };
@@ -116,11 +122,8 @@ function applyTheme(theme: ReaderTheme) {
   });
 }
 
-function footer(hasPrev: boolean, hasNext: boolean) {
-  const btn = (to: 'prev' | 'next', label: string, enabled: boolean) =>
-    `<button class="nav-btn" data-nav="${to}" ${enabled ? '' : 'disabled'}>${label}</button>`;
-  return `<nav class="chapter-nav">${btn('prev', '‹ 上一章', hasPrev)}${btn('next', '下一章 ›', hasNext)}</nav>`;
-}
+/** 章标题上方的 CHAPTER 07；上一章 / 下一章由 App 底部的导航栏负责 */
+const kicker = (no: number) => `<p class="chapter-kicker">CHAPTER ${String(no).padStart(2, '0')}</p>`;
 
 async function renderMermaid() {
   const nodes = [...content.querySelectorAll<HTMLElement>('pre.mermaid')];
@@ -209,7 +212,7 @@ async function load(msg: Extract<ToReader, { type: 'load' }>) {
   const env: RenderEnv = { bookBaseUrl: msg.bookBaseUrl };
   const tokens = md.parse(msg.markdown, env);
   const toc = assignHeadingIds(tokens);
-  content.innerHTML = md.renderer.render(tokens, md.options, env) + footer(msg.hasPrev, msg.hasNext);
+  content.innerHTML = kicker(msg.chapterNo) + md.renderer.render(tokens, md.options, env);
   post({ type: 'toc', items: toc });
   await renderMermaid();
   renderHighlights(content, msg.highlights);
@@ -304,8 +307,8 @@ document.addEventListener('click', (e) => {
   if (copyBtn) {
     const code = copyBtn.closest('.code-block')?.querySelector('code')?.textContent ?? '';
     void copyText(code).then(() => {
-      copyBtn.textContent = '已复制';
-      setTimeout(() => (copyBtn.textContent = '复制'), 1500);
+      copyBtn.innerHTML = ICON_CHECK;
+      setTimeout(() => (copyBtn.innerHTML = ICON_COPY), 1500);
     });
     return;
   }
@@ -313,12 +316,6 @@ document.addEventListener('click', (e) => {
   const hl = target.closest<HTMLElement>('mark.hl');
   if (hl && window.getSelection()?.isCollapsed !== false) {
     post({ type: 'highlightTap', id: hl.dataset.id! });
-    return;
-  }
-
-  const navBtn = target.closest<HTMLButtonElement>('[data-nav]');
-  if (navBtn && !navBtn.disabled) {
-    post({ type: 'navigate', to: navBtn.dataset.nav as 'prev' | 'next' });
     return;
   }
 

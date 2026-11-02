@@ -109,6 +109,47 @@ export async function saveProgress(bookId: string, chapterFile: string, pos: Rea
   await db.runAsync('UPDATE books SET last_read_at = ? WHERE id = ?', now, bookId);
 }
 
+export interface BookProgress {
+  /** 最近读的章节 */
+  chapterFile: string;
+  chapterIdx: number;
+  /** 0–1，按「已读章节数 + 当前章节滚动比例」估算 */
+  ratio: number;
+  /** 视为读完：读到最后一章末尾 */
+  finished: boolean;
+}
+
+const FINISHED_RATIO = 0.95;
+
+/** 每本书最近一次阅读的位置，用于书架上的进度徽标和进度条 */
+export async function listBookProgress(): Promise<Map<string, BookProgress>> {
+  const rows = await getDb().getAllAsync<{ book_id: string; chapter_file: string; scroll_ratio: number; idx: number; chapter_count: number }>(
+    `SELECT p.book_id, p.chapter_file, p.scroll_ratio, c.idx, b.chapter_count
+     FROM progress p
+     JOIN chapters c ON c.book_id = p.book_id AND c.file = p.chapter_file
+     JOIN books b ON b.id = p.book_id
+     WHERE p.updated_at = (SELECT MAX(updated_at) FROM progress p2 WHERE p2.book_id = p.book_id)`,
+  );
+  return new Map(
+    rows.map((r) => {
+      const finished = r.idx === r.chapter_count - 1 && r.scroll_ratio >= FINISHED_RATIO;
+      const ratio = finished ? 1 : Math.min(1, (r.idx + r.scroll_ratio) / Math.max(1, r.chapter_count));
+      return [r.book_id, { chapterFile: r.chapter_file, chapterIdx: r.idx, ratio, finished }];
+    }),
+  );
+}
+
+/** 一本书里视为读过的章节：在当前章节之前，或者滚动到了末尾 */
+export async function getReadChapters(bookId: string, currentIdx: number): Promise<Set<string>> {
+  const rows = await getDb().getAllAsync<{ file: string; idx: number; scroll_ratio: number | null }>(
+    `SELECT c.file, c.idx, p.scroll_ratio FROM chapters c
+     LEFT JOIN progress p ON p.book_id = c.book_id AND p.chapter_file = c.file
+     WHERE c.book_id = ?`,
+    bookId,
+  );
+  return new Set(rows.filter((r) => r.idx < currentIdx || (r.scroll_ratio ?? 0) >= FINISHED_RATIO).map((r) => r.file));
+}
+
 // ---------- 设置 ----------
 
 export async function getSetting<T>(key: string, fallback: T): Promise<T> {

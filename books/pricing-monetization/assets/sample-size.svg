@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 278" width="360" height="278" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="277" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">检测 20% 相对提升，每组要多少访客</text>
+<text x="180.0" y="48.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">双侧 α = 0.05，检验功效 80%</text>
+<text x="86.0" y="95.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="normal">转化 2%</text>
+<text x="86.0" y="111.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">→ 2.4%</text>
+<rect x="96" y="82" width="172.2" height="28" rx="3" fill="#2f6fdf"/>
+<text x="274.2" y="101.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">21,106</text>
+<text x="86.0" y="151.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="normal">转化 5%</text>
+<text x="86.0" y="167.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">→ 6%</text>
+<rect x="96" y="138" width="66.5" height="28" rx="3" fill="#2f6fdf"/>
+<text x="168.5" y="157.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">8,155</text>
+<text x="86.0" y="207.0" font-size="13" fill="#1f2328" text-anchor="end" font-weight="normal">转化 10%</text>
+<text x="86.0" y="223.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">→ 12%</text>
+<rect x="96" y="194" width="31.3" height="28" rx="3" fill="#2f6fdf"/>
+<text x="133.3" y="213.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">3,839</text>
+<text x="180.0" y="258.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">基线转化越低，需要的流量越大</text>
+</svg>

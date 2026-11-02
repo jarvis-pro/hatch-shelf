@@ -49,6 +49,20 @@ const MIGRATIONS = [
     book_id UNINDEXED, chapter_file UNINDEXED, anchor UNINDEXED, heading UNINDEXED, body,
     tokenize = 'trigram'
   );`,
+  // 高亮与笔记：用户数据，不可重建。用原文 + 前后文定位，书更新后仍能找回位置
+  `CREATE TABLE highlights (
+    id TEXT PRIMARY KEY NOT NULL,
+    book_id TEXT NOT NULL,
+    chapter_file TEXT NOT NULL,
+    text TEXT NOT NULL,
+    prefix TEXT NOT NULL,
+    suffix TEXT NOT NULL,
+    anchor TEXT,
+    note TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX highlights_by_chapter ON highlights (book_id, chapter_file);`,
 ];
 
 let db: SQLiteDatabase | null = null;

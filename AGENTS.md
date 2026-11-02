@@ -14,6 +14,7 @@
 | `packages/spec/` | `@shelf/spec`：book.yaml 的 zod schema、容错解析、导入安全规则。App 与 CLI 共用，**不得依赖 Node 或 RN 专有 API** |
 | `tools/shelf-pack/` | Node CLI：check / pack / push |
 | `books/` | 书籍内容，不进安装包 |
+| `notes/` | 从手机导出的阅读笔记，供修订书时参考 |
 
 ## 原则
 

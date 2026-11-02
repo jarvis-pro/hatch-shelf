@@ -338,3 +338,25 @@ mark.find-hit {
     background: rgba(255, 200, 0, 0.12);
   }
 }
+
+/* ---------- 高亮与笔记 ---------- */
+
+:root {
+  --hl: rgba(255, 213, 79, 0.55);
+}
+:root[data-theme='dark'] {
+  --hl: rgba(255, 196, 0, 0.3);
+}
+:root[data-theme='sepia'] {
+  --hl: rgba(230, 170, 40, 0.38);
+}
+
+mark.hl {
+  color: inherit;
+  background: var(--hl);
+  border-radius: 2px;
+}
+
+mark.hl.has-note {
+  border-bottom: 2px dotted var(--link);
+}

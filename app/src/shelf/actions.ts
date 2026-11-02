@@ -4,7 +4,7 @@ import type { BookRow } from '@/db/queries';
 import { deleteBook } from '@/library/books';
 
 export function confirmDelete(book: BookRow, onDeleted: () => void) {
-  Alert.alert(`删除《${book.title}》？`, '书籍文件和阅读进度都会被删除。', [
+  Alert.alert(`删除《${book.title}》？`, '书籍文件、阅读进度、高亮和笔记都会被删除。需要保留笔记请先在笔记页导出。', [
     { text: '取消', style: 'cancel' },
     { text: '删除', style: 'destructive', onPress: () => void deleteBook(book.id).then(onDeleted) },
   ]);

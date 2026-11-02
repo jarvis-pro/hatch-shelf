@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getBook, getChapters, type BookRow, type ChapterRow } from '@/db/queries';
+import { countHighlights } from '@/notes/store';
 import { confirmDelete } from '@/shelf/actions';
 import { BookCover } from '@/shelf/BookCover';
 import { useShelfColors } from '@/shelf/colors';
@@ -13,11 +14,13 @@ export default function BookInfoScreen() {
   const c = useShelfColors();
   const [book, setBook] = useState<BookRow | null>(null);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
+  const [noteCount, setNoteCount] = useState(0);
 
   useEffect(() => {
-    void Promise.all([getBook(id), getChapters(id)]).then(([b, chs]) => {
+    void Promise.all([getBook(id), getChapters(id), countHighlights(id)]).then(([b, chs, n]) => {
       setBook(b);
       setChapters(chs);
+      setNoteCount(n);
     });
   }, [id]);
 
@@ -75,6 +78,17 @@ export default function BookInfoScreen() {
           </View>
         ))}
       </View>
+
+      <Pressable
+        style={[styles.card, styles.metaRow, { backgroundColor: c.card }]}
+        onPress={() => {
+          router.back();
+          router.push({ pathname: '/notes/[id]', params: { id } });
+        }}
+      >
+        <Text style={{ color: c.fg, fontSize: 15 }}>高亮与笔记</Text>
+        <Text style={{ color: c.muted }}>{noteCount} 条 ›</Text>
+      </Pressable>
 
       <Text style={[styles.sectionTitle, { color: c.fg }]}>目录 · {chapters.length} 章</Text>
       <View style={[styles.card, { backgroundColor: c.card, paddingVertical: 4 }]}>

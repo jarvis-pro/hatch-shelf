@@ -58,6 +58,7 @@ hatch-shelf/
 │   └── spec/              # @shelf/spec：book.yaml 的 zod schema + TS 类型，App 与 CLI 共用
 ├── tools/
 │   └── shelf-pack/        # CLI：校验 → 打包 → 局域网推送
+├── notes/                 # 从手机导出的阅读笔记 <book-id>.notes.md
 └── books/
     ├── AGENTS.md          # 写书规范（agent 在此目录写书时读取）
     └── <book-id>/
@@ -190,6 +191,7 @@ documentDirectory/
 | search（FTS5，trigram） | book_id, chapter_file, anchor, heading, body —— 每行一个小节 | ✅ |
 | progress | book_id, chapter_file, scroll_ratio, anchor, updated_at | ❌ |
 | settings | key, value | ❌ |
+| highlights | id, book_id, chapter_file, text, prefix, suffix, anchor, note, created_at, updated_at | ❌ |
 
 `last_read_at` 由 `progress` 推导；重建索引时从 `progress` 回填。
 
@@ -220,6 +222,9 @@ documentDirectory/
 - 宽表格放在可横向滚动的容器里；图片支持点击放大
 - 上一章 / 下一章导航
 - RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
+- 高亮与笔记：长按选中文字，系统菜单里选「高亮」或「笔记」；点已有高亮可编辑笔记或删除。阅读页右上角「笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`
+- 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
+- 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
 - 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
 - 示例书在构建时由 `app/scripts/build-samples.mjs` 生成成 TS 模块，首次启动时写入 `books/`，删除后不会再出现
 
@@ -270,7 +275,10 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | **M2 导入管线 + AirDrop** | inbox → 校验 → 原子写入 → 索引；注册文档类型 | AirDrop 一个 zip 后，书出现在书架上；同 id 再次导入为更新 |
 | **M3 局域网传书** | 传书页、HTTP 服务、上传页面、PIN | 电脑浏览器能拖拽上传；curl 能推送 |
 | **M4 CLI** | `shelf-pack` 的 check / pack / push | 一条命令完成从写书到手机可读 |
-| **后续** | 全文搜索（FTS5，中文用 trigram）、高亮与笔记、“文件” App 可见、笔记导出回仓库 | — |
+| **M5 加固** | ESLint `no-floating-promises`；`push --changed` 改为按内容指纹判断 | 漏写 await 无法通过 lint；改内容不改日期也能推送 |
+| **M6 搜索** | FTS5 trigram 全文搜索，结果跳到小节并标亮 | 能搜到任意一本书里的句子并跳过去 |
+| **M7 笔记** | 高亮、笔记、笔记页、导出回仓库 | 书更新后高亮仍在原位；导出的笔记能被 agent 读到 |
+| **后续** | “文件” App 可见 | — |
 
 ---
 
@@ -287,5 +295,6 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |
 | 书中配图 | Mermaid + SVG，不用字符画 | 字符画在手机窄屏上会错位、看不清；SVG 是文本、体积小、矢量可放大，能进 git diff。SVG 自带白底，因为 `<img>` 里拿不到阅读器主题变量 |
 | push --changed 的依据 | 内容指纹而非 `updated` | 改了内容忘记改日期时会漏推；指纹由 App 与 CLI 共用的 `prepareImport()` 计算，两边必然一致 |
+| 高亮定位 | 原文 + 前后文，而非字符偏移或 DOM 路径 | 书会被 AI 反复修订；偏移和 DOM 路径一改就失效，原文 + 前后文在小改动后仍能找回 |
 | 搜索分词 | FTS5 trigram，短查询退回 LIKE | 不需要中文分词词典；trigram 要求至少 3 个字符，个人书库规模下 LIKE 扫描足够快 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |

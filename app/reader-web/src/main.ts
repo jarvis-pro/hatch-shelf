@@ -3,6 +3,7 @@ import katexModule from '@vscode/markdown-it-katex';
 import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
 import mermaid from 'mermaid';
+import { quoteFromRange, renderHighlights, scrollToHighlight } from './highlights';
 import type {
   FromReader,
   ReaderPosition,
@@ -199,8 +200,8 @@ function currentPosition(): ReaderPosition {
 }
 
 async function load(msg: Extract<ToReader, { type: 'load' }>) {
-  // find 只在这次加载生效；之后切换主题重渲染时不再跳转
-  current = { ...msg, find: undefined };
+  // find / focusHighlight 只在这次加载生效；之后切换主题重渲染时不再跳转
+  current = { ...msg, find: undefined, focusHighlight: undefined };
   restoring = true;
   // 丢弃上一章还没发出的进度，否则会用新章节的 DOM 算出错误位置
   clearTimeout(scrollTimer);
@@ -211,9 +212,11 @@ async function load(msg: Extract<ToReader, { type: 'load' }>) {
   content.innerHTML = md.renderer.render(tokens, md.options, env) + footer(msg.hasPrev, msg.hasNext);
   post({ type: 'toc', items: toc });
   await renderMermaid();
+  renderHighlights(content, msg.highlights);
   await waitImages(1500);
   restore(msg.restore);
   if (msg.find) findAndMark(msg.find, msg.restore?.anchor);
+  if (msg.focusHighlight) scrollToHighlight(content, msg.focusHighlight);
   // 等一帧，让 scrollTo 触发的 scroll 事件先过去
   requestAnimationFrame(() => {
     restoring = false;
@@ -237,11 +240,33 @@ window.__shelf = {
       case 'scrollTo':
         scrollToAnchor(msg.anchor);
         break;
+      case 'captureSelection': {
+        const sel = window.getSelection();
+        const live = sel && sel.rangeCount > 0 && !sel.isCollapsed ? sel.getRangeAt(0) : null;
+        post({ type: 'selection', action: msg.action, quote: quoteFromRange(content, live ?? lastRange) });
+        sel?.removeAllRanges();
+        lastRange = null;
+        break;
+      }
+      case 'setHighlights':
+        if (current) current = { ...current, highlights: msg.highlights };
+        renderHighlights(content, msg.highlights);
+        break;
     }
   },
 };
 
 // ---------- 交互 ----------
+
+/**
+ * 最近一次非空选区。点系统选择菜单里的自定义项时，选区可能已被清掉，
+ * 所以持续记录，捕获时优先用当前选区、其次用它。
+ */
+let lastRange: Range | null = null;
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) lastRange = sel.getRangeAt(0).cloneRange();
+});
 
 window.addEventListener(
   'scroll',
@@ -282,6 +307,12 @@ document.addEventListener('click', (e) => {
       copyBtn.textContent = '已复制';
       setTimeout(() => (copyBtn.textContent = '复制'), 1500);
     });
+    return;
+  }
+
+  const hl = target.closest<HTMLElement>('mark.hl');
+  if (hl && window.getSelection()?.isCollapsed !== false) {
+    post({ type: 'highlightTap', id: hl.dataset.id! });
     return;
   }
 

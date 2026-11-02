@@ -47,6 +47,7 @@ function AppStack() {
         <Stack.Screen name="read/[id]" options={{ title: '' }} />
         <Stack.Screen name="book/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="transfer" options={{ title: '局域网传书' }} />
+        <Stack.Screen name="notes/[id]" options={{ title: '笔记' }} />
       </Stack>
       <StatusBar style="auto" />
     </>

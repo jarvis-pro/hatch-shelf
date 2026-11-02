@@ -1,5 +1,5 @@
 import { File, Paths } from 'expo-file-system';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { WebViewMessageEvent } from 'react-native-webview';
@@ -14,7 +14,17 @@ import {
 } from '@/db/queries';
 import { getReaderUri } from '@/library/bootstrap';
 import { bookDir } from '@/lib/paths';
-import type { FromReader, ReaderPosition, ReaderTheme, ToReader, TocItem } from '@/reader/bridge';
+import { chooseHighlightAction, promptNote } from '@/notes/prompts';
+import { addHighlight, deleteHighlight, listHighlights, setNote, toMark } from '@/notes/store';
+import type {
+  FromReader,
+  Quote,
+  ReaderPosition,
+  ReaderTheme,
+  SelectionAction,
+  ToReader,
+  TocItem,
+} from '@/reader/bridge';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { loadReaderTheme, PALETTE, saveReaderTheme } from '@/reader/theme';
 import { TocSheet } from '@/reader/TocSheet';
@@ -26,7 +36,8 @@ export default function ReaderScreen() {
     chapter: chapterParam,
     anchor: anchorParam,
     find: findParam,
-  } = useLocalSearchParams<{ id: string; chapter?: string; anchor?: string; find?: string }>();
+    highlight: highlightParam,
+  } = useLocalSearchParams<{ id: string; chapter?: string; anchor?: string; find?: string; highlight?: string }>();
   const webRef = useRef<WebViewHandle>(null);
   const [book, setBook] = useState<BookRow | null>(null);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
@@ -40,6 +51,8 @@ export default function ReaderScreen() {
   const pendingAnchor = useRef<string | null>(anchorParam ?? null);
   /** 搜索跳转时要标亮的关键词，只用于第一次加载 */
   const pendingFind = useRef<string | null>(findParam ?? null);
+  /** 从笔记列表跳过来时要滚到的高亮，只用于第一次加载 */
+  const pendingFocus = useRef<string | null>(highlightParam ?? null);
   /** WebView 当前显示的章节，用来给 position 消息归属，避免切章时串到别的章节 */
   const shownFile = useRef<string | null>(null);
 
@@ -68,10 +81,13 @@ export default function ReaderScreen() {
       const markdown = await new File(dir, ch.file).text();
       const anchor = pendingAnchor.current;
       const find = pendingFind.current;
+      const focus = pendingFocus.current;
       pendingAnchor.current = null;
       pendingFind.current = null;
+      pendingFocus.current = null;
       const restore: ReaderPosition | undefined =
-        anchor || find ? { scrollRatio: 0, anchor: anchor ?? undefined } : await getProgress(id, ch.file);
+        anchor || find || focus ? { scrollRatio: 0, anchor: anchor ?? undefined } : await getProgress(id, ch.file);
+      const highlights = await listHighlights(id, ch.file);
       if (cancelled) return;
       shownFile.current = ch.file;
       setToc([]);
@@ -84,6 +100,8 @@ export default function ReaderScreen() {
         hasPrev: idx > 0,
         hasNext: idx < chapters.length - 1,
         find: find ?? undefined,
+        highlights: highlights.map(toMark),
+        focusHighlight: focus ?? undefined,
       });
     })().catch((e: Error) => !cancelled && setError(`无法读取章节 ${ch.file}：${e.message}`));
     return () => {
@@ -92,6 +110,45 @@ export default function ReaderScreen() {
     // theme 变化走 setTheme，不重新加载章节
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webReady, idx, chapters, id, send]);
+
+  /** 高亮有变化后，重新取当前章节的高亮交给阅读器重绘 */
+  const refreshHighlights = useCallback(async () => {
+    const file = shownFile.current;
+    if (!file) return;
+    const list = await listHighlights(id, file);
+    send({ type: 'setHighlights', highlights: list.map(toMark) });
+  }, [id, send]);
+
+  const onSelection = useCallback(
+    async (action: SelectionAction, quote: Quote | null) => {
+      const file = shownFile.current;
+      if (!quote || !file) return;
+      let note: string | null = null;
+      if (action === 'note') {
+        note = await promptNote(quote.text);
+        if (note === null) return; // 取消
+      }
+      await addHighlight(id, file, quote, note || null);
+      await refreshHighlights();
+    },
+    [id, refreshHighlights],
+  );
+
+  const onHighlightTap = useCallback(
+    async (highlightId: string) => {
+      const h = (await listHighlights(id, shownFile.current ?? undefined)).find((x) => x.id === highlightId);
+      if (!h) return;
+      const action = await chooseHighlightAction(h.text, !!h.note);
+      if (action === 'delete') await deleteHighlight(h.id);
+      if (action === 'note') {
+        const note = await promptNote(h.text, h.note ?? '');
+        if (note === null) return;
+        await setNote(h.id, note || null);
+      }
+      await refreshHighlights();
+    },
+    [id, refreshHighlights],
+  );
 
   const goTo = useCallback(
     (next: number, anchor?: string) => {
@@ -129,12 +186,18 @@ export default function ReaderScreen() {
           }
           break;
         }
+        case 'selection':
+          onSelection(msg.action, msg.quote).catch((err: Error) => setError(err.message));
+          break;
+        case 'highlightTap':
+          onHighlightTap(msg.id).catch((err: Error) => setError(err.message));
+          break;
         case 'error':
           console.warn('[reader]', msg.message);
           break;
       }
     },
-    [chapters, goTo, id, idx],
+    [chapters, goTo, id, idx, onSelection, onHighlightTap],
   );
 
   const changeTheme = useCallback(
@@ -160,6 +223,11 @@ export default function ReaderScreen() {
           headerRight: () => (
             <View style={styles.headerButtons}>
               <HeaderButton label="目录" color={palette.accent} onPress={() => setPanel('toc')} />
+              <HeaderButton
+                label="笔记"
+                color={palette.accent}
+                onPress={() => router.push({ pathname: '/notes/[id]', params: { id } })}
+              />
               <HeaderButton label="Aa" color={palette.accent} onPress={() => setPanel('settings')} />
             </View>
           ),
@@ -173,6 +241,14 @@ export default function ReaderScreen() {
           // 允许读取整个 documentDirectory，书里的相对路径图片才能显示
           allowingReadAccessToURL={Paths.document.uri}
           allowFileAccess
+          // 长按选中文字后，系统菜单里多出「高亮」「笔记」
+          menuItems={[
+            { key: 'highlight', label: '高亮' },
+            { key: 'note', label: '笔记' },
+          ]}
+          onCustomMenuSelection={(e) =>
+            send({ type: 'captureSelection', action: e.nativeEvent.key as SelectionAction })
+          }
           originWhitelist={['file://*']}
           onShouldStartLoadWithRequest={(req) => req.url === getReaderUri()}
           onMessage={onMessage}

@@ -23,6 +23,7 @@ export async function deleteBook(id: string) {
     await db.runAsync('DELETE FROM chapters WHERE book_id = ?', id);
     await db.runAsync('DELETE FROM books WHERE id = ?', id);
     await db.runAsync('DELETE FROM progress WHERE book_id = ?', id);
+    await db.runAsync('DELETE FROM highlights WHERE book_id = ?', id);
   });
   notifyLibraryChanged();
 }

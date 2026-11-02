@@ -41,6 +41,8 @@ const MIGRATIONS = [
     value TEXT NOT NULL
   );
   `,
+  // 内容指纹，供 shelf-pack push --changed 判断是否需要推送；来自书目录下的 .content-hash
+  `ALTER TABLE books ADD COLUMN content_hash TEXT;`,
 ];
 
 let db: SQLiteDatabase | null = null;

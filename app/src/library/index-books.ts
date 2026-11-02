@@ -2,6 +2,7 @@ import { firstHeading, resolveBook } from '@shelf/spec';
 import { Directory, File } from 'expo-file-system';
 import { getDb } from '@/db';
 import { booksDir } from '@/lib/paths';
+import { HASH_FILE } from './fs';
 
 interface ScannedBook {
   id: string;
@@ -12,12 +13,14 @@ interface ScannedBook {
   level: string | null;
   updated: string | null;
   warnings: string[];
+  hash: string | null;
   chapters: { file: string; title: string }[];
 }
 
 function scanBook(dir: Directory): ScannedBook | null {
   const files = dir.list().filter((e): e is File => e instanceof File);
   const yamlFile = files.find((f) => f.name === 'book.yaml');
+  const hashFile = files.find((f) => f.name === HASH_FILE);
   const result = resolveBook({
     dirName: dir.name,
     yamlText: yamlFile?.textSync(),
@@ -39,6 +42,7 @@ function scanBook(dir: Directory): ScannedBook | null {
     level: manifest.level ?? null,
     updated: manifest.updated ?? null,
     warnings,
+    hash: hashFile?.textSync().trim() || null,
     chapters: chapters.map((file) => ({
       file,
       title: firstHeading(new File(dir, file).textSync()) ?? file.replace(/\.md$/, ''),
@@ -66,8 +70,8 @@ export async function rebuildIndex() {
     for (const b of scanned) {
       await txn.runAsync(
         `INSERT INTO books (id, title, subtitle, category, tags, level, chapter_count, warnings,
-                            imported_at, updated_at, last_read_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                            imported_at, updated_at, content_hash, last_read_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                  (SELECT MAX(updated_at) FROM progress WHERE book_id = ?))`,
         b.id,
         b.title,
@@ -79,6 +83,7 @@ export async function rebuildIndex() {
         JSON.stringify(b.warnings),
         importedAt.get(b.id) ?? Date.now(),
         b.updated,
+        b.hash,
         b.id,
       );
       for (const [idx, ch] of b.chapters.entries()) {

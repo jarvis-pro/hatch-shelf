@@ -14,6 +14,7 @@ export interface BookRow {
   importedAt: number;
   updatedAt: string | null;
   lastReadAt: number | null;
+  contentHash: string | null;
 }
 
 export interface ChapterRow {
@@ -34,6 +35,7 @@ type RawBook = {
   imported_at: number;
   updated_at: string | null;
   last_read_at: number | null;
+  content_hash: string | null;
 };
 
 const toBook = (r: RawBook): BookRow => ({
@@ -48,6 +50,7 @@ const toBook = (r: RawBook): BookRow => ({
   importedAt: r.imported_at,
   updatedAt: r.updated_at,
   lastReadAt: r.last_read_at,
+  contentHash: r.content_hash,
 });
 
 export async function listBooks(): Promise<BookRow[]> {

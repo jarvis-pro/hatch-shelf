@@ -1,6 +1,7 @@
 import { strFromU8, unzipSync, type UnzipFileInfo } from 'fflate';
 import { stringify as stringifyYaml } from 'yaml';
 import { resolveBook, slugify } from './manifest';
+import { contentHash } from './hash';
 import { firstHeading } from './markdown';
 import { isAllowedFile, isSafeEntryPath, MAX_PACKAGE_BYTES } from './rules';
 import type { BookManifest } from './schema';
@@ -23,7 +24,15 @@ export type ImportInput =
   | { kind: 'md'; fileName: string; text: string };
 
 export type PreparedImport =
-  | { ok: true; id: string; manifest: BookManifest; files: PackedFile[]; warnings: string[] }
+  | {
+      ok: true;
+      id: string;
+      manifest: BookManifest;
+      files: PackedFile[];
+      /** 写入设备的全部文件的内容指纹，见 contentHash */
+      hash: string;
+      warnings: string[];
+    }
   | { ok: false; error: string };
 
 const fail = (error: string): PreparedImport => ({ ok: false, error });
@@ -120,6 +129,7 @@ export function prepareImport(input: ImportInput): PreparedImport {
     id: resolved.manifest.id,
     manifest: resolved.manifest,
     files,
+    hash: contentHash(files),
     warnings: [...resolved.warnings, ...warnings],
   };
 }
@@ -130,16 +140,11 @@ function prepareMarkdown(fileName: string, text: string): PreparedImport {
   const id = slugify(name);
   const chapter = `${id}.md`;
   const manifest: BookManifest = { id, title: firstHeading(text) ?? name, chapters: [chapter] };
-  return {
-    ok: true,
-    id,
-    manifest,
-    files: [
-      { path: chapter, text },
-      { path: 'book.yaml', text: stringifyYaml(manifest) },
-    ],
-    warnings: [],
-  };
+  const files = [
+    { path: chapter, text },
+    { path: 'book.yaml', text: stringifyYaml(manifest) },
+  ];
+  return { ok: true, id, manifest, files, hash: contentHash(files), warnings: [] };
 }
 
 /**

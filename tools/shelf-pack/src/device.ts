@@ -4,6 +4,8 @@ export interface DeviceBook {
   id: string;
   title: string;
   updated: string | null;
+  /** 设备上这本书的内容指纹；旧版 App 导入的书没有 */
+  hash?: string | null;
 }
 
 export class PinError extends Error {}

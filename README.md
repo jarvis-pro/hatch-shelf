@@ -139,7 +139,7 @@ chapters:                     # 必填，显式排序
 |---|---|---|
 | GET | `/` | 内置的拖拽上传页面（HTML 打包在 App 内） |
 | POST | `/upload` | `multipart/form-data`，字段 `file`；请求头 `X-Pin`（浏览器页面通过表单字段传递） |
-| GET | `/books` | 返回本地已有书籍的 id、标题、更新时间（便于 CLI 判断是否需要推送）；同样需要 `X-Pin` |
+| GET | `/books` | 返回本地已有书籍的 id、标题、更新时间和内容指纹 `hash`（CLI 据此判断是否需要推送）；同样需要 `X-Pin` |
 
 响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`
 
@@ -185,7 +185,7 @@ documentDirectory/
 
 | 表 | 字段 | 可重建 |
 |---|---|---|
-| books | id, title, subtitle, category, tags(JSON), level, chapter_count, warnings(JSON), imported_at, updated_at, last_read_at | ✅ |
+| books | id, title, subtitle, category, tags(JSON), level, chapter_count, warnings(JSON), imported_at, updated_at, content_hash, last_read_at | ✅ |
 | chapters | book_id, idx, file, title | ✅ |
 | progress | book_id, chapter_file, scroll_ratio, anchor, updated_at | ❌ |
 | settings | key, value | ❌ |
@@ -248,7 +248,7 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 
 - `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、id 与目录名不一致、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下。规则在 `@shelf/spec` 的 `lintBook()`
 - `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名
-- `push --changed` 用 `book.yaml` 的 `updated` 与设备 `/books` 返回的值比较，相同则跳过；没有 `updated` 的书总是推送。因此改了内容要同时更新 `updated`
+- `push --changed` 比较内容指纹：`@shelf/spec` 的 `prepareImport()` 对将要写入设备的全部文件算出 `hash`，App 导入时存到书目录下的 `.content-hash` 并进入索引，`/books` 返回它；CLI 用同一个函数解开自己打的 zip 得到指纹，相同则跳过。设备上没有指纹的书（早期导入的、示例书）总是推送
 - PIN 错误时立即停止，避免连续失败把手机上的服务锁掉
 
 ---
@@ -278,4 +278,5 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 阅读器加载方式 | 单文件 HTML 资源 → 拷到 documentDirectory → `file://` 加载 | 用 `source={{ html }}` 时页面拿不到本地文件读权限，图片只能转 base64；放在 documentDirectory 下与 books/ 同源最简单 |
 | Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |
 | 书中配图 | Mermaid + SVG，不用字符画 | 字符画在手机窄屏上会错位、看不清；SVG 是文本、体积小、矢量可放大，能进 git diff。SVG 自带白底，因为 `<img>` 里拿不到阅读器主题变量 |
+| push --changed 的依据 | 内容指纹而非 `updated` | 改了内容忘记改日期时会漏推；指纹由 App 与 CLI 共用的 `prepareImport()` 计算，两边必然一致 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |

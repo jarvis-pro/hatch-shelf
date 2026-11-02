@@ -40,7 +40,7 @@ export async function importFile(uri: string): Promise<ImportResult> {
     if (!prepared.ok) return fail(prepared.error);
 
     const existed = bookDir(prepared.id).exists;
-    writeBookAtomically(prepared.id, prepared.files);
+    writeBookAtomically(prepared.id, prepared.files, prepared.hash);
     await cleanStaleProgress(prepared.id, prepared.manifest.chapters);
     await rebuildIndex();
     notifyLibraryChanged();

@@ -83,3 +83,19 @@ describe('staleProgressFiles', () => {
     expect(staleProgressFiles(['01-a.md', '02-b.md', '03-c.md'], ['01-a.md', '03-c.md', '04-d.md'])).toEqual(['02-b.md']);
   });
 });
+
+describe('contentHash', () => {
+  const files = { 'book.yaml': yaml, '01-a.md': '# A', '02-b.md': '# B' };
+  const hashOf = (f: Record<string, string>) => {
+    const r = prepareImport({ kind: 'zip', fileName: 'x.zip', bytes: zip(f) });
+    return r.ok ? r.hash : null;
+  };
+  it('is stable regardless of zip entry order or wrapping directory', () => {
+    const wrapped = Object.fromEntries(Object.entries(files).reverse().map(([k, v]) => [`demo/${k}`, v]));
+    expect(hashOf(files)).toMatch(/^[0-9a-f]{16}$/);
+    expect(hashOf(wrapped)).toBe(hashOf(files));
+  });
+  it('changes when any content changes', () => {
+    expect(hashOf({ ...files, '02-b.md': '# B!' })).not.toBe(hashOf(files));
+  });
+});

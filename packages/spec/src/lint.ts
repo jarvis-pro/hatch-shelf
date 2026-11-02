@@ -77,7 +77,6 @@ export function lintBook(dirName: string, files: LintFile[]): LintResult {
   const { manifest, chapters } = resolved;
   if (!yaml) errors.push('缺少 book.yaml');
   else if (manifest.id !== dirName) errors.push(`book.yaml 中的 id（${manifest.id}）与目录名（${dirName}）不一致`);
-  if (yaml && !manifest.updated) warnings.push('book.yaml 没有 updated，push --changed 无法判断这本书是否有变化');
 
   for (const f of manifest.chapters) if (!chapters.includes(f)) errors.push(`chapters 中列出的文件不存在：${f}`);
   for (const f of rootMd) if (!manifest.chapters.includes(f.path)) warnings.push(`未列入 chapters，不会被导入：${f.path}`);

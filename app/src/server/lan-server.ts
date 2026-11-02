@@ -80,7 +80,7 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       const books = await listBooks();
       return jsonResponse(200, {
         ok: true,
-        books: books.map((b) => ({ id: b.id, title: b.title, updated: b.updatedAt })),
+        books: books.map((b) => ({ id: b.id, title: b.title, updated: b.updatedAt, hash: b.contentHash })),
       });
     }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S npx tsx
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { MAX_PACKAGE_BYTES } from '@shelf/spec';
+import { MAX_PACKAGE_BYTES, prepareImport } from '@shelf/spec';
 import { Command } from 'commander';
 import { findBooks, lint, packBook, readBook, type LocalBook } from './books';
 import { listDeviceBooks, PinError, upload } from './device';
@@ -69,30 +69,33 @@ program
   .argument('<path>', '一本书的目录，或 books/ 根目录')
   .requiredOption('--to <ip>', '手机传书页面上显示的 IP（可带 :端口）')
   .requiredOption('--pin <pin>', '传书页面上显示的 PIN')
-  .option('--changed', '对比手机上已有书籍的 updated，只推送新增或有变化的书')
+  .option('--changed', '对比手机上已有书籍的内容指纹，只推送新增或有变化的书')
   .description('打包并通过局域网推送到手机')
   .action(async (target: string, opts: { to: string; pin: string; changed?: boolean }) => {
     try {
-      let books = findBooks(target).map(readBook);
-      if (opts.changed) {
-        const onDevice = new Map((await listDeviceBooks(opts.to, opts.pin)).map((b) => [b.id, b]));
-        books = books.filter((b) => {
-          const m = lint(b).manifest;
-          const remote = m && onDevice.get(m.id);
-          // 没有 updated 时无法判断，保守起见推送
-          const same = remote && m.updated && remote.updated === m.updated;
-          if (same) console.log(`${c.dim('-')} ${b.dirName} ${c.dim('未变化，跳过')}`);
-          return !same;
-        });
-      }
+      const books = findBooks(target).map(readBook);
+      const onDevice = opts.changed
+        ? new Map((await listDeviceBooks(opts.to, opts.pin)).map((b) => [b.id, b]))
+        : null;
 
       let failed = 0;
+      let pushed = 0;
       for (const book of books) {
         const r = pack(book);
         if (!r) {
           failed += 1;
           continue;
         }
+        if (onDevice) {
+          // 用 App 同一套导入逻辑算指纹，保证与设备上记录的一致
+          const prepared = prepareImport({ kind: 'zip', fileName: `${r.manifest.id}.zip`, bytes: r.data });
+          const remote = onDevice.get(r.manifest.id);
+          if (prepared.ok && remote?.hash === prepared.hash) {
+            console.log(`${c.dim('-')} ${book.dirName} ${c.dim('未变化，跳过')}`);
+            continue;
+          }
+        }
+        pushed += 1;
         const res = await upload(opts.to, opts.pin, `${r.manifest.id}.zip`, r.data);
         if (res.ok) {
           console.log(`${c.green('↑')} ${book.dirName} ${c.dim(`${res.status === 'updated' ? '已更新' : '已新增'} · ${kb(r.data.length)}`)}`);
@@ -102,7 +105,7 @@ program
           console.log(`${c.red('✗')} ${book.dirName} ${res.error}`);
         }
       }
-      if (books.length === 0) console.log('没有需要推送的书');
+      if (pushed === 0 && failed === 0) console.log('没有需要推送的书');
       process.exitCode = failed ? 1 : 0;
     } catch (e) {
       // PIN 错误时立即停止，避免连续失败把手机上的服务锁掉

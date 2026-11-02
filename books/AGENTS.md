@@ -25,7 +25,7 @@ category: tech/go             # 可选，书架分组，用 / 分层
 tags: [go, concurrency]       # 可选
 level: intermediate           # 可选：beginner | intermediate | advanced
 created: 2026-11-02           # 可选，YYYY-MM-DD
-updated: 2026-11-02           # 可选，每次修改内容时更新（push --changed 靠它判断是否需要推送）
+updated: 2026-11-02           # 可选，每次修改内容时更新（只用于展示，是否推送按内容判断）
 chapters:                     # 必填，显式排序；未列入的 .md 会被忽略
   - 01-goroutine.md
   - 02-channel.md

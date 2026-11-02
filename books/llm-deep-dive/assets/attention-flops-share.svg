@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 302" width="360" height="302" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="301" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600" >生成第 n 个 token 时注意力计算的占比</text>
+<text x="180.0" y="46.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >d = 4096，FFN 隐层 4d，不含 GQA 等优化</text>
+<line x1="44.0" y1="226.0" x2="336.0" y2="226.0" stroke="#656d76" stroke-width="1" />
+<line x1="44.0" y1="56.0" x2="44.0" y2="226.0" stroke="#656d76" stroke-width="1" />
+<line x1="44.0" y1="186.0" x2="336.0" y2="186.0" stroke="#d8dee4" stroke-width="1" />
+<line x1="44.0" y1="146.0" x2="336.0" y2="146.0" stroke="#d8dee4" stroke-width="1" />
+<line x1="44.0" y1="106.0" x2="336.0" y2="106.0" stroke="#d8dee4" stroke-width="1" />
+<line x1="44.0" y1="66.0" x2="336.0" y2="66.0" stroke="#d8dee4" stroke-width="1" />
+<text x="38.0" y="230.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal" >0%</text>
+<text x="38.0" y="190.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal" >25%</text>
+<text x="38.0" y="150.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal" >50%</text>
+<text x="38.0" y="110.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal" >75%</text>
+<text x="38.0" y="70.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal" >100%</text>
+<rect x="52.8" y="219.6" width="31.1" height="6.4" rx="3" fill="#dbe7fb"/>
+<text x="68.3" y="213.6" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal" >4%</text>
+<text x="68.3" y="244.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >1K</text>
+<rect x="101.4" y="203.1" width="31.1" height="22.9" rx="3" fill="#dbe7fb"/>
+<text x="117.0" y="197.1" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal" >14%</text>
+<text x="117.0" y="244.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >4K</text>
+<rect x="150.1" y="162.0" width="31.1" height="64.0" rx="3" fill="#dbe7fb"/>
+<text x="165.7" y="156.0" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal" >40%</text>
+<text x="165.7" y="244.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >16K</text>
+<rect x="198.8" y="109.6" width="31.1" height="116.4" rx="3" fill="#2f6fdf"/>
+<text x="214.3" y="103.6" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal" >73%</text>
+<text x="214.3" y="244.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >64K</text>
+<rect x="247.4" y="79.7" width="31.1" height="146.3" rx="3" fill="#2f6fdf"/>
+<text x="263.0" y="73.7" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal" >91%</text>
+<text x="263.0" y="244.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >256K</text>
+<rect x="296.1" y="69.7" width="31.1" height="156.3" rx="3" fill="#2f6fdf"/>
+<text x="311.7" y="63.7" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal" >98%</text>
+<text x="311.7" y="244.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >1M</text>
+<text x="190.0" y="264.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >上下文长度 n</text>
+<text x="180.0" y="282.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >占比 = n / (6d + n)，n = 6d ≈ 24.6K 时过半</text>
+</svg>

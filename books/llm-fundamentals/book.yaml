@@ -1,0 +1,18 @@
+id: llm-fundamentals
+title: 大模型原理科普
+subtitle: 从神经网络到 ChatGPT，不需要数学背景
+category: ai/llm
+tags: [llm, transformer, ai]
+level: beginner
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-neural-networks.md
+  - 02-tokens-embeddings.md
+  - 03-attention.md
+  - 04-transformer.md
+  - 05-pretraining.md
+  - 06-sft-rlhf.md
+  - 07-inference-sampling.md
+  - 08-scaling-laws.md
+  - 09-capabilities-limits.md

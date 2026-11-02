@@ -146,7 +146,7 @@
 
 ### 21. 大模型原理科普 `llm-fundamentals`
 
-- 入门 · `ai/llm` · 状态：未写
+- 入门 · `ai/llm` · 状态：已完成
 - 章节：从函数拟合到神经网络 · token 与 embedding · 注意力机制 · Transformer · 预训练 · SFT 与 RLHF · 推理与采样 · Scaling Law · 大模型能做什么、不能做什么
 
 ### 22. AI 数学直觉 `math-for-ai`

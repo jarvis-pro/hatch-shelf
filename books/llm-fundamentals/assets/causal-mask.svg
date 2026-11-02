@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 372" width="360" height="372" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="371" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600" >每个 token 能看到谁</text>
+<text x="215.0" y="56" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" >能看到的 token →</text>
+<text x="88" y="56" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal" >当前 token ↓</text>
+<text x="123.0" y="82" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="normal" >我</text>
+<text x="88" y="120.0" font-size="14" fill="#1f2328" text-anchor="end" font-weight="normal" >我</text>
+<rect x="102" y="94" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="123.0" y="121.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="148" y="94" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<rect x="194" y="94" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<rect x="240" y="94" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<rect x="286" y="94" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<text x="169.0" y="82" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="normal" >爱</text>
+<text x="88" y="166.0" font-size="14" fill="#1f2328" text-anchor="end" font-weight="normal" >爱</text>
+<rect x="102" y="140" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="123.0" y="167.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="148" y="140" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="169.0" y="167.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="194" y="140" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<rect x="240" y="140" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<rect x="286" y="140" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<text x="215.0" y="82" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="normal" >写</text>
+<text x="88" y="212.0" font-size="14" fill="#1f2328" text-anchor="end" font-weight="normal" >写</text>
+<rect x="102" y="186" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="123.0" y="213.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="148" y="186" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="169.0" y="213.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="194" y="186" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="215.0" y="213.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="240" y="186" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<rect x="286" y="186" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<text x="261.0" y="82" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="normal" >代</text>
+<text x="88" y="258.0" font-size="14" fill="#1f2328" text-anchor="end" font-weight="normal" >代</text>
+<rect x="102" y="232" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="123.0" y="259.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="148" y="232" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="169.0" y="259.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="194" y="232" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="215.0" y="259.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="240" y="232" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="261.0" y="259.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="286" y="232" width="42" height="42" rx="6" fill="#e6e9ed"/>
+<text x="307.0" y="82" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="normal" >码</text>
+<text x="88" y="304.0" font-size="14" fill="#1f2328" text-anchor="end" font-weight="normal" >码</text>
+<rect x="102" y="278" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="123.0" y="305.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="148" y="278" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="169.0" y="305.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="194" y="278" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="215.0" y="305.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="240" y="278" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="261.0" y="305.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="286" y="278" width="42" height="42" rx="6" fill="#2f6fdf"/>
+<text x="307.0" y="305.0" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="600" >✓</text>
+<rect x="96" y="340" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="116" y="352" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal" >可以看到</text>
+<rect x="196" y="340" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="216" y="352" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal" >被遮住（还没生成）</text>
+</svg>

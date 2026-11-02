@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 312" width="360" height="312" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="311" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">样例数与 95% 置信区间半宽</text>
+<text x="180" y="47" text-anchor="middle" font-size="12" fill="#656d76">准确率在 90% 附近，单位：百分点</text>
+<line x1="56" y1="240.0" x2="340" y2="240.0" stroke="#d8dee4"/>
+<text x="48" y="244.0" text-anchor="end" font-size="11" fill="#656d76">±0</text>
+<line x1="56" y1="183.3" x2="340" y2="183.3" stroke="#d8dee4"/>
+<text x="48" y="187.3" text-anchor="end" font-size="11" fill="#656d76">±5</text>
+<line x1="56" y1="126.7" x2="340" y2="126.7" stroke="#d8dee4"/>
+<text x="48" y="130.7" text-anchor="end" font-size="11" fill="#656d76">±10</text>
+<line x1="56" y1="70.0" x2="340" y2="70.0" stroke="#d8dee4"/>
+<text x="48" y="74.0" text-anchor="end" font-size="11" fill="#656d76">±15</text>
+<rect x="64.7" y="91.0" width="30" height="149.0" rx="3" fill="#2f6fdf"/>
+<text x="79.7" y="85.0" text-anchor="middle" font-size="12" fill="#1f2328">13.1</text>
+<text x="79.7" y="258.0" text-anchor="middle" font-size="12" fill="#656d76">20</text>
+<rect x="112.0" y="145.8" width="30" height="94.2" rx="3" fill="#2f6fdf"/>
+<text x="127.0" y="139.8" text-anchor="middle" font-size="12" fill="#1f2328">8.3</text>
+<text x="127.0" y="258.0" text-anchor="middle" font-size="12" fill="#656d76">50</text>
+<rect x="159.3" y="173.4" width="30" height="66.6" rx="3" fill="#2f6fdf"/>
+<text x="174.3" y="167.4" text-anchor="middle" font-size="12" fill="#1f2328">5.9</text>
+<text x="174.3" y="258.0" text-anchor="middle" font-size="12" fill="#656d76">100</text>
+<rect x="206.7" y="192.9" width="30" height="47.1" rx="3" fill="#2f6fdf"/>
+<text x="221.7" y="186.9" text-anchor="middle" font-size="12" fill="#1f2328">4.2</text>
+<text x="221.7" y="258.0" text-anchor="middle" font-size="12" fill="#656d76">200</text>
+<rect x="254.0" y="210.2" width="30" height="29.8" rx="3" fill="#2f6fdf"/>
+<text x="269.0" y="204.2" text-anchor="middle" font-size="12" fill="#1f2328">2.6</text>
+<text x="269.0" y="258.0" text-anchor="middle" font-size="12" fill="#656d76">500</text>
+<rect x="301.3" y="218.9" width="30" height="21.1" rx="3" fill="#2f6fdf"/>
+<text x="316.3" y="212.9" text-anchor="middle" font-size="12" fill="#1f2328">1.9</text>
+<text x="316.3" y="258.0" text-anchor="middle" font-size="12" fill="#656d76">1000</text>
+<text x="198.0" y="278" text-anchor="middle" font-size="12" fill="#656d76">测试集样例数 n</text>
+<text x="180" y="300" text-anchor="middle" font-size="12" fill="#656d76">半宽 = 1.96 × √(p(1−p)/n)，p = 0.9</text></svg>

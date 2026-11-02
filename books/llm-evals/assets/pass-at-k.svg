@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 340" width="360" height="340" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="339" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">pass@k 与 pass^k</text>
+<text x="180" y="47" text-anchor="middle" font-size="12" fill="#656d76">单次通过率 p = 90%，同一条样例重复 k 次</text>
+<line x1="52" y1="236.0" x2="336" y2="236.0" stroke="#d8dee4"/>
+<text x="44" y="240.0" text-anchor="end" font-size="11" fill="#656d76">0%</text>
+<line x1="52" y1="193.5" x2="336" y2="193.5" stroke="#d8dee4"/>
+<text x="44" y="197.5" text-anchor="end" font-size="11" fill="#656d76">25%</text>
+<line x1="52" y1="151.0" x2="336" y2="151.0" stroke="#d8dee4"/>
+<text x="44" y="155.0" text-anchor="end" font-size="11" fill="#656d76">50%</text>
+<line x1="52" y1="108.5" x2="336" y2="108.5" stroke="#d8dee4"/>
+<text x="44" y="112.5" text-anchor="end" font-size="11" fill="#656d76">75%</text>
+<line x1="52" y1="66.0" x2="336" y2="66.0" stroke="#d8dee4"/>
+<text x="44" y="70.0" text-anchor="end" font-size="11" fill="#656d76">100%</text>
+<text x="52.0" y="254" text-anchor="middle" font-size="12" fill="#656d76">1</text>
+<text x="92.6" y="254" text-anchor="middle" font-size="12" fill="#656d76">2</text>
+<text x="133.1" y="254" text-anchor="middle" font-size="12" fill="#656d76">3</text>
+<text x="173.7" y="254" text-anchor="middle" font-size="12" fill="#656d76">4</text>
+<text x="214.3" y="254" text-anchor="middle" font-size="12" fill="#656d76">5</text>
+<text x="254.9" y="254" text-anchor="middle" font-size="12" fill="#656d76">6</text>
+<text x="295.4" y="254" text-anchor="middle" font-size="12" fill="#656d76">7</text>
+<text x="336.0" y="254" text-anchor="middle" font-size="12" fill="#656d76">8</text>
+<text x="194.0" y="272" text-anchor="middle" font-size="12" fill="#656d76">重复次数 k</text>
+<polyline points="52.0,83.0 92.6,67.7 133.1,66.2 173.7,66.0 214.3,66.0 254.9,66.0 295.4,66.0 336.0,66.0" fill="none" stroke="#656d76" stroke-width="2.5" stroke-dasharray="5 4"/>
+<circle cx="52.0" cy="83.0" r="3" fill="#656d76"/>
+<circle cx="92.6" cy="67.7" r="3" fill="#656d76"/>
+<circle cx="133.1" cy="66.2" r="3" fill="#656d76"/>
+<circle cx="173.7" cy="66.0" r="3" fill="#656d76"/>
+<circle cx="214.3" cy="66.0" r="3" fill="#656d76"/>
+<circle cx="254.9" cy="66.0" r="3" fill="#656d76"/>
+<circle cx="295.4" cy="66.0" r="3" fill="#656d76"/>
+<circle cx="336.0" cy="66.0" r="3" fill="#656d76"/>
+<polyline points="52.0,83.0 92.6,98.3 133.1,112.1 173.7,124.5 214.3,135.6 254.9,145.7 295.4,154.7 336.0,162.8" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<circle cx="52.0" cy="83.0" r="3" fill="#2f6fdf"/>
+<circle cx="92.6" cy="98.3" r="3" fill="#2f6fdf"/>
+<circle cx="133.1" cy="112.1" r="3" fill="#2f6fdf"/>
+<circle cx="173.7" cy="124.5" r="3" fill="#2f6fdf"/>
+<circle cx="214.3" cy="135.6" r="3" fill="#2f6fdf"/>
+<circle cx="254.9" cy="145.7" r="3" fill="#2f6fdf"/>
+<circle cx="295.4" cy="154.7" r="3" fill="#2f6fdf"/>
+<circle cx="336.0" cy="162.8" r="3" fill="#2f6fdf"/>
+<text x="336.0" y="152.8" text-anchor="end" font-size="12" fill="#2f6fdf">43%</text>
+<text x="214.3" y="125.6" text-anchor="middle" font-size="12" fill="#2f6fdf">59%</text>
+<line x1="70" y1="296" x2="96" y2="296" stroke="#656d76" stroke-width="2.5" stroke-dasharray="5 4"/>
+<text x="102" y="300" font-size="12" fill="#1f2328">pass@k 至少一次通过</text>
+<line x1="70" y1="318" x2="96" y2="318" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="102" y="322" font-size="12" fill="#1f2328">pass^k 每次都通过</text></svg>

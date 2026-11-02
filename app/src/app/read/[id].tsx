@@ -30,20 +30,21 @@ export default function ReaderScreen() {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [webReady, setWebReady] = useState(false);
   const [panel, setPanel] = useState<'toc' | 'settings' | null>(null);
+  const [error, setError] = useState<string | null>(null);
   /** 跨章链接 `02-x.md#anchor` 跳过去时要定位的锚点 */
   const pendingAnchor = useRef<string | null>(null);
   /** WebView 当前显示的章节，用来给 position 消息归属，避免切章时串到别的章节 */
   const shownFile = useRef<string | null>(null);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       const [b, chs, t] = await Promise.all([getBook(id), getChapters(id), loadReaderTheme()]);
       setBook(b);
       setChapters(chs);
       setTheme(t);
       const target = chapterParam ?? (await getLastChapter(id));
       setIdx(Math.max(0, chs.findIndex((c) => c.file === target)));
-    })();
+    })().catch((e: Error) => setError(e.message));
   }, [id, chapterParam]);
 
   const send = useCallback((msg: ToReader) => {
@@ -55,7 +56,7 @@ export default function ReaderScreen() {
     if (!webReady || idx === null || !theme || chapters.length === 0) return;
     const ch = chapters[idx];
     let cancelled = false;
-    (async () => {
+    void (async () => {
       const dir = bookDir(id);
       const markdown = await new File(dir, ch.file).text();
       const anchor = pendingAnchor.current;
@@ -75,7 +76,7 @@ export default function ReaderScreen() {
         hasPrev: idx > 0,
         hasNext: idx < chapters.length - 1,
       });
-    })();
+    })().catch((e: Error) => !cancelled && setError(`无法读取章节 ${ch.file}：${e.message}`));
     return () => {
       cancelled = true;
     };
@@ -174,9 +175,13 @@ export default function ReaderScreen() {
           }}
         />
       )}
-      {!webReady && (
+      {(!webReady || error) && (
         <View style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: palette.bg }]}>
-          <ActivityIndicator color={palette.muted} />
+          {error ? (
+            <Text style={[styles.error, { color: palette.fg }]}>{error}</Text>
+          ) : (
+            <ActivityIndicator color={palette.muted} />
+          )}
         </View>
       )}
       {theme && (
@@ -221,6 +226,7 @@ function HeaderButton({ label, color, onPress }: { label: string; color: string;
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
+  error: { padding: 24, textAlign: 'center', lineHeight: 22 },
   headerButtons: { flexDirection: 'row', gap: 16 },
   headerButton: { paddingHorizontal: 4 },
   headerButtonText: { fontSize: 16, fontWeight: '500' },

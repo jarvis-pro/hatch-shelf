@@ -45,10 +45,13 @@ pnpm app start               # 启动 Metro（会先执行 build:assets）
 pnpm app build:assets        # 重新生成阅读器 HTML 和示例书模块（两者都不入库）
 pnpm typecheck               # 全仓类型检查
 pnpm test                    # 全仓测试
+pnpm lint                    # App 的 ESLint（含 no-floating-promises）
 pnpm shelf-pack check books/   # 校验全部书；pack / push 见 README 第 10 节
 ```
 
-声明任务完成前必须通过 `pnpm typecheck` 和 `pnpm test`。
+声明任务完成前必须通过 `pnpm typecheck`、`pnpm test` 和 `pnpm lint`。
+
+`no-floating-promises` 不要用 `// eslint-disable` 绕过：确实不需要等待时写 `void promise`，需要处理失败时加 `.catch`。
 
 ## 提交
 

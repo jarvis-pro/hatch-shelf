@@ -43,7 +43,8 @@ export default function ShelfScreen() {
       void load();
     }, [load]),
   );
-  useLibraryChanged(load);
+  const reload = useCallback(() => void load(), [load]);
+  useLibraryChanged(reload);
 
   // 下拉时重新扫描 books/，修正被外部改动过的索引
   const refresh = useCallback(async () => {
@@ -107,7 +108,7 @@ export default function ShelfScreen() {
                 key={b.id}
                 style={{ width: coverWidth }}
                 onPress={() => open(b.id)}
-                onLongPress={() => showBookActions(b, load)}
+                onLongPress={() => showBookActions(b, reload)}
               >
                 <BookCover book={b} width={coverWidth} />
                 <Text style={[styles.bookTitle, { color: c.fg }]} numberOfLines={2}>

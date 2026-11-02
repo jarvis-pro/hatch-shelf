@@ -48,7 +48,6 @@ export default function TransferScreen() {
   const running = focused && active && status.kind !== 'locked';
   useEffect(() => {
     if (!running) return;
-    setStatus({ kind: 'starting' });
     const s = startLanServer(pin, {
       onListening: () => setStatus({ kind: 'running' }),
       onUpload: (r) => setReceived((list) => [{ ...r, at: Date.now() }, ...list]),
@@ -59,6 +58,8 @@ export default function TransferScreen() {
     return () => {
       s.stop();
       server.current = null;
+      // 下次启动前显示「正在启动」；因 PIN 错误被锁定时保留锁定状态
+      setStatus((st) => (st.kind === 'locked' ? st : { kind: 'starting' }));
     };
   }, [running, pin]);
 

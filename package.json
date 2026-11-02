@@ -6,6 +6,7 @@
     "app": "pnpm --filter app",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "shelf-pack": "tsx tools/shelf-pack/src/cli.ts"
+    "shelf-pack": "tsx tools/shelf-pack/src/cli.ts",
+    "lint": "pnpm --filter app lint"
   }
 }

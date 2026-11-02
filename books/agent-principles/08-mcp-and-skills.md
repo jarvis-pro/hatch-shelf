@@ -44,62 +44,71 @@ server 能向 agent 提供几类东西：
 
 ### 一个最小的 MCP server
 
-下面用官方 TypeScript SDK（`@modelcontextprotocol/sdk`）写一个只读的书架查询 server。示例采用 SDK 1.x 的写法，不同版本的 API 可能有调整，动手前请对照官方文档。
+下面用官方 TypeScript SDK 写一个只读的书架查询 server。示例基于 SDK 2.x（`@modelcontextprotocol/server`，实现 2026-07-28 版协议），和《工具设计与 MCP》第 5 章的完整版本同一写法。网上很多教程还是 1.x 的 `@modelcontextprotocol/sdk` 写法，两者的差异见那一章开头的对照表。
 
 ```typescript
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const BOOKS_DIR = process.env.BOOKS_DIR ?? "books";
-const server = new McpServer({ name: "shelf-books", version: "0.1.0" });
 
-server.registerTool(
-  "list_books",
-  {
-    description: "列出 books 目录下所有书的 id 和 book.yaml 中的 title 行。只读。",
-    inputSchema: {},
-  },
-  async () => {
-    const entries = await readdir(BOOKS_DIR, { withFileTypes: true });
-    const lines: string[] = [];
-    for (const e of entries.filter((d) => d.isDirectory())) {
-      try {
-        const yaml = await readFile(join(BOOKS_DIR, e.name, "book.yaml"), "utf8");
-        const title = yaml.match(/^title:\s*(.+)$/m)?.[1] ?? "(无标题)";
-        lines.push(`${e.name}\t${title}`);
-      } catch {
-        // 没有 book.yaml 的目录不是书，跳过
+function createServer(): McpServer {
+  const server = new McpServer({ name: "shelf-books", version: "0.1.0" });
+
+  server.registerTool(
+    "list_books",
+    {
+      description: "列出 books 目录下所有书的 id 和 book.yaml 中的 title 行。只读。",
+      inputSchema: z.object({}),
+    },
+    async () => {
+      const entries = await readdir(BOOKS_DIR, { withFileTypes: true });
+      const lines: string[] = [];
+      for (const e of entries.filter((d) => d.isDirectory())) {
+        try {
+          const yaml = await readFile(join(BOOKS_DIR, e.name, "book.yaml"), "utf8");
+          const title = yaml.match(/^title:\s*(.+)$/m)?.[1] ?? "(无标题)";
+          lines.push(`${e.name}\t${title}`);
+        } catch {
+          // 没有 book.yaml 的目录不是书，跳过
+        }
       }
-    }
-    return { content: [{ type: "text", text: lines.join("\n") }] };
-  },
-);
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    },
+  );
 
-server.registerTool(
-  "read_chapter",
-  {
-    description: "读取某本书的某个章节文件全文。file 形如 01-what-is-agent.md。",
-    inputSchema: { bookId: z.string(), file: z.string() },
-  },
-  async ({ bookId, file }) => {
-    // 只允许读 .md，且禁止路径穿越
-    if (!/^[a-z0-9-]+$/.test(bookId) || !/^[a-z0-9-]+\.md$/.test(file)) {
-      return { content: [{ type: "text", text: "bookId 或 file 格式不合法" }], isError: true };
-    }
-    try {
-      const text = await readFile(join(BOOKS_DIR, bookId, file), "utf8");
-      return { content: [{ type: "text", text }] };
-    } catch {
-      return { content: [{ type: "text", text: `找不到 ${bookId}/${file}，先用 list_books 确认 id` }], isError: true };
-    }
-  },
-);
+  server.registerTool(
+    "read_chapter",
+    {
+      description: "读取某本书的某个章节文件全文。file 形如 01-what-is-agent.md。",
+      inputSchema: z.object({ bookId: z.string(), file: z.string() }),
+    },
+    async ({ bookId, file }) => {
+      // 只允许读 .md，且禁止路径穿越
+      if (!/^[a-z0-9-]+$/.test(bookId) || !/^[a-z0-9-]+\.md$/.test(file)) {
+        return { content: [{ type: "text", text: "bookId 或 file 格式不合法" }], isError: true };
+      }
+      try {
+        const text = await readFile(join(BOOKS_DIR, bookId, file), "utf8");
+        return { content: [{ type: "text", text }] };
+      } catch {
+        return { content: [{ type: "text", text: `找不到 ${bookId}/${file}，先用 list_books 确认 id` }], isError: true };
+      }
+    },
+  );
 
-await server.connect(new StdioServerTransport());
+  return server;
+}
+
+// stdio 是协议通道，日志只能写 stderr
+serveStdio(createServer);
+console.error("shelf-books MCP server 已启动");
 ```
+
+2.x 的 server 由工厂函数创建，`serveStdio` 负责接管 stdin / stdout 并在需要时调用工厂；同一个工厂也可以交给 HTTP 处理函数，本地和远程共用一份工具定义。
 
 在项目根目录放一个 `.mcp.json`，Claude Code 就能发现这个 server（首次使用时会请你确认是否信任）：
 

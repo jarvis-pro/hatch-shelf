@@ -5,6 +5,7 @@ import { getChapters, getLastChapter, listBooks, type BookRow } from '@/db/queri
 import { pickAndImport } from '@/import/incoming';
 import { useLibraryChanged } from '@/library/events';
 import { rebuildIndex } from '@/library/index-books';
+import { SearchResults } from '@/search/SearchResults';
 import { showBookActions } from '@/shelf/actions';
 import { BookCover } from '@/shelf/BookCover';
 import { useShelfColors, type ShelfColors } from '@/shelf/colors';
@@ -25,6 +26,8 @@ export default function ShelfScreen() {
   const [books, setBooks] = useState<BookRow[]>([]);
   const [recent, setRecent] = useState<ContinueInfo | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [query, setQuery] = useState('');
+  const searching = query.trim().length > 0;
 
   const load = useCallback(async () => {
     const all = await listBooks();
@@ -88,18 +91,27 @@ export default function ShelfScreen() {
               </Pressable>
             </View>
           ),
+          headerSearchBarOptions: {
+            placeholder: '搜索全部书籍',
+            hideWhenScrolling: false,
+            autoCapitalize: 'none',
+            onChangeText: (e) => setQuery(e.nativeEvent.text),
+            onCancelButtonPress: () => setQuery(''),
+          },
         }}
       />
-      {recent && <ContinueCard info={recent} colors={c} onPress={() => open(recent.book.id)} />}
+      {searching && <SearchResults query={query} colors={c} />}
 
-      {books.length === 0 && (
+      {!searching && recent && <ContinueCard info={recent} colors={c} onPress={() => open(recent.book.id)} />}
+
+      {!searching && books.length === 0 && (
         <View style={styles.empty}>
           <Text style={[styles.emptyTitle, { color: c.fg }]}>书架还是空的</Text>
           <Text style={{ color: c.muted, textAlign: 'center' }}>AirDrop 一个 .zip / .md，或点右上角「传书」「导入」</Text>
         </View>
       )}
 
-      {sections.map(([category, list]) => (
+      {!searching && sections.map(([category, list]) => (
         <View key={category} style={styles.section}>
           <Text style={[styles.sectionTitle, { color: c.fg }]}>{category}</Text>
           <View style={styles.grid}>

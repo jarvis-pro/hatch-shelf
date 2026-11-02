@@ -15,6 +15,8 @@ export type ToReader =
       restore?: ReaderPosition;
       hasPrev: boolean;
       hasNext: boolean;
+      /** 搜索跳转时要标亮的关键词：在 restore.anchor 之后找第一处 */
+      find?: string;
     }
   | { type: 'setTheme'; theme: ReaderTheme }
   | { type: 'scrollTo'; anchor: string };

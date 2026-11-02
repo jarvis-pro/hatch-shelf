@@ -21,7 +21,12 @@ import { TocSheet } from '@/reader/TocSheet';
 import { WebView, type WebViewHandle } from '@/reader/web-view';
 
 export default function ReaderScreen() {
-  const { id, chapter: chapterParam } = useLocalSearchParams<{ id: string; chapter?: string }>();
+  const {
+    id,
+    chapter: chapterParam,
+    anchor: anchorParam,
+    find: findParam,
+  } = useLocalSearchParams<{ id: string; chapter?: string; anchor?: string; find?: string }>();
   const webRef = useRef<WebViewHandle>(null);
   const [book, setBook] = useState<BookRow | null>(null);
   const [chapters, setChapters] = useState<ChapterRow[]>([]);
@@ -31,8 +36,10 @@ export default function ReaderScreen() {
   const [webReady, setWebReady] = useState(false);
   const [panel, setPanel] = useState<'toc' | 'settings' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  /** 跨章链接 `02-x.md#anchor` 跳过去时要定位的锚点 */
-  const pendingAnchor = useRef<string | null>(null);
+  /** 跨章链接 `02-x.md#anchor` 或搜索结果跳过来时要定位的锚点 */
+  const pendingAnchor = useRef<string | null>(anchorParam ?? null);
+  /** 搜索跳转时要标亮的关键词，只用于第一次加载 */
+  const pendingFind = useRef<string | null>(findParam ?? null);
   /** WebView 当前显示的章节，用来给 position 消息归属，避免切章时串到别的章节 */
   const shownFile = useRef<string | null>(null);
 
@@ -60,10 +67,11 @@ export default function ReaderScreen() {
       const dir = bookDir(id);
       const markdown = await new File(dir, ch.file).text();
       const anchor = pendingAnchor.current;
+      const find = pendingFind.current;
       pendingAnchor.current = null;
-      const restore: ReaderPosition | undefined = anchor
-        ? { scrollRatio: 0, anchor }
-        : await getProgress(id, ch.file);
+      pendingFind.current = null;
+      const restore: ReaderPosition | undefined =
+        anchor || find ? { scrollRatio: 0, anchor: anchor ?? undefined } : await getProgress(id, ch.file);
       if (cancelled) return;
       shownFile.current = ch.file;
       setToc([]);
@@ -75,6 +83,7 @@ export default function ReaderScreen() {
         restore,
         hasPrev: idx > 0,
         hasNext: idx < chapters.length - 1,
+        find: find ?? undefined,
       });
     })().catch((e: Error) => !cancelled && setError(`无法读取章节 ${ch.file}：${e.message}`));
     return () => {

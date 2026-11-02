@@ -187,6 +187,7 @@ documentDirectory/
 |---|---|---|
 | books | id, title, subtitle, category, tags(JSON), level, chapter_count, warnings(JSON), imported_at, updated_at, content_hash, last_read_at | ✅ |
 | chapters | book_id, idx, file, title | ✅ |
+| search（FTS5，trigram） | book_id, chapter_file, anchor, heading, body —— 每行一个小节 | ✅ |
 | progress | book_id, chapter_file, scroll_ratio, anchor, updated_at | ❌ |
 | settings | key, value | ❌ |
 
@@ -201,6 +202,13 @@ documentDirectory/
 - 按 `category` 分组展示，顶部放“继续阅读”卡片
 - 没有封面时，用标题和分类色自动生成文字封面
 - 长按书籍可删除或查看书籍信息
+
+**全文搜索**
+
+- 书架顶部的搜索框搜索全部书籍；结果显示书名、章节、小节和关键词附近的片段
+- 索引按 H1–H3 切成小节（`@shelf/spec` 的 `splitSections()`），与 books / chapters 一起在重建索引时生成
+- 3 个字符及以上用 FTS5 trigram 匹配并按相关度排序；更短的查询（如两个汉字）退回 `LIKE` 扫描
+- 点击结果打开对应章节，跳到小节锚点，并标亮锚点之后第一处匹配。标题锚点算法（`createSlugger()`）由阅读器与索引共用，保证一致
 
 **阅读器**（WebView 渲染）
 
@@ -279,4 +287,5 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |
 | 书中配图 | Mermaid + SVG，不用字符画 | 字符画在手机窄屏上会错位、看不清；SVG 是文本、体积小、矢量可放大，能进 git diff。SVG 自带白底，因为 `<img>` 里拿不到阅读器主题变量 |
 | push --changed 的依据 | 内容指纹而非 `updated` | 改了内容忘记改日期时会漏推；指纹由 App 与 CLI 共用的 `prepareImport()` 计算，两边必然一致 |
+| 搜索分词 | FTS5 trigram，短查询退回 LIKE | 不需要中文分词词典；trigram 要求至少 3 个字符，个人书库规模下 LIKE 扫描足够快 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |

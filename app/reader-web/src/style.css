@@ -323,3 +323,18 @@ pre.mermaid {
   color: #fff;
   font-size: 18px;
 }
+
+/* ---------- 搜索命中 ---------- */
+
+mark.find-hit {
+  color: inherit;
+  background: rgba(255, 200, 0, 0.45);
+  border-radius: 2px;
+  animation: find-hit-fade 2.5s ease-out 1.5s forwards;
+}
+
+@keyframes find-hit-fade {
+  to {
+    background: rgba(255, 200, 0, 0.12);
+  }
+}

@@ -37,3 +37,76 @@ export function firstHeading(markdown: string): string | null {
   }
   return null;
 }
+
+/**
+ * 标题的纯文本：去掉行内标记，尽量与 markdown-it 渲染后标题里的文字一致
+ * （链接留文字、图片和公式去掉、强调与代码标记去掉）。
+ */
+export function headingText(raw: string): string {
+  return raw
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\$[^$]+\$/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/(\*\*|__|~~|\*|_|`)/g, '')
+    .replace(/\\([\\`*_{}[\]()#+\-.!$])/g, '$1')
+    .trim();
+}
+
+/** 标题锚点：阅读器（给标题加 id）与搜索索引（定位小节）共用，保证一致 */
+export function headingSlug(text: string): string {
+  return (
+    text
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\p{L}\p{N}_-]/gu, '') || 'section'
+  );
+}
+
+/** 同一章内重复的标题依次加 -1、-2 后缀；需要按文档顺序对所有级别的标题调用 */
+export function createSlugger() {
+  const used = new Map<string, number>();
+  return (text: string) => {
+    const base = headingSlug(text);
+    const n = used.get(base) ?? 0;
+    used.set(base, n + 1);
+    return n === 0 ? base : `${base}-${n}`;
+  };
+}
+
+export interface Section {
+  /** 小节标题的锚点；标题之前的内容为 null */
+  anchor: string | null;
+  heading: string | null;
+  level: number;
+  /** 小节正文（含标题行），保留代码，去掉围栏标记 */
+  body: string;
+}
+
+/** 按 H1–H3 切成小节，供全文搜索建索引；H4 及以下并入所在小节 */
+export function splitSections(markdown: string): Section[] {
+  const slug = createSlugger();
+  const sections: Section[] = [];
+  let cur: Section = { anchor: null, heading: null, level: 0, body: '' };
+  for (const line of scanMarkdown(markdown)) {
+    if (line.inFence) {
+      if (line.fenceInfo === undefined && !/^ {0,3}(`{3,}|~{3,})\s*$/.test(line.text)) cur.body += `${line.text}\n`;
+      continue;
+    }
+    const m = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line.text);
+    if (m) {
+      const text = headingText(m[2]);
+      const anchor = slug(text);
+      if (m[1].length <= 3) {
+        if (cur.body.trim()) sections.push(cur);
+        cur = { anchor, heading: text, level: m[1].length, body: '' };
+      }
+      cur.body += `${text}\n`;
+      continue;
+    }
+    cur.body += `${line.text}\n`;
+  }
+  if (cur.body.trim()) sections.push(cur);
+  return sections;
+}

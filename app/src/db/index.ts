@@ -43,6 +43,12 @@ const MIGRATIONS = [
   `,
   // 内容指纹，供 shelf-pack push --changed 判断是否需要推送；来自书目录下的 .content-hash
   `ALTER TABLE books ADD COLUMN content_hash TEXT;`,
+  // 全文搜索：每行一个小节（按 H1–H3 切分），可随 books / chapters 一起重建。
+  // trigram 分词不依赖词典，中英文都能做子串匹配（查询至少 3 个字符，更短的走 LIKE）
+  `CREATE VIRTUAL TABLE search USING fts5(
+    book_id UNINDEXED, chapter_file UNINDEXED, anchor UNINDEXED, heading UNINDEXED, body,
+    tokenize = 'trigram'
+  );`,
 ];
 
 let db: SQLiteDatabase | null = null;

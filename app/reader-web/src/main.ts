@@ -1,3 +1,4 @@
+import { createSlugger } from '@shelf/spec/markdown';
 import katexModule from '@vscode/markdown-it-katex';
 import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
@@ -69,19 +70,9 @@ md.renderer.rules.image = (tokens, idx, _opts, env?: Env) => {
 
 type RenderEnv = Env & { bookBaseUrl: string };
 
-function slugify(text: string): string {
-  return (
-    text
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\p{L}\p{N}_-]/gu, '') || 'section'
-  );
-}
-
-/** 给 H1–H6 加 id，并收集 H1–H3 作为目录 */
+/** 给 H1–H6 加 id，并收集 H1–H3 作为目录；id 算法与搜索索引共用（@shelf/spec） */
 function assignHeadingIds(tokens: Token[]): TocItem[] {
-  const used = new Map<string, number>();
+  const slug = createSlugger();
   const toc: TocItem[] = [];
   tokens.forEach((token, i) => {
     if (token.type !== 'heading_open') return;
@@ -90,10 +81,7 @@ function assignHeadingIds(tokens: Token[]): TocItem[] {
       ?.filter((t) => t.type === 'text' || t.type === 'code_inline')
       .map((t) => t.content)
       .join('') ?? inline.content;
-    const base = slugify(text);
-    const n = used.get(base) ?? 0;
-    used.set(base, n + 1);
-    const id = n === 0 ? base : `${base}-${n}`;
+    const id = slug(text);
     token.attrSet('id', id);
     const level = Number(token.tag.slice(1));
     if (level <= 3) toc.push({ level: level as 1 | 2 | 3, text, anchor: id });
@@ -172,6 +160,33 @@ function restore(pos?: ReaderPosition) {
   window.scrollTo(0, 0);
 }
 
+/**
+ * 搜索结果跳转：从锚点所在标题之后找第一处匹配（找不到再从头找），标亮并滚到屏幕中间。
+ * 只在单个文本节点内匹配，跨格式（如一半加粗）的匹配会退回到只定位锚点。
+ */
+function findAndMark(query: string, anchor?: string) {
+  const needle = query.toLowerCase();
+  const start = anchor ? document.getElementById(anchor) : null;
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes: Text[] = [];
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n as Text);
+  const after = start
+    ? nodes.filter((n) => start.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING)
+    : [];
+  for (const node of [...after, ...nodes]) {
+    const i = (node.textContent ?? '').toLowerCase().indexOf(needle);
+    if (i < 0 || node.parentElement?.closest('.katex, svg, .code-bar')) continue;
+    const hit = node.splitText(i);
+    hit.splitText(query.length);
+    const mark = document.createElement('mark');
+    mark.className = 'find-hit';
+    hit.replaceWith(mark);
+    mark.appendChild(hit);
+    mark.scrollIntoView({ block: 'center' });
+    return;
+  }
+}
+
 function currentPosition(): ReaderPosition {
   const max = maxScroll();
   const scrollRatio = max > 0 ? Math.min(1, window.scrollY / max) : 0;
@@ -184,7 +199,8 @@ function currentPosition(): ReaderPosition {
 }
 
 async function load(msg: Extract<ToReader, { type: 'load' }>) {
-  current = msg;
+  // find 只在这次加载生效；之后切换主题重渲染时不再跳转
+  current = { ...msg, find: undefined };
   restoring = true;
   // 丢弃上一章还没发出的进度，否则会用新章节的 DOM 算出错误位置
   clearTimeout(scrollTimer);
@@ -197,6 +213,7 @@ async function load(msg: Extract<ToReader, { type: 'load' }>) {
   await renderMermaid();
   await waitImages(1500);
   restore(msg.restore);
+  if (msg.find) findAndMark(msg.find, msg.restore?.anchor);
   // 等一帧，让 scrollTo 触发的 scroll 事件先过去
   requestAnimationFrame(() => {
     restoring = false;

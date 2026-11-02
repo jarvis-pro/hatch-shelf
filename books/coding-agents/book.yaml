@@ -1,0 +1,17 @@
+id: coding-agents
+title: 编码 Agent 实战
+subtitle: 以 Claude Code 为例：写规矩、设闸门、派活与验收
+category: ai/agent
+tags: [agent, claude-code, ai-coding, workflow]
+level: intermediate
+created: 2026-11-02
+updated: 2026-11-02
+chapters:
+  - 01-how-agents-work.md
+  - 02-claude-md.md
+  - 03-rules-by-path.md
+  - 04-hooks.md
+  - 05-subagents-parallel.md
+  - 06-monorepo.md
+  - 07-review-testing.md
+  - 08-pitfalls.md

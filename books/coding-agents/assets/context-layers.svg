@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 510" width="360" height="510" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#656d76"/></marker></defs>
+<rect x="0.5" y="0.5" width="359" height="509" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">一次会话的上下文里装了什么</text>
+<text x="180" y="50" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">示意图，块的高度不代表真实占比</text>
+<rect x="24" y="66" width="230" height="40" rx="6" fill="#e6e9ed"/>
+<text x="36" y="84" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">系统提示词 + 工具定义</text>
+<text x="36" y="99" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal">Claude Code 自带，每轮都在</text>
+<rect x="24" y="112" width="230" height="40" rx="6" fill="#2f6fdf"/>
+<text x="36" y="130" font-size="13" fill="#ffffff" text-anchor="start" font-weight="600">CLAUDE.md / AGENTS.md</text>
+<text x="36" y="145" font-size="11" fill="#ffffff" text-anchor="start" font-weight="normal">启动目录及其上级，全文加载</text>
+<rect x="24" y="158" width="230" height="40" rx="6" fill="#2f6fdf"/>
+<text x="36" y="176" font-size="13" fill="#ffffff" text-anchor="start" font-weight="600">不带 paths 的 rules</text>
+<text x="36" y="191" font-size="11" fill="#ffffff" text-anchor="start" font-weight="normal">.claude/rules/ 下的常驻规则</text>
+<rect x="24" y="204" width="230" height="40" rx="6" fill="#dbe7fb"/>
+<text x="36" y="222" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">自动记忆索引</text>
+<text x="36" y="237" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal">MEMORY.md 的开头部分</text>
+<rect x="24" y="250" width="230" height="40" rx="6" fill="#dbe7fb"/>
+<text x="36" y="268" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">Skill 描述 + MCP 工具名</text>
+<text x="36" y="283" font-size="11" fill="#656d76" text-anchor="start" font-weight="normal">只有一行描述，正文按需加载</text>
+<line x1="266" y1="66" x2="266" y2="290" stroke="#656d76" stroke-width="1.5"/>
+<line x1="262" y1="66" x2="266" y2="66" stroke="#656d76" stroke-width="1.5"/>
+<line x1="262" y1="290" x2="266" y2="290" stroke="#656d76" stroke-width="1.5"/>
+<text x="276" y="182.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">启动时</text>
+<text x="276" y="198.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">就在</text>
+<rect x="24" y="296" width="230" height="92" rx="6" fill="#ffffff" stroke="#2f6fdf" stroke-dasharray="4 3"/>
+<text x="36" y="318" font-size="13" fill="#2f6fdf" text-anchor="start" font-weight="600">按需进入</text>
+<text x="36" y="338" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">子目录的 CLAUDE.md</text>
+<text x="36" y="356" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">paths 命中的 rules</text>
+<text x="36" y="374" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">被调用的 Skill 全文</text>
+<text x="276" y="338" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">读到相关</text>
+<text x="276" y="354" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">文件时</text>
+<rect x="24" y="396" width="230" height="96" rx="6" fill="#e6e9ed"/>
+<text x="36" y="418" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">对话本身</text>
+<text x="36" y="438" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">你的消息、它的回复</text>
+<text x="36" y="456" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">每次工具调用和返回结果</text>
+<text x="36" y="474" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">（读过的文件、命令输出）</text>
+<text x="276" y="438" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">越聊越长</text>
+<text x="276" y="454" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">满了压缩</text>
+</svg>

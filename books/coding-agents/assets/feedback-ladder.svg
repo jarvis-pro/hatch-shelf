@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 330" width="360" height="330" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#656d76"/></marker></defs>
+<rect x="0.5" y="0.5" width="359" height="329" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">越早发现越便宜：agent 的反馈环</text>
+<text x="180" y="50" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">示意：越往下反馈越慢、修起来越贵</text>
+<rect x="120.0" y="70" width="120" height="30" rx="5" fill="#2f6fdf"/>
+<text x="180" y="90" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">类型检查 / lint</text>
+<text x="180" y="116" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">改完立刻跑，hook 可自动触发</text>
+<rect x="100.0" y="120" width="160" height="30" rx="5" fill="#2f6fdf"/>
+<text x="180" y="140" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">单元 / 集成测试</text>
+<text x="180" y="166" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">声明完成前必须全绿</text>
+<rect x="80.0" y="170" width="200" height="30" rx="5" fill="#dbe7fb"/>
+<text x="180" y="190" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">端到端、真机验证</text>
+<text x="180" y="216" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">agent 能跑就让它跑并截图</text>
+<rect x="60.0" y="220" width="240" height="30" rx="5" fill="#dbe7fb"/>
+<text x="180" y="240" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">你读 diff 评审</text>
+<text x="180" y="266" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">看它删了什么、绕过了什么</text>
+<rect x="40.0" y="270" width="280" height="30" rx="5" fill="#e6e9ed"/>
+<text x="180" y="290" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">上线后用户发现</text>
+<text x="180" y="316" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">最慢最贵，也最伤信任</text>
+</svg>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 330" width="360" height="330" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="329" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">广播：(3, 1) + (4,) → (3, 4)</text>
+<text x="84" y="60" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">a：形状 (3, 1)</text>
+<text x="276" y="60" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">b：形状 (4,)</text>
+<rect x="36" y="72" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="46.5" y="87.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">1</text>
+<rect x="60" y="72" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="70.5" y="87.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">1</text>
+<rect x="84" y="72" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="94.5" y="87.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">1</text>
+<rect x="108" y="72" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="118.5" y="87.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">1</text>
+<rect x="36" y="96" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="46.5" y="111.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">2</text>
+<rect x="60" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="70.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">2</text>
+<rect x="84" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="94.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">2</text>
+<rect x="108" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="118.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">2</text>
+<rect x="36" y="120" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="46.5" y="135.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">3</text>
+<rect x="60" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="70.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">3</text>
+<rect x="84" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="94.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">3</text>
+<rect x="108" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="118.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">3</text>
+<text x="180" y="114" font-size="18" fill="#1f2328" text-anchor="middle" font-weight="normal">+</text>
+<rect x="228" y="72" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="238.5" y="87.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">10</text>
+<rect x="252" y="72" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="262.5" y="87.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">20</text>
+<rect x="276" y="72" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="286.5" y="87.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">30</text>
+<rect x="300" y="72" width="21" height="21" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="310.5" y="87.5" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">40</text>
+<rect x="228" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="238.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">10</text>
+<rect x="252" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="262.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<rect x="276" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="286.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">30</text>
+<rect x="300" y="96" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="310.5" y="111.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">40</text>
+<rect x="228" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="238.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">10</text>
+<rect x="252" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="262.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<rect x="276" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="286.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">30</text>
+<rect x="300" y="120" width="21" height="21" rx="4" fill="#e6e9ed" stroke="none"/>
+<text x="310.5" y="135.5" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">40</text>
+<text x="180" y="172" font-size="18" fill="#1f2328" text-anchor="middle" font-weight="normal">=</text>
+<text x="180" y="194" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">a + b：形状 (3, 4)</text>
+<rect x="132" y="204" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="142.5" y="219.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">11</text>
+<rect x="156" y="204" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="166.5" y="219.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">21</text>
+<rect x="180" y="204" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="190.5" y="219.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">31</text>
+<rect x="204" y="204" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="214.5" y="219.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">41</text>
+<rect x="132" y="228" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="142.5" y="243.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">12</text>
+<rect x="156" y="228" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="166.5" y="243.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">22</text>
+<rect x="180" y="228" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="190.5" y="243.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">32</text>
+<rect x="204" y="228" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="214.5" y="243.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">42</text>
+<rect x="132" y="252" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="142.5" y="267.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">13</text>
+<rect x="156" y="252" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="166.5" y="267.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">23</text>
+<rect x="180" y="252" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="190.5" y="267.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">33</text>
+<rect x="204" y="252" width="21" height="21" rx="4" fill="#2f6fdf" stroke="none"/>
+<text x="214.5" y="267.5" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">43</text>
+<rect x="60" y="298" width="14" height="14" rx="3" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="80" y="310" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">原始数据</text>
+<rect x="170" y="298" width="14" height="14" rx="3" fill="#e6e9ed" stroke="none"/>
+<text x="190" y="310" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">广播时复制出来的</text>
+</svg>

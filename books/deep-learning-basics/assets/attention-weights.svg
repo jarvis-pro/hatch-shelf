@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 312" width="360" height="312" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="311" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">掩码 + softmax：分数变成注意力权重</text>
+<text x="90" y="58" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">① 分数，未来位置填 −∞</text>
+<text x="270" y="58" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">② 每行 softmax</text>
+<text x="37.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k1</text>
+<text x="217.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k1</text>
+<text x="71.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k2</text>
+<text x="251.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k2</text>
+<text x="105.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k3</text>
+<text x="285.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k3</text>
+<text x="139.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k4</text>
+<text x="319.0" y="78" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">k4</text>
+<rect x="22" y="86" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="37" y="106" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">−0.1</text>
+<rect x="202" y="86" width="30" height="30" rx="5" fill="#2f6fdf" stroke="none"/>
+<text x="217" y="106" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">1.00</text>
+<rect x="56" y="86" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="71" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">−∞</text>
+<rect x="236" y="86" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="251" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<rect x="90" y="86" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="105" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">−∞</text>
+<rect x="270" y="86" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="285" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<rect x="124" y="86" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="139" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">−∞</text>
+<rect x="304" y="86" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="319" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<text x="16" y="106" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal"></text>
+<rect x="22" y="120" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="37" y="140" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.8</text>
+<rect x="202" y="120" width="30" height="30" rx="5" fill="#2f6fdf" stroke="none"/>
+<text x="217" y="140" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">0.75</text>
+<rect x="56" y="120" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="71" y="140" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">−0.3</text>
+<rect x="236" y="120" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="251" y="140" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.25</text>
+<rect x="90" y="120" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="105" y="140" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">−∞</text>
+<rect x="270" y="120" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="285" y="140" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<rect x="124" y="120" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="139" y="140" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">−∞</text>
+<rect x="304" y="120" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="319" y="140" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<text x="16" y="140" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal"></text>
+<rect x="22" y="154" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="37" y="174" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">−0.1</text>
+<rect x="202" y="154" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="217" y="174" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.31</text>
+<rect x="56" y="154" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="71" y="174" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">−0.4</text>
+<rect x="236" y="154" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="251" y="174" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.23</text>
+<rect x="90" y="154" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="105" y="174" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.3</text>
+<rect x="270" y="154" width="30" height="30" rx="5" fill="#2f6fdf" stroke="none"/>
+<text x="285" y="174" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="normal">0.46</text>
+<rect x="124" y="154" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="139" y="174" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">−∞</text>
+<rect x="304" y="154" width="30" height="30" rx="5" fill="#e6e9ed" stroke="none"/>
+<text x="319" y="174" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<text x="16" y="174" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal"></text>
+<rect x="22" y="188" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="37" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">1.1</text>
+<rect x="202" y="188" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="217" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.38</text>
+<rect x="56" y="188" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="71" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.2</text>
+<rect x="236" y="188" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="251" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.15</text>
+<rect x="90" y="188" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="105" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.7</text>
+<rect x="270" y="188" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="285" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.26</text>
+<rect x="124" y="188" width="30" height="30" rx="5" fill="#ffffff" stroke="#2f6fdf"/>
+<text x="139" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.5</text>
+<rect x="304" y="188" width="30" height="30" rx="5" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="319" y="208" font-size="11" fill="#1f2328" text-anchor="middle" font-weight="normal">0.21</text>
+<text x="16" y="208" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal"></text>
+<text x="178" y="154" font-size="18" fill="#1f2328" text-anchor="middle" font-weight="normal">→</text>
+<text x="180" y="244" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">每行是一个 query 位置，右侧每行之和为 1</text>
+<text x="180" y="264" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">第 2 行的 1.9 在未来位置，被遮住不参与计算</text>
+<rect x="52" y="282" width="14" height="14" rx="3" fill="#2f6fdf" stroke="none"/>
+<text x="72" y="294" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">权重 ≥ 0.4</text>
+<rect x="160" y="282" width="14" height="14" rx="3" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="180" y="294" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">权重 &lt; 0.4</text>
+<rect x="260" y="282" width="14" height="14" rx="3" fill="#e6e9ed" stroke="none"/>
+<text x="280" y="294" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">被遮住</text>
+</svg>

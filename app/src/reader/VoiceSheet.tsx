@@ -1,9 +1,9 @@
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, Download } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Panel } from '@/ui/Panel';
+import { Panel, PanelScrollView } from '@/ui/Panel';
 import { useTheme } from '@/ui/theme';
 import { VOICE_LANGUAGES, VOICE_TIER_LABELS, type VoiceOption, type VoiceTier } from './speech';
 
@@ -41,7 +41,7 @@ export function VoiceSheet({ visible, voices, voiceId, onChoose, onClose }: Prop
           <Text style={[styles.hint, { color: t.fg3 }]}>选中后从当前段落用新语音接着读</Text>
         </View>
 
-        <ScrollView style={{ maxHeight: height * 0.55 }} contentContainerStyle={styles.groups} showsVerticalScrollIndicator={false}>
+        <PanelScrollView style={{ maxHeight: height * 0.55 }} contentContainerStyle={styles.groups} showsVerticalScrollIndicator={false}>
           <View style={[styles.list, { backgroundColor: t.fill }]}>
             <Pressable
               accessibilityRole="button"
@@ -75,7 +75,7 @@ export function VoiceSheet({ visible, voices, voiceId, onChoose, onClose }: Prop
               </View>
             </View>
           ))}
-        </ScrollView>
+        </PanelScrollView>
 
         <View style={styles.footer}>
           <Download size={14} color={t.fg3} strokeWidth={2} style={{ marginTop: 2 }} />

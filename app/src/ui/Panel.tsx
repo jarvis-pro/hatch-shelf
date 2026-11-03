@@ -1,6 +1,17 @@
 import { BlurView } from 'expo-blur';
-import { useEffect, useEffectEvent, useState, type ReactNode } from 'react';
-import { Animated, Modal, PanResponder, Pressable, StyleSheet, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
+import { createContext, useContext, useEffect, useEffectEvent, useState, type ReactNode } from 'react';
+import {
+  Animated,
+  Modal,
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  type ScrollViewProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { EASE_OUT_CUBIC, isReduceMotion } from './motion';
 import { useTheme } from './theme';
 
@@ -11,6 +22,33 @@ interface Props {
   onClose(): void;
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
+}
+
+/** 面板里的列表滚动位置；不在顶部时下滑是在滚列表，不拖面板 */
+const ScrollTop = createContext<((y: number) => void) | null>(null);
+
+/**
+ * 底部面板里的列表：滚动位置报给 Panel，滚到顶之后再往下拉才拖动面板。
+ * 顶部不回弹，免得下拉时列表回弹和面板下移叠在一起
+ */
+export function PanelScrollView(props: ScrollViewProps) {
+  const reportScroll = useContext(ScrollTop);
+  // 新打开的列表从顶部开始；列表卸载后面板照常可拖
+  useEffect(() => {
+    reportScroll?.(0);
+    return () => reportScroll?.(0);
+  }, [reportScroll]);
+  return (
+    <ScrollView
+      bounces={false}
+      scrollEventThrottle={16}
+      {...props}
+      onScroll={(e) => {
+        reportScroll?.(e.nativeEvent.contentOffset.y);
+        props.onScroll?.(e);
+      }}
+    />
+  );
 }
 
 /**
@@ -49,17 +87,21 @@ export function Panel({ visible, side, onClose, style, children }: Props) {
   const vAxis = side === 'left' ? 'vx' : 'vy';
   /** 往关闭方向拖为正 */
   const sign = side === 'left' ? -1 : 1;
-  const [pan] = useState(() =>
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g[axis]) > 8 && Math.abs(g[axis]) > Math.abs(g[axis === 'dx' ? 'dy' : 'dx']),
+  const [gesture] = useState(() => {
+    let scrollY = 0;
+    const pan = PanResponder.create({
+      // 只接往关闭方向的拖动；面板里的列表没滚到顶时交给列表
+      onMoveShouldSetPanResponder: (_, g) =>
+        g[axis] * sign > 8 && Math.abs(g[axis]) > Math.abs(g[axis === 'dx' ? 'dy' : 'dx']) && scrollY <= 0,
       onPanResponderMove: (_, g) => drag.setValue(Math.max(0, g[axis] * sign)),
       onPanResponderRelease: (_, g) => {
         const d = g[axis] * sign;
         if (d > 120 || g[vAxis] * sign > 0.5) setDragClosed((n) => n + 1);
         else Animated.spring(drag, { toValue: 0, damping: 26, stiffness: 280, useNativeDriver: true }).start();
       },
-    }),
-  );
+    });
+    return { pan, setScrollY: (y: number) => void (scrollY = y) };
+  });
 
   if (!mounted) return null;
 
@@ -78,11 +120,11 @@ export function Panel({ visible, side, onClose, style, children }: Props) {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="关闭" />
       </Animated.View>
       <Animated.View
-        {...pan.panHandlers}
+        {...gesture.pan.panHandlers}
         pointerEvents={visible ? 'auto' : 'none'}
         style={[side === 'left' ? [styles.left, { width: size }] : styles.bottom, { transform }, style]}
       >
-        {children}
+        <ScrollTop.Provider value={gesture.setScrollY}>{children}</ScrollTop.Provider>
       </Animated.View>
     </Modal>
   );

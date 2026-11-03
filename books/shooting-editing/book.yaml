@@ -1,0 +1,19 @@
+id: shooting-editing
+title: 拍摄与剪辑实务
+subtitle: 从一部手机起步，把布光、收音、剪映和批量出片做扎实
+category: media/craft
+tags: [short-video, shooting, lighting, audio, editing, capcut, copyright, workflow]
+level: beginner
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-equipment.md
+  - 02-lighting.md
+  - 03-audio.md
+  - 04-framing-angles.md
+  - 05-on-set-workflow.md
+  - 06-capcut-workflow.md
+  - 07-subtitles-music-copyright.md
+  - 08-pacing.md
+  - 09-color.md
+  - 10-templates-batch.md

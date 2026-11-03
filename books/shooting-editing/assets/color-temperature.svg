@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="360" height="250" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<defs><linearGradient id="kel" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#ff8a2a"/><stop offset="0.25" stop-color="#ffc58a"/><stop offset="0.5" stop-color="#fff4ea"/><stop offset="0.75" stop-color="#dfe8ff"/><stop offset="1" stop-color="#a9c2ff"/></linearGradient></defs>
+<rect x="0.5" y="0.5" width="359" height="249" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">常见光源的色温（开尔文）</text>
+<rect x="30" y="100" width="300" height="26" rx="4" fill="url(#kel)" stroke="#d8dee4"/>
+<line x1="30.0" y1="126" x2="30.0" y2="132" stroke="#656d76"/>
+<text x="30.0" y="146" font-size="11" fill="#656d76" text-anchor="middle">2K</text>
+<line x1="72.9" y1="126" x2="72.9" y2="132" stroke="#656d76"/>
+<text x="72.9" y="146" font-size="11" fill="#656d76" text-anchor="middle">3K</text>
+<line x1="115.7" y1="126" x2="115.7" y2="132" stroke="#656d76"/>
+<text x="115.7" y="146" font-size="11" fill="#656d76" text-anchor="middle">4K</text>
+<line x1="158.6" y1="126" x2="158.6" y2="132" stroke="#656d76"/>
+<text x="158.6" y="146" font-size="11" fill="#656d76" text-anchor="middle">5K</text>
+<line x1="201.4" y1="126" x2="201.4" y2="132" stroke="#656d76"/>
+<text x="201.4" y="146" font-size="11" fill="#656d76" text-anchor="middle">6K</text>
+<line x1="244.3" y1="126" x2="244.3" y2="132" stroke="#656d76"/>
+<text x="244.3" y="146" font-size="11" fill="#656d76" text-anchor="middle">7K</text>
+<line x1="287.1" y1="126" x2="287.1" y2="132" stroke="#656d76"/>
+<text x="287.1" y="146" font-size="11" fill="#656d76" text-anchor="middle">8K</text>
+<line x1="330.0" y1="126" x2="330.0" y2="132" stroke="#656d76"/>
+<text x="330.0" y="146" font-size="11" fill="#656d76" text-anchor="middle">9K</text>
+<line x1="60.0" y1="66" x2="60.0" y2="100" stroke="#1f2328"/>
+<text x="60.0" y="62" font-size="12" fill="#1f2328" text-anchor="middle">暖光灯泡</text>
+<line x1="81.4" y1="84" x2="81.4" y2="100" stroke="#1f2328"/>
+<text x="81.4" y="80" font-size="12" fill="#1f2328" text-anchor="middle">钨丝灯</text>
+<line x1="184.3" y1="66" x2="184.3" y2="100" stroke="#1f2328"/>
+<text x="184.3" y="62" font-size="12" fill="#1f2328" text-anchor="middle">日光 / 摄影灯</text>
+<line x1="244.3" y1="84" x2="244.3" y2="100" stroke="#1f2328"/>
+<text x="244.3" y="80" font-size="12" fill="#1f2328" text-anchor="middle">阴天</text>
+<line x1="308.6" y1="100" x2="308.6" y2="94" stroke="#1f2328"/>
+<text x="308.6" y="88" font-size="12" fill="#1f2328" text-anchor="middle">晴天阴影</text>
+<text x="30" y="176" font-size="12" fill="#1f2328">相机白平衡设得比光源低 → 画面偏蓝</text>
+<text x="30" y="198" font-size="12" fill="#1f2328">相机白平衡设得比光源高 → 画面偏黄橙</text>
+<text x="30" y="226" font-size="11" fill="#656d76">色温为常见近似值，具体灯具以标称为准</text>
+</svg>

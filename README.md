@@ -294,7 +294,7 @@ shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手
 
 在仓库根目录以 `pnpm shelf-pack <命令>` 运行。
 
-- `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、id 与目录名不一致、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下，以及链接指向的章节、小节是否存在（跨书链接按同级目录 `../<id>/` 查找目标书）。规则在 `@shelf/spec` 的 `lintBook()` / `lintLinks()`
+- `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、id 与目录名不一致、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下，以及链接指向的章节、小节是否存在（跨书链接按同级目录 `../<id>/` 查找目标书；单独拷出来、旁边没有其他书的一本书跳过跨书链接检查）。规则在 `@shelf/spec` 的 `lintBook()` / `lintLinks()`
 - `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名
 - `push --changed` 比较内容指纹：`@shelf/spec` 的 `prepareImport()` 对将要写入设备的全部文件算出 `hash`，App 导入时存到书目录下的 `.content-hash` 并进入索引，`/books` 返回它；CLI 用同一个函数解开自己打的 zip 得到指纹，相同则跳过。设备上没有指纹的书（早期导入的、示例书）总是推送
 - PIN 错误时立即停止，避免连续失败把手机上的服务锁掉

@@ -66,4 +66,9 @@ describe('lintBook links', () => {
       '01-x.md:5 无法识别的链接（跨书请写成 ../<book-id>/<章节>.md#小节）：assets/a.svg',
     ]);
   });
+
+  it('skips cross-book links when there is no library to check against', () => {
+    const r = lintBook('me', files, { resolveBook: () => undefined });
+    expect(r.errors.filter((e) => e.includes('../'))).toEqual(['01-x.md:5 无法识别的链接（跨书请写成 ../<book-id>/<章节>.md#小节）：assets/a.svg']);
+  });
 });

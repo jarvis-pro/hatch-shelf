@@ -71,13 +71,13 @@ export type ChapterAnchors = Map<string, Set<string>>;
 
 /**
  * 检查一章里的链接目标是否存在。`self` 是本书的章节锚点；
- * `resolveBook(id)` 返回另一本书的章节锚点，书不存在时返回 null。
+ * `resolveBook(id)` 返回另一本书的章节锚点，书不存在时返回 null，无从判断（比如单独一本书、旁边没有书库）时返回 undefined 并跳过。
  */
 export function lintLinks(
   file: string,
   markdown: string,
   self: { id: string; chapters: ChapterAnchors },
-  resolveBook: (id: string) => ChapterAnchors | null,
+  resolveBook: (id: string) => ChapterAnchors | null | undefined,
 ): string[] {
   const errors: string[] = [];
   const checkTarget = (at: string, href: string, chapters: ChapterAnchors, target: string, anchor?: string) => {
@@ -96,6 +96,7 @@ export function lintLinks(
     else if (link.kind === 'chapter') checkTarget(at, href, self.chapters, link.file, link.anchor);
     else if (link.kind === 'book') {
       const chapters = link.bookId === self.id ? self.chapters : resolveBook(link.bookId);
+      if (chapters === undefined) continue;
       if (!chapters) errors.push(`${at} 链接的书不存在：${href}`);
       else if (link.file) checkTarget(at, href, chapters, link.file, link.anchor);
     }

@@ -75,8 +75,8 @@ export function bookAnchors(dirName: string, files: LintFile[]): { id: string; c
 }
 
 export interface LintOptions {
-  /** 另一本书的章节锚点，书不存在时返回 null；不传时跨书链接都按不存在处理 */
-  resolveBook?(id: string): ChapterAnchors | null;
+  /** 另一本书的章节锚点，书不存在时返回 null，无从判断时返回 undefined；不传时跨书链接都按不存在处理 */
+  resolveBook?(id: string): ChapterAnchors | null | undefined;
 }
 
 /**

@@ -42,11 +42,19 @@ export function readBook(dir: string): LocalBook {
 
 const anchorCache = new Map<string, ChapterAnchors | null>();
 
-/** 跨书链接 `../<id>/` 的目标：与本书同级、目录名为 id 的书（check 要求两者一致） */
-function siblingAnchors(book: LocalBook, id: string): ChapterAnchors | null {
-  const dir = path.join(path.dirname(book.dir), id);
+const isBookDir = (dir: string) => existsSync(path.join(dir, 'book.yaml'));
+
+/**
+ * 跨书链接 `../<id>/` 的目标：与本书同级、目录名为 id 的书（check 要求两者一致）。
+ * 本书旁边一本书都没有时（单独拷出来的一本书）无从判断，返回 undefined 跳过检查
+ */
+function siblingAnchors(book: LocalBook, id: string): ChapterAnchors | null | undefined {
+  const parent = path.dirname(book.dir);
+  const hasSiblings = readdirSync(parent).some((n) => n !== book.dirName && !isJunk(n) && isBookDir(path.join(parent, n)));
+  if (!hasSiblings) return undefined;
+  const dir = path.join(parent, id);
   if (!anchorCache.has(dir)) {
-    const found = existsSync(path.join(dir, 'book.yaml')) ? bookAnchors(id, readBook(dir).files) : null;
+    const found = isBookDir(dir) ? bookAnchors(id, readBook(dir).files) : null;
     anchorCache.set(dir, found?.chapters ?? null);
   }
   return anchorCache.get(dir)!;

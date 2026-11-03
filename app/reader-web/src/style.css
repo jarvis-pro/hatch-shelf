@@ -338,6 +338,17 @@ mark.find-hit {
   }
 }
 
+/* 章内查找：全部匹配淡黄常亮，当前处加深并描边，不做渐隐 */
+mark.find-hit.in-chapter {
+  background: rgba(255, 200, 0, 0.28);
+  animation: none;
+}
+
+mark.find-hit.in-chapter.current {
+  background: rgba(255, 176, 0, 0.7);
+  box-shadow: 0 0 0 1px rgba(214, 140, 0, 0.8);
+}
+
 /* ---------- 高亮与笔记 ---------- */
 
 :root {

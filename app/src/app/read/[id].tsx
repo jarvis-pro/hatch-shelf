@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Ellipsis, Headphones, List, NotebookPen, Type } from 'lucide-react-native';
+import { ChevronLeft, Ellipsis, Headphones, List, NotebookPen, TextSearch, Type } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { parseBookLink } from '@shelf/spec';
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
@@ -23,6 +23,7 @@ import { applyHighlightAction, chooseHighlightAction, promptNote } from '@/notes
 import { addHighlight, listHighlights, toMark } from '@/notes/store';
 import type { FromReader, Quote, ReaderPosition, SelectionAction, ToReader, TocItem } from '@/reader/bridge';
 import { loadNextReads } from '@/reader/next-reads';
+import { FindBar, type FindState } from '@/reader/FindBar';
 import { COVER_MS, PagePlaceholder, type PlaceholderChapter } from '@/reader/PagePlaceholder';
 import { ReadAloudBar } from '@/reader/ReadAloudBar';
 import { SettingsSheet } from '@/reader/SettingsSheet';
@@ -67,6 +68,9 @@ export default function ReaderScreen() {
   const [rendered, setRendered] = useState(false);
   const [placeholder, setPlaceholder] = useState<PlaceholderChapter | null>(null);
   const [panel, setPanel] = useState<'menu' | 'toc' | 'settings' | null>(null);
+  /** 章内查找进行中：顶部换成查找栏；结果为 null 表示还没有回报 */
+  const [finding, setFinding] = useState(false);
+  const [findResult, setFindResult] = useState<FindState | null>(null);
   const [error, setError] = useState<string | null>(null);
   /** 跨章链接 `02-x.md#anchor` 或搜索结果跳过来时要定位的锚点 */
   const pendingAnchor = useRef<string | null>(anchorParam ?? null);
@@ -218,6 +222,8 @@ export default function ReaderScreen() {
       // 听书只读当前这一章，换章即停
       if (speaking) stopSpeech();
       pendingAnchor.current = anchorTo ?? null;
+      // 查找只在本章内，换章就收起（阅读器加载新章时会自己清掉标亮）
+      setFinding(false);
       setRendered(false);
       setIdx(next);
     },
@@ -264,6 +270,9 @@ export default function ReaderScreen() {
         case 'ttsBlocks':
           onSpeechBlocks(msg.texts, msg.start);
           break;
+        case 'findResult':
+          setFindResult({ query: msg.query, index: msg.index, total: msg.total });
+          break;
         case 'error':
           console.warn('[reader]', msg.message);
           break;
@@ -276,6 +285,14 @@ export default function ReaderScreen() {
     setPrefs(next);
     void saveReaderPrefs(next);
   }, []);
+
+  const onFindQuery = useCallback((query: string) => send({ type: 'find', query }), [send]);
+  const onFindStep = useCallback((delta: 1 | -1) => send({ type: 'findStep', delta }), [send]);
+  const closeFind = useCallback(() => {
+    send({ type: 'clearFind' });
+    setFinding(false);
+    setFindResult(null);
+  }, [send]);
 
   const at = idx ?? 0;
 
@@ -329,10 +346,16 @@ export default function ReaderScreen() {
         style={[styles.topFade, { height: insets.top + 12 }]}
         pointerEvents="none"
       />
-      <View style={[styles.topBar, { top: insets.top - 4 }]} pointerEvents="box-none">
-        <GlassButton icon={ChevronLeft} label="返回" onPress={() => router.back()} />
-        <GlassButton icon={Ellipsis} label="更多" onPress={() => setPanel('menu')} />
-      </View>
+      {finding ? (
+        <View style={[styles.findBar, { top: insets.top - 6 }]}>
+          <FindBar result={findResult} onQuery={onFindQuery} onStep={onFindStep} onClose={closeFind} />
+        </View>
+      ) : (
+        <View style={[styles.topBar, { top: insets.top - 4 }]} pointerEvents="box-none">
+          <GlassButton icon={ChevronLeft} label="返回" onPress={() => router.back()} />
+          <GlassButton icon={Ellipsis} label="更多" onPress={() => setPanel('menu')} />
+        </View>
+      )}
 
       {/* 不提供上一章 / 下一章，换章走目录，正文铺满到屏幕底 */}
       <Menu
@@ -340,6 +363,7 @@ export default function ReaderScreen() {
         top={insets.top + 44}
         items={[
           { label: '目录', icon: List, onPress: () => setPanel('toc') },
+          { label: '本章查找', icon: TextSearch, onPress: () => setFinding(true) },
           { label: '本书笔记', icon: NotebookPen, onPress: () => openNotes(id) },
           { label: '阅读设置', icon: Type, onPress: () => setPanel('settings') },
           speaking
@@ -389,4 +413,5 @@ const styles = StyleSheet.create({
   error: { padding: 24, textAlign: 'center', lineHeight: 22 },
   topFade: { position: 'absolute', left: 0, right: 0, top: 0 },
   topBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' },
+  findBar: { position: 'absolute', left: 16, right: 16 },
 });

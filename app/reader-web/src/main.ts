@@ -3,6 +3,7 @@ import katexModule from '@vscode/markdown-it-katex';
 import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
 import mermaid from 'mermaid';
+import { activeFind, clearFind, find, findStep } from './find';
 import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
 import { collectBlocks, markBlock, remarkBlocks, resetBlocks } from './tts';
 import type {
@@ -266,7 +267,9 @@ function currentPosition(): ReaderPosition {
   return { scrollRatio, anchor };
 }
 
-async function load(msg: Extract<ToReader, { type: 'load' }>) {
+/** refind：查找中切换主题整章重渲染时，重新标亮并回到原来那一处 */
+async function load(msg: Extract<ToReader, { type: 'load' }>, refind?: { query: string; index: number } | null) {
+  clearFind(content);
   // find / focusHighlight 只在这次加载生效；之后切换主题重渲染时不再跳转
   current = { ...msg, find: undefined, focusHighlight: undefined };
   restoring = true;
@@ -286,6 +289,7 @@ async function load(msg: Extract<ToReader, { type: 'load' }>) {
   restore(msg.restore);
   if (msg.find) findAndMark(msg.find, msg.restore?.anchor);
   if (msg.focusHighlight) scrollToHighlight(content, msg.focusHighlight);
+  if (refind) post({ type: 'findResult', ...find(content, refind.query, false, refind.index) });
   // 等一帧，让 scrollTo 触发的 scroll 事件先过去
   requestAnimationFrame(() => {
     restoring = false;
@@ -308,7 +312,7 @@ window.__shelf = {
         break;
       case 'setTheme':
         // Mermaid 的配色只能在渲染时决定，所以整章重渲染并保持位置
-        if (current) void load({ ...current, theme: msg.theme, restore: currentPosition() });
+        if (current) void load({ ...current, theme: msg.theme, restore: currentPosition() }, activeFind());
         else applyTheme(msg.theme);
         break;
       case 'scrollTo':
@@ -340,6 +344,15 @@ window.__shelf = {
         break;
       case 'ttsMark':
         markBlock(msg.index, TOP_INSET);
+        break;
+      case 'find':
+        post({ type: 'findResult', ...find(content, msg.query, !reducedMotion.matches) });
+        break;
+      case 'findStep':
+        post({ type: 'findResult', ...findStep(msg.delta, !reducedMotion.matches) });
+        break;
+      case 'clearFind':
+        clearFind(content);
         break;
     }
   },

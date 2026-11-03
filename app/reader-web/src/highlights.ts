@@ -134,7 +134,7 @@ export function renderHighlights(root: HTMLElement, marks: HighlightMark[]): str
       if (start > s) target = target.splitText(start - s);
       if (end < e) target.splitText(end - Math.max(s, start));
       const mark = document.createElement('mark');
-      mark.className = h.hasNote ? 'hl has-note' : 'hl';
+      mark.className = ['hl', h.kind === 'doubt' && 'doubt', h.hasNote && 'has-note'].filter(Boolean).join(' ');
       mark.dataset.id = h.id;
       target.replaceWith(mark);
       mark.appendChild(target);

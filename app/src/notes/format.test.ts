@@ -17,5 +17,6 @@ describe('countLabel', () => {
   it('没有笔记时只显示高亮数', () => {
     expect(countLabel(7, 0)).toBe('7 条高亮');
     expect(countLabel(12, 5)).toBe('12 条高亮 · 5 条笔记');
+    expect(countLabel(12, 0, 2)).toBe('12 条高亮 · 2 处存疑');
   });
 });

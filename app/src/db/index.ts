@@ -63,6 +63,8 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   CREATE INDEX highlights_by_chapter ON highlights (book_id, chapter_file);`,
+  // 高亮类型：highlight 普通高亮；doubt 存疑（读者觉得这里可能有错，导出时排在最前，供修订时优先核实）
+  `ALTER TABLE highlights ADD COLUMN kind TEXT NOT NULL DEFAULT 'highlight';`,
 ];
 
 let db: SQLiteDatabase | null = null;

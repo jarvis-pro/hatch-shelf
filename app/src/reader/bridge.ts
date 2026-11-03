@@ -68,7 +68,10 @@ export interface TocItem {
   anchor: string;
 }
 
-export type SelectionAction = 'highlight' | 'note';
+/** doubt：存疑，读者觉得这里可能有错，修订时优先核实 */
+export type SelectionAction = 'highlight' | 'note' | 'doubt';
+
+export type HighlightKind = 'highlight' | 'doubt';
 
 /**
  * 一段原文的定位信息：原文本身加前后文。书更新后在正文里找所有出现原文的位置，
@@ -86,5 +89,6 @@ export interface Quote {
 
 export interface HighlightMark extends Quote {
   id: string;
+  kind: HighlightKind;
   hasNote: boolean;
 }

@@ -1,12 +1,13 @@
 import { getDb } from '@/db';
 import { getBook, getChapters } from '@/db/queries';
 import { buildNotesMarkdown } from '@/notes/export';
-import type { HighlightMark, Quote } from '@/reader/bridge';
+import type { HighlightKind, HighlightMark, Quote } from '@/reader/bridge';
 
 export interface Highlight extends Quote {
   id: string;
   bookId: string;
   chapterFile: string;
+  kind: HighlightKind;
   note: string | null;
   createdAt: number;
   updatedAt: number;
@@ -20,6 +21,7 @@ type Row = {
   prefix: string;
   suffix: string;
   anchor: string | null;
+  kind: HighlightKind;
   note: string | null;
   created_at: number;
   updated_at: number;
@@ -33,6 +35,7 @@ const toHighlight = (r: Row): Highlight => ({
   prefix: r.prefix,
   suffix: r.suffix,
   anchor: r.anchor ?? undefined,
+  kind: r.kind,
   note: r.note,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
@@ -44,6 +47,7 @@ export const toMark = (h: Highlight): HighlightMark => ({
   prefix: h.prefix,
   suffix: h.suffix,
   anchor: h.anchor,
+  kind: h.kind,
   hasNote: !!h.note,
 });
 
@@ -68,6 +72,7 @@ export interface NotesSummary {
   bookId: string;
   highlights: number;
   notes: number;
+  doubts: number;
   lastAt: number;
   /** 最近一条：有笔记显示笔记，否则显示原文 */
   latest: string;
@@ -75,22 +80,22 @@ export interface NotesSummary {
 
 /** 笔记 Tab：每本有高亮的书一行，按最近记录时间倒序 */
 export async function listNotesSummary(): Promise<NotesSummary[]> {
-  const rows = await getDb().getAllAsync<{ book_id: string; n: number; notes: number; last_at: number; latest: string }>(
-    `SELECT book_id, COUNT(*) AS n, COUNT(note) AS notes, MAX(created_at) AS last_at,
+  const rows = await getDb().getAllAsync<{ book_id: string; n: number; notes: number; doubts: number; last_at: number; latest: string }>(
+    `SELECT book_id, COUNT(*) AS n, COUNT(note) AS notes, SUM(kind = 'doubt') AS doubts, MAX(created_at) AS last_at,
        (SELECT COALESCE(h2.note, h2.text) FROM highlights h2 WHERE h2.book_id = h.book_id
         ORDER BY h2.created_at DESC LIMIT 1) AS latest
      FROM highlights h JOIN books b ON b.id = h.book_id
      GROUP BY book_id ORDER BY last_at DESC`,
   );
-  return rows.map((r) => ({ bookId: r.book_id, highlights: r.n, notes: r.notes, lastAt: r.last_at, latest: r.latest.trim() }));
+  return rows.map((r) => ({ bookId: r.book_id, highlights: r.n, notes: r.notes, doubts: r.doubts, lastAt: r.last_at, latest: r.latest.trim() }));
 }
 
-export async function addHighlight(bookId: string, chapterFile: string, quote: Quote, note: string | null) {
+export async function addHighlight(bookId: string, chapterFile: string, quote: Quote, note: string | null, kind: HighlightKind = 'highlight') {
   const now = Date.now();
   const id = `${now.toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   await getDb().runAsync(
-    `INSERT INTO highlights (id, book_id, chapter_file, text, prefix, suffix, anchor, note, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO highlights (id, book_id, chapter_file, text, prefix, suffix, anchor, kind, note, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     bookId,
     chapterFile,
@@ -98,6 +103,7 @@ export async function addHighlight(bookId: string, chapterFile: string, quote: Q
     quote.prefix,
     quote.suffix,
     quote.anchor ?? null,
+    kind,
     note,
     now,
     now,
@@ -107,6 +113,10 @@ export async function addHighlight(bookId: string, chapterFile: string, quote: Q
 
 export async function setNote(id: string, note: string | null) {
   await getDb().runAsync('UPDATE highlights SET note = ?, updated_at = ? WHERE id = ?', note, Date.now(), id);
+}
+
+export async function setKind(id: string, kind: HighlightKind) {
+  await getDb().runAsync('UPDATE highlights SET kind = ?, updated_at = ? WHERE id = ?', kind, Date.now(), id);
 }
 
 export async function deleteHighlight(id: string) {

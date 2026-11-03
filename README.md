@@ -204,7 +204,7 @@ documentDirectory/
 | search（FTS5，trigram） | book_id, chapter_file, anchor, heading, body —— 每行一个小节 | ✅ |
 | progress | book_id, chapter_file, scroll_ratio, anchor, updated_at | ❌ |
 | settings | key, value | ❌ |
-| highlights | id, book_id, chapter_file, text, prefix, suffix, anchor, note, created_at, updated_at | ❌ |
+| highlights | id, book_id, chapter_file, text, prefix, suffix, anchor, kind（`highlight` / `doubt`）, note, created_at, updated_at | ❌ |
 
 `last_read_at` 由 `progress` 推导；重建索引时从 `progress` 回填。
 
@@ -247,7 +247,7 @@ documentDirectory/
 - 底部悬浮的章节导航：上一章 / 当前章节序号 / 下一章
 - 链接：`#锚点` 在页内滚动；`03-x.md#锚点` 切到本书对应章节；`../<id>/…` 在当前阅读页之上打开另一本书的对应章节和小节（只写书 id 时打开到上次读到的位置），返回即回到原书，目标书未导入时给出提示；`http(s)` 链接交给系统打开
 - RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
-- 高亮与笔记：长按选中文字，系统菜单里选「高亮」或「笔记」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记或删除。「笔记」Tab 按书列出有高亮的书，阅读页右上角「笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
+- 高亮与笔记：长按选中文字，系统菜单里选「高亮」「笔记」或「存疑」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记、标为 / 取消存疑或删除。存疑用于标出读者认为可能有错的地方：橙色底加波浪线，可以附一句说明；导出时单独放在最前面的「存疑」一节，供 agent 修订时优先核实（见 `books/AGENTS.md`「读者笔记」）。「笔记」Tab 按书列出有高亮的书，阅读页右上角「笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
 - 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
 - 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
 - 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示

@@ -11,5 +11,5 @@ export function formatDay(ms: number, now = Date.now()) {
   return d.getFullYear() === start.getFullYear() ? md : `${d.getFullYear()} 年 ${md}`;
 }
 
-export const countLabel = (highlights: number, notes: number) =>
-  notes > 0 ? `${highlights} 条高亮 · ${notes} 条笔记` : `${highlights} 条高亮`;
+export const countLabel = (highlights: number, notes: number, doubts = 0) =>
+  [`${highlights} 条高亮`, notes > 0 && `${notes} 条笔记`, doubts > 0 && `${doubts} 处存疑`].filter(Boolean).join(' · ');

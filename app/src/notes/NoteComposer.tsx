@@ -7,16 +7,20 @@ import { useTheme } from '@/ui/theme';
 interface Request {
   quote: string;
   initial: string;
+  doubt: boolean;
   resolve(value: string | null): void;
 }
 
 let show: ((r: Request) => void) | null = null;
 
-/** 输入或修改笔记；取消时 resolve(null)，清空内容时 resolve('') */
-export function composeNote(quote: string, initial = ''): Promise<string | null> {
+/**
+ * 输入或修改笔记；取消时 resolve(null)，清空内容时 resolve('')。
+ * doubt：给存疑写说明（哪里可能不对），可以留空直接保存
+ */
+export function composeNote(quote: string, initial = '', doubt = false): Promise<string | null> {
   return new Promise((resolve) => {
     if (!show) return resolve(null);
-    show({ quote, initial, resolve });
+    show({ quote, initial, doubt, resolve });
   });
 }
 
@@ -36,6 +40,8 @@ export function NoteComposerHost() {
     };
   }, []);
 
+  const mark = req?.doubt ? t.warn : t.highlight;
+
   const close = (value: string | null) => {
     req?.resolve(value);
     setReq(null);
@@ -50,13 +56,15 @@ export function NoteComposerHost() {
             <Pressable onPress={() => close(null)} hitSlop={10}>
               <Text style={{ color: t.fg2, fontSize: 15 }}>取消</Text>
             </Pressable>
-            <Text style={{ color: t.fg, fontSize: 16, fontWeight: '700' }}>{req?.initial ? '编辑笔记' : '笔记'}</Text>
+            <Text style={{ color: t.fg, fontSize: 16, fontWeight: '700' }}>
+              {req?.doubt ? (req.initial ? '编辑存疑' : '存疑') : req?.initial ? '编辑笔记' : '笔记'}
+            </Text>
             <PressScale onPress={() => close(text.trim())} style={[styles.save, { backgroundColor: t.accent }]}>
               <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>保存</Text>
             </PressScale>
           </View>
-          <View style={[styles.quote, { backgroundColor: `${t.highlight}14` }]}>
-            <View style={[styles.bar, { backgroundColor: t.highlight }]} />
+          <View style={[styles.quote, { backgroundColor: `${mark}14` }]}>
+            <View style={[styles.bar, { backgroundColor: mark }]} />
             <Text style={{ flex: 1, color: t.fg2, fontSize: 13, lineHeight: 21 }} numberOfLines={3}>
               {req?.quote.trim()}
             </Text>
@@ -66,7 +74,7 @@ export function NoteComposerHost() {
             multiline
             value={text}
             onChangeText={setText}
-            placeholder="写下你的想法…"
+            placeholder={req?.doubt ? '哪里可能不对、需要核实什么（可不填）' : '写下你的想法…'}
             placeholderTextColor={t.fg3}
             selectionColor={t.accent}
             style={[styles.input, { color: t.fg }]}

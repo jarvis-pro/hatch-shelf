@@ -19,8 +19,8 @@ import {
 } from '@/db/queries';
 import { getReaderUri } from '@/library/bootstrap';
 import { bookDir } from '@/lib/paths';
-import { chooseHighlightAction, promptNote } from '@/notes/prompts';
-import { addHighlight, deleteHighlight, listHighlights, setNote, toMark } from '@/notes/store';
+import { applyHighlightAction, chooseHighlightAction, promptNote } from '@/notes/prompts';
+import { addHighlight, listHighlights, toMark } from '@/notes/store';
 import type { FromReader, Quote, ReaderPosition, SelectionAction, ToReader, TocItem } from '@/reader/bridge';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
@@ -156,11 +156,11 @@ export default function ReaderScreen() {
       const file = shownFile.current;
       if (!quote || !file) return;
       let note: string | null = null;
-      if (action === 'note') {
-        note = await promptNote(quote.text);
+      if (action !== 'highlight') {
+        note = await promptNote(quote.text, '', action === 'doubt');
         if (note === null) return; // 取消
       }
-      const added = await addHighlight(id, file, quote, note || null);
+      const added = await addHighlight(id, file, quote, note || null, action === 'doubt' ? 'doubt' : 'highlight');
       await refreshHighlights({ id: added, kind: 'in' });
     },
     [id, refreshHighlights],
@@ -170,17 +170,8 @@ export default function ReaderScreen() {
     async (highlightId: string) => {
       const h = (await listHighlights(id, shownFile.current ?? undefined)).find((x) => x.id === highlightId);
       if (!h) return;
-      const action = await chooseHighlightAction(h.text, !!h.note);
-      if (action === 'delete') {
-        await deleteHighlight(h.id);
-        return refreshHighlights({ id: h.id, kind: 'out' });
-      }
-      if (action === 'note') {
-        const note = await promptNote(h.text, h.note ?? '');
-        if (note === null) return;
-        await setNote(h.id, note || null);
-      }
-      await refreshHighlights();
+      const deleted = await applyHighlightAction(h, await chooseHighlightAction(h));
+      await refreshHighlights(deleted ? { id: h.id, kind: 'out' } : undefined);
     },
     [id, refreshHighlights],
   );
@@ -259,6 +250,7 @@ export default function ReaderScreen() {
           menuItems={[
             { key: 'highlight', label: '高亮' },
             { key: 'note', label: '笔记' },
+            { key: 'doubt', label: '存疑' },
           ]}
           onCustomMenuSelection={(e) =>
             send({ type: 'captureSelection', action: e.nativeEvent.key as SelectionAction })

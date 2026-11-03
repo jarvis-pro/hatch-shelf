@@ -375,10 +375,15 @@ mark.find-hit {
 :root {
   --hl: rgba(139, 107, 255, 0.16);
   --hl-note: #8b6bff;
+  /* 存疑：与 App 的 warn 色一致 */
+  --hl-doubt: rgba(194, 65, 12, 0.14);
+  --hl-doubt-note: #c2410c;
 }
 :root[data-theme='dark'] {
   --hl: rgba(165, 139, 255, 0.26);
   --hl-note: #a58bff;
+  --hl-doubt: rgba(251, 146, 60, 0.24);
+  --hl-doubt-note: #fb923c;
 }
 
 mark.hl {
@@ -410,4 +415,10 @@ mark.hl.hl-out {
 
 mark.hl.has-note {
   border-bottom: 2px dotted var(--hl-note);
+}
+
+mark.hl.doubt {
+  background-image: linear-gradient(var(--hl-doubt), var(--hl-doubt));
+  /* 没写说明的存疑也带下划线，和普通高亮一眼区分开 */
+  border-bottom: 2px wavy var(--hl-doubt-note);
 }

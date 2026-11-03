@@ -1,12 +1,12 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Hash, PenLine, Share } from 'lucide-react-native';
+import { CircleHelp, Hash, PenLine, Share } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, getChapters, type BookRow, type ChapterRow } from '@/db/queries';
 import { countLabel } from '@/notes/format';
-import { chooseHighlightAction, promptNote } from '@/notes/prompts';
-import { deleteHighlight, listHighlights, setNote, type Highlight } from '@/notes/store';
+import { applyHighlightAction, chooseHighlightAction } from '@/notes/prompts';
+import { listHighlights, type Highlight } from '@/notes/store';
 import { exportNotes } from '@/shelf/actions';
 import { BookCover, useCoverUri } from '@/shelf/BookCover';
 import { Backdrop } from '@/ui/Backdrop';
@@ -42,13 +42,7 @@ export default function BookNotesScreen() {
     router.push({ pathname: '/read/[id]', params: { id, chapter: h.chapterFile, highlight: h.id } });
 
   const edit = async (h: Highlight) => {
-    const action = await chooseHighlightAction(h.text, !!h.note);
-    if (action === 'delete') await deleteHighlight(h.id);
-    if (action === 'note') {
-      const note = await promptNote(h.text, h.note ?? '');
-      if (note === null) return;
-      await setNote(h.id, note || null);
-    }
+    await applyHighlightAction(h, await chooseHighlightAction(h));
     await load();
   };
 
@@ -58,6 +52,7 @@ export default function BookNotesScreen() {
   };
   const groups = [...new Set(items.map((h) => h.chapterFile))];
   const notes = items.filter((h) => h.note).length;
+  const doubts = items.filter((h) => h.kind === 'doubt').length;
 
   return (
     <View style={styles.flex}>
@@ -71,13 +66,13 @@ export default function BookNotesScreen() {
               <Text style={[styles.title, { color: t.fg }]} numberOfLines={2}>
                 {book.title}
               </Text>
-              <Text style={{ color: t.fg2, fontSize: 13 }}>{countLabel(items.length, notes)}</Text>
+              <Text style={{ color: t.fg2, fontSize: 13 }}>{countLabel(items.length, notes, doubts)}</Text>
             </View>
           </View>
         )}
         {items.length === 0 && (
           <Text style={[styles.empty, { color: t.fg3 }]}>
-            还没有高亮或笔记。{'\n'}阅读时长按选中文字，在菜单里选「高亮」或「笔记」。
+            还没有高亮或笔记。{'\n'}阅读时长按选中文字，在菜单里选「高亮」「笔记」或「存疑」。
           </Text>
         )}
         {groups.map((file, gi) => (
@@ -89,12 +84,22 @@ export default function BookNotesScreen() {
                 <PressScale key={h.id} scale={0.98} onPress={() => open(h)} onLongPress={() => void edit(h)}>
                   <Glass radius={20} style={styles.card}>
                     <View style={styles.quote}>
-                      <View style={[styles.bar, { backgroundColor: t.highlight }]} />
+                      <View style={[styles.bar, { backgroundColor: h.kind === 'doubt' ? t.warn : t.highlight }]} />
                       <Text style={[styles.quoteText, { color: t.body }]}>{h.text.trim()}</Text>
                     </View>
+                    {h.kind === 'doubt' && !h.note && (
+                      <View style={styles.meta}>
+                        <CircleHelp size={13} color={t.warn} />
+                        <Text style={{ color: t.warn, fontSize: 12, fontWeight: '600' }}>存疑</Text>
+                      </View>
+                    )}
                     {h.note && (
                       <View style={[styles.note, { backgroundColor: t.dark ? '#FFFFFF0F' : '#FFFFFF99' }]}>
-                        <PenLine size={14} color={t.accent} style={{ marginTop: 3 }} />
+                        {h.kind === 'doubt' ? (
+                          <CircleHelp size={14} color={t.warn} style={{ marginTop: 3 }} />
+                        ) : (
+                          <PenLine size={14} color={t.accent} style={{ marginTop: 3 }} />
+                        )}
                         <Text style={{ flex: 1, color: t.ink, fontSize: 13, lineHeight: 21 }}>{h.note}</Text>
                       </View>
                     )}

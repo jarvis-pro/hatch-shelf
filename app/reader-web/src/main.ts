@@ -116,7 +116,7 @@ function applyTheme(theme: ReaderTheme) {
     startOnLoad: false,
     securityLevel: 'strict',
     theme: theme.mode === 'dark' ? 'dark' : 'default',
-    // 输出原始尺寸，由 renderMermaid 判断是否转向，再用 CSS 缩到屏幕宽；点按看原尺寸
+    // 输出原始尺寸，由 renderMermaid 判断是否转向，再用 CSS 缩到屏幕宽
     flowchart: { useMaxWidth: false },
     sequence: { useMaxWidth: false },
     class: { useMaxWidth: false },
@@ -130,14 +130,12 @@ const kicker = (no: number) => `<p class="chapter-kicker">CHAPTER ${String(no).p
 
 /** 左右方向的流程图：flowchart LR / RL，graph LR / RL */
 const HORIZONTAL = /^(\s*(?:flowchart|graph)\s+)(LR|RL)\b/m;
-/** 缩到屏幕宽后小于原尺寸的这个比例，就提示点按看大图 */
-const SHRUNK_RATIO = 0.85;
 
 const svgWidth = (svg: SVGSVGElement) => svg.viewBox.baseVal?.width || svg.getBoundingClientRect().width;
 
 /**
  * 竖屏手机上，左右方向的流程图一长就只能横向拖着看。渲染后量一下，比屏幕宽的改成
- * 上下方向重新渲染；其余仍然过宽的图（时序图等）由 CSS 缩到屏幕宽，点按看原尺寸。
+ * 上下方向重新渲染；其余仍然过宽的图（时序图等）由 CSS 缩到屏幕宽。
  */
 async function renderMermaid() {
   const nodes = [...content.querySelectorAll<HTMLElement>('pre.mermaid')];
@@ -160,10 +158,6 @@ async function renderMermaid() {
     if (tooWide.length > 0) await mermaid.run({ nodes: tooWide, suppressErrors: true });
   } catch (e) {
     post({ type: 'error', message: `Mermaid: ${(e as Error).message}` });
-  }
-  for (const n of nodes) {
-    const svg = n.querySelector('svg');
-    if (svg) n.parentElement!.classList.toggle('shrunk', available / svgWidth(svg) < SHRUNK_RATIO);
   }
 }
 
@@ -340,21 +334,6 @@ async function copyText(text: string) {
 
 const overlay = document.getElementById('image-overlay')!;
 const overlayImg = overlay.querySelector('img')!;
-const overlayDiagram = overlay.querySelector<HTMLElement>('.overlay-diagram')!;
-
-/** 全屏查看图表：先按原尺寸显示，可上下左右拖动；点按在原尺寸和 2 倍之间切换 */
-function openDiagram(svg: SVGSVGElement) {
-  const clone = svg.cloneNode(true) as SVGSVGElement;
-  clone.style.width = `${svgWidth(svg)}px`;
-  overlayDiagram.replaceChildren(clone);
-  overlay.classList.add('open', 'diagram');
-}
-
-function toggleZoom() {
-  const zoomed = overlay.classList.toggle('zoomed');
-  const svg = overlayDiagram.querySelector('svg');
-  if (svg) svg.style.width = `${svgWidth(svg) * (zoomed ? 2 : 1)}px`;
-}
 
 document.addEventListener('click', (e) => {
   const target = e.target as HTMLElement;
@@ -376,20 +355,14 @@ document.addEventListener('click', (e) => {
   }
 
   if (target.closest('#image-overlay')) {
-    if (target === overlayImg || overlayDiagram.contains(target)) toggleZoom();
-    else overlay.classList.remove('open', 'zoomed', 'diagram');
+    if (target === overlayImg) overlay.classList.toggle('zoomed');
+    else overlay.classList.remove('open', 'zoomed');
     return;
   }
 
   if (target instanceof HTMLImageElement && content.contains(target)) {
     overlayImg.src = target.src;
     overlay.classList.add('open');
-    return;
-  }
-
-  const diagram = target.closest('.mermaid-wrap')?.querySelector('svg');
-  if (diagram && window.getSelection()?.isCollapsed !== false) {
-    openDiagram(diagram);
     return;
   }
 

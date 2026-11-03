@@ -85,7 +85,9 @@ h4 {
   margin: 1.5em 0 0.6em;
   scroll-margin-top: 110px;
 }
+/* 系统字体给中文回退字加的字距在 WebKit 与 RN 里不一样，章标题显式用苹方，进书占位（PagePlaceholder）才能与它逐像素对齐 */
 h1 {
+  font-family: 'PingFang SC', -apple-system, sans-serif;
   font-size: 1.7em;
   letter-spacing: -0.3px;
   margin-top: 0;

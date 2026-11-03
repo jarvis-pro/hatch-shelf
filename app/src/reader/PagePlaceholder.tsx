@@ -110,5 +110,6 @@ export function PagePlaceholder({
 const styles = StyleSheet.create({
   root: { paddingHorizontal: 26, overflow: 'hidden' },
   kicker: { fontSize: 11, lineHeight: 13.2, fontWeight: '600', letterSpacing: 2, marginBottom: 8 },
-  h1: { fontWeight: '700', letterSpacing: -0.3 },
+  // 与 style.css 的 h1 一样显式用苹方：系统字体的中文字距在 RN 里比 WebView 紧，标题会显得小一圈
+  h1: { fontFamily: 'PingFang SC', fontWeight: '700', letterSpacing: -0.3 },
 });

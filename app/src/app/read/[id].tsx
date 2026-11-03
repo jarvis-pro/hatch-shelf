@@ -3,7 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, ChevronRight, List, NotebookPen, Type } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { parseBookLink } from '@shelf/spec';
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent } from 'react-native-webview';
 import {
@@ -25,10 +26,16 @@ import { SettingsSheet } from '@/reader/SettingsSheet';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
 import { TocSheet } from '@/reader/TocSheet';
 import { WebView, type WebViewHandle } from '@/reader/web-view';
-import { openNotes } from '@/shelf/actions';
+import { openBook, openNotes } from '@/shelf/actions';
 import { Glass, GlassButton } from '@/ui/glass';
 import { ProgressBar } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
+
+/** 跨书链接 `../<id>/…`：在当前阅读页之上打开另一本书，返回时回到原处 */
+async function openLinkedBook(bookId: string, chapter?: string, anchor?: string) {
+  if (await getBook(bookId)) openBook(bookId, chapter, anchor);
+  else Alert.alert('书架上还没有这本书', `需要先导入「${bookId}」`);
+}
 
 export default function ReaderScreen() {
   const {
@@ -204,12 +211,15 @@ export default function ReaderScreen() {
           if (shownFile.current) void saveProgress(id, shownFile.current, msg.position);
           break;
         case 'link': {
-          const m = /^(?:\.\/)?([a-z0-9-]+\.md)(?:#(.+))?$/.exec(msg.href);
-          if (m) {
-            const target = chapters.findIndex((c) => c.file === m[1]);
-            if (target >= 0) goTo(target, m[2] ? decodeURIComponent(m[2]) : undefined);
-          } else if (/^https?:/i.test(msg.href)) {
-            void Linking.openURL(msg.href);
+          // 链接写法见 @shelf/spec 的 parseBookLink；页内锚点由阅读器自己处理
+          const link = parseBookLink(msg.href);
+          if (link?.kind === 'external') {
+            if (/^https?:/i.test(link.url)) void Linking.openURL(link.url);
+          } else if (link?.kind === 'book' && link.bookId !== id) {
+            openLinkedBook(link.bookId, link.file, link.anchor).catch((err: Error) => setError(err.message));
+          } else if (link && link.kind !== 'anchor' && link.file) {
+            const target = chapters.findIndex((c) => c.file === link.file);
+            if (target >= 0) goTo(target, link.anchor);
           }
           break;
         }

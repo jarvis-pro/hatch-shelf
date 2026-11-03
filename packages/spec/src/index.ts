@@ -5,3 +5,4 @@ export * from './rules';
 export * from './hash';
 export * from './import';
 export * from './lint';
+export * from './links';

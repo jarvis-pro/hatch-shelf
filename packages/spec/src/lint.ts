@@ -1,3 +1,4 @@
+import { lintLinks, headingAnchors, type ChapterAnchors } from './links';
 import { resolveBook } from './manifest';
 import { scanMarkdown } from './markdown';
 import { isAllowedFile, MAX_PACKAGE_BYTES } from './rules';
@@ -61,11 +62,28 @@ export function lintChapter(file: string, markdown: string, assets: Set<string>)
   return { errors, warnings };
 }
 
+/** 一本书的 id 和各章标题锚点；校验跨书链接时用来描述目标书。book.yaml 有误时返回 null */
+export function bookAnchors(dirName: string, files: LintFile[]): { id: string; chapters: ChapterAnchors } | null {
+  const rootMd = files.filter((f) => !f.path.includes('/') && f.path.endsWith('.md'));
+  const yaml = files.find((f) => f.path === 'book.yaml');
+  const resolved = resolveBook({ dirName, yamlText: yaml?.text, mdFiles: rootMd.map((f) => f.path) });
+  if (!resolved.ok) return null;
+  const chapters: ChapterAnchors = new Map(
+    resolved.chapters.map((ch) => [ch, headingAnchors(files.find((f) => f.path === ch)?.text ?? '')]),
+  );
+  return { id: resolved.manifest.id, chapters };
+}
+
+export interface LintOptions {
+  /** 另一本书的章节锚点，书不存在时返回 null；不传时跨书链接都按不存在处理 */
+  resolveBook?(id: string): ChapterAnchors | null;
+}
+
 /**
  * 检查一整本书（shelf-pack check 使用）。比 App 导入时的容错更严格：
  * 导入时会被跳过、兜底的情况，在这里都作为问题报出来，让作者在电脑上修好。
  */
-export function lintBook(dirName: string, files: LintFile[]): LintResult {
+export function lintBook(dirName: string, files: LintFile[], opts: LintOptions = {}): LintResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const rootMd = files.filter((f) => !f.path.includes('/') && f.path.endsWith('.md'));
@@ -93,9 +111,12 @@ export function lintBook(dirName: string, files: LintFile[]): LintResult {
   if (total > MAX_PACKAGE_BYTES) errors.push(`整本书超过 ${MAX_PACKAGE_BYTES / 1024 / 1024} MB`);
 
   const assets = new Set(files.filter((f) => f.path.startsWith('assets/')).map((f) => f.path));
+  const self = bookAnchors(dirName, files)!;
+  const resolveOther = opts.resolveBook ?? (() => null);
   for (const ch of chapters) {
-    const r = lintChapter(ch, files.find((f) => f.path === ch)?.text ?? '', assets);
-    errors.push(...r.errors);
+    const text = files.find((f) => f.path === ch)?.text ?? '';
+    const r = lintChapter(ch, text, assets);
+    errors.push(...r.errors, ...lintLinks(ch, text, self, resolveOther));
     warnings.push(...r.warnings);
   }
 

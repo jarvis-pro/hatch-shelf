@@ -5,8 +5,8 @@ import { getBook, getChapters } from '@/db/queries';
 import { buildNotesMarkdown } from '@/notes/export';
 import { listHighlights } from '@/notes/store';
 
-export const openBook = (id: string, chapter?: string) =>
-  router.push({ pathname: '/read/[id]', params: chapter ? { id, chapter } : { id } });
+export const openBook = (id: string, chapter?: string, anchor?: string) =>
+  router.push({ pathname: '/read/[id]', params: { id, ...(chapter && { chapter }), ...(chapter && anchor && { anchor }) } });
 
 export const openDetail = (id: string) => router.push({ pathname: '/book/[id]', params: { id } });
 

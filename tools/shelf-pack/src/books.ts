@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { isAllowedFile, lintBook, type LintFile, type LintResult } from '@shelf/spec';
+import { bookAnchors, isAllowedFile, lintBook, type ChapterAnchors, type LintFile, type LintResult } from '@shelf/spec';
 import { strToU8, zipSync, type Zippable } from 'fflate';
 
 const TEXT = /\.(md|ya?ml)$/i;
@@ -40,8 +40,20 @@ export function readBook(dir: string): LocalBook {
   return { dir, dirName: path.basename(dir), files };
 }
 
+const anchorCache = new Map<string, ChapterAnchors | null>();
+
+/** 跨书链接 `../<id>/` 的目标：与本书同级、目录名为 id 的书（check 要求两者一致） */
+function siblingAnchors(book: LocalBook, id: string): ChapterAnchors | null {
+  const dir = path.join(path.dirname(book.dir), id);
+  if (!anchorCache.has(dir)) {
+    const found = existsSync(path.join(dir, 'book.yaml')) ? bookAnchors(id, readBook(dir).files) : null;
+    anchorCache.set(dir, found?.chapters ?? null);
+  }
+  return anchorCache.get(dir)!;
+}
+
 export function lint(book: LocalBook): LintResult {
-  return lintBook(book.dirName, book.files);
+  return lintBook(book.dirName, book.files, { resolveBook: (id) => siblingAnchors(book, id) });
 }
 
 export interface ListRow {

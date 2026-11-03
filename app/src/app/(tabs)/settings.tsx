@@ -1,10 +1,8 @@
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
 import {
   ChevronRight,
   FolderInput,
   Info,
-  LibraryBig,
   RefreshCcw,
   ShieldCheck,
   SunMoon,
@@ -12,14 +10,11 @@ import {
   Type,
   type LucideIcon,
 } from 'lucide-react-native';
-import { Fragment, useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { listBooks } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
-import { useLibraryChanged } from '@/library/events';
 import { rebuildIndex } from '@/library/index-books';
-import { booksDir } from '@/lib/paths';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { lineHeightLabel, loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, type ReaderPrefs } from '@/reader/theme';
 import { Backdrop } from '@/ui/Backdrop';
@@ -28,15 +23,11 @@ import { PageHeader } from '@/ui/PageHeader';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
 import { APPEARANCE_LABELS, setAppearance, useAppearanceMode, useTheme, type AppearanceMode } from '@/ui/theme';
 
-const formatSize = (bytes: number) =>
-  bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(bytes >= 100 * 1024 * 1024 ? 0 : 1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
-
 export default function SettingsTab() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const appearance = useAppearanceMode();
   const [prefs, setPrefs] = useState<ReaderPrefs | null>(null);
-  const [library, setLibrary] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const [rebuilding, setRebuilding] = useState(false);
 
@@ -44,17 +35,6 @@ export default function SettingsTab() {
     void loadReaderPrefs().then(setPrefs);
     return onReaderPrefsChange(setPrefs);
   }, []);
-
-  // 统计书库大小要走遍 books/ 下上千个文件，会卡住 JS 线程（Tab 栏滑块的动画也在 JS 线程上），
-  // 所以不在每次切过来时算：打开时算一次，之后只在导入、删除、重建索引后重算
-  const loadLibrary = useCallback(() => {
-    void listBooks().then((books) => {
-      const size = booksDir.exists ? (booksDir.size ?? 0) : 0;
-      setLibrary(`${books.length} 本 · ${formatSize(size)}`);
-    });
-  }, []);
-  useEffect(loadLibrary, [loadLibrary]);
-  useLibraryChanged(loadLibrary);
 
   const changePrefs = (next: ReaderPrefs) => {
     setPrefs(next);
@@ -65,7 +45,6 @@ export default function SettingsTab() {
     setRebuilding(true);
     try {
       await rebuildIndex();
-      loadLibrary();
       Alert.alert('索引已重建', '已重新扫描全部书籍，阅读进度和笔记不受影响。');
     } catch (e) {
       Alert.alert('重建失败', (e as Error).message);
@@ -109,7 +88,6 @@ export default function SettingsTab() {
         </Group>
 
         <Group title="书库">
-          <Row icon={LibraryBig} label="书籍" value={library ?? undefined} onPress={() => router.navigate('/')} />
           <Row icon={FolderInput} label="从「文件」导入" onPress={() => void pickAndImport()} />
           <Row icon={RefreshCcw} label="重建索引" onPress={rebuilding ? undefined : () => void rebuild()}>
             {rebuilding && <ActivityIndicator size="small" color={t.fg3} />}

@@ -1,0 +1,18 @@
+id: douyin-kuaishou
+title: 抖音与快手
+subtitle: 推荐机制、创作者后台、权限解锁与违规申诉，创作者视角的平台手册
+category: media/platform
+tags: [douyin, kuaishou, short-video, creator, algorithm, search, compliance]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-two-platforms.md
+  - 02-recommendation.md
+  - 03-metrics-dashboard.md
+  - 04-publishing.md
+  - 05-douyin-search.md
+  - 06-permissions.md
+  - 07-kuaishou.md
+  - 08-violations-appeals.md
+  - 09-matrix-boundaries.md

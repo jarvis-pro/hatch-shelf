@@ -360,11 +360,14 @@ shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手
 | 阅读页换章 | 去掉底部上一章 / 下一章，换章只走目录；目录、本书笔记、阅读设置收进「···」菜单 | 底部导航常驻会挡住正文，阅读时几乎只在读完一章时用一次；顶部三颗按钮也让阅读页显得像工具页。只留返回和「···」，正文铺满全屏 |
 | 读完推荐 | 推荐写在 `book.yaml` 的 `next`，App 只负责显示；不按阅读记录自动推荐 | 阅读路线本来就由导读书维护，写在内容里改起来只需推书；按记录推荐需要额外的数据和规则，结果也不如人写的路线可解释。卡片只放书名和一句理由，不放进度、时长之类的统计 |
 | 听书 | 系统语音 expo-speech，音频会话设为 playback，后台读完本章即停；不接下一章、不做锁屏控制 | 系统语音完全在本机、不收费，符合 App 不联网；默认音频会话下静音键会让朗读没声音、锁屏就停，设成 playback 只多一个 expo-audio。后台时 WebView 被冻结，没法可靠地切下一章并取段落；锁屏「正在播放」要自写原生代码，收益不抵成本 |
+| 开发版包名 | 默认构建 `com.jarvis.shelf.dev`，只有 TestFlight 脚本用正式包名 | 真机调试时不覆盖正式版和里面的书、笔记；默认值选开发版，忘了设环境变量时最坏只是多装一个开发版 |
 | 进书过场 | 按正文版式画静止的占位，渲染完成后原地淡出，不用加载指示 | 转圈和闪白会打断「页面本来就在那里」的感觉；占位与真正文对齐，显影时只有淡墨行化成文字 |
 
 ---
 
 ## 13. 发布到 TestFlight
+
+开发版和正式版分开：`app/app.config.js` 默认生成开发版（Bundle ID `com.jarvis.shelf.dev`、桌面名「书巢 Dev」、URL scheme `shelf-dev`），和 TestFlight 装的正式版在同一台手机上并存，各有各的书和数据；只有 `pnpm app testflight` 设 `APP_VARIANT=production`，用 `app.json` 里的正式值。`expo run:ios` 在 `ios/` 已存在时不会重新生成工程，所以 `pnpm app ios` 先跑一次 `expo prebuild`，把 `ios/` 切回开发版，打完 TestFlight 再装开发版也不会覆盖正式版。
 
 一次性准备：在 App Store Connect 用 Bundle ID `com.jarvis.shelf` 建好 App；Xcode 的 Settings → Accounts 登录开发者账号（脚本用它签名和上传）。
 

@@ -42,7 +42,7 @@
 
 ```bash
 pnpm install                 # 根目录；使用 hoisted node_modules（见 .npmrc）
-pnpm app ios                 # 构建 dev client 并安装到模拟器 / 真机（加 --device 选真机）
+pnpm app ios                 # 构建 dev client（包名 com.jarvis.shelf.dev，不覆盖正式版）并安装到模拟器 / 真机（加 --device 选真机）
 pnpm app start               # 启动 Metro（会先执行 build:assets）
 pnpm app build:assets        # 重新生成阅读器 HTML 和示例书模块（两者都不入库）
 pnpm typecheck               # 全仓类型检查

@@ -7,6 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
+// 正式包名 com.jarvis.shelf；不设时 app.config.js 生成的是 .dev 开发版。子进程都继承这个环境变量
+process.env.APP_VARIANT = 'production';
+
 const appDir = path.resolve(import.meta.dirname, '..');
 const appJsonPath = path.join(appDir, 'app.json');
 const buildDir = path.join(appDir, 'ios/build');

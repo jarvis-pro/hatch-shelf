@@ -1,0 +1,19 @@
+id: knowledge-products
+title: 知识付费与私域变现
+subtitle: 课程、训练营、社群与咨询的产品设计、发售和交付
+category: media/money
+tags: [knowledge-products, course, cohort, community, consulting, private-domain, launch]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-product-forms.md
+  - 02-validate-demand.md
+  - 03-course-design.md
+  - 04-cohort-community.md
+  - 05-consulting-coaching.md
+  - 06-platforms.md
+  - 07-sales-page-launch.md
+  - 08-delivery-reputation.md
+  - 09-refunds-disputes.md
+  - 10-tech-creators.md

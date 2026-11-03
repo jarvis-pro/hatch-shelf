@@ -52122,7 +52122,7 @@
           "type": "frame",
           "id": "M6iumy",
           "layoutPosition": "absolute",
-          "x": 69,
+          "x": 31,
           "y": 758,
           "name": "Read Aloud Bar",
           "height": 52,
@@ -52165,15 +52165,36 @@
               "blur": 30
             }
           ],
-          "gap": 12,
+          "gap": 10,
           "padding": [
             0,
             10,
             0,
-            6
+            4
           ],
           "alignItems": "center",
           "children": [
+            {
+              "type": "frame",
+              "id": "tggAR",
+              "name": "Prev",
+              "width": 32,
+              "height": 40,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "PHRGa",
+                  "name": "skip-back",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "skip-back",
+                  "library": "lucide",
+                  "fill": "#4B5060"
+                }
+              ]
+            },
             {
               "type": "frame",
               "id": "q0bSp",
@@ -52194,6 +52215,27 @@
                   "icon": "pause",
                   "library": "lucide",
                   "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u4VpR",
+              "name": "Next",
+              "width": 32,
+              "height": 40,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "D5oSKz",
+                  "name": "skip-forward",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "skip-forward",
+                  "library": "lucide",
+                  "fill": "#4B5060"
                 }
               ]
             },
@@ -53317,7 +53359,7 @@
                   "fill": "#8C92A0",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "更多语音可在 设置 → 辅助功能 → 朗读内容 → 声音 里下载，增强版和高音质更自然",
+                  "content": "更多语音可在 设置 → 辅助功能 → 朗读内容 → 声音 里下载，增强版和高音质更自然；下载完回到这里就能选",
                   "lineHeight": 1.5,
                   "fontFamily": "Noto Sans SC",
                   "fontSize": 12,

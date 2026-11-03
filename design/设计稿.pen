@@ -11917,7 +11917,7 @@
           "fill": "#555049",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "笔记 Tab；传书的四个状态：未开启（默认）→ 已开启 → 接收中，以及 PIN 连续输错 5 次后的已停止；然后是设置、删除确认、空书架。插图都和封面同一画风。",
+          "content": "笔记 Tab；传书的四个状态：未开启（默认）→ 已开启 → 接收中，以及 PIN 连续输错 5 次后的已停止；然后是设置、删除确认、空书架、空笔记。插图都和封面同一画风。空笔记用一个缩小的选中菜单示意怎么留下标记。",
           "lineHeight": 1.7,
           "fontFamily": "Noto Sans SC",
           "fontSize": 14,
@@ -48134,6 +48134,482 @@
               "height": 10
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "aARGA",
+      "x": 3800,
+      "y": 2600,
+      "name": "v11 · 空笔记",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#EEF0F5",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "ellipse",
+          "id": "F1SkT",
+          "layoutPosition": "absolute",
+          "x": -80,
+          "y": -60,
+          "name": "Glow",
+          "fill": "#6E9BFF40",
+          "width": 320,
+          "height": 280,
+          "effect": {
+            "type": "blur",
+            "radius": 100
+          }
+        },
+        {
+          "type": "ellipse",
+          "id": "DjC5D",
+          "layoutPosition": "absolute",
+          "x": 200,
+          "y": 460,
+          "name": "Glow",
+          "fill": "#B28CFF2E",
+          "width": 300,
+          "height": 300,
+          "effect": {
+            "type": "blur",
+            "radius": 110
+          }
+        },
+        {
+          "id": "Mh4m1",
+          "type": "ref",
+          "ref": "tmngI",
+          "name": "Status Bar"
+        },
+        {
+          "type": "frame",
+          "id": "bbqSz",
+          "name": "Content",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            6,
+            20,
+            0,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "a9ADX",
+              "name": "Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uoxTv",
+                  "name": "Title",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wi3vk",
+                      "name": "H1",
+                      "fill": "#111318",
+                      "content": "笔记",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 34,
+                      "fontWeight": "700",
+                      "letterSpacing": -0.5
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "w45YBt",
+                  "name": "R",
+                  "padding": [
+                    0,
+                    0,
+                    6,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "id": "N5SHAc",
+                      "type": "ref",
+                      "ref": "aWGC5",
+                      "name": "Btn",
+                      "descendants": {
+                        "s3aOjV": {
+                          "icon": "search"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w9oLR",
+              "name": "Illustration Wrap",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": [
+                40,
+                10,
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JiqWx",
+                  "name": "Illustration",
+                  "clip": true,
+                  "width": 240,
+                  "height": 240,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/empty-notes.png",
+                    "mode": "cover"
+                  },
+                  "cornerRadius": 40
+                },
+                {
+                  "type": "frame",
+                  "id": "Bkr7j",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DdvDd",
+                      "name": "t",
+                      "fill": "#111318",
+                      "content": "还没有笔记",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "I3KnK7",
+                      "name": "t",
+                      "fill": "#4B5060",
+                      "content": "读到想留下的地方，长按选中文字，\n在菜单里选一种标记。",
+                      "lineHeight": 1.7,
+                      "textAlign": "center",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ps1bP",
+                  "name": "Demo",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": [
+                    4,
+                    0,
+                    0,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hZ6oX",
+                      "name": "Edit Menu",
+                      "height": 44,
+                      "fill": "#FFFFFFE0",
+                      "cornerRadius": 22,
+                      "stroke": "#FFFFFF",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "effect": [
+                        {
+                          "type": "background_blur",
+                          "radius": 30
+                        },
+                        {
+                          "type": "shadow",
+                          "shadowType": "outer",
+                          "color": "#1E2A5A1F",
+                          "offset": {
+                            "x": 0,
+                            "y": 10
+                          },
+                          "blur": 28
+                        }
+                      ],
+                      "padding": [
+                        0,
+                        6
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "q0ab3",
+                          "name": "高亮",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "COa9d",
+                              "name": "dot",
+                              "fill": "#8B6BFF",
+                              "width": 8,
+                              "height": 8
+                            },
+                            {
+                              "type": "text",
+                              "id": "OvmIR",
+                              "name": "t",
+                              "fill": "#111318",
+                              "content": "高亮",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "v7lcEw",
+                          "name": "sep",
+                          "fill": "#1E2A5A1A",
+                          "width": 1,
+                          "height": 18
+                        },
+                        {
+                          "type": "frame",
+                          "id": "i6euVw",
+                          "name": "笔记",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "TuaTF",
+                              "name": "i",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "pen-line",
+                              "library": "lucide",
+                              "fill": "#4B5060"
+                            },
+                            {
+                              "type": "text",
+                              "id": "WfdXN",
+                              "name": "t",
+                              "fill": "#111318",
+                              "content": "笔记",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "HZxja",
+                          "name": "sep",
+                          "fill": "#1E2A5A1A",
+                          "width": 1,
+                          "height": 18
+                        },
+                        {
+                          "type": "frame",
+                          "id": "L83rDc",
+                          "name": "存疑",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "mkkZA",
+                              "name": "dot",
+                              "fill": "#C2410C",
+                              "width": 8,
+                              "height": 8
+                            },
+                            {
+                              "type": "text",
+                              "id": "kWnTE",
+                              "name": "t",
+                              "fill": "#111318",
+                              "content": "存疑",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "s6CVa",
+                      "name": "Sample Line",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PLtKW",
+                          "name": "t",
+                          "fill": "#8C92A0",
+                          "content": "读书是",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "GfJLQ",
+                          "name": "Selection",
+                          "fill": "#8B6BFF24",
+                          "cornerRadius": 3,
+                          "padding": [
+                            1,
+                            2
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "gEGby",
+                              "name": "t",
+                              "fill": "#111318",
+                              "content": "和另一个人的慢对话",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "s7Rya",
+                          "name": "t",
+                          "fill": "#8C92A0",
+                          "content": "。",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bxSby",
+          "type": "ref",
+          "ref": "v0LWa4",
+          "name": "Tab Bar",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 748,
+          "descendants": {
+            "gv2C1": {
+              "fill": "#FFFFFF00",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              }
+            },
+            "FYNKt": {
+              "fill": "#8C92A0"
+            },
+            "UaZYV": {
+              "fill": "#8C92A0",
+              "fontWeight": "normal"
+            },
+            "hpi7o": {
+              "fill": "#FFFFFFE6",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#1E2A5A14",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 12
+              }
+            },
+            "Q9R5ua": {
+              "fill": "#2F6BFF"
+            },
+            "zmu23": {
+              "fill": "#2F6BFF",
+              "fontWeight": "600"
+            },
+            "CizMv": {
+              "fill": "#FFFFFF00",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              }
+            },
+            "HlgMh": {
+              "fill": "#8C92A0"
+            },
+            "W6o3el": {
+              "fill": "#8C92A0",
+              "fontWeight": "normal"
+            },
+            "G0Tj2": {
+              "fill": "#FFFFFF00",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              }
+            },
+            "RqfSB": {
+              "fill": "#8C92A0"
+            },
+            "wzCAY": {
+              "fill": "#8C92A0",
+              "fontWeight": "normal"
+            }
+          }
         }
       ]
     }

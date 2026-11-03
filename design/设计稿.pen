@@ -5182,7 +5182,7 @@
           "fill": "#555049",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "阅读页、更多菜单、阅读设置（字号、行距、代码换行）、目录、选中文字、写笔记，以及单本书的笔记页。阅读页不单独设主题，跟随 App 的外观（亮色 / 暗色 / 跟随系统）。\n\n阅读页只留两颗悬浮按钮：左上角返回，右上角「···」。目录、本书笔记、阅读设置都收进「···」菜单；不提供上一章 / 下一章，换章走目录，底部不放任何东西，正文铺满到屏幕底。",
+          "content": "阅读页、更多菜单、阅读设置（字号、行距、代码换行）、目录、选中文字、写笔记，以及单本书的笔记页。阅读页不单独设主题，跟随 App 的外观（亮色 / 暗色 / 跟随系统）。\n\n阅读页只留两颗悬浮按钮：左上角返回，右上角「···」。目录、本书笔记、阅读设置都收进「···」菜单；不提供上一章 / 下一章，换章走目录，底部不放任何东西，正文铺满到屏幕底。\n\n听书时底部浮出播放条，点播放条上的语音名打开「朗读语音」面板：默认「自动」，也可按普通话 / 台湾国语 / 粤语挑设备上的系统语音，选中后从当前段落用新语音接着读。",
           "lineHeight": 1.7,
           "fontFamily": "Noto Sans SC",
           "fontSize": 14,
@@ -51640,6 +51640,1688 @@
                   "icon": "type",
                   "library": "lucide",
                   "fill": "#111318"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ygl9K",
+      "x": 3370,
+      "y": 1500,
+      "name": "v11 · 阅读 · 听书",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#F6F7FA",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "t71Ol",
+          "type": "ref",
+          "ref": "tmngI",
+          "name": "Status Bar"
+        },
+        {
+          "type": "frame",
+          "id": "shxQR",
+          "name": "Article",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            64,
+            26,
+            56,
+            26
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "cYoQH",
+              "name": "Chapter Head",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                0,
+                0,
+                6,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Gwl2h",
+                  "name": "k",
+                  "fill": "#2F6BFF",
+                  "content": "CHAPTER 07",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "mLhQW",
+                  "name": "H1",
+                  "fill": "#111318",
+                  "content": "记忆的分层与压缩",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 27,
+                  "fontWeight": "700",
+                  "letterSpacing": -0.3
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "eTIYt",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Agent 运行得越久，上下文里堆积的东西就越多。真正决定质量的，不是能塞进多少，而是在每一步只留下此刻需要的那一部分。",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "eZYE8",
+              "name": "H2",
+              "fill": "#111318",
+              "content": "三层记忆",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 19,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "AeeAo",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "把记忆分成工作区、会话摘要和长期存储三层，",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Pka8e",
+              "name": "Highlight",
+              "width": "fill_container",
+              "fill": "#8B6BFF24",
+              "cornerRadius": 4,
+              "layout": "vertical",
+              "padding": [
+                2,
+                4
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uDDG4",
+                  "name": "P",
+                  "fill": "#2A2E38",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "每一层只回答一个问题：现在要用什么、刚才发生了什么、以前学到了什么。",
+                  "lineHeight": 1.85,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CeE6O",
+              "name": "Code",
+              "clip": true,
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 14,
+              "stroke": "#E3E6EE",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "W2azQL",
+                  "name": "Bar",
+                  "width": "fill_container",
+                  "fill": "#F3F5F9",
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kjR3q",
+                      "name": "lang",
+                      "fill": "#8C92A0",
+                      "content": "python",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Hq7lu",
+                      "name": "copy",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "copy",
+                      "library": "lucide",
+                      "fill": "#8C92A0"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "U9SH8",
+                  "name": "Body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "i8VcrX",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "e1FyK",
+                          "name": "s",
+                          "fill": "#8B3FD9",
+                          "content": "def ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Oh9ua",
+                          "name": "s",
+                          "fill": "#1F4FD1",
+                          "content": "compact",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "iAZae",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "(ctx, budget):",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wJrB5",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OwKdY",
+                          "name": "s",
+                          "fill": "#8B3FD9",
+                          "content": "    if ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "bTpbK",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "ctx.tokens < budget:",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "nst0v",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "iRyL1",
+                          "name": "s",
+                          "fill": "#8B3FD9",
+                          "content": "        return ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "lxj5x",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "ctx",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "x2IPl2",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DnLx3",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "    summary = ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "txWp6",
+                          "name": "s",
+                          "fill": "#1F4FD1",
+                          "content": "summarize",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "FbrE3",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "(ctx.oldest(",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "pWvrq",
+                          "name": "s",
+                          "fill": "#C2410C",
+                          "content": "0.6",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "mvSbe",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "))",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "UH1z7",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "压缩不是删除。被摘要掉的原文仍然在长期存储里，需要时可以按锚点取回。",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "DMYPV",
+              "name": "Callout",
+              "width": "fill_container",
+              "fill": "#2F6BFF0D",
+              "cornerRadius": 14,
+              "stroke": "#2F6BFF1F",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": [
+                14,
+                16
+              ],
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "UooNb",
+                  "name": "lightbulb",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lightbulb",
+                  "library": "lucide",
+                  "fill": "#2F6BFF"
+                },
+                {
+                  "type": "text",
+                  "id": "t6gnK",
+                  "name": "t",
+                  "fill": "#2D3550",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "经验法则：摘要只写结论和未决事项，不要复述过程。",
+                  "lineHeight": 1.7,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "cZpuc",
+              "name": "H2",
+              "fill": "#111318",
+              "content": "什么时候压缩",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 19,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "OrM5B",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "等到溢出再处理已经太晚了。更稳妥的做法是给工作区设一条水位线，越过它就把最早的一段对话折叠成摘要。",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nAjSY",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 54,
+          "name": "Top Bar",
+          "width": 390,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "PfYL1",
+              "type": "ref",
+              "ref": "aWGC5",
+              "name": "Back",
+              "descendants": {
+                "s3aOjV": {
+                  "icon": "chevron-left"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "xKzpZ",
+              "name": "R",
+              "cornerRadius": 22,
+              "gap": 8,
+              "children": [
+                {
+                  "id": "MBq5h",
+                  "type": "ref",
+                  "ref": "aWGC5",
+                  "name": "Btn more",
+                  "descendants": {
+                    "s3aOjV": {
+                      "icon": "ellipsis"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "M6iumy",
+          "layoutPosition": "absolute",
+          "x": 69,
+          "y": 758,
+          "name": "Read Aloud Bar",
+          "height": 52,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 180,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#FFFFFFF0",
+                "position": 0
+              },
+              {
+                "color": "#FFFFFFD9",
+                "position": 1
+              }
+            ]
+          },
+          "cornerRadius": 26,
+          "stroke": "#FFFFFF",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1E2A5A26",
+              "offset": {
+                "x": 0,
+                "y": 8
+              },
+              "blur": 30
+            }
+          ],
+          "gap": 12,
+          "padding": [
+            0,
+            10,
+            0,
+            6
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "q0bSp",
+              "name": "Pause",
+              "width": 40,
+              "height": 40,
+              "fill": "#2F6BFF",
+              "cornerRadius": 20,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "MKdtx",
+                  "name": "pause",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "pause",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IorxA",
+              "name": "Voice Label",
+              "layout": "vertical",
+              "gap": 1,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "XfVcC",
+                  "name": "state",
+                  "fill": "#111318",
+                  "content": "正在朗读",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "X4zebU",
+                  "name": "voice",
+                  "gap": 2,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dIhUP",
+                      "name": "voice name",
+                      "fill": "#8C92A0",
+                      "content": "婷婷 · 增强",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "qiDQ0",
+                      "name": "chev",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "#8C92A0"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qfmiz",
+              "name": "Rate",
+              "width": 58,
+              "height": 28,
+              "fill": "#1E2A5A0A",
+              "cornerRadius": 14,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nP6Uc",
+                  "name": "rate",
+                  "fill": "#111318",
+                  "content": "1×",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Y6fvHs",
+              "name": "Close",
+              "width": 28,
+              "height": 28,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "MyQhw",
+                  "name": "x",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "x",
+                  "library": "lucide",
+                  "fill": "#4B5060"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ziAqz",
+      "x": 3800,
+      "y": 1500,
+      "name": "v11 · 阅读 · 选择语音",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#F6F7FA",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "GBdRo",
+          "type": "ref",
+          "ref": "tmngI",
+          "name": "Status Bar"
+        },
+        {
+          "type": "frame",
+          "id": "zJadR",
+          "name": "Article",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            64,
+            26,
+            56,
+            26
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "ymU5n",
+              "name": "Chapter Head",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                0,
+                0,
+                6,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "D2SavF",
+                  "name": "k",
+                  "fill": "#2F6BFF",
+                  "content": "CHAPTER 07",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "A67O8",
+                  "name": "H1",
+                  "fill": "#111318",
+                  "content": "记忆的分层与压缩",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 27,
+                  "fontWeight": "700",
+                  "letterSpacing": -0.3
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "Qh5wL",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Agent 运行得越久，上下文里堆积的东西就越多。真正决定质量的，不是能塞进多少，而是在每一步只留下此刻需要的那一部分。",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "NaVja",
+              "name": "H2",
+              "fill": "#111318",
+              "content": "三层记忆",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 19,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "YPENw",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "把记忆分成工作区、会话摘要和长期存储三层，",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "hclSV",
+              "name": "Highlight",
+              "width": "fill_container",
+              "fill": "#8B6BFF24",
+              "cornerRadius": 4,
+              "layout": "vertical",
+              "padding": [
+                2,
+                4
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "CypRw",
+                  "name": "P",
+                  "fill": "#2A2E38",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "每一层只回答一个问题：现在要用什么、刚才发生了什么、以前学到了什么。",
+                  "lineHeight": 1.85,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kW1Eo",
+              "name": "Code",
+              "clip": true,
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 14,
+              "stroke": "#E3E6EE",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "IyP4O",
+                  "name": "Bar",
+                  "width": "fill_container",
+                  "fill": "#F3F5F9",
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GuDn2",
+                      "name": "lang",
+                      "fill": "#8C92A0",
+                      "content": "python",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "ledwN",
+                      "name": "copy",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "copy",
+                      "library": "lucide",
+                      "fill": "#8C92A0"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Z64dUl",
+                  "name": "Body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "pbes2",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "m4oRHq",
+                          "name": "s",
+                          "fill": "#8B3FD9",
+                          "content": "def ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "TJjBq",
+                          "name": "s",
+                          "fill": "#1F4FD1",
+                          "content": "compact",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "EqpRY",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "(ctx, budget):",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "anan0",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rkHop",
+                          "name": "s",
+                          "fill": "#8B3FD9",
+                          "content": "    if ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "noPWM",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "ctx.tokens < budget:",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zLXtD",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "R9C9d",
+                          "name": "s",
+                          "fill": "#8B3FD9",
+                          "content": "        return ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "P0qVj",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "ctx",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "P0Obqr",
+                      "name": "Line",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OtoBo",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "    summary = ",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "j9rYA",
+                          "name": "s",
+                          "fill": "#1F4FD1",
+                          "content": "summarize",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ckqeG",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "(ctx.oldest(",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "oJ8UV",
+                          "name": "s",
+                          "fill": "#C2410C",
+                          "content": "0.6",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "KOEfG",
+                          "name": "s",
+                          "fill": "#2A2E38",
+                          "content": "))",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "oi1Jj",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "压缩不是删除。被摘要掉的原文仍然在长期存储里，需要时可以按锚点取回。",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Ert7y",
+              "name": "Callout",
+              "width": "fill_container",
+              "fill": "#2F6BFF0D",
+              "cornerRadius": 14,
+              "stroke": "#2F6BFF1F",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": [
+                14,
+                16
+              ],
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "mFnr2",
+                  "name": "lightbulb",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lightbulb",
+                  "library": "lucide",
+                  "fill": "#2F6BFF"
+                },
+                {
+                  "type": "text",
+                  "id": "kWLji",
+                  "name": "t",
+                  "fill": "#2D3550",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "经验法则：摘要只写结论和未决事项，不要复述过程。",
+                  "lineHeight": 1.7,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "ZeAXv",
+              "name": "H2",
+              "fill": "#111318",
+              "content": "什么时候压缩",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 19,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "DSsgJ",
+              "name": "P",
+              "fill": "#2A2E38",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "等到溢出再处理已经太晚了。更稳妥的做法是给工作区设一条水位线，越过它就把最早的一段对话折叠成摘要。",
+              "lineHeight": 1.85,
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FBi07",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 54,
+          "name": "Top Bar",
+          "width": 390,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "L5k2Hb",
+              "type": "ref",
+              "ref": "aWGC5",
+              "name": "Back",
+              "descendants": {
+                "s3aOjV": {
+                  "icon": "chevron-left"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "J1Bu0",
+              "name": "R",
+              "cornerRadius": 22,
+              "gap": 8,
+              "children": [
+                {
+                  "id": "g6TMSb",
+                  "type": "ref",
+                  "ref": "aWGC5",
+                  "name": "Btn more",
+                  "descendants": {
+                    "s3aOjV": {
+                      "icon": "ellipsis"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KCS1I",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0,
+          "name": "Dim",
+          "width": 390,
+          "height": 844,
+          "fill": "#1E2A5A1F"
+        },
+        {
+          "type": "frame",
+          "id": "RIWXz",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 229,
+          "name": "Sheet",
+          "width": 390,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 180,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#FFFFFFE6",
+                "position": 0
+              },
+              {
+                "color": "#FFFFFFCC",
+                "position": 1
+              }
+            ]
+          },
+          "cornerRadius": [
+            34,
+            34,
+            0,
+            0
+          ],
+          "stroke": "#FFFFFF",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 40
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#1E2A5A26",
+              "offset": {
+                "x": 0,
+                "y": -8
+              },
+              "blur": 40
+            }
+          ],
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            10,
+            20,
+            34,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "eU14T",
+              "name": "Grabber Row",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 3,
+                  "id": "qSIMX",
+                  "name": "Grabber",
+                  "fill": "#1E2A5A26",
+                  "width": 36,
+                  "height": 5
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "C7oY8Y",
+              "name": "Head",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "P9Uz3Y",
+                  "name": "title",
+                  "fill": "#111318",
+                  "content": "朗读语音",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 17,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "M7gmR",
+                  "name": "sub",
+                  "fill": "#8C92A0",
+                  "content": "选中后从当前段落用新语音接着读",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uoKb4",
+              "name": "自动",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Z2rhfn",
+                  "name": "list",
+                  "clip": true,
+                  "width": "fill_container",
+                  "fill": "#1E2A5A0A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "U39Gq",
+                      "name": "自动",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "padding": [
+                        10,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "XyOaT",
+                          "name": "L",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ENlUZ",
+                              "name": "t",
+                              "fill": "#111318",
+                              "content": "自动",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "LABey",
+                              "name": "d",
+                              "fill": "#8C92A0",
+                              "content": "用设备上音质最好的普通话语音",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "p7SS9",
+              "name": "普通话",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qVyif",
+                  "name": "label",
+                  "fill": "#8C92A0",
+                  "content": "普通话",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "tLc8H",
+                  "name": "list",
+                  "clip": true,
+                  "width": "fill_container",
+                  "fill": "#1E2A5A0A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "J1QL5S",
+                      "name": "婷婷",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "#1E2A5A0F",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nKqtt",
+                          "name": "name",
+                          "fill": "#2F6BFF",
+                          "content": "婷婷",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J2US3",
+                          "name": "tag",
+                          "fill": "#1E2A5A0A",
+                          "cornerRadius": 6,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ISOL6",
+                              "name": "t",
+                              "fill": "#4B5060",
+                              "content": "增强",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yYAkY",
+                          "name": "spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        },
+                        {
+                          "type": "icon",
+                          "id": "RLfmA",
+                          "name": "check",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "#2F6BFF"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AHAxb",
+                      "name": "莉莉",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "#1E2A5A0F",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "smAr7",
+                          "name": "name",
+                          "fill": "#111318",
+                          "content": "莉莉",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "a0UWNt",
+                          "name": "tag",
+                          "fill": "#2F6BFF14",
+                          "cornerRadius": 6,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "afKxZ",
+                              "name": "t",
+                              "fill": "#2F6BFF",
+                              "content": "高音质",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HwXZB",
+                          "name": "spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "iFrrt",
+                      "name": "语嫣",
+                      "width": "fill_container",
+                      "height": 48,
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Cbm3d",
+                          "name": "name",
+                          "fill": "#111318",
+                          "content": "语嫣",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "z0yDK",
+                          "name": "spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HiXiX",
+              "name": "台湾国语",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mmICX",
+                  "name": "label",
+                  "fill": "#8C92A0",
+                  "content": "台湾国语",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "M364aW",
+                  "name": "list",
+                  "clip": true,
+                  "width": "fill_container",
+                  "fill": "#1E2A5A0A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "F2dcjl",
+                      "name": "美佳",
+                      "width": "fill_container",
+                      "height": 48,
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "bXLsz",
+                          "name": "name",
+                          "fill": "#111318",
+                          "content": "美佳",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Dtr9x",
+                          "name": "spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i2ZvvH",
+              "name": "粤语",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "R0rKC",
+                  "name": "label",
+                  "fill": "#8C92A0",
+                  "content": "粤语",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "P50LCB",
+                  "name": "list",
+                  "clip": true,
+                  "width": "fill_container",
+                  "fill": "#1E2A5A0A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "qLR9O",
+                      "name": "善怡",
+                      "width": "fill_container",
+                      "height": 48,
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "w88A3",
+                          "name": "name",
+                          "fill": "#111318",
+                          "content": "善怡",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Wugo0",
+                          "name": "tag",
+                          "fill": "#1E2A5A0A",
+                          "cornerRadius": 6,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "V1LbW",
+                              "name": "t",
+                              "fill": "#4B5060",
+                              "content": "增强",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HoDsX",
+                          "name": "spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ERiGl",
+              "name": "Hint",
+              "width": "fill_container",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "fsASt",
+                  "name": "i",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "download",
+                  "library": "lucide",
+                  "fill": "#8C92A0"
+                },
+                {
+                  "type": "text",
+                  "id": "BRZni",
+                  "name": "t",
+                  "fill": "#8C92A0",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "更多语音可在 设置 → 辅助功能 → 朗读内容 → 声音 里下载，增强版和高音质更自然",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
                 }
               ]
             }

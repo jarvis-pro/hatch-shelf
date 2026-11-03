@@ -396,3 +396,50 @@ mark.hl.doubt {
 mark.hl.doubt.has-note {
   border-bottom: none;
 }
+
+/* ---------- 提示块（> [!NOTE] 等，见 callouts.ts） ---------- */
+
+:root {
+  --callout-note: var(--link);
+  --callout-tip: var(--hl-string);
+  --callout-important: var(--hl-note);
+  --callout-warning: var(--hl-type);
+  --callout-caution: #cf222e;
+}
+:root[data-theme='dark'] {
+  --callout-caution: #ff7b72;
+}
+
+blockquote.callout {
+  --c: var(--callout-note);
+  background: color-mix(in srgb, var(--c) 6%, transparent);
+  border-color: color-mix(in srgb, var(--c) 22%, transparent);
+}
+:root[data-theme='dark'] blockquote.callout {
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  border-color: color-mix(in srgb, var(--c) 28%, transparent);
+}
+blockquote.callout-tip {
+  --c: var(--callout-tip);
+}
+blockquote.callout-important {
+  --c: var(--callout-important);
+}
+blockquote.callout-warning {
+  --c: var(--callout-warning);
+}
+blockquote.callout-caution {
+  --c: var(--callout-caution);
+}
+
+.callout-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.4em;
+  color: var(--c);
+  font-weight: 600;
+}
+.callout-title svg {
+  flex: none;
+}

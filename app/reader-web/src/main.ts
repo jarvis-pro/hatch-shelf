@@ -3,6 +3,7 @@ import katexModule from '@vscode/markdown-it-katex';
 import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
 import mermaid from 'mermaid';
+import { calloutPlugin } from './callouts';
 import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
 import type {
   FromReader,
@@ -40,6 +41,7 @@ const katexPlugin =
 
 const md = new MarkdownIt({ html: false, linkify: true });
 md.use(katexPlugin, { throwOnError: false });
+md.use(calloutPlugin);
 
 md.renderer.rules.fence = (tokens, idx) => {
   const token = tokens[idx];

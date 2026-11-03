@@ -1,10 +1,10 @@
 #!/usr/bin/env -S npx tsx
-import { writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { MAX_PACKAGE_BYTES, prepareImport } from '@shelf/spec';
 import { Command } from 'commander';
-import { findBooks, groupByCategory, lint, packBook, readBook, type LocalBook } from './books';
-import { listDeviceBooks, PinError, upload } from './device';
+import { findBooks, groupByCategory, lint, packBook, readBook, sameNotes, type LocalBook } from './books';
+import { listDeviceBooks, PinError, pullDeviceNotes, upload } from './device';
 
 const c = {
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,
@@ -128,6 +128,38 @@ program
     } catch (e) {
       // PIN 错误时立即停止，避免连续失败把手机上的服务锁掉
       console.error(c.red(e instanceof PinError ? `${e.message}，已停止推送` : (e as Error).message));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('pull-notes')
+  .argument('[dir]', '笔记目录', 'notes')
+  .requiredOption('--to <ip>', '手机传书页面上显示的 IP（可带 :端口）')
+  .requiredOption('--pin <pin>', '传书页面上显示的 PIN')
+  .description('从手机拉取全部阅读笔记，写成 <dir>/<book-id>.notes.md')
+  .action(async (dir: string, opts: { to: string; pin: string }) => {
+    try {
+      const notes = await pullDeviceNotes(opts.to, opts.pin);
+      if (notes.length === 0) return console.log('手机上还没有高亮和笔记');
+      mkdirSync(dir, { recursive: true });
+      let written = 0;
+      for (const n of notes) {
+        const file = path.join(dir, `${n.id}.notes.md`);
+        const old = existsSync(file) ? readFileSync(file, 'utf8') : null;
+        const label = `${n.id}  ${c.dim(`${n.title} · ${n.count} 条`)}`;
+        if (old !== null && sameNotes(old, n.markdown)) {
+          console.log(`${c.dim('-')} ${label} ${c.dim('未变化')}`);
+          continue;
+        }
+        writeFileSync(file, n.markdown);
+        written += 1;
+        console.log(`${c.green('↓')} ${label} ${c.dim(old === null ? '新增' : '已更新')}`);
+      }
+      const shown = path.relative(process.cwd(), path.resolve(dir));
+      console.log(c.dim(`\n${written} 个文件有变化，写入 ${shown.startsWith('..') ? path.resolve(dir) : shown || '.'}/`));
+    } catch (e) {
+      console.error(c.red((e as Error).message));
       process.exitCode = 1;
     }
   });

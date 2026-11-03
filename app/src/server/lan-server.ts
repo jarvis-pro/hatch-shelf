@@ -5,6 +5,7 @@ import TcpSocket from 'react-native-tcp-socket';
 import { getBook, listBooks } from '@/db/queries';
 import { importFile, type ImportResult } from '@/import/pipeline';
 import { bookDir } from '@/lib/paths';
+import { bookNotesMarkdown, listNotesSummary } from '@/notes/store';
 import {
   buildResponse,
   CONTINUE_RESPONSE,
@@ -45,6 +46,7 @@ const uploadDir = new Directory(Paths.cache, 'lan-upload');
  * POST /upload  multipart/form-data，字段 file；PIN 放在 X-Pin 请求头或表单字段 pin
  * GET  /books   本地已有书籍（需要 X-Pin）
  * GET  /cover/<id>  书的封面 cover.png（需要 X-Pin），上传页用来在导入后显示封面
+ * GET  /notes   每本有高亮的书导出的笔记 Markdown（需要 X-Pin），shelf-pack pull-notes 用来放回仓库的 notes/
  * GET  /ping    不需要 PIN，上传页据此判断服务是否还在
  */
 export function startLanServer(pin: string, events: LanServerEvents): LanServer {
@@ -101,6 +103,16 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       });
     }
 
+    if (req.method === 'GET' && req.path === '/notes') {
+      if (!checkPin(req.headers['x-pin'])) return pinError();
+      const notes = [];
+      for (const { bookId } of await listNotesSummary()) {
+        const n = await bookNotesMarkdown(bookId);
+        if (n) notes.push({ id: bookId, ...n });
+      }
+      return jsonResponse(200, { ok: true, notes });
+    }
+
     if (req.method === 'POST' && req.path === '/upload') {
       const parts = parseMultipart(req.body, req.headers['content-type']);
       if (!parts) return jsonResponse(400, { ok: false, error: '请使用 multipart/form-data 上传' });
@@ -127,7 +139,7 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       });
     }
 
-    if (['/', '/ping', '/books', '/upload'].includes(req.path) || req.path.startsWith('/cover/')) {
+    if (['/', '/ping', '/books', '/notes', '/upload'].includes(req.path) || req.path.startsWith('/cover/')) {
       return jsonResponse(405, { ok: false, error: '不支持的请求方法' });
     }
     return jsonResponse(404, { ok: false, error: '没有这个接口' });

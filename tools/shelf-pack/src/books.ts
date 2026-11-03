@@ -93,3 +93,9 @@ export function packBook(book: LocalBook, id: string): Uint8Array {
   }
   return zipSync(tree, { mtime: new Date('2026-01-01') });
 }
+
+/** 两份笔记导出是否只差导出日期；只差日期时不重写文件，避免每次拉取都产生 diff */
+export function sameNotes(a: string, b: string): boolean {
+  const strip = (s: string) => s.replace(/^exported: .*$/m, '');
+  return strip(a) === strip(b);
+}

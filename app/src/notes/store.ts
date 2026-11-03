@@ -1,4 +1,6 @@
 import { getDb } from '@/db';
+import { getBook, getChapters } from '@/db/queries';
+import { buildNotesMarkdown } from '@/notes/export';
 import type { HighlightMark, Quote } from '@/reader/bridge';
 
 export interface Highlight extends Quote {
@@ -109,4 +111,11 @@ export async function setNote(id: string, note: string | null) {
 
 export async function deleteHighlight(id: string) {
   await getDb().runAsync('DELETE FROM highlights WHERE id = ?', id);
+}
+
+/** 一本书的笔记导出为 Markdown（分享面板和局域网 GET /notes 共用）；没有高亮时返回 null */
+export async function bookNotesMarkdown(bookId: string): Promise<{ title: string; count: number; markdown: string } | null> {
+  const [book, chapters, items] = await Promise.all([getBook(bookId), getChapters(bookId), listHighlights(bookId)]);
+  if (!book || items.length === 0) return null;
+  return { title: book.title, count: items.length, markdown: buildNotesMarkdown(book, chapters, items) };
 }

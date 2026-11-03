@@ -33,6 +33,23 @@ export async function listDeviceBooks(to: string, pin: string): Promise<DeviceBo
   return body.books as DeviceBook[];
 }
 
+export interface DeviceNotes {
+  id: string;
+  title: string;
+  /** 高亮条数 */
+  count: number;
+  /** 与 App 分享导出的 <id>.notes.md 内容相同 */
+  markdown: string;
+}
+
+/** 手机上每本有高亮的书的笔记 */
+export async function pullDeviceNotes(to: string, pin: string): Promise<DeviceNotes[]> {
+  const { status, body } = await request(`${baseUrl(to)}/notes`, { headers: { 'X-Pin': pin } });
+  if (status === 404) throw new Error('手机上的 App 版本不支持拉取笔记，请先更新 App');
+  if (!body.ok) throw new Error(String(body.error ?? '获取笔记失败'));
+  return body.notes as DeviceNotes[];
+}
+
 export interface UploadResult {
   ok: boolean;
   status?: 'added' | 'updated';

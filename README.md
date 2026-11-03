@@ -150,6 +150,7 @@ chapters:                     # 必填，显式排序
 | POST | `/upload` | `multipart/form-data`，字段 `file`；请求头 `X-Pin`（浏览器页面通过表单字段传递） |
 | GET | `/books` | 返回本地已有书籍的 id、标题、更新时间和内容指纹 `hash`（CLI 据此判断是否需要推送）；同样需要 `X-Pin` |
 | GET | `/cover/<id>` | 书的 `cover.png`，上传页在导入成功后用来显示封面；需要 `X-Pin`，没有封面时 404 |
+| GET | `/notes` | 每本有高亮的书的笔记：`{ id, title, count, markdown }`，`markdown` 与分享导出的 `<id>.notes.md` 相同；需要 `X-Pin` |
 | GET | `/ping` | 不需要 PIN；上传页每 3 秒请求一次，连续两次失败就提示连接已断开 |
 
 响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`；`/upload` 成功时还带 `status`（`added` / `updated`）、`title`、`chapters`（章节数）、`cover`（是否有封面）和 `warnings`。
@@ -246,7 +247,7 @@ documentDirectory/
 - 底部悬浮的章节导航：上一章 / 当前章节序号 / 下一章
 - 链接：`#锚点` 在页内滚动；`03-x.md#锚点` 切到本书对应章节；`../<id>/…` 在当前阅读页之上打开另一本书的对应章节和小节（只写书 id 时打开到上次读到的位置），返回即回到原书，目标书未导入时给出提示；`http(s)` 链接交给系统打开
 - RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
-- 高亮与笔记：长按选中文字，系统菜单里选「高亮」或「笔记」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记或删除。「笔记」Tab 按书列出有高亮的书，阅读页右上角「笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`
+- 高亮与笔记：长按选中文字，系统菜单里选「高亮」或「笔记」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记或删除。「笔记」Tab 按书列出有高亮的书，阅读页右上角「笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
 - 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
 - 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
 - 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
@@ -279,6 +280,7 @@ shelf-pack ls    [books/]                     # 按 category 分组列出 id、�
 shelf-pack pack  <book-dir> [-o out.zip]      # 校验后打包成 zip
 shelf-pack push  <book-dir> --to <ip> --pin <pin>   # 打包并通过局域网上传
 shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /books，只推送有变化的书
+shelf-pack pull-notes [notes/] --to <ip> --pin <pin>     # 拉取手机上的全部笔记，写成 notes/<id>.notes.md
 ```
 
 理想流程：agent 写完一本书 → `shelf-pack push books/<id> --to ... --pin ...` → 手机上直接可读。
@@ -289,6 +291,7 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 - `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名
 - `push --changed` 比较内容指纹：`@shelf/spec` 的 `prepareImport()` 对将要写入设备的全部文件算出 `hash`，App 导入时存到书目录下的 `.content-hash` 并进入索引，`/books` 返回它；CLI 用同一个函数解开自己打的 zip 得到指纹，相同则跳过。设备上没有指纹的书（早期导入的、示例书）总是推送
 - PIN 错误时立即停止，避免连续失败把手机上的服务锁掉
+- `pull-notes` 与 `push` 方向相反：一次传书会话里先拉笔记、修订书，再 `push --changed`。和本地文件只差导出日期时不重写，避免每次拉取都产生 diff；手机上已没有高亮的书不会删除本地笔记文件
 
 ---
 

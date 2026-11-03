@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { isAllowedFile, prepareImport } from '@shelf/spec';
 import { describe, expect, it } from 'vitest';
-import { findBooks, groupByCategory, lint, NO_CATEGORY, packBook, readBook } from './books';
+import { findBooks, groupByCategory, lint, NO_CATEGORY, packBook, readBook, sameNotes } from './books';
 
 const booksRoot = path.resolve(import.meta.dirname, '../../../books');
 
@@ -50,5 +50,13 @@ describe('groupByCategory', () => {
     const last = groupByCategory([...validBooks, broken]).at(-1)!;
     expect(last[0]).toBe(NO_CATEGORY);
     expect(last[1].find((r) => r.dirName === 'aaa-broken')?.title).toBeNull();
+  });
+});
+
+describe('sameNotes', () => {
+  const notes = (exported: string, body: string) => `---\nbook: x\nexported: ${exported}\ncount: 1\n---\n\n${body}\n`;
+  it('ignores only the export date', () => {
+    expect(sameNotes(notes('2026-11-01', '> a'), notes('2026-11-03', '> a'))).toBe(true);
+    expect(sameNotes(notes('2026-11-01', '> a'), notes('2026-11-01', '> b'))).toBe(false);
   });
 });

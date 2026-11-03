@@ -3,7 +3,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { getDb } from '@/db';
 import { notifyLibraryChanged } from '@/library/events';
 import { writeBookAtomically } from '@/library/fs';
-import { rebuildIndex } from '@/library/index-books';
+import { reindexBook } from '@/library/index-books';
 import { bookDir, inboxDir } from '@/lib/paths';
 
 export type ImportResult =
@@ -42,7 +42,7 @@ export async function importFile(uri: string): Promise<ImportResult> {
     const existed = bookDir(prepared.id).exists;
     writeBookAtomically(prepared.id, prepared.files, prepared.hash);
     await cleanStaleProgress(prepared.id, prepared.manifest.chapters);
-    await rebuildIndex();
+    await reindexBook(prepared.id);
     notifyLibraryChanged();
 
     return {

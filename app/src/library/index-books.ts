@@ -1,7 +1,8 @@
 import { firstHeading, resolveBook, splitSections } from '@shelf/spec';
 import { Directory, File } from 'expo-file-system';
+import type { SQLiteDatabase } from 'expo-sqlite';
 import { getDb } from '@/db';
-import { booksDir } from '@/lib/paths';
+import { bookDir, booksDir } from '@/lib/paths';
 import { HASH_FILE } from './fs';
 
 interface ScannedBook {
@@ -67,44 +68,57 @@ export async function rebuildIndex() {
     const prev = await txn.getAllAsync<{ id: string; imported_at: number }>('SELECT id, imported_at FROM books');
     const importedAt = new Map(prev.map((r) => [r.id, r.imported_at]));
     await txn.execAsync('DELETE FROM chapters; DELETE FROM books; DELETE FROM search;');
-    for (const b of scanned) {
-      await txn.runAsync(
-        `INSERT INTO books (id, title, subtitle, category, tags, level, chapter_count, warnings,
-                            imported_at, updated_at, content_hash, last_read_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                 (SELECT MAX(updated_at) FROM progress WHERE book_id = ?))`,
-        b.id,
-        b.title,
-        b.subtitle,
-        b.category,
-        JSON.stringify(b.tags),
-        b.level,
-        b.chapters.length,
-        JSON.stringify(b.warnings),
-        importedAt.get(b.id) ?? Date.now(),
-        b.updated,
-        b.hash,
-        b.id,
-      );
-      for (const [idx, ch] of b.chapters.entries()) {
-        await txn.runAsync(
-          'INSERT INTO chapters (book_id, idx, file, title) VALUES (?, ?, ?, ?)',
-          b.id,
-          idx,
-          ch.file,
-          ch.title,
-        );
-        for (const sec of splitSections(ch.markdown)) {
-          await txn.runAsync(
-            'INSERT INTO search (book_id, chapter_file, anchor, heading, body) VALUES (?, ?, ?, ?, ?)',
-            b.id,
-            ch.file,
-            sec.anchor,
-            sec.heading,
-            sec.body,
-          );
-        }
-      }
-    }
+    for (const b of scanned) await insertBook(txn, b, importedAt.get(b.id) ?? Date.now());
   });
+}
+
+/**
+ * 只重建一本书的索引，供导入管线使用：全量重建要读遍整个书库，批量推送时每本都会越来越慢。
+ * 书目录不存在或解析失败时删掉这本书的索引。
+ */
+export async function reindexBook(id: string) {
+  const dir = bookDir(id);
+  const scanned = dir.exists ? scanBook(dir) : null;
+  const db = getDb();
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    const prev = await txn.getFirstAsync<{ imported_at: number }>('SELECT imported_at FROM books WHERE id = ?', id);
+    await txn.runAsync('DELETE FROM chapters WHERE book_id = ?', id);
+    await txn.runAsync('DELETE FROM search WHERE book_id = ?', id);
+    await txn.runAsync('DELETE FROM books WHERE id = ?', id);
+    if (scanned) await insertBook(txn, scanned, prev?.imported_at ?? Date.now());
+  });
+}
+
+async function insertBook(txn: SQLiteDatabase, b: ScannedBook, importedAt: number) {
+  await txn.runAsync(
+    `INSERT INTO books (id, title, subtitle, category, tags, level, chapter_count, warnings,
+                        imported_at, updated_at, content_hash, last_read_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+             (SELECT MAX(updated_at) FROM progress WHERE book_id = ?))`,
+    b.id,
+    b.title,
+    b.subtitle,
+    b.category,
+    JSON.stringify(b.tags),
+    b.level,
+    b.chapters.length,
+    JSON.stringify(b.warnings),
+    importedAt,
+    b.updated,
+    b.hash,
+    b.id,
+  );
+  for (const [idx, ch] of b.chapters.entries()) {
+    await txn.runAsync('INSERT INTO chapters (book_id, idx, file, title) VALUES (?, ?, ?, ?)', b.id, idx, ch.file, ch.title);
+    for (const sec of splitSections(ch.markdown)) {
+      await txn.runAsync(
+        'INSERT INTO search (book_id, chapter_file, anchor, heading, body) VALUES (?, ?, ?, ?, ?)',
+        b.id,
+        ch.file,
+        sec.anchor,
+        sec.heading,
+        sec.body,
+      );
+    }
+  }
 }

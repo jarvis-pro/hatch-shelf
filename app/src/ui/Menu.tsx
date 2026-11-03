@@ -6,18 +6,31 @@ import { useTheme } from './theme';
 
 export interface MenuItem {
   label: string;
-  icon: LucideIcon;
+  /** 不给时只显示文字（如定时菜单里没选中的项） */
+  icon?: LucideIcon;
   destructive?: boolean;
   onPress(): void;
 }
 
-/** 右上角「更多」按钮弹出的玻璃菜单 */
-export function Menu({ visible, top, items, onClose }: { visible: boolean; top: number; items: MenuItem[]; onClose(): void }) {
+/** 右上角「更多」按钮弹出的玻璃菜单；给 bottom 时从屏幕底部往上弹（听书面板上的定时） */
+export function Menu({
+  visible,
+  top,
+  bottom,
+  items,
+  onClose,
+}: {
+  visible: boolean;
+  top?: number;
+  bottom?: number;
+  items: MenuItem[];
+  onClose(): void;
+}) {
   const t = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: t.dark ? '#00000040' : '#1E2A5A14' }]} onPress={onClose} />
-      <Glass radius={18} strong style={[styles.menu, { top }]}>
+      <Glass radius={18} strong style={[styles.menu, { top, bottom }]}>
         {items.map((item, i) => {
           const color = item.destructive ? t.danger : t.fg;
           return (
@@ -32,7 +45,7 @@ export function Menu({ visible, top, items, onClose }: { visible: boolean; top: 
                 }}
               >
                 <Text style={{ color, fontSize: 15 }}>{item.label}</Text>
-                <item.icon size={17} color={color} />
+                {item.icon && <item.icon size={17} color={color} />}
               </Pressable>
             </Fragment>
           );

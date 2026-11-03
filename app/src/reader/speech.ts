@@ -1,17 +1,33 @@
 import { setAudioModeAsync, setIsAudioActiveAsync } from 'expo-audio';
+import { File } from 'expo-file-system';
 import * as Speech from 'expo-speech';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { AppState } from 'react-native';
-import { getSetting, setSetting } from '@/db/queries';
+import { getSetting, setSetting, type ChapterRow } from '@/db/queries';
+import { bookDir } from '@/lib/paths';
+import { addNowPlayingListener, clearNowPlaying, updateNowPlaying, type NowPlayingCommand } from '../../modules/now-playing';
 import type { ToReader } from './bridge';
 
 /**
- * 听书（README 第 8 节）：用系统语音逐段朗读本章，完全在本机运行。
- * 段落由阅读器切好（ttsCollect → ttsBlocks），整章一次排进系统的朗读队列，段与段之间没有停顿；
- * 每段开始时让阅读器标出这一段。音频会话设为 playback，静音键打开、锁屏或切到后台时都能读完本章。
+ * 听书（README 第 8 节）：用系统语音逐段朗读，完全在本机运行，读完一章接着读下一章。
+ * 段落由阅读器切好（ttsCollect → ttsBlocks）：开始时连后面各章一起切，App 在后台、WebView 被冻结时也能换章。
+ * 一章一次排进系统的朗读队列，本章最后一段开始时排进下一章，段与段、章与章之间都没有停顿；
+ * 每段开始时让阅读器标出这一段。音频会话设为 playback，静音键打开、锁屏或切到后台时都能接着读；
+ * 锁屏和控制中心显示正在读的章节，锁屏按钮、耳机线控可以暂停和跳段。
  */
 
 export type SpeechState = 'idle' | 'playing' | 'paused';
+
+/** 定时停止：chapter 为读完本章停，数字为分钟数（到点后读完当前这一段再停）；null 为不定时 */
+export type SleepTimer = null | 'chapter' | 15 | 30 | 60;
+
+export const SLEEP_TIMERS: { value: SleepTimer; label: string }[] = [
+  { value: null, label: '不定时' },
+  { value: 'chapter', label: '读完本章' },
+  { value: 15, label: '15 分钟' },
+  { value: 30, label: '30 分钟' },
+  { value: 60, label: '60 分钟' },
+];
 
 /** 语速档位：1 为系统默认语速 */
 export const SPEECH_RATES = [0.8, 1, 1.25, 1.5] as const;
@@ -79,23 +95,57 @@ function releaseAudio() {
   setIsAudioActiveAsync(false).catch(() => {});
 }
 
-export function useReadAloud(send: (msg: ToReader) => void) {
+interface Book {
+  id: string;
+  title: string | undefined;
+  chapters: ChapterRow[];
+  /** WebView 当前显示的章节文件；只有它就是正在读的章节时才让阅读器标段落 */
+  shownFile: RefObject<string | null>;
+  /** 读到了另一章（自动接下一章，或锁屏、耳机的下一段跨过了章末）；c 从 0 开始 */
+  onChapter(c: number): void;
+}
+
+/** 第 after 章之后第一个有段落的章节 */
+function nextChapter(segments: Map<number, string[]>, count: number, after: number) {
+  for (let c = after + 1; c < count; c++) {
+    if (segments.get(c)?.length) return c;
+  }
+  return null;
+}
+
+export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
   const [state, setState] = useState<SpeechState>('idle');
   const [rate, setRate] = useState<number>(1);
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   /** null 为自动 */
   const [voiceId, setVoiceId] = useState<string | null>(null);
+  /** 正在读的章节（从 0 开始）；不朗读时为 null */
+  const [chapter, setChapter] = useState<number | null>(null);
   /** 播放面板的段落进度：正在读第 index 段，共 total 段 */
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
   /** 手动滚走、正在读的段落不在屏幕上；面板显示「从这里读」 */
   const [away, setAway] = useState(false);
-  const texts = useRef<string[]>([]);
+  const [sleep, setSleep] = useState<SleepTimer>(null);
+  /** 已切好的各章段落，按章节下标 */
+  const segments = useRef(new Map<number, string[]>());
+  /** 这次 ttsCollect 从第几章开始、following 对应哪些章 */
+  const collecting = useRef<{ chapter: number; following: number[] } | null>(null);
+  const reading = useRef(0);
   /** 正在读的段落下标，改语速时从这一段重新开始 */
   const current = useRef(0);
   /** 每次重新排队都加一；旧队列被 stop 之后迟到的回调据此忽略 */
   const session = useRef(0);
   const rateChanged = useRef(false);
+  const sleepRef = useRef<SleepTimer>(null);
+  /** 定时分钟数到点的时刻 */
+  const deadline = useRef<number | null>(null);
+  /** 来电等打断时由我们暂停的，打断结束后自动接着读 */
+  const interrupted = useRef(false);
+  const bookRef = useRef(book);
+  useEffect(() => {
+    bookRef.current = book;
+  });
 
   useEffect(() => {
     void getSetting<number>(RATE_KEY, 1).then(setRate);
@@ -109,60 +159,131 @@ export function useReadAloud(send: (msg: ToReader) => void) {
       sub.remove();
       session.current += 1;
       void Speech.stop();
+      void clearNowPlaying();
       releaseAudio();
     };
+  }, []);
+
+  // 锁屏封面用书的 cover.png，没有就不显示
+  const cover = useMemo(() => {
+    const f = new File(bookDir(book.id), 'cover.png');
+    return f.exists ? f.uri : null;
+  }, [book.id]);
+
+  const chooseSleep = useCallback((next: SleepTimer) => {
+    setSleep(next);
+    sleepRef.current = next;
+    deadline.current = typeof next === 'number' ? Date.now() + next * 60_000 : null;
   }, []);
 
   const finish = useCallback(() => {
     session.current += 1;
     setState('idle');
+    setChapter(null);
     setAway(false);
+    chooseSleep(null);
+    interrupted.current = false;
     send({ type: 'ttsMark', index: null });
     void Speech.stop();
+    void clearNowPlaying();
     releaseAudio();
-  }, [send]);
+  }, [chooseSleep, send]);
+
+  /** 只有 WebView 正显示着正在读的章节时才标段落 */
+  const mark = useCallback(
+    (i: number, jump: boolean) => {
+      const { chapters, shownFile } = bookRef.current;
+      if (chapters[reading.current]?.file === shownFile.current) send({ type: 'ttsMark', index: i, jump });
+    },
+    [send],
+  );
 
   const speakFrom = useCallback(
     /** jump：用户主动跳段，阅读器即使被手动滚走也要滚到这一段 */
-    async (from: number, speed: number, chosen: string | null, jump = false) => {
+    async (from: { chapter: number; index: number }, speed: number, chosen: string | null, jump = false) => {
       const s = ++session.current;
-      setIndex(from);
+      const enter = (c: number, i: number, scroll: boolean) => {
+        if (reading.current !== c) {
+          reading.current = c;
+          setAway(false);
+          bookRef.current.onChapter(c);
+        }
+        setChapter(c);
+        setTotal(segments.current.get(c)?.length ?? 0);
+        current.current = i;
+        setIndex(i);
+        mark(i, scroll);
+      };
+      enter(from.chapter, from.index, false);
       rateChanged.current = false;
       await Speech.stop();
       const [list] = await Promise.all([loadVoices(), activateAudio()]);
       const voice = resolveVoice(list, chosen)?.id;
       if (s !== session.current) return;
-      const last = texts.current.length - 1;
       const alive = () => s === session.current;
-      for (let i = from; i <= last; i++) {
-        Speech.speak(texts.current[i], {
-          language: 'zh-CN',
-          voice,
-          rate: speed,
-          onStart: () => {
-            if (!alive()) return;
-            current.current = i;
-            setIndex(i);
-            send({ type: 'ttsMark', index: i, jump: jump && i === from });
-          },
-          onDone: i === last ? () => void (alive() && finish()) : undefined,
-          onError: () => void (alive() && finish()),
-        });
-      }
+      /** 已经排进队列的下一章 */
+      const queued = new Set<number>();
+      const count = bookRef.current.chapters.length;
+      const enqueue = (c: number, begin: number) => {
+        const texts = segments.current.get(c) ?? [];
+        const last = texts.length - 1;
+        const next = nextChapter(segments.current, count, c);
+        for (let i = begin; i <= last; i++) {
+          Speech.speak(texts[i], {
+            language: 'zh-CN',
+            voice,
+            rate: speed,
+            onStart: () => {
+              if (!alive()) return;
+              enter(c, i, jump && c === from.chapter && i === from.index);
+              // 最后一段开始时排进下一章，换章时不留空：后台没有声音的间隙里 App 可能被挂起
+              if (i === last && next !== null && sleepRef.current !== 'chapter' && !queued.has(next)) {
+                queued.add(next);
+                enqueue(next, 0);
+              }
+            },
+            onDone: () => {
+              if (!alive()) return;
+              // 定时到点：读完这一段就停，下一段刚开头也一并停掉
+              if (deadline.current !== null && Date.now() >= deadline.current) return finish();
+              if (i === last && (sleepRef.current === 'chapter' || next === null || !queued.has(next))) finish();
+            },
+            onError: () => void (alive() && finish()),
+          });
+        }
+      };
+      enqueue(from.chapter, from.index);
       setState('playing');
     },
-    [finish, send],
+    [finish, mark],
   );
 
-  /** 从视口里第一段开始读：先请阅读器切段落，回报后由 onBlocks 开始 */
-  const start = useCallback(() => send({ type: 'ttsCollect' }), [send]);
+  /** 从视口里第一段开始读第 at 章：先请阅读器切段落（连同还没切过的后面各章），回报后由 onBlocks 开始 */
+  const start = useCallback(
+    (at: number) => {
+      void (async () => {
+        const { id, chapters } = bookRef.current;
+        const following = chapters.map((_, i) => i).filter((i) => i > at && !segments.current.has(i));
+        const dir = bookDir(id);
+        const markdowns = await Promise.all(following.map((i) => new File(dir, chapters[i].file).text().catch(() => '')));
+        collecting.current = { chapter: at, following };
+        send({ type: 'ttsCollect', following: markdowns });
+      })();
+    },
+    [send],
+  );
 
   const onBlocks = useCallback(
-    (list: string[], from: number) => {
-      texts.current = list;
-      setTotal(list.length);
+    (list: string[], from: number, following: string[][]) => {
+      const req = collecting.current;
+      if (!req) return;
+      collecting.current = null;
+      segments.current.set(req.chapter, list);
+      req.following.forEach((c, k) => segments.current.set(c, following[k] ?? []));
       if (list.length === 0) return;
-      speakFrom(from, rate, voiceId).catch(finish);
+      // 从显示的这一章开始读，不算换章
+      reading.current = req.chapter;
+      speakFrom({ chapter: req.chapter, index: from }, rate, voiceId).catch(finish);
     },
     [finish, rate, speakFrom, voiceId],
   );
@@ -173,22 +294,27 @@ export function useReadAloud(send: (msg: ToReader) => void) {
   }, []);
 
   const resume = useCallback(() => {
+    interrupted.current = false;
+    // 暂停期间定时到了点：不再按它停
+    if (deadline.current !== null && Date.now() >= deadline.current) chooseSleep(null);
     // 暂停期间改过语速：已排队的段落还是旧语速，从当前段落重新排
     if (rateChanged.current) {
       rateChanged.current = false;
-      speakFrom(current.current, rate, voiceId).catch(finish);
+      speakFrom({ chapter: reading.current, index: current.current }, rate, voiceId).catch(finish);
       return;
     }
-    void Speech.resume();
+    void activateAudio()
+      .then(() => Speech.resume())
+      .catch(() => {});
     setState('playing');
-  }, [finish, rate, speakFrom, voiceId]);
+  }, [chooseSleep, finish, rate, speakFrom, voiceId]);
 
   /** 换到下一档语速；朗读中从当前段落按新语速重读，暂停中等继续时再生效 */
   const cycleRate = useCallback(() => {
     const next = SPEECH_RATES[(SPEECH_RATES.indexOf(rate as (typeof SPEECH_RATES)[number]) + 1) % SPEECH_RATES.length];
     setRate(next);
     void setSetting(RATE_KEY, next);
-    if (state === 'playing') speakFrom(current.current, next, voiceId).catch(finish);
+    if (state === 'playing') speakFrom({ chapter: reading.current, index: current.current }, next, voiceId).catch(finish);
     else if (state === 'paused') rateChanged.current = true;
   }, [finish, rate, speakFrom, state, voiceId]);
 
@@ -197,20 +323,88 @@ export function useReadAloud(send: (msg: ToReader) => void) {
     (id: string | null) => {
       setVoiceId(id);
       void setSetting(VOICE_KEY, id);
-      if (state !== 'idle') speakFrom(current.current, rate, id).catch(finish);
+      if (state !== 'idle') speakFrom({ chapter: reading.current, index: current.current }, rate, id).catch(finish);
     },
     [finish, rate, speakFrom, state],
   );
 
-  /** 跳到第 i 段（上一段 / 下一段 / 拖进度条），暂停中也直接开始读 */
+  /** 跳到本章第 i 段（上一段 / 下一段 / 拖进度条），暂停中也直接开始读 */
   const seek = useCallback(
     (i: number) => {
-      if (state === 'idle' || texts.current.length === 0) return;
-      const to = Math.min(texts.current.length - 1, Math.max(0, i));
-      speakFrom(to, rate, voiceId, true).catch(finish);
+      const texts = segments.current.get(reading.current) ?? [];
+      if (state === 'idle' || texts.length === 0) return;
+      const to = Math.min(texts.length - 1, Math.max(0, i));
+      speakFrom({ chapter: reading.current, index: to }, rate, voiceId, true).catch(finish);
     },
     [finish, rate, speakFrom, state, voiceId],
   );
+
+  /** 锁屏、耳机的下一段：本章最后一段时跳到下一章开头 */
+  const skipNext = useCallback(() => {
+    const last = (segments.current.get(reading.current)?.length ?? 0) - 1;
+    const next = nextChapter(segments.current, bookRef.current.chapters.length, reading.current);
+    if (current.current >= last && next !== null) {
+      speakFrom({ chapter: next, index: 0 }, rate, voiceId, true).catch(finish);
+    } else seek(current.current + 1);
+  }, [finish, rate, seek, speakFrom, voiceId]);
+
+  /** 阅读器显示出自动换到的章节后，标出正在读的段落并滚过去 */
+  const resync = useCallback(() => {
+    if (state !== 'idle') mark(current.current, true);
+  }, [mark, state]);
+
+  // 锁屏、控制中心的「正在播放」跟着章节和播放状态变
+  const title = chapter !== null ? book.chapters[chapter]?.title : undefined;
+  useEffect(() => {
+    if (state === 'idle' || chapter === null) return;
+    void updateNowPlaying({
+      title: title ?? `第 ${chapter + 1} 章`,
+      artist: book.title ?? '',
+      artwork: cover,
+      playing: state === 'playing',
+    });
+  }, [book.title, chapter, cover, state, title]);
+
+  const handlers = useRef({ state, pause, resume, seek, skipNext });
+  useEffect(() => {
+    handlers.current = { state, pause, resume, seek, skipNext };
+  });
+  useEffect(() => {
+    const sub = addNowPlayingListener((command: NowPlayingCommand) => {
+      const h = handlers.current;
+      if (h.state === 'idle') return;
+      const playing = h.state === 'playing';
+      switch (command) {
+        case 'play':
+          if (!playing) h.resume();
+          break;
+        case 'pause':
+        case 'unplugged':
+          if (playing) h.pause();
+          break;
+        case 'toggle':
+          if (playing) h.pause();
+          else h.resume();
+          break;
+        case 'next':
+          h.skipNext();
+          break;
+        case 'previous':
+          h.seek(current.current - 1);
+          break;
+        case 'interrupted':
+          if (playing) {
+            h.pause();
+            interrupted.current = true;
+          }
+          break;
+        case 'resumable':
+          if (interrupted.current) h.resume();
+          break;
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const voice = resolveVoice(voices, voiceId);
 
@@ -220,9 +414,11 @@ export function useReadAloud(send: (msg: ToReader) => void) {
     voices,
     voiceId,
     voice,
+    chapter,
     index,
     total,
     away,
+    sleep,
     /** 阅读器回报的 ttsAway */
     onAway: setAway,
     start,
@@ -232,6 +428,8 @@ export function useReadAloud(send: (msg: ToReader) => void) {
     stop: finish,
     cycleRate,
     chooseVoice,
+    chooseSleep,
     seek,
+    resync,
   };
 }

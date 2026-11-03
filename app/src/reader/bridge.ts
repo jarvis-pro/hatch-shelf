@@ -32,11 +32,14 @@ export type ToReader =
    * animate：刚新增的高亮从左到右扫过（in），刚删除的先反向收回再移除（out）
    */
   | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } }
-  /** 听书：请阅读器把本章切成可朗读的段落，回报 ttsBlocks */
-  | { type: 'ttsCollect' }
+  /**
+   * 听书：请阅读器把本章切成可朗读的段落，回报 ttsBlocks。
+   * following：后面各章的 Markdown，按同样的规则一起切好；App 在后台时 WebView 被冻结，读完本章后靠它接着读
+   */
+  | { type: 'ttsCollect'; following?: string[] }
   /**
    * 听书：标出正在读的第 index 段（ttsBlocks 里的下标），必要时滚过去；null 表示结束。
-   * jump：用户主动跳段（上一段 / 下一段 / 拖进度），不管刚才有没有手动滚走都滚过去
+   * jump：用户主动跳段（上一段 / 下一段 / 拖进度）或自动换章后回到前台，不管刚才有没有手动滚走都滚过去
    */
   | { type: 'ttsMark'; index: number | null; jump?: boolean }
   /** 章内查找：标亮本章全部匹配（不区分大小写），当前处取视口里或之后的第一处；空字符串等同 clearFind */
@@ -57,8 +60,8 @@ export type FromReader =
   /** 回应 captureSelection；没有选中文字时 quote 为 null */
   | { type: 'selection'; action: SelectionAction; quote: Quote | null }
   | { type: 'highlightTap'; id: string }
-  /** 回应 ttsCollect：按顺序排好的朗读文本，start 是视口里第一段的下标 */
-  | { type: 'ttsBlocks'; texts: string[]; start: number }
+  /** 回应 ttsCollect：按顺序排好的朗读文本，start 是视口里第一段的下标；following 与请求里的各章一一对应 */
+  | { type: 'ttsBlocks'; texts: string[]; start: number; following: string[][] }
   /** 听书时手动滚动，正在读的段落离开（away）或回到屏幕；离开期间不自动跟随 */
   | { type: 'ttsAway'; away: boolean }
   /** 回应 find / findStep，以及查找中切换主题后的重新标亮。index 从 1 开始，没有匹配时 total 和 index 都是 0 */

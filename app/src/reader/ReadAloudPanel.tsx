@@ -1,12 +1,13 @@
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AudioLines, ChevronRight, Gauge, Pause, Play, SkipBack, SkipForward, X } from 'lucide-react-native';
+import { AudioLines, Check, ChevronRight, Gauge, Pause, Play, SkipBack, SkipForward, Timer, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Animated, PanResponder, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Menu } from '@/ui/Menu';
 import { EASE_OUT_QUINT, useReduceMotion } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
-import { VOICE_TIER_LABELS, type SpeechState, type VoiceOption } from './speech';
+import { SLEEP_TIMERS, VOICE_TIER_LABELS, type SleepTimer, type SpeechState, type VoiceOption } from './speech';
 
 interface Props {
   state: SpeechState;
@@ -19,27 +20,30 @@ interface Props {
   away: boolean;
   rate: number;
   voice: VoiceOption | undefined;
+  sleep: SleepTimer;
   onPause(): void;
   onResume(): void;
   onSeek(index: number): void;
   onReadHere(): void;
   onRate(): void;
   onVoice(): void;
+  onSleep(timer: SleepTimer): void;
   onStop(): void;
 }
 
 /**
- * 听书时从屏幕底部升起的播放面板（README 第 8 节）：章节名、段落进度（可拖动跳段）、
+ * 听书时从屏幕底部升起的播放面板（README 第 8 节）：章节名、定时停止、段落进度（可拖动跳段）、
  * 语速 / 上一段 / 播放 / 下一段 / 语音。听书不要求沉浸，正文让出底部；不朗读时不占位置
  */
 export function ReadAloudPanel(props: Props) {
-  const { state, chapterNo, chapterTitle, index, total, away, rate, voice } = props;
+  const { state, chapterNo, chapterTitle, index, total, away, rate, voice, sleep } = props;
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const visible = state !== 'idle';
   const anim = useState(() => new Animated.Value(visible ? 1 : 0))[0];
   const [height, setHeight] = useState(240);
+  const [sleepMenu, setSleepMenu] = useState(false);
 
   useEffect(() => {
     Animated.timing(anim, { toValue: visible ? 1 : 0, duration: 280, easing: EASE_OUT_QUINT, useNativeDriver: true }).start();
@@ -49,6 +53,8 @@ export function ReadAloudPanel(props: Props) {
   const playing = state === 'playing';
   const PlayIcon = playing ? Pause : Play;
   const tier = voice && VOICE_TIER_LABELS[voice.tier];
+  // 只显示选了哪一档，不倒数剩余时间
+  const sleepLabel = sleep === null ? null : sleep === 'chapter' ? '读完本章停' : `定时 ${sleep} 分钟`;
 
   return (
     <Animated.View
@@ -67,12 +73,21 @@ export function ReadAloudPanel(props: Props) {
       <View style={styles.head}>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={[styles.kicker, { color: t.fg3 }]}>
-            {playing ? '正在朗读' : '已暂停'} · 第 {chapterNo} 章
+            {playing ? '正在朗读' : '已暂停'} · 第 {chapterNo} 章{sleepLabel && ` · ${sleepLabel}`}
           </Text>
           <Text style={[styles.title, { color: t.fg }]} numberOfLines={1}>
             {chapterTitle}
           </Text>
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`定时停止${sleepLabel ? `，${sleepLabel}` : ''}，点按选择`}
+          hitSlop={8}
+          style={[styles.close, { backgroundColor: sleep === null ? t.fill : t.accentSoft }]}
+          onPress={() => setSleepMenu(true)}
+        >
+          <Timer size={16} color={sleep === null ? t.fg2 : t.accent} strokeWidth={2} />
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="停止听书"
@@ -159,6 +174,17 @@ export function ReadAloudPanel(props: Props) {
           </Pressable>
         </View>
       </View>
+
+      <Menu
+        visible={sleepMenu}
+        bottom={height + 8}
+        items={SLEEP_TIMERS.map(({ value, label }) => ({
+          label,
+          icon: value === sleep ? Check : undefined,
+          onPress: () => props.onSleep(value),
+        }))}
+        onClose={() => setSleepMenu(false)}
+      />
     </Animated.View>
   );
 }

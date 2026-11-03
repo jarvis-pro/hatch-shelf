@@ -6,7 +6,7 @@ import mermaid from 'mermaid';
 import { calloutPlugin } from './callouts';
 import { activeFind, clearFind, find, findStep } from './find';
 import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
-import { collectBlocks, markBlock, remarkBlocks, resetBlocks, watchAway } from './tts';
+import { collectBlocks, markBlock, remarkBlocks, resetBlocks, segmentHtml, watchAway } from './tts';
 import type {
   FromReader,
   NextRead,
@@ -344,11 +344,15 @@ window.__shelf = {
         if (animate?.kind === 'in' && !reducedMotion.matches) sweepHighlight(content, animate.id, 'in', SWEEP_MS);
         break;
       }
-      case 'ttsCollect':
-        post({ type: 'ttsBlocks', ...collectBlocks(content, TOP_INSET) });
+      case 'ttsCollect': {
+        // 只取文本，图片地址随便给一个基准即可
+        const env: RenderEnv = { bookBaseUrl: 'file:///' };
+        const following = (msg.following ?? []).map((m) => segmentHtml(md.render(m, env)));
+        post({ type: 'ttsBlocks', ...collectBlocks(content, TOP_INSET), following });
         break;
+      }
       case 'ttsMark':
-        markBlock(msg.index, TOP_INSET, msg.jump);
+        markBlock(content, msg.index, TOP_INSET, msg.jump);
         break;
       case 'find':
         post({ type: 'findResult', ...find(content, msg.query, !reducedMotion.matches) });

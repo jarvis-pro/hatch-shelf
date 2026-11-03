@@ -73,7 +73,7 @@ function spokenText(el: Element): string {
   return (clone.textContent ?? '').replace(/\s+/g, ' ').trim();
 }
 
-function walk(parent: Element, out: Block[]) {
+function walk(parent: ParentNode, out: Block[]) {
   for (const el of parent.children) {
     if (el.matches(SILENT)) continue;
     const skipped = SKIPPED.find(([sel]) => el.matches(sel));
@@ -105,8 +105,22 @@ export function collectBlocks(content: Element, topInset: number): { texts: stri
   return { texts: blocks.map((b) => b.text), start: Math.max(0, start) };
 }
 
+/**
+ * 切还没显示的章节：渲染进 template（里面的图片不会加载），按同样的规则只取文本。
+ * 编号与这一章显示出来后 collectBlocks 的结果一致，自动换章后标记可以直接用
+ */
+export function segmentHtml(html: string): string[] {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const out: Block[] = [];
+  walk(template.content, out);
+  return out.map((b) => b.text);
+}
+
 /** 标出正在读的段落；null 表示结束朗读。jump 为用户主动跳段，总是滚过去 */
-export function markBlock(index: number | null, topInset: number, jump = false) {
+export function markBlock(content: Element, index: number | null, topInset: number, jump = false) {
+  // 听书中自动换到的章节：阅读器加载时清掉了段落，这里重新切
+  if (index !== null && blocks.length === 0) walk(content, blocks);
   blocks[active]?.el.classList.remove('tts-on');
   active = index ?? -1;
   if (index === null) setAway(false);

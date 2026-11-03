@@ -1,10 +1,10 @@
 import { File, Paths } from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Ellipsis, Headphones, List, NotebookPen, TextSearch, Type } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { parseBookLink } from '@shelf/spec';
-import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, Linking, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent } from 'react-native-webview';
 import {
@@ -81,6 +81,8 @@ export default function ReaderScreen() {
   const pendingFocus = useRef<string | null>(highlightParam ?? null);
   /** WebView 当前显示的章节，用来给 position 消息归属，避免切章时串到别的章节 */
   const shownFile = useRef<string | null>(null);
+  /** 听书自动读到了下一章，阅读页正跟过去：从章首加载，渲染完再滚到正在读的段落 */
+  const following = useRef(false);
 
   // 阅读页不单独设主题，跟随 App 的外观
   const mode = t.dark ? 'dark' : 'light';
@@ -104,9 +106,39 @@ export default function ReaderScreen() {
     webRef.current?.injectJavaScript(`window.__shelf.receive(${JSON.stringify(msg)});true;`);
   }, []);
 
-  const speech = useReadAloud(send);
-  const { stop: stopSpeech, onBlocks: onSpeechBlocks, onAway: onSpeechAway } = speech;
+  /** 跟到听书正在读的第 c 章 */
+  const follow = useCallback((c: number) => {
+    following.current = true;
+    pendingAnchor.current = null;
+    setFinding(false);
+    setRendered(false);
+    setIdx(c);
+  }, []);
+
+  // 听书读到了下一章：记下进度，下次打开这本书从这一章开始。
+  // 阅读页在前台时跟过去；后台时 WebView 被冻结，等回到前台再换
+  const onSpeechChapter = useCallback(
+    (c: number) => {
+      const ch = chapters[c];
+      if (ch) void saveProgress(id, ch.file, { scrollRatio: 0 });
+      if (AppState.currentState === 'active') follow(c);
+    },
+    [chapters, follow, id],
+  );
+
+  const speech = useReadAloud(send, { id, title: book?.title, chapters, shownFile, onChapter: onSpeechChapter });
+  const { stop: stopSpeech, onBlocks: onSpeechBlocks, onAway: onSpeechAway, resync: resyncSpeech } = speech;
   const speaking = speech.state !== 'idle';
+  /** 正在读的章节；不听书时就是显示的章节 */
+  const reading = speech.chapter ?? idx;
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      const c = speech.chapter;
+      if (next === 'active' && c !== null && chapters[c] && chapters[c].file !== shownFile.current) follow(c);
+    });
+    return () => sub.remove();
+  }, [chapters, follow, speech.chapter]);
 
   // 章节一确定就画版式占位，不等 WebView；跳转或从中途继续时顶部没有章标题
   useEffect(() => {
@@ -140,7 +172,9 @@ export default function ReaderScreen() {
       pendingFind.current = null;
       pendingFocus.current = null;
       const restore: ReaderPosition | undefined =
-        anchorTo || find || focus ? { scrollRatio: 0, anchor: anchorTo ?? undefined } : await getProgress(id, ch.file);
+        anchorTo || find || focus || following.current
+          ? { scrollRatio: 0, anchor: anchorTo ?? undefined }
+          : await getProgress(id, ch.file);
       const highlights = await listHighlights(id, ch.file);
       const next = idx === chapters.length - 1 ? await loadNextReads(id) : undefined;
       // 切章时等占位盖住旧正文再换内容
@@ -220,7 +254,7 @@ export default function ReaderScreen() {
     (next: number, anchorTo?: string) => {
       if (next < 0 || next >= chapters.length) return;
       if (next === idx && anchorTo) return send({ type: 'scrollTo', anchor: anchorTo });
-      // 听书只读当前这一章，换章即停
+      // 听书时手动换章即停；自动读到下一章不走这里
       if (speaking) stopSpeech();
       pendingAnchor.current = anchorTo ?? null;
       // 查找只在本章内，换章就收起（阅读器加载新章时会自己清掉标亮）
@@ -241,6 +275,10 @@ export default function ReaderScreen() {
           break;
         case 'rendered':
           setRendered(true);
+          if (following.current) {
+            following.current = false;
+            resyncSpeech();
+          }
           break;
         case 'toc':
           setToc(msg.items);
@@ -269,7 +307,7 @@ export default function ReaderScreen() {
           onHighlightTap(msg.id).catch((err: Error) => setError(err.message));
           break;
         case 'ttsBlocks':
-          onSpeechBlocks(msg.texts, msg.start);
+          onSpeechBlocks(msg.texts, msg.start, msg.following);
           break;
         case 'ttsAway':
           onSpeechAway(msg.away);
@@ -282,7 +320,7 @@ export default function ReaderScreen() {
           break;
       }
     },
-    [chapters, goTo, id, onSelection, onHighlightTap, themeKey, onSpeechBlocks, onSpeechAway],
+    [chapters, goTo, id, onSelection, onHighlightTap, themeKey, onSpeechBlocks, onSpeechAway, resyncSpeech],
   );
 
   const changePrefs = useCallback((next: ReaderPrefs) => {
@@ -302,6 +340,8 @@ export default function ReaderScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: t.paper }]}>
+      {/* iOS 26 起默认全屏右滑返回，会和播放面板上左右拖动的进度条抢手势；听书时只留左边缘返回 */}
+      <Stack.Screen options={{ fullScreenGestureEnabled: !speaking }} />
       {theme && (
         <WebView
           ref={webRef}
@@ -372,16 +412,16 @@ export default function ReaderScreen() {
           { label: '阅读设置', icon: Type, onPress: () => setPanel('settings') },
           speaking
             ? { label: '停止听书', icon: Headphones, onPress: stopSpeech }
-            : { label: '听本章', icon: Headphones, onPress: speech.start },
+            : { label: '听书', icon: Headphones, onPress: () => speech.start(at) },
         ]}
         onClose={() => setPanel(null)}
       />
 
-      {idx !== null && chapters[idx] && (
+      {reading !== null && chapters[reading] && (
         <ReadAloudPanel
           state={speech.state}
-          chapterNo={idx + 1}
-          chapterTitle={chapters[idx].title}
+          chapterNo={reading + 1}
+          chapterTitle={chapters[reading].title}
           index={speech.index}
           total={speech.total}
           away={speech.away}
@@ -390,8 +430,10 @@ export default function ReaderScreen() {
           onPause={speech.pause}
           onResume={speech.resume}
           onSeek={speech.seek}
-          onReadHere={speech.start}
+          onReadHere={() => speech.start(at)}
           onRate={speech.cycleRate}
+          sleep={speech.sleep}
+          onSleep={speech.chooseSleep}
           onVoice={() => setPanel('voice')}
           onStop={stopSpeech}
         />

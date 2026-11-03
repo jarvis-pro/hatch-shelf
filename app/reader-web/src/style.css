@@ -58,10 +58,10 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-/* 上下留出 App 的悬浮顶栏和底部章节导航 */
+/* 顶部留出 App 的悬浮顶栏；底部不放导航，正文铺到屏幕底，只避开 Home 指示条 */
 body {
   margin: 0;
-  padding: 104px 26px 150px;
+  padding: 104px 26px calc(24px + env(safe-area-inset-bottom));
   background: var(--bg);
   color: var(--fg);
   font: var(--font-size) / var(--line-height) -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;

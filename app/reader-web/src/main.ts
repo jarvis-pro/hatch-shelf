@@ -125,7 +125,7 @@ function applyTheme(theme: ReaderTheme) {
   });
 }
 
-/** 章标题上方的 CHAPTER 07；上一章 / 下一章由 App 底部的导航栏负责 */
+/** 章标题上方的 CHAPTER 07 */
 const kicker = (no: number) => `<p class="chapter-kicker">CHAPTER ${String(no).padStart(2, '0')}</p>`;
 
 /** 左右方向的流程图：flowchart LR / RL，graph LR / RL */

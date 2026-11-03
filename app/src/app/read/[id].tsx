@@ -1,10 +1,10 @@
 import { File, Paths } from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, ChevronRight, List, NotebookPen, Type } from 'lucide-react-native';
+import { ChevronLeft, Ellipsis, List, NotebookPen, Type } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { parseBookLink } from '@shelf/spec';
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent } from 'react-native-webview';
 import {
@@ -28,8 +28,8 @@ import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, t
 import { TocSheet } from '@/reader/TocSheet';
 import { WebView, type WebViewHandle } from '@/reader/web-view';
 import { openBook, openNotes } from '@/shelf/actions';
-import { Glass, GlassButton } from '@/ui/glass';
-import { ProgressBar } from '@/ui/motion';
+import { GlassButton } from '@/ui/glass';
+import { Menu } from '@/ui/Menu';
 import { useTheme } from '@/ui/theme';
 
 /**
@@ -63,7 +63,7 @@ export default function ReaderScreen() {
   /** 阅读器已渲染完当前章节；之前由版式占位盖住 */
   const [rendered, setRendered] = useState(false);
   const [placeholder, setPlaceholder] = useState<PlaceholderChapter | null>(null);
-  const [panel, setPanel] = useState<'toc' | 'settings' | null>(null);
+  const [panel, setPanel] = useState<'menu' | 'toc' | 'settings' | null>(null);
   const [error, setError] = useState<string | null>(null);
   /** 跨章链接 `02-x.md#anchor` 或搜索结果跳过来时要定位的锚点 */
   const pendingAnchor = useRef<string | null>(anchorParam ?? null);
@@ -263,7 +263,6 @@ export default function ReaderScreen() {
     void saveReaderPrefs(next);
   }, []);
 
-  const total = chapters.length;
   const at = idx ?? 0;
 
   return (
@@ -318,30 +317,20 @@ export default function ReaderScreen() {
       />
       <View style={[styles.topBar, { top: insets.top - 4 }]} pointerEvents="box-none">
         <GlassButton icon={ChevronLeft} label="返回" onPress={() => router.back()} />
-        <View style={styles.topRight}>
-          <GlassButton icon={List} label="目录" onPress={() => setPanel('toc')} />
-          <GlassButton icon={NotebookPen} label="笔记" onPress={() => openNotes(id)} />
-          <GlassButton icon={Type} label="阅读设置" onPress={() => setPanel('settings')} />
-        </View>
+        <GlassButton icon={Ellipsis} label="更多" onPress={() => setPanel('menu')} />
       </View>
 
-      <LinearGradient
-        colors={[`${t.paper}00`, `${t.paper}E6`]}
-        locations={[0, 0.6]}
-        style={[styles.bottom, { paddingBottom: insets.bottom + 8 }]}
-        pointerEvents="box-none"
-      >
-        <Glass radius={26} style={styles.navPill}>
-          <NavButton label="上一章" disabled={at <= 0} onPress={() => goTo(at - 1)} left />
-          <View style={styles.mid}>
-            <Text style={[styles.counter, { color: t.fg }]}>
-              {total ? at + 1 : 0} / {total}
-            </Text>
-            <ProgressBar value={total ? (at + 1) / total : 0} height={3} track={t.track} fill={t.accent} style={{ width: 64 }} />
-          </View>
-          <NavButton label="下一章" disabled={at >= total - 1} onPress={() => goTo(at + 1)} />
-        </Glass>
-      </LinearGradient>
+      {/* 不提供上一章 / 下一章，换章走目录，正文铺满到屏幕底 */}
+      <Menu
+        visible={panel === 'menu'}
+        top={insets.top + 44}
+        items={[
+          { label: '目录', icon: List, onPress: () => setPanel('toc') },
+          { label: '本书笔记', icon: NotebookPen, onPress: () => openNotes(id) },
+          { label: '阅读设置', icon: Type, onPress: () => setPanel('settings') },
+        ]}
+        onClose={() => setPanel(null)}
+      />
 
       <TocSheet
         visible={panel === 'toc'}
@@ -368,33 +357,10 @@ export default function ReaderScreen() {
   );
 }
 
-function NavButton({ label, left, disabled, onPress }: { label: string; left?: boolean; disabled: boolean; onPress(): void }) {
-  const t = useTheme();
-  const Icon = left ? ChevronLeft : ChevronRight;
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => [styles.navBtn, { opacity: disabled ? 0.35 : 1 }, pressed && { backgroundColor: t.fill }]}
-      accessibilityRole="button"
-    >
-      {left && <Icon size={16} color={t.fg2} />}
-      <Text style={{ color: t.fg2, fontSize: 13 }}>{label}</Text>
-      {!left && <Icon size={16} color={t.fg2} />}
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
   error: { padding: 24, textAlign: 'center', lineHeight: 22 },
   topFade: { position: 'absolute', left: 0, right: 0, top: 0 },
   topBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' },
-  topRight: { flexDirection: 'row', gap: 8 },
-  bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingTop: 28, paddingHorizontal: 20 },
-  navPill: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6 },
-  navBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 20 },
-  mid: { alignItems: 'center', gap: 5 },
-  counter: { fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
 });

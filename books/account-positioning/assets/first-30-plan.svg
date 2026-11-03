@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="300" viewBox="0 0 360 300" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+  <rect x="0.5" y="0.5" width="359" height="299" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+  <text x="180" y="30" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">前 30 条的三个阶段</text>
+  <!-- row 1: 1-10 -->
+  <text x="20" y="62" font-size="13" font-weight="600" fill="#1f2328">第 1–10 条：摸底</text>
+  <text x="340" y="62" text-anchor="end" font-size="12" fill="#656d76">三个支柱轮流发</text>
+  <g font-size="12" text-anchor="middle">
+    <rect x="20" y="72" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="34" y="90" fill="#ffffff">1</text>
+    <rect x="52" y="72" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="66" y="90" fill="#1f2328">2</text>
+    <rect x="84" y="72" width="28" height="28" rx="5" fill="#e6e9ed"/><text x="98" y="90" fill="#1f2328">3</text>
+    <rect x="116" y="72" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="130" y="90" fill="#ffffff">4</text>
+    <rect x="148" y="72" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="162" y="90" fill="#1f2328">5</text>
+    <rect x="180" y="72" width="28" height="28" rx="5" fill="#e6e9ed"/><text x="194" y="90" fill="#1f2328">6</text>
+    <rect x="212" y="72" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="226" y="90" fill="#ffffff">7</text>
+    <rect x="244" y="72" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="258" y="90" fill="#1f2328">8</text>
+    <rect x="276" y="72" width="28" height="28" rx="5" fill="#e6e9ed"/><text x="290" y="90" fill="#1f2328">9</text>
+    <rect x="308" y="72" width="28" height="28" rx="5" fill="#ffffff" stroke="#2f6fdf" stroke-width="2"/><text x="322" y="90" fill="#1f2328">10</text>
+  </g>
+  <!-- row 2: 11-20 -->
+  <text x="20" y="128" font-size="13" font-weight="600" fill="#1f2328">第 11–20 条：对比测试</text>
+  <text x="340" y="128" text-anchor="end" font-size="12" fill="#656d76">每次只改一个变量</text>
+  <g font-size="12" text-anchor="middle">
+    <rect x="20" y="138" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="34" y="156" fill="#ffffff">11</text>
+    <rect x="52" y="138" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="66" y="156" fill="#ffffff">12</text>
+    <rect x="84" y="138" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="98" y="156" fill="#1f2328">13</text>
+    <rect x="116" y="138" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="130" y="156" fill="#ffffff">14</text>
+    <rect x="148" y="138" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="162" y="156" fill="#ffffff">15</text>
+    <rect x="180" y="138" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="194" y="156" fill="#1f2328">16</text>
+    <rect x="212" y="138" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="226" y="156" fill="#ffffff">17</text>
+    <rect x="244" y="138" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="258" y="156" fill="#ffffff">18</text>
+    <rect x="276" y="138" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="290" y="156" fill="#1f2328">19</text>
+    <rect x="308" y="138" width="28" height="28" rx="5" fill="#ffffff" stroke="#2f6fdf" stroke-width="2"/><text x="322" y="156" fill="#1f2328">20</text>
+  </g>
+  <!-- row 3: 21-30 -->
+  <text x="20" y="194" font-size="13" font-weight="600" fill="#1f2328">第 21–30 条：加码</text>
+  <text x="340" y="194" text-anchor="end" font-size="12" fill="#656d76">集中到最好的支柱</text>
+  <g font-size="12" text-anchor="middle">
+    <rect x="20" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="34" y="222" fill="#ffffff">21</text>
+    <rect x="52" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="66" y="222" fill="#ffffff">22</text>
+    <rect x="84" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="98" y="222" fill="#ffffff">23</text>
+    <rect x="116" y="204" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="130" y="222" fill="#1f2328">24</text>
+    <rect x="148" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="162" y="222" fill="#ffffff">25</text>
+    <rect x="180" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="194" y="222" fill="#ffffff">26</text>
+    <rect x="212" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="226" y="222" fill="#ffffff">27</text>
+    <rect x="244" y="204" width="28" height="28" rx="5" fill="#dbe7fb"/><text x="258" y="222" fill="#1f2328">28</text>
+    <rect x="276" y="204" width="28" height="28" rx="5" fill="#2f6fdf"/><text x="290" y="222" fill="#ffffff">29</text>
+    <rect x="308" y="204" width="28" height="28" rx="5" fill="#ffffff" stroke="#2f6fdf" stroke-width="2"/><text x="322" y="222" fill="#1f2328">30</text>
+  </g>
+  <!-- legend -->
+  <g font-size="12" fill="#656d76">
+    <rect x="20" y="252" width="14" height="14" rx="3" fill="#2f6fdf"/><text x="40" y="264">支柱 A</text>
+    <rect x="96" y="252" width="14" height="14" rx="3" fill="#dbe7fb"/><text x="116" y="264">支柱 B</text>
+    <rect x="172" y="252" width="14" height="14" rx="3" fill="#e6e9ed"/><text x="192" y="264">支柱 C</text>
+    <rect x="248" y="252" width="14" height="14" rx="3" fill="#ffffff" stroke="#2f6fdf" stroke-width="2"/><text x="268" y="264">发完后复盘</text>
+    <text x="20" y="286">示例：摸底后 A 最好、C 最差，测试期停掉 C</text>
+  </g>
+</svg>

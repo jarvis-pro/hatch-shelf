@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+  <rect x="0.5" y="0.5" width="359" height="359" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+  <text x="180" y="30" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">单条诊断：开头留存 × 互动转粉</text>
+  <!-- quadrants -->
+  <rect x="60" y="50" width="140" height="120" fill="#dbe7fb" stroke="#d8dee4"/>
+  <rect x="200" y="50" width="140" height="120" fill="#2f6fdf" stroke="#d8dee4"/>
+  <rect x="60" y="170" width="140" height="120" fill="#e6e9ed" stroke="#d8dee4"/>
+  <rect x="200" y="170" width="140" height="120" fill="#dbe7fb" stroke="#d8dee4"/>
+  <!-- top-left: low hook, high engagement -->
+  <text x="130" y="88" text-anchor="middle" font-size="14" font-weight="600" fill="#1f2328">内容好，开头弱</text>
+  <text x="130" y="112" text-anchor="middle" font-size="12" fill="#1f2328">看完的人都认可</text>
+  <text x="130" y="130" text-anchor="middle" font-size="12" fill="#1f2328">但多数人没留下来</text>
+  <text x="130" y="154" text-anchor="middle" font-size="12" fill="#2f6fdf" font-weight="600">改开头和封面</text>
+  <!-- top-right -->
+  <text x="270" y="88" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff">方向对了</text>
+  <text x="270" y="112" text-anchor="middle" font-size="12" fill="#ffffff">留得住，也愿意互动</text>
+  <text x="270" y="130" text-anchor="middle" font-size="12" fill="#ffffff">和转粉</text>
+  <text x="270" y="154" text-anchor="middle" font-size="12" fill="#ffffff" font-weight="600">做成系列、加码</text>
+  <!-- bottom-left -->
+  <text x="130" y="208" text-anchor="middle" font-size="14" font-weight="600" fill="#1f2328">选题或人群不对</text>
+  <text x="130" y="232" text-anchor="middle" font-size="12" fill="#1f2328">留不住，也没人互动</text>
+  <text x="130" y="250" text-anchor="middle" font-size="12" fill="#1f2328">连续出现要警惕</text>
+  <text x="130" y="274" text-anchor="middle" font-size="12" fill="#2f6fdf" font-weight="600">换选题，回看定位</text>
+  <!-- bottom-right -->
+  <text x="270" y="208" text-anchor="middle" font-size="14" font-weight="600" fill="#1f2328">开头好，内容弱</text>
+  <text x="270" y="232" text-anchor="middle" font-size="12" fill="#1f2328">被开头吸引进来</text>
+  <text x="270" y="250" text-anchor="middle" font-size="12" fill="#1f2328">看完不觉得有收获</text>
+  <text x="270" y="274" text-anchor="middle" font-size="12" fill="#2f6fdf" font-weight="600">补干货，兑现承诺</text>
+  <!-- axes -->
+  <line x1="60" y1="290" x2="340" y2="290" stroke="#656d76" stroke-width="1.5"/>
+  <line x1="60" y1="50" x2="60" y2="290" stroke="#656d76" stroke-width="1.5"/>
+  <text x="200" y="312" text-anchor="middle" font-size="12" fill="#656d76">开头留存（相对自己的中位数）低 → 高</text>
+  <text x="38" y="170" text-anchor="middle" font-size="12" fill="#656d76" transform="rotate(-90 38 170)">互动与转粉 低 → 高</text>
+  <text x="180" y="340" text-anchor="middle" font-size="12" fill="#656d76">高低都和自己账号的中位数比，不和别人比</text>
+</svg>

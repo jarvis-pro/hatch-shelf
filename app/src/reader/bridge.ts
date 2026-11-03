@@ -34,8 +34,11 @@ export type ToReader =
   | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } }
   /** 听书：请阅读器把本章切成可朗读的段落，回报 ttsBlocks */
   | { type: 'ttsCollect' }
-  /** 听书：标出正在读的第 index 段（ttsBlocks 里的下标），必要时滚过去；null 表示结束 */
-  | { type: 'ttsMark'; index: number | null }
+  /**
+   * 听书：标出正在读的第 index 段（ttsBlocks 里的下标），必要时滚过去；null 表示结束。
+   * jump：用户主动跳段（上一段 / 下一段 / 拖进度），不管刚才有没有手动滚走都滚过去
+   */
+  | { type: 'ttsMark'; index: number | null; jump?: boolean }
   /** 章内查找：标亮本章全部匹配（不区分大小写），当前处取视口里或之后的第一处；空字符串等同 clearFind */
   | { type: 'find'; query: string }
   /** 跳到上一处（-1）/ 下一处（1），首尾循环 */
@@ -56,6 +59,8 @@ export type FromReader =
   | { type: 'highlightTap'; id: string }
   /** 回应 ttsCollect：按顺序排好的朗读文本，start 是视口里第一段的下标 */
   | { type: 'ttsBlocks'; texts: string[]; start: number }
+  /** 听书时手动滚动，正在读的段落离开（away）或回到屏幕；离开期间不自动跟随 */
+  | { type: 'ttsAway'; away: boolean }
   /** 回应 find / findStep，以及查找中切换主题后的重新标亮。index 从 1 开始，没有匹配时 total 和 index 都是 0 */
   | { type: 'findResult'; query: string; index: number; total: number }
   | { type: 'error'; message: string };

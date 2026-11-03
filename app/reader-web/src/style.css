@@ -526,9 +526,9 @@ mark.hl.doubt.has-note {
   transition: background-color 200ms ease;
 }
 
-/* 朗读期间底部浮着播放条，正文多留出一段可以滚上来的空白 */
+/* 朗读期间屏幕底部是播放面板，正文多留出一段可以滚上来的空白 */
 body.tts-playing {
-  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  padding-bottom: calc(260px + env(safe-area-inset-bottom));
 }
 
 /* ---------- 提示块（> [!NOTE] 等，见 callouts.ts） ---------- */

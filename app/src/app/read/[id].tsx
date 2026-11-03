@@ -25,7 +25,7 @@ import type { FromReader, Quote, ReaderPosition, SelectionAction, ToReader, TocI
 import { loadNextReads } from '@/reader/next-reads';
 import { FindBar, type FindState } from '@/reader/FindBar';
 import { COVER_MS, PagePlaceholder, type PlaceholderChapter } from '@/reader/PagePlaceholder';
-import { ReadAloudBar } from '@/reader/ReadAloudBar';
+import { ReadAloudPanel } from '@/reader/ReadAloudPanel';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { useReadAloud } from '@/reader/speech';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
@@ -105,7 +105,7 @@ export default function ReaderScreen() {
   }, []);
 
   const speech = useReadAloud(send);
-  const { stop: stopSpeech, onBlocks: onSpeechBlocks } = speech;
+  const { stop: stopSpeech, onBlocks: onSpeechBlocks, onAway: onSpeechAway } = speech;
   const speaking = speech.state !== 'idle';
 
   // 章节一确定就画版式占位，不等 WebView；跳转或从中途继续时顶部没有章标题
@@ -271,6 +271,9 @@ export default function ReaderScreen() {
         case 'ttsBlocks':
           onSpeechBlocks(msg.texts, msg.start);
           break;
+        case 'ttsAway':
+          onSpeechAway(msg.away);
+          break;
         case 'findResult':
           setFindResult({ query: msg.query, index: msg.index, total: msg.total });
           break;
@@ -279,7 +282,7 @@ export default function ReaderScreen() {
           break;
       }
     },
-    [chapters, goTo, id, onSelection, onHighlightTap, themeKey, onSpeechBlocks],
+    [chapters, goTo, id, onSelection, onHighlightTap, themeKey, onSpeechBlocks, onSpeechAway],
   );
 
   const changePrefs = useCallback((next: ReaderPrefs) => {
@@ -374,16 +377,25 @@ export default function ReaderScreen() {
         onClose={() => setPanel(null)}
       />
 
-      <ReadAloudBar
-        state={speech.state}
-        rate={speech.rate}
-        voice={speech.voice}
-        onPause={speech.pause}
-        onResume={speech.resume}
-        onRate={speech.cycleRate}
-        onVoice={() => setPanel('voice')}
-        onStop={stopSpeech}
-      />
+      {idx !== null && chapters[idx] && (
+        <ReadAloudPanel
+          state={speech.state}
+          chapterNo={idx + 1}
+          chapterTitle={chapters[idx].title}
+          index={speech.index}
+          total={speech.total}
+          away={speech.away}
+          rate={speech.rate}
+          voice={speech.voice}
+          onPause={speech.pause}
+          onResume={speech.resume}
+          onSeek={speech.seek}
+          onReadHere={speech.start}
+          onRate={speech.cycleRate}
+          onVoice={() => setPanel('voice')}
+          onStop={stopSpeech}
+        />
+      )}
       <VoiceSheet
         visible={panel === 'voice'}
         voices={speech.voices}

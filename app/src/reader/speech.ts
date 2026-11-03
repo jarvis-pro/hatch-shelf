@@ -85,6 +85,11 @@ export function useReadAloud(send: (msg: ToReader) => void) {
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   /** null 为自动 */
   const [voiceId, setVoiceId] = useState<string | null>(null);
+  /** 播放面板的段落进度：正在读第 index 段，共 total 段 */
+  const [index, setIndex] = useState(0);
+  const [total, setTotal] = useState(0);
+  /** 手动滚走、正在读的段落不在屏幕上；面板显示「从这里读」 */
+  const [away, setAway] = useState(false);
   const texts = useRef<string[]>([]);
   /** 正在读的段落下标，改语速时从这一段重新开始 */
   const current = useRef(0);
@@ -111,14 +116,17 @@ export function useReadAloud(send: (msg: ToReader) => void) {
   const finish = useCallback(() => {
     session.current += 1;
     setState('idle');
+    setAway(false);
     send({ type: 'ttsMark', index: null });
     void Speech.stop();
     releaseAudio();
   }, [send]);
 
   const speakFrom = useCallback(
-    async (from: number, speed: number, chosen: string | null) => {
+    /** jump：用户主动跳段，阅读器即使被手动滚走也要滚到这一段 */
+    async (from: number, speed: number, chosen: string | null, jump = false) => {
       const s = ++session.current;
+      setIndex(from);
       rateChanged.current = false;
       await Speech.stop();
       const [list] = await Promise.all([loadVoices(), activateAudio()]);
@@ -134,7 +142,8 @@ export function useReadAloud(send: (msg: ToReader) => void) {
           onStart: () => {
             if (!alive()) return;
             current.current = i;
-            send({ type: 'ttsMark', index: i });
+            setIndex(i);
+            send({ type: 'ttsMark', index: i, jump: jump && i === from });
           },
           onDone: i === last ? () => void (alive() && finish()) : undefined,
           onError: () => void (alive() && finish()),
@@ -151,6 +160,7 @@ export function useReadAloud(send: (msg: ToReader) => void) {
   const onBlocks = useCallback(
     (list: string[], from: number) => {
       texts.current = list;
+      setTotal(list.length);
       if (list.length === 0) return;
       speakFrom(from, rate, voiceId).catch(finish);
     },
@@ -192,7 +202,36 @@ export function useReadAloud(send: (msg: ToReader) => void) {
     [finish, rate, speakFrom, state],
   );
 
+  /** 跳到第 i 段（上一段 / 下一段 / 拖进度条），暂停中也直接开始读 */
+  const seek = useCallback(
+    (i: number) => {
+      if (state === 'idle' || texts.current.length === 0) return;
+      const to = Math.min(texts.current.length - 1, Math.max(0, i));
+      speakFrom(to, rate, voiceId, true).catch(finish);
+    },
+    [finish, rate, speakFrom, state, voiceId],
+  );
+
   const voice = resolveVoice(voices, voiceId);
 
-  return { state, rate, voices, voiceId, voice, start, onBlocks, pause, resume, stop: finish, cycleRate, chooseVoice };
+  return {
+    state,
+    rate,
+    voices,
+    voiceId,
+    voice,
+    index,
+    total,
+    away,
+    /** 阅读器回报的 ttsAway */
+    onAway: setAway,
+    start,
+    onBlocks,
+    pause,
+    resume,
+    stop: finish,
+    cycleRate,
+    chooseVoice,
+    seek,
+  };
 }

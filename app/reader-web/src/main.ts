@@ -6,7 +6,7 @@ import mermaid from 'mermaid';
 import { calloutPlugin } from './callouts';
 import { activeFind, clearFind, find, findStep } from './find';
 import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
-import { collectBlocks, markBlock, remarkBlocks, resetBlocks } from './tts';
+import { collectBlocks, markBlock, remarkBlocks, resetBlocks, watchAway } from './tts';
 import type {
   FromReader,
   NextRead,
@@ -111,6 +111,9 @@ const nextRead = document.getElementById('next-read')!;
 const SWEEP_MS = 280;
 /** 顶部返回、「···」按钮和渐隐区的高度；听书从它下面第一段开始读 */
 const TOP_INSET = 100;
+
+watchAway(TOP_INSET, (away) => post({ type: 'ttsAway', away }));
+
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let current: Extract<ToReader, { type: 'load' }> | null = null;
 let restoring = false;
@@ -345,7 +348,7 @@ window.__shelf = {
         post({ type: 'ttsBlocks', ...collectBlocks(content, TOP_INSET) });
         break;
       case 'ttsMark':
-        markBlock(msg.index, TOP_INSET);
+        markBlock(msg.index, TOP_INSET, msg.jump);
         break;
       case 'find':
         post({ type: 'findResult', ...find(content, msg.query, !reducedMotion.matches) });

@@ -1,0 +1,19 @@
+id: ai-drama-storyboard
+title: AI 短剧分镜与画面生成
+subtitle: 从剧本到分镜表、设定卡、提示词与成片画面
+category: media/drama
+tags: [ai-drama, storyboard, motion-comic, image-generation, video-generation, prompt, character-consistency]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-pipeline.md
+  - 02-shot-language.md
+  - 03-script-to-storyboard.md
+  - 04-style-and-scenes.md
+  - 05-character-consistency.md
+  - 06-image-prompts.md
+  - 07-video-generation.md
+  - 08-motion-comic.md
+  - 09-full-episode.md
+  - 10-batch-production.md

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="350" viewBox="0 0 360 350" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+  <rect x="0.5" y="0.5" width="359" height="349" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+  <text x="180" y="26" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">景别：取景框框住人物的多少</text>
+  <g transform="translate(-10,0)"><rect x="24" y="44" width="212" height="284" fill="#dbe7fb" fill-opacity="0.35" stroke="#656d76" stroke-dasharray="4 3"/>
+  <path d="M24 300 L70 262 L104 284 L150 246 L200 280 L236 260 L236 328 L24 328 Z" fill="#e6e9ed"/>
+  <g fill="#656d76">
+    <circle cx="130" cy="88" r="15"/>
+    <rect x="125" y="102" width="10" height="8"/>
+    <path d="M108 112 Q130 106 152 112 L156 176 L104 176 Z"/>
+    <path d="M104 176 L156 176 L150 196 L110 196 Z"/>
+    <rect x="112" y="196" width="14" height="98" rx="5"/>
+    <rect x="134" y="196" width="14" height="98" rx="5"/>
+    <rect x="96" y="114" width="10" height="70" rx="5"/>
+    <rect x="154" y="114" width="10" height="70" rx="5"/>
+  </g>
+  <g fill="none" stroke="#2f6fdf" stroke-width="1.6">
+    <rect x="114" y="80" width="32" height="14"/>
+    <rect x="106" y="66" width="48" height="50"/>
+    <rect x="94" y="60" width="72" height="88"/>
+    <rect x="82" y="54" width="96" height="134"/>
+    <rect x="68" y="48" width="124" height="252"/>
+  </g>
+  </g><g stroke="#656d76" stroke-width="0.8" transform="translate(-10,0)">
+    <line x1="146" y1="87" x2="240" y2="87"/>
+    <line x1="154" y1="112" x2="240" y2="112"/>
+    <line x1="166" y1="144" x2="240" y2="144"/>
+    <line x1="178" y1="184" x2="240" y2="184"/>
+    <line x1="192" y1="296" x2="240" y2="296"/>
+    <line x1="236" y1="52" x2="240" y2="52"/>
+  </g>
+  <g font-size="12" fill="#1f2328">
+    <text x="234" y="56">远景：环境为主</text>
+    <text x="234" y="91">大特写：局部</text>
+    <text x="234" y="116">特写：脸</text>
+    <text x="234" y="148">近景：胸部以上</text>
+    <text x="234" y="188">中景：腰部以上</text>
+    <text x="234" y="300">全景：头到脚</text>
+  </g>
+  <text x="180" y="342" text-anchor="middle" font-size="11" fill="#656d76">蓝框由小到大：大特写、特写、近景、中景、全景；虚线框为远景</text>
+</svg>

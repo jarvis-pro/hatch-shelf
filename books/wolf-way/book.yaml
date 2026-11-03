@@ -1,0 +1,24 @@
+id: wolf-way
+title: 狼道
+subtitle: 从真实的狼群，看一个人怎样长期把事做成
+category: 一人公司/经营
+tags: [opc, mindset, wolf, strategy, behavioral-ecology]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-wolf-culture.md
+  - 02-alpha.md
+  - 03-hunting-odds.md
+  - 04-leaving.md
+  - 05-territory.md
+  - 06-pack-size.md
+  - 07-feast-famine.md
+  - 08-dispersal.md
+  - 09-stories.md
+  - 10-wolf-way.md
+next:
+  - id: opc-playbook
+    reason: 把这本书里的比喻落到选方向、做验证、稳过渡的具体做法上
+  - id: opc-action-plan
+    reason: 按阶段拆好的执行清单，适合读完就动手

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="320" viewBox="0 0 360 320" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="319" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">每年差一点，几年后差一半</text>
+<text x="180" y="52" text-anchor="middle" font-size="12" fill="#656d76">按年存活率 84% 与 66% 连乘计算</text>
+<line x1="70" y1="240" x2="310" y2="240" stroke="#656d76"/>
+<line x1="70" y1="80" x2="70" y2="240" stroke="#d8dee4"/><text x="70" y="258" text-anchor="middle" font-size="12" fill="#656d76">0 年</text><line x1="150" y1="80" x2="150" y2="240" stroke="#d8dee4"/><text x="150" y="258" text-anchor="middle" font-size="12" fill="#656d76">1 年</text><line x1="230" y1="80" x2="230" y2="240" stroke="#d8dee4"/><text x="230" y="258" text-anchor="middle" font-size="12" fill="#656d76">2 年</text><line x1="310" y1="80" x2="310" y2="240" stroke="#d8dee4"/><text x="310" y="258" text-anchor="middle" font-size="12" fill="#656d76">3 年</text><text x="62" y="244" text-anchor="end" font-size="11" fill="#656d76">0%</text><text x="62" y="164.0" text-anchor="end" font-size="11" fill="#656d76">50%</text><text x="62" y="84" text-anchor="end" font-size="11" fill="#656d76">100%</text><polyline points="70,80.0 150,105.6 230,127.1 310,145.2" fill="none" stroke="#656d76" stroke-width="2.4"/><circle cx="70" cy="80.0" r="3.5" fill="#656d76"/><circle cx="150" cy="105.6" r="3.5" fill="#656d76"/><circle cx="230" cy="127.1" r="3.5" fill="#656d76"/><circle cx="310" cy="145.2" r="3.5" fill="#656d76"/><text x="318" y="149.2" font-size="13" font-weight="600" fill="#656d76">59%</text><polyline points="70,80.0 150,134.4 230,170.3 310,194.0" fill="none" stroke="#2f6fdf" stroke-width="2.4"/><circle cx="70" cy="80.0" r="3.5" fill="#2f6fdf"/><circle cx="150" cy="134.4" r="3.5" fill="#2f6fdf"/><circle cx="230" cy="170.3" r="3.5" fill="#2f6fdf"/><circle cx="310" cy="194.0" r="3.5" fill="#2f6fdf"/><text x="318" y="198.0" font-size="13" font-weight="600" fill="#2f6fdf">29%</text>
+<line x1="40" y1="284" x2="62" y2="284" stroke="#656d76" stroke-width="2.4"/>
+<text x="68" y="288" font-size="12" fill="#1f2328">定居（年存活 84%）</text>
+<line x1="190" y1="284" x2="212" y2="284" stroke="#2f6fdf" stroke-width="2.4"/>
+<text x="218" y="288" font-size="12" fill="#1f2328">扩散（66%）</text>
+<text x="180" y="308" text-anchor="middle" font-size="11" fill="#656d76">年存活率取自一项重新定殖种群的研究，仅作示意</text>
+</svg>

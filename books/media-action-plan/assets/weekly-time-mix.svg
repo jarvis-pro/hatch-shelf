@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 362" width="360" height="362" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="361" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="26" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">每周时间怎么分（建议）</text>
+<text x="180" y="44" text-anchor="middle" font-size="11" fill="#656d76">占每周副业时间的百分比</text>
+<text x="40" y="74" text-anchor="end" font-size="12" fill="#1f2328">A1</text>
+<rect x="48.0" y="58" width="189.8" height="22" fill="#2f6fdf"/>
+<text x="142.9" y="73" text-anchor="middle" font-size="11" fill="#ffffff">65%</text>
+<rect x="237.8" y="58" width="58.4" height="22" fill="#dbe7fb"/>
+<text x="267.0" y="73" text-anchor="middle" font-size="11" fill="#1f2328">20%</text>
+<rect x="296.2" y="58" width="43.8" height="22" fill="#e6e9ed"/>
+<text x="318.1" y="73" text-anchor="middle" font-size="11" fill="#1f2328">15%</text>
+<text x="40" y="104" text-anchor="end" font-size="12" fill="#1f2328">A2</text>
+<rect x="48.0" y="88" width="175.2" height="22" fill="#2f6fdf"/>
+<text x="135.6" y="103" text-anchor="middle" font-size="11" fill="#ffffff">60%</text>
+<rect x="223.2" y="88" width="58.4" height="22" fill="#dbe7fb"/>
+<text x="252.4" y="103" text-anchor="middle" font-size="11" fill="#1f2328">20%</text>
+<rect x="281.6" y="88" width="14.6" height="22" fill="#656d76"/>
+<rect x="296.2" y="88" width="43.8" height="22" fill="#e6e9ed"/>
+<text x="318.1" y="103" text-anchor="middle" font-size="11" fill="#1f2328">15%</text>
+<text x="40" y="134" text-anchor="end" font-size="12" fill="#1f2328">A3</text>
+<rect x="48.0" y="118" width="131.4" height="22" fill="#2f6fdf"/>
+<text x="113.7" y="133" text-anchor="middle" font-size="11" fill="#ffffff">45%</text>
+<rect x="179.4" y="118" width="43.8" height="22" fill="#dbe7fb"/>
+<text x="201.3" y="133" text-anchor="middle" font-size="11" fill="#1f2328">15%</text>
+<rect x="223.2" y="118" width="87.6" height="22" fill="#656d76"/>
+<text x="267.0" y="133" text-anchor="middle" font-size="11" fill="#ffffff">30%</text>
+<rect x="310.8" y="118" width="29.2" height="22" fill="#e6e9ed"/>
+<text x="325.4" y="133" text-anchor="middle" font-size="11" fill="#1f2328">10%</text>
+<text x="40" y="164" text-anchor="end" font-size="12" fill="#1f2328">A4</text>
+<rect x="48.0" y="148" width="116.8" height="22" fill="#2f6fdf"/>
+<text x="106.4" y="163" text-anchor="middle" font-size="11" fill="#ffffff">40%</text>
+<rect x="164.8" y="148" width="43.8" height="22" fill="#dbe7fb"/>
+<text x="186.7" y="163" text-anchor="middle" font-size="11" fill="#1f2328">15%</text>
+<rect x="208.6" y="148" width="102.2" height="22" fill="#656d76"/>
+<text x="259.7" y="163" text-anchor="middle" font-size="11" fill="#ffffff">35%</text>
+<rect x="310.8" y="148" width="29.2" height="22" fill="#e6e9ed"/>
+<text x="325.4" y="163" text-anchor="middle" font-size="11" fill="#1f2328">10%</text>
+<text x="40" y="202" text-anchor="end" font-size="12" fill="#1f2328">D1</text>
+<rect x="48.0" y="186" width="146.0" height="22" fill="#2f6fdf"/>
+<text x="121.0" y="201" text-anchor="middle" font-size="11" fill="#ffffff">50%</text>
+<rect x="194.0" y="186" width="146.0" height="22" fill="#e6e9ed"/>
+<text x="267.0" y="201" text-anchor="middle" font-size="11" fill="#1f2328">50%</text>
+<text x="40" y="232" text-anchor="end" font-size="12" fill="#1f2328">D2</text>
+<rect x="48.0" y="216" width="219.0" height="22" fill="#2f6fdf"/>
+<text x="157.5" y="231" text-anchor="middle" font-size="11" fill="#ffffff">75%</text>
+<rect x="267.0" y="216" width="14.6" height="22" fill="#dbe7fb"/>
+<rect x="281.6" y="216" width="14.6" height="22" fill="#656d76"/>
+<rect x="296.2" y="216" width="43.8" height="22" fill="#e6e9ed"/>
+<text x="318.1" y="231" text-anchor="middle" font-size="11" fill="#1f2328">15%</text>
+<text x="40" y="262" text-anchor="end" font-size="12" fill="#1f2328">D3</text>
+<rect x="48.0" y="246" width="131.4" height="22" fill="#2f6fdf"/>
+<text x="113.7" y="261" text-anchor="middle" font-size="11" fill="#ffffff">45%</text>
+<rect x="179.4" y="246" width="43.8" height="22" fill="#dbe7fb"/>
+<text x="201.3" y="261" text-anchor="middle" font-size="11" fill="#1f2328">15%</text>
+<rect x="223.2" y="246" width="87.6" height="22" fill="#656d76"/>
+<text x="267.0" y="261" text-anchor="middle" font-size="11" fill="#ffffff">30%</text>
+<rect x="310.8" y="246" width="29.2" height="22" fill="#e6e9ed"/>
+<text x="325.4" y="261" text-anchor="middle" font-size="11" fill="#1f2328">10%</text>
+<text x="40" y="292" text-anchor="end" font-size="12" fill="#1f2328">D4</text>
+<rect x="48.0" y="276" width="87.6" height="22" fill="#2f6fdf"/>
+<text x="91.8" y="291" text-anchor="middle" font-size="11" fill="#ffffff">30%</text>
+<rect x="135.6" y="276" width="29.2" height="22" fill="#dbe7fb"/>
+<text x="150.2" y="291" text-anchor="middle" font-size="11" fill="#1f2328">10%</text>
+<rect x="164.8" y="276" width="116.8" height="22" fill="#656d76"/>
+<text x="223.2" y="291" text-anchor="middle" font-size="11" fill="#ffffff">40%</text>
+<rect x="281.6" y="276" width="58.4" height="22" fill="#e6e9ed"/>
+<text x="310.8" y="291" text-anchor="middle" font-size="11" fill="#1f2328">20%</text>
+<rect x="24" y="314" width="12" height="12" fill="#2f6fdf" stroke="#d8dee4"/>
+<text x="42" y="324" font-size="12" fill="#1f2328">生产</text>
+<rect x="190" y="314" width="12" height="12" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="208" y="324" font-size="12" fill="#1f2328">发布与运营</text>
+<rect x="24" y="334" width="12" height="12" fill="#656d76" stroke="#d8dee4"/>
+<text x="42" y="344" font-size="12" fill="#1f2328">变现与商务</text>
+<rect x="190" y="334" width="12" height="12" fill="#e6e9ed" stroke="#d8dee4"/>
+<text x="208" y="344" font-size="12" fill="#1f2328">学习与复盘</text>
+</svg>

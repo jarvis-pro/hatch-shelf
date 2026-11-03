@@ -62,7 +62,8 @@ function AppStack() {
     <>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="search" options={{ animation: 'fade' }} />
+        {/* iOS 的 fade 默认 500ms，进搜索页会显得拖沓；200ms 与键盘弹起同步 */}
+        <Stack.Screen name="search" options={{ animation: 'fade', animationDuration: 200 }} />
         <Stack.Screen
           name="peek/[id]"
           options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}

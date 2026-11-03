@@ -1,0 +1,19 @@
+id: media-compliance
+title: 自媒体与短剧合规财税
+subtitle: 广告标注、资质、版权肖像、AI 标识、MCN 合同、平台收入的税与账号资产
+category: media/business
+tags: [media, compliance, advertising-law, copyright, ai-labeling, mcn, tax, short-drama]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-overview.md
+  - 02-advertising.md
+  - 03-regulated-topics.md
+  - 04-copyright-portrait.md
+  - 05-ai-labeling.md
+  - 06-minors-livestream.md
+  - 07-mcn-contracts.md
+  - 08-income-tax.md
+  - 09-entity.md
+  - 10-account-assets.md

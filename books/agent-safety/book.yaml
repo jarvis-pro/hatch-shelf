@@ -14,3 +14,6 @@ chapters:
   - 05-human-in-the-loop.md
   - 06-audit-replay.md
   - 07-security-checklist.md
+next:
+  - id: ai-cognition
+    reason: 技术之外的判断力

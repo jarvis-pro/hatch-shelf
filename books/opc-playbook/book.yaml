@@ -14,3 +14,8 @@ chapters:
   - 05-energy-rhythm.md
   - 06-when-to-quit.md
   - 07-case-studies.md
+next:
+  - id: linux-essentials
+    reason: 第一批还剩运维的两块地基
+  - id: product-thinking
+    reason: 方向定了，接着想清楚做什么产品

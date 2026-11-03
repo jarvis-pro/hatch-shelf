@@ -17,3 +17,6 @@ chapters:
   - 08-delivery-onboarding.md
   - 09-renewal-expansion-churn.md
   - 10-pipeline-and-agent.md
+next:
+  - id: opc-transition
+    reason: 产品还养不活自己的那段时间怎么过

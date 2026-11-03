@@ -15,3 +15,6 @@ chapters:
   - 06-websocket-sse.md
   - 07-logging-debug.md
   - 08-alternatives.md
+next:
+  - id: deploy-release
+    reason: 入口搭好，接着把发布做成一条脚本

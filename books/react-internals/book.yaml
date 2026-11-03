@@ -16,3 +16,8 @@ chapters:
   - 07-react-compiler.md
   - 08-state-management.md
   - 09-performance.md
+next:
+  - id: frontend-engineering
+    reason: 框架之外的浏览器和工具链
+  - id: rn-expo
+    reason: 同一套心智模型搬到手机上

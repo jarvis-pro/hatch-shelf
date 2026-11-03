@@ -13,3 +13,6 @@ chapters:
   - 04-human-ai-division.md
   - 05-trends-and-hype.md
   - 06-your-place.md
+next:
+  - id: ai-native-opc
+    reason: 把这些判断落到一人公司的日常里

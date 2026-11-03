@@ -14,3 +14,6 @@ chapters:
   - 05-mcp.md
   - 06-evals.md
   - 07-deploy.md
+next:
+  - id: multi-agent
+    reason: 一个 agent 不够用时怎么组织多个

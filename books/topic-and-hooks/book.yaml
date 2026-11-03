@@ -16,3 +16,6 @@ chapters:
   - 07-titles-covers.md
   - 08-data-review.md
   - 09-series-and-columns.md
+next:
+  - id: video-script-storyboard
+    reason: 把选题写成脚本和分镜

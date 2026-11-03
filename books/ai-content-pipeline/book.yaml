@@ -17,3 +17,8 @@ chapters:
   - 08-matrix-and-batch.md
   - 09-cost.md
   - 10-platform-rules.md
+next:
+  - id: ai-drama-storyboard
+    reason: 把工具链用到 AI 短剧上
+  - id: creator-tools
+    reason: 把流水线做成给别人用的产品

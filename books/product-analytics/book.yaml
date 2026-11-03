@@ -15,3 +15,6 @@ chapters:
   - 06-ab-testing.md
   - 07-self-hosting.md
   - 08-when-not-to-track.md
+next:
+  - id: opc-action-plan
+    reason: 第五批开始：把前面的书排成一条能照着走的路线

@@ -16,3 +16,8 @@ chapters:
   - 07-kuaishou.md
   - 08-violations-appeals.md
   - 09-matrix-boundaries.md
+next:
+  - id: live-streaming
+    reason: 短视频之外的另一种形态
+  - id: brand-deals
+    reason: 有了粉丝，接第一单商单

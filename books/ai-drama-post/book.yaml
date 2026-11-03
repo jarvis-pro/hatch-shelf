@@ -17,3 +17,6 @@ chapters:
   - 08-delivery-specs.md
   - 09-qc-and-rework.md
   - 10-walkthrough-and-cost.md
+next:
+  - id: drama-distribution
+    reason: 成片之后：备案、上线和分账

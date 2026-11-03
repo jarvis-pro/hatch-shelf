@@ -15,3 +15,6 @@ chapters:
   - 06-cost-control.md
   - 07-on-call.md
   - 08-checklists.md
+next:
+  - id: observability-performance
+    reason: 先看见，再优化

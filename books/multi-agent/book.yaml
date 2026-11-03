@@ -15,3 +15,6 @@ chapters:
   - 06-cross-validation.md
   - 07-cost-control.md
   - 08-case-bookshelf.md
+next:
+  - id: agent-safety
+    reason: agent 多了，权限和审计要跟上

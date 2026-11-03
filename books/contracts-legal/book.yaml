@@ -16,3 +16,6 @@ chapters:
   - 07-esign-evidence.md
   - 08-collections-disputes.md
   - 09-when-to-hire-lawyer.md
+next:
+  - id: private-domain-cn
+    reason: 国内获客的另一条路：内容平台和私域

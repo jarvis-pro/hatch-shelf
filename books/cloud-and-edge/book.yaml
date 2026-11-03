@@ -14,3 +14,6 @@ chapters:
   - 05-storage-primitives.md
   - 06-wrangler-deploy.md
   - 07-cost-model.md
+next:
+  - id: going-global
+    reason: 用上海外云之后，看看出海还要准备什么

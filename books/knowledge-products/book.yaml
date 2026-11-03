@@ -17,3 +17,6 @@ chapters:
   - 08-delivery-reputation.md
   - 09-refunds-disputes.md
   - 10-tech-creators.md
+next:
+  - id: paid-traffic
+    reason: 发售时要不要投流、投多少

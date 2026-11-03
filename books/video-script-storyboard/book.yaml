@@ -16,3 +16,6 @@ chapters:
   - 07-examples-talk-and-story.md
   - 08-examples-review-vlog-graphic.md
   - 09-ai-assist.md
+next:
+  - id: shooting-editing
+    reason: 脚本有了，拿起手机拍出来

@@ -14,3 +14,6 @@ chapters:
   - 05-design-system.md
   - 06-mobile-guidelines.md
   - 07-states-and-copy.md
+next:
+  - id: copywriting-content
+    reason: 界面之外，文字也在替产品说话

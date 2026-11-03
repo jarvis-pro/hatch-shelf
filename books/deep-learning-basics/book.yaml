@@ -15,3 +15,8 @@ chapters:
   - 06-sequence-models.md
   - 07-attention.md
   - 08-mini-gpt.md
+next:
+  - id: llm-deep-dive
+    reason: 亲手写过注意力，再看各种新技术就有了参照
+  - id: open-models
+    reason: 想自己跑模型、做微调

@@ -17,3 +17,8 @@ chapters:
   - 08-cross-posting.md
   - 09-creator-analytics.md
   - 10-violations-throttling.md
+next:
+  - id: brand-deals
+    reason: 有了粉丝，接第一单商单
+  - id: knowledge-products
+    reason: 知识区的常见变现：课程和社群

@@ -16,3 +16,6 @@ chapters:
   - 07-contract-settlement.md
   - 08-long-term.md
   - 09-mcn.md
+next:
+  - id: knowledge-products
+    reason: 商单之外，做一个自己的产品

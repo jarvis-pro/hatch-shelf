@@ -17,3 +17,8 @@ chapters:
   - 08-d3-d5-release-studio.md
   - 09-weekly-loop-budget.md
   - 10-when-stuck.md
+next:
+  - id: account-positioning
+    reason: 账号线的第一步：选赛道、找对标
+  - id: micro-drama-industry
+    reason: AI 短剧线的第一步：先看清行业

@@ -16,3 +16,6 @@ chapters:
   - 07-commercial-insurance.md
   - 08-side-income-tax.md
   - 09-family-expectations.md
+next:
+  - id: contracts-legal
+    reason: 接外包、签客户，都要落到合同上

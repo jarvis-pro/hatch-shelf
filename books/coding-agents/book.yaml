@@ -15,3 +15,6 @@ chapters:
   - 06-monorepo.md
   - 07-review-testing.md
   - 08-pitfalls.md
+next:
+  - id: personal-agent-workflow
+    reason: 跳出写代码，看 agent 还能接哪些活

@@ -14,3 +14,8 @@ chapters:
   - 05-regression.md
   - 06-agent-evals.md
   - 07-online-feedback.md
+next:
+  - id: product-thinking
+    reason: 第四批开始：技术之外，想清楚做什么
+  - id: llmops
+    reason: 有了评测，就能放心把应用推上线

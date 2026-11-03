@@ -16,3 +16,6 @@ chapters:
   - 07-vacuum-bloat.md
   - 08-major-upgrade.md
   - 09-db-in-containers.md
+next:
+  - id: math-for-ai
+    reason: 运维告一段落，第三批回到 AI 原理线

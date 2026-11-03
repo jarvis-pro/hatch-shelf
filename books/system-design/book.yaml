@@ -16,3 +16,6 @@ chapters:
   - 07-object-storage.md
   - 08-multi-tenancy.md
   - 09-evolution.md
+next:
+  - id: app-security
+    reason: 边界画清了，再看哪里会被攻破

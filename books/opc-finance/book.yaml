@@ -13,3 +13,6 @@ chapters:
   - 04-cash-flow.md
   - 05-separate-money.md
   - 06-tools-and-bookkeeper.md
+next:
+  - id: product-analytics
+    reason: 用数据判断哪些增长是真的

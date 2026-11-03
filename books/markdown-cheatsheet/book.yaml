@@ -7,3 +7,6 @@ created: 2026-11-02
 updated: 2026-11-02
 chapters:
   - 01-syntax.md
+next:
+  - id: shelf-guide
+    reason: 高亮、笔记和跨书链接这些用法，都在使用指南里

@@ -15,3 +15,6 @@ chapters:
   - 06-app-store-iap.md
   - 07-refunds-disputes.md
   - 08-case-hatch-counter.md
+next:
+  - id: opc-compliance-cn
+    reason: 收钱之前，先把主体、备案和资质理顺

@@ -17,3 +17,8 @@ chapters:
   - 08-pacing.md
   - 09-color.md
   - 10-templates-batch.md
+next:
+  - id: douyin-kuaishou
+    reason: 主做抖音或快手
+  - id: xhs-channels-bilibili
+    reason: 主做小红书、视频号或 B 站

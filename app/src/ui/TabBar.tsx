@@ -4,6 +4,7 @@ import { ArrowDownToLine, LibraryBig, NotebookPen, Settings2, type LucideIcon } 
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLanRunning } from '@/server/lan-status';
 import { Glass } from './glass';
 import { isReduceMotion } from './motion';
 import { useTheme } from './theme';
@@ -28,6 +29,8 @@ export function TabBar() {
   const tabWidth = width / TABS.length;
   const x = useState(() => new Animated.Value(0))[0];
   const first = useRef(true);
+  // 传书服务开启后一直运行到手动停止，在其他页面也要能看出它开着
+  const lanRunning = useLanRunning();
 
   useEffect(() => {
     if (!tabWidth) return;
@@ -64,6 +67,7 @@ export function TabBar() {
               label={tab.label}
               icon={tab.icon}
               focused={i === index}
+              live={tab.href === '/transfer' && lanRunning}
               onPress={() => i !== index && router.navigate(tab.href)}
             />
           ))}
@@ -73,7 +77,20 @@ export function TabBar() {
   );
 }
 
-function TabItem({ label, icon: Icon, focused, onPress }: { label: string; icon: LucideIcon; focused: boolean; onPress(): void }) {
+function TabItem({
+  label,
+  icon: Icon,
+  focused,
+  live,
+  onPress,
+}: {
+  label: string;
+  icon: LucideIcon;
+  focused: boolean;
+  /** 右上角的绿色状态点：传书服务正在运行 */
+  live?: boolean;
+  onPress(): void;
+}) {
   const t = useTheme();
   const pop = useState(() => new Animated.Value(1))[0];
   useEffect(() => {
@@ -90,10 +107,11 @@ function TabItem({ label, icon: Icon, focused, onPress }: { label: string; icon:
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
-      accessibilityLabel={label}
+      accessibilityLabel={live ? `${label}，服务运行中` : label}
     >
       <Animated.View style={{ transform: [{ scale: pop }] }}>
         <Icon size={20} color={color} strokeWidth={focused ? 2.2 : 1.8} />
+        {live && <View style={[styles.live, { backgroundColor: t.success, borderColor: t.bg }]} />}
       </Animated.View>
       <Text style={{ color, fontSize: 10, fontWeight: focused ? '600' : '400' }}>{label}</Text>
     </Pressable>
@@ -115,4 +133,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  live: { position: 'absolute', top: -2, right: -4, width: 9, height: 9, borderRadius: 4.5, borderWidth: 1.5 },
 });

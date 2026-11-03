@@ -39,7 +39,7 @@ const MAX_BODY_BYTES = MAX_PACKAGE_BYTES + 1024 * 1024;
 const uploadDir = new Directory(Paths.cache, 'lan-upload');
 
 /**
- * 传书页面的 HTTP 服务（README 第 5.2 节）。只在传书页面可见时运行。
+ * 传书页面的 HTTP 服务（README 第 5.2 节）。由传书页手动开启和停止。
  *
  * GET  /        上传页面
  * POST /upload  multipart/form-data，字段 file；PIN 放在 X-Pin 请求头或表单字段 pin

@@ -2,29 +2,27 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import * as Network from 'expo-network';
 import { useKeepAwake } from 'expo-keep-awake';
-import { useFocusEffect } from 'expo-router';
 import {
   ArrowDownToLine,
   Check,
   CircleAlert,
   Copy,
   LoaderCircle,
-  Plus,
   Power,
-  RefreshCw,
   RotateCcw,
   ShieldAlert,
   Sun,
   type LucideIcon,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react';
 import { Animated, AppState, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, type BookRow } from '@/db/queries';
 import type { ImportResult } from '@/import/pipeline';
 import { LAN_PORT, MAX_PIN_FAILURES, startLanServer, type LanServer } from '@/server/lan-server';
+import { setLanRunning } from '@/server/lan-status';
 import { openBook } from '@/shelf/actions';
-import { BookCover } from '@/shelf/BookCover';
+import { BookCover, COVER_RATIO } from '@/shelf/BookCover';
 import { categoryLabel } from '@/shelf/categories';
 import { Backdrop } from '@/ui/Backdrop';
 import { Glass, GlassPill, PrimaryButton } from '@/ui/glass';
@@ -32,7 +30,7 @@ import { CrossFade, EASE_IN_OUT_CUBIC, EASE_OUT_CUBIC, EASE_OUT_QUINT, FadeInUp,
 import { PageHeader } from '@/ui/PageHeader';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
 import { TransferArt } from '@/ui/TransferArt';
-import { MONO, useTheme, type Theme } from '@/ui/theme';
+import { MONO, useTheme } from '@/ui/theme';
 
 type Status = 'off' | 'starting' | 'running' | 'locked' | { error: string };
 type Received = ImportResult & { id: number; book?: BookRow | null };
@@ -43,8 +41,8 @@ let receivedSeq = 0;
 const BATCH_IDLE_MS = 1500;
 
 /**
- * 传书（README 第 5.2 节）：默认不开启；开启后只在本页可见时运行，
- * 切到其他 Tab 或 App 进入后台时立即关闭。PIN 每次开启重新生成。
+ * 传书（README 第 5.2 节）：默认不开启；开启后一直运行到手动停止，切到其他 Tab 也不关闭。
+ * App 在后台时 iOS 会挂起服务，回到前台时用同一个 PIN 重新监听。PIN 每次开启重新生成。
  */
 export default function TransferScreen() {
   const t = useTheme();
@@ -62,19 +60,25 @@ export default function TransferScreen() {
 
   const on = status === 'starting' || status === 'running';
 
-  // 离开页面或进入后台：关闭服务，回到未开启（锁定状态保留，提示用户发生过什么）
-  const stop = useCallback(() => {
+  // 手动停止：关闭服务，回到未开启
+  const stop = () => {
     server.current?.stop();
     server.current = null;
     setReceiving(new Map());
-    setStatus((s) => (s === 'locked' ? s : 'off'));
-  }, []);
+    setStatus('off');
+  };
 
-  useFocusEffect(useCallback(() => stop, [stop]));
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (s) => s !== 'active' && stop());
-    return () => sub.remove();
-  }, [stop]);
+    setLanRunning(on);
+  }, [on]);
+  // 页面卸载时（如重新加载）不留下没人管的服务
+  useEffect(
+    () => () => {
+      server.current?.stop();
+      setLanRunning(false);
+    },
+    [],
+  );
 
   // 刷新 IP：切换 Wi-Fi 或回到前台时可能变化
   useEffect(() => {
@@ -83,14 +87,9 @@ export default function TransferScreen() {
     void Network.getIpAddressAsync().then((addr) => setIp(addr && addr !== '0.0.0.0' ? addr : null));
   }, [on]);
 
-  const start = () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const nextPin = randomPin();
-    setPin(nextPin);
-    setReceived([]);
-    setStatus('starting');
+  const listen = (listenPin: string) => {
     server.current?.stop();
-    server.current = startLanServer(nextPin, {
+    server.current = startLanServer(listenPin, {
       onListening: () => setStatus('running'),
       onReceiving: (key, ratio) =>
         setReceiving((m) => {
@@ -113,9 +112,37 @@ export default function TransferScreen() {
         server.current = null;
         setStatus('locked');
       },
-      onError: (error) => setStatus({ error }),
+      onError: (error) => {
+        server.current?.stop();
+        server.current = null;
+        setStatus({ error });
+      },
     });
   };
+
+  const start = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const nextPin = randomPin();
+    setPin(nextPin);
+    setReceived([]);
+    setStatus('starting');
+    listen(nextPin);
+  };
+
+  // 后台期间监听的端口可能被系统回收：回到前台时用同一个 PIN 重新监听，电脑端不用重新输入
+  const resume = useEffectEvent(() => {
+    if (!server.current) return;
+    setReceiving(new Map());
+    listen(pin);
+  });
+  useEffect(() => {
+    let prev = AppState.currentState;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active' && prev === 'background') resume();
+      prev = s;
+    });
+    return () => sub.remove();
+  }, []);
 
   const url = ip ? `${ip}:${LAN_PORT}` : null;
   const batch = useBatch(receiving.size > 0);
@@ -181,7 +208,7 @@ export default function TransferScreen() {
             </FadeInUp>
             <FadeInUp index={2} delay={ENTER_DELAY} leaving={leaving} {...exit}>
               <Text style={[styles.foot, { color: t.fg3 }]}>
-                只在这个页面运行，离开页面或锁屏后自动关闭{'\n'}用 AirDrop 发送不需要开启
+                开启后一直运行，直到手动停止{'\n'}用 AirDrop 发送不需要开启
               </Text>
             </FadeInUp>
           </>
@@ -274,7 +301,7 @@ export default function TransferScreen() {
             <FadeInUp index={2} leaving={leaving} {...exit}>
               <View style={styles.awake}>
                 <Sun size={12} color={t.fg3} />
-                <Text style={{ color: t.fg3, fontSize: 11 }}>屏幕保持常亮 · 离开页面后服务自动关闭</Text>
+                <Text style={{ color: t.fg3, fontSize: 11 }}>屏幕保持常亮 · 用完记得点右上角停止</Text>
               </View>
             </FadeInUp>
           </>
@@ -462,13 +489,68 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function itemView(r: Received, t: Theme): { icon: LucideIcon; color: string; title: string; detail: string; detailColor: string } {
-  if (!r.ok) return { icon: CircleAlert, color: t.danger, title: r.fileName, detail: `没有导入：${r.error}`, detailColor: t.warn };
+/** 接收列表里封面的宽度；没有封面可显示的行（进度、失败）用同样大小的图标块占位，保持行高一致 */
+const ITEM_COVER = 40;
+
+/** 与封面同尺寸的图标块 */
+function ItemIcon({ icon: Icon, color, tint }: { icon: LucideIcon; color: string; tint: string }) {
+  return (
+    <View style={[styles.itemIcon, { backgroundColor: tint }]}>
+      <Icon size={17} color={color} />
+    </View>
+  );
+}
+
+function ReceivedItem({ r }: { r: Received }) {
+  const t = useTheme();
+  if (!r.ok) {
+    return (
+      <View style={styles.item}>
+        <ItemIcon icon={CircleAlert} color={t.danger} tint={`${t.danger}14`} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
+            {r.fileName}
+          </Text>
+          <Text style={{ color: t.warn, fontSize: 12 }} numberOfLines={2}>
+            没有导入：{r.error}
+          </Text>
+        </View>
+      </View>
+    );
+  }
   const series = r.book && categoryLabel(r.book.category);
-  const where = series ? `已添加到「${series}」` : '已添加到书架';
-  return r.status === 'updated'
-    ? { icon: RefreshCw, color: t.teal, title: r.title, detail: '已更新 · 阅读进度和高亮都保留了', detailColor: t.fg2 }
-    : { icon: Plus, color: t.teal, title: r.title, detail: where, detailColor: t.fg2 };
+  const updated = r.status === 'updated';
+  const meta = [r.book && `${r.book.chapterCount} 章`, series].filter(Boolean).join(' · ');
+  return (
+    <Pressable onPress={() => openBook(r.bookId)} style={styles.item}>
+      {r.book ? (
+        <BookCover book={r.book} width={ITEM_COVER} radius={6} />
+      ) : (
+        <ItemIcon icon={ArrowDownToLine} color={t.teal} tint={`${t.teal}14`} />
+      )}
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
+          {r.title}
+        </Text>
+        <View style={styles.itemMeta}>
+          <View style={[styles.tag, { backgroundColor: updated ? `${t.teal}1F` : t.accentSoft }]}>
+            <Text style={{ color: updated ? t.teal : t.accent, fontSize: 11, fontWeight: '600' }}>{updated ? '已更新' : '新书'}</Text>
+          </View>
+          {meta.length > 0 && (
+            <Text style={{ flex: 1, color: t.fg3, fontSize: 12 }} numberOfLines={1}>
+              {meta}
+            </Text>
+          )}
+        </View>
+        {updated && <Text style={{ color: t.fg3, fontSize: 12 }}>阅读进度和高亮都保留了</Text>}
+        {r.warnings.map((w) => (
+          <Text key={w} style={{ color: t.warn, fontSize: 12 }}>
+            {w}
+          </Text>
+        ))}
+      </View>
+    </Pressable>
+  );
 }
 
 /**
@@ -492,9 +574,7 @@ function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: b
       </View>
       {batch && (
         <View style={styles.item}>
-          <View style={[styles.itemIcon, { backgroundColor: t.accentSoft }]}>
-            <ArrowDownToLine size={17} color={t.accent} />
-          </View>
+          <ItemIcon icon={ArrowDownToLine} color={t.accent} tint={t.accentSoft} />
           <View style={{ flex: 1, gap: 6 }}>
             <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }}>
               {ratio >= 1 ? '正在导入…' : '正在上传…'}
@@ -507,30 +587,9 @@ function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: b
           </View>
         </View>
       )}
-      {items.map((r) => {
-        const v = itemView(r, t);
-        return (
-          <Pressable key={r.id} disabled={!r.ok} onPress={() => r.ok && openBook(r.bookId)} style={styles.item}>
-            <View style={[styles.itemIcon, { backgroundColor: `${v.color}14` }]}>
-              <v.icon size={17} color={v.color} />
-            </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
-                {v.title}
-              </Text>
-              <Text style={{ color: v.detailColor, fontSize: 12 }} numberOfLines={2}>
-                {v.detail}
-              </Text>
-              {r.ok &&
-                r.warnings.map((w) => (
-                  <Text key={w} style={{ color: t.warn, fontSize: 12 }}>
-                    {w}
-                  </Text>
-                ))}
-            </View>
-          </Pressable>
-        );
-      })}
+      {items.map((r) => (
+        <ReceivedItem key={r.id} r={r} />
+      ))}
     </Glass>
   );
 }
@@ -610,8 +669,10 @@ const styles = StyleSheet.create({
   received: { paddingVertical: 4 },
   receivedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6 },
   receivedCount: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 18 },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 11 },
-  itemIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 10 },
+  itemIcon: { width: ITEM_COVER, height: Math.round(ITEM_COVER * COVER_RATIO), borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  itemMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tag: { paddingHorizontal: 6, height: 18, borderRadius: 6, justifyContent: 'center' },
   itemProgress: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   toastWrap: { position: 'absolute', left: 20, right: 20 },
   toast: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10 },

@@ -7,6 +7,7 @@ import { useTheme } from '@/ui/theme';
 /**
  * 进书过场（设计稿「进书 · 版式占位与显影」）：阅读器渲染完成前，按正文版式画出章号、章标题和淡墨行，
  * 尺寸与位置照抄 reader-web/src/style.css；渲染完成后原地淡出，章标题不动，淡墨行化成文字。
+ * WebView 不跟随系统「文字大小」，所以占位文字也关掉 allowFontScaling，否则显影时字号会跳。
  * 阅读页不放环境动效，等待期间占位保持静止。
  */
 
@@ -76,8 +77,9 @@ export function PagePlaceholder({
         <View style={{ paddingTop: chapter.title === null ? insets.top + 48 : 104 }}>
           {chapter.title !== null && (
             <>
-              <Text style={[styles.kicker, { color: t.accent }]}>CHAPTER {String(chapter.no).padStart(2, '0')}</Text>
+              <Text allowFontScaling={false} style={[styles.kicker, { color: t.accent }]}>CHAPTER {String(chapter.no).padStart(2, '0')}</Text>
               <Text
+                allowFontScaling={false}
                 style={[styles.h1, { color: t.fg, fontSize: h1, lineHeight: h1 * 1.4, marginBottom: h1 * 0.9 }]}
               >
                 {chapter.title}

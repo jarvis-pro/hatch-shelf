@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, ChevronRight, List, NotebookPen, Type } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { parseBookLink } from '@shelf/spec';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent } from 'react-native-webview';
 import {
@@ -22,6 +22,7 @@ import { bookDir } from '@/lib/paths';
 import { applyHighlightAction, chooseHighlightAction, promptNote } from '@/notes/prompts';
 import { addHighlight, listHighlights, toMark } from '@/notes/store';
 import type { FromReader, Quote, ReaderPosition, SelectionAction, ToReader, TocItem } from '@/reader/bridge';
+import { COVER_MS, PagePlaceholder, type PlaceholderChapter } from '@/reader/PagePlaceholder';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
 import { TocSheet } from '@/reader/TocSheet';
@@ -59,6 +60,9 @@ export default function ReaderScreen() {
   const [anchor, setAnchor] = useState<string | undefined>();
   const [readCount, setReadCount] = useState(0);
   const [webReady, setWebReady] = useState(false);
+  /** 阅读器已渲染完当前章节；之前由版式占位盖住 */
+  const [rendered, setRendered] = useState(false);
+  const [placeholder, setPlaceholder] = useState<PlaceholderChapter | null>(null);
   const [panel, setPanel] = useState<'toc' | 'settings' | null>(null);
   const [error, setError] = useState<string | null>(null);
   /** 跨章链接 `02-x.md#anchor` 或搜索结果跳过来时要定位的锚点 */
@@ -92,6 +96,23 @@ export default function ReaderScreen() {
     webRef.current?.injectJavaScript(`window.__shelf.receive(${JSON.stringify(msg)});true;`);
   }, []);
 
+  // 章节一确定就画版式占位，不等 WebView；跳转或从中途继续时顶部没有章标题
+  useEffect(() => {
+    if (idx === null || chapters.length === 0) return;
+    const ch = chapters[idx];
+    // 同步读取：加载章节的 effect 会在第一次 await 之后清空这些 ref
+    const jump = !!(pendingAnchor.current || pendingFind.current || pendingFocus.current);
+    let cancelled = false;
+    void (async () => {
+      const saved = jump ? undefined : await getProgress(id, ch.file);
+      const fromMiddle = jump || (!!saved && (saved.scrollRatio > 0 || !!saved.anchor));
+      if (!cancelled) setPlaceholder({ no: idx + 1, title: fromMiddle ? null : ch.title });
+    })().catch(() => !cancelled && setPlaceholder({ no: idx + 1, title: null }));
+    return () => {
+      cancelled = true;
+    };
+  }, [idx, chapters, id]);
+
   // WebView 就绪或切换章节时加载章节内容
   useEffect(() => {
     if (!webReady || idx === null || !theme || chapters.length === 0) return;
@@ -109,6 +130,8 @@ export default function ReaderScreen() {
       const restore: ReaderPosition | undefined =
         anchorTo || find || focus ? { scrollRatio: 0, anchor: anchorTo ?? undefined } : await getProgress(id, ch.file);
       const highlights = await listHighlights(id, ch.file);
+      // 切章时等占位盖住旧正文再换内容
+      if (shownFile.current) await new Promise((r) => setTimeout(r, COVER_MS));
       if (cancelled) return;
       shownFile.current = ch.file;
       setToc([]);
@@ -184,6 +207,7 @@ export default function ReaderScreen() {
       if (next < 0 || next >= chapters.length) return;
       if (next === idx && anchorTo) return send({ type: 'scrollTo', anchor: anchorTo });
       pendingAnchor.current = anchorTo ?? null;
+      setRendered(false);
       setIdx(next);
     },
     [chapters.length, idx, send],
@@ -196,6 +220,9 @@ export default function ReaderScreen() {
         case 'ready':
           sentTheme.current = themeKey;
           setWebReady(true);
+          break;
+        case 'rendered':
+          setRendered(true);
           break;
         case 'toc':
           setToc(msg.items);
@@ -266,17 +293,20 @@ export default function ReaderScreen() {
           // 进程被系统回收后重新加载，ready 后会重新发 load
           onContentProcessDidTerminate={() => {
             setWebReady(false);
+            setRendered(false);
             webRef.current?.reload();
           }}
         />
       )}
-      {(!webReady || error) && (
+      <PagePlaceholder
+        visible={!rendered}
+        chapter={prefs && placeholder}
+        fontSize={prefs?.fontSize ?? 16}
+        lineHeight={prefs?.lineHeight ?? 1.85}
+      />
+      {error && (
         <View style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: t.paper }]}>
-          {error ? (
-            <Text style={[styles.error, { color: t.fg }]}>{error}</Text>
-          ) : (
-            <ActivityIndicator color={t.fg3} />
-          )}
+          <Text style={[styles.error, { color: t.fg }]}>{error}</Text>
         </View>
       )}
 

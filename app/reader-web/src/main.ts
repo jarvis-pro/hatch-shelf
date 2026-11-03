@@ -259,7 +259,11 @@ window.__shelf = {
   receive(msg) {
     switch (msg.type) {
       case 'load':
-        void load(msg);
+        // 渲染失败也要回报 rendered，否则 App 的版式占位会一直盖着
+        load(msg).catch((e: Error) => {
+          post({ type: 'error', message: e.message });
+          post({ type: 'rendered' });
+        });
         break;
       case 'setTheme':
         // Mermaid 的配色只能在渲染时决定，所以整章重渲染并保持位置

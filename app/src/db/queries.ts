@@ -21,6 +21,8 @@ export interface ChapterRow {
   idx: number;
   file: string;
   title: string;
+  /** 读过这一章之后，书更新改动了它的内容 */
+  updated: boolean;
 }
 
 type RawBook = {
@@ -65,11 +67,14 @@ export async function getBook(id: string): Promise<BookRow | null> {
   return row ? toBook(row) : null;
 }
 
-export function getChapters(bookId: string): Promise<ChapterRow[]> {
-  return getDb().getAllAsync<ChapterRow>(
-    'SELECT idx, file, title FROM chapters WHERE book_id = ? ORDER BY idx',
+export async function getChapters(bookId: string): Promise<ChapterRow[]> {
+  const rows = await getDb().getAllAsync<Omit<ChapterRow, 'updated'> & { updated: number }>(
+    `SELECT c.idx, c.file, c.title, COALESCE(p.seen_hash != c.hash, 0) AS updated
+     FROM chapters c LEFT JOIN progress p ON p.book_id = c.book_id AND p.chapter_file = c.file
+     WHERE c.book_id = ? ORDER BY c.idx`,
     bookId,
   );
+  return rows.map((r) => ({ ...r, updated: r.updated === 1 }));
 }
 
 // ---------- 阅读进度 ----------
@@ -96,15 +101,18 @@ export async function saveProgress(bookId: string, chapterFile: string, pos: Rea
   const now = Date.now();
   const db = getDb();
   await db.runAsync(
-    `INSERT INTO progress (book_id, chapter_file, scroll_ratio, anchor, updated_at)
-     VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO progress (book_id, chapter_file, scroll_ratio, anchor, updated_at, seen_hash)
+     VALUES (?, ?, ?, ?, ?, (SELECT hash FROM chapters WHERE book_id = ? AND file = ?))
      ON CONFLICT (book_id, chapter_file) DO UPDATE SET
-       scroll_ratio = excluded.scroll_ratio, anchor = excluded.anchor, updated_at = excluded.updated_at`,
+       scroll_ratio = excluded.scroll_ratio, anchor = excluded.anchor, updated_at = excluded.updated_at,
+       seen_hash = excluded.seen_hash`,
     bookId,
     chapterFile,
     pos.scrollRatio,
     pos.anchor ?? null,
     now,
+    bookId,
+    chapterFile,
   );
   await db.runAsync('UPDATE books SET last_read_at = ? WHERE id = ?', now, bookId);
 }

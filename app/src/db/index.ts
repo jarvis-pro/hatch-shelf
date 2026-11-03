@@ -65,6 +65,9 @@ const MIGRATIONS = [
   CREATE INDEX highlights_by_chapter ON highlights (book_id, chapter_file);`,
   // 高亮类型：highlight 普通高亮；doubt 存疑（读者觉得这里可能有错，导出时排在最前，供修订时优先核实）
   `ALTER TABLE highlights ADD COLUMN kind TEXT NOT NULL DEFAULT 'highlight';`,
+  // 章节内容指纹（索引，可重建）与读这一章时看到的指纹（用户数据）；两者不同即「上次读过之后改过」
+  `ALTER TABLE chapters ADD COLUMN hash TEXT;
+   ALTER TABLE progress ADD COLUMN seen_hash TEXT;`,
 ];
 
 let db: SQLiteDatabase | null = null;

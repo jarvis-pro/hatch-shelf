@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BookRow, ChapterRow } from '@/db/queries';
 import { BookCover } from '@/shelf/BookCover';
+import { UpdatedTag } from '@/shelf/UpdatedTag';
 import { Panel } from '@/ui/Panel';
 import { useTheme } from '@/ui/theme';
 import type { TocItem } from './bridge';
@@ -70,6 +71,8 @@ export function TocSheet({ visible, book, chapters, currentIdx, headings, active
                   >
                     {ch.title}
                   </Text>
+                  {/* 正在读的这一章打开时就算读过了新版本 */}
+                  {ch.updated && !on && <UpdatedTag />}
                 </Pressable>
                 {on &&
                   subHeadings.map((h) => {

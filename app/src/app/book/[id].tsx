@@ -15,6 +15,7 @@ import {
 } from '@/db/queries';
 import { exportNotes, openBook } from '@/shelf/actions';
 import { BookCover, useCoverUri } from '@/shelf/BookCover';
+import { UpdatedTag } from '@/shelf/UpdatedTag';
 import { DeleteDialog } from '@/shelf/DeleteDialog';
 import { Backdrop } from '@/ui/Backdrop';
 import { DETAIL_COVER_WIDTH, flyBack, useCoverHidden } from '@/ui/CoverFlight';
@@ -55,6 +56,8 @@ export default function BookDetailScreen() {
   );
 
   if (!book) return <View style={{ flex: 1, backgroundColor: t.bg }} />;
+
+  const updatedCount = chapters.filter((ch) => ch.updated).length;
 
   const showInfo = () => {
     const rows = [
@@ -122,7 +125,7 @@ export default function BookDetailScreen() {
             <View style={styles.tocHead}>
               <Text style={{ color: t.fg, fontSize: 15, fontWeight: '700' }}>目录</Text>
               <Text style={{ color: t.fg3, fontSize: 12 }}>
-                已读 {read.size} / {chapters.length}
+                {updatedCount > 0 ? `${updatedCount} 章有更新 · ` : ''}已读 {read.size} / {chapters.length}
               </Text>
             </View>
             {chapters.map((ch, i) => {
@@ -141,6 +144,7 @@ export default function BookDetailScreen() {
                   >
                     {ch.title}
                   </Text>
+                  {ch.updated && <UpdatedTag />}
                   {done && <Check size={16} color={t.dark ? t.fg3 : '#9AA6C4'} />}
                   {on && <Ring ratio={ring} color={t.accent} />}
                 </Pressable>

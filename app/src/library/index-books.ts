@@ -1,4 +1,4 @@
-import { firstHeading, resolveBook, splitSections } from '@shelf/spec';
+import { contentHash, firstHeading, resolveBook, splitSections } from '@shelf/spec';
 import { Directory, File } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { getDb } from '@/db';
@@ -69,6 +69,13 @@ export async function rebuildIndex() {
     const importedAt = new Map(prev.map((r) => [r.id, r.imported_at]));
     await txn.execAsync('DELETE FROM chapters; DELETE FROM books; DELETE FROM search;');
     for (const b of scanned) await insertBook(txn, b, importedAt.get(b.id) ?? Date.now());
+    // 还没记下「读时指纹」的进度（升级前的旧进度、从备份恢复的进度）按当前内容补上，
+    // 之后书再更新才标得出「已更新」。只在全量重建时补：导入时补会把刚改过的章节当成读过
+    await txn.execAsync(
+      `UPDATE progress SET seen_hash = (
+         SELECT hash FROM chapters c WHERE c.book_id = progress.book_id AND c.file = progress.chapter_file)
+       WHERE seen_hash IS NULL`,
+    );
   });
 }
 
@@ -132,7 +139,14 @@ async function insertBook(txn: SQLiteDatabase, b: ScannedBook, importedAt: numbe
     b.id,
   );
   for (const [idx, ch] of b.chapters.entries()) {
-    await txn.runAsync('INSERT INTO chapters (book_id, idx, file, title) VALUES (?, ?, ?, ?)', b.id, idx, ch.file, ch.title);
+    await txn.runAsync(
+      'INSERT INTO chapters (book_id, idx, file, title, hash) VALUES (?, ?, ?, ?, ?)',
+      b.id,
+      idx,
+      ch.file,
+      ch.title,
+      contentHash([{ path: ch.file, text: ch.markdown }]),
+    );
     for (const sec of splitSections(ch.markdown)) {
       await txn.runAsync(
         'INSERT INTO search (book_id, chapter_file, anchor, heading, body) VALUES (?, ?, ?, ?, ?)',

@@ -202,9 +202,9 @@ documentDirectory/
 | 表 | 字段 | 可重建 |
 |---|---|---|
 | books | id, title, subtitle, category, tags(JSON), level, chapter_count, warnings(JSON), imported_at, updated_at, content_hash, last_read_at | ✅ |
-| chapters | book_id, idx, file, title | ✅ |
+| chapters | book_id, idx, file, title, hash（章节内容指纹） | ✅ |
 | search（FTS5，trigram） | book_id, chapter_file, anchor, heading, body —— 每行一个小节 | ✅ |
-| progress | book_id, chapter_file, scroll_ratio, anchor, updated_at | ❌ |
+| progress | book_id, chapter_file, scroll_ratio, anchor, updated_at, seen_hash（读这一章时的内容指纹） | ❌ |
 | settings | key, value | ❌ |
 | highlights | id, book_id, chapter_file, text, prefix, suffix, anchor, kind（`highlight` / `doubt`）, note, created_at, updated_at | ❌ |
 
@@ -255,6 +255,7 @@ documentDirectory/
 - 高亮与笔记：长按选中文字，系统菜单里选「高亮」「笔记」或「存疑」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记、标为 / 取消存疑或删除。存疑用于标出读者认为可能有错的地方：橙色底加波浪线，可以附一句说明；导出时单独放在最前面的「存疑」一节，供 agent 修订时优先核实（见 `books/AGENTS.md`「读者笔记」）。「笔记」Tab 按书列出有高亮的书，阅读页右上角「笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
 - 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
 - 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
+- 章节更新标记：读过的章节在书更新后内容变了，目录和详情页的章节行显示「已更新」，详情页目录标题写「N 章有更新」；打开这一章即清除。依据是 `progress.seen_hash` 与 `chapters.hash` 不同，没读过的章节不标。升级到带这两个字段的版本后，第一次全量重建索引（`INDEX_VERSION` 2）会按当时的内容补上旧进度的 seen_hash
 - 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
 - 示例书在构建时由 `app/scripts/build-samples.mjs` 生成成 TS 模块，首次启动时写入 `books/`，删除后不会再出现
 

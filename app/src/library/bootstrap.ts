@@ -11,7 +11,7 @@ import { rebuildIndex } from './index-books';
  * 索引的结构版本：scanBook / splitSections 的产出或索引表结构变了就加一，
  * 下次启动全量重建一次。平时冷启动直接用 SQLite 里已有的索引。
  */
-const INDEX_VERSION = 1;
+const INDEX_VERSION = 2;
 
 let readerUri: string | null = null;
 

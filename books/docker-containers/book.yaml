@@ -15,3 +15,6 @@ chapters:
   - 06-compose.md
   - 07-registry.md
   - 08-security.md
+next:
+  - id: networking
+    reason: 第二批开始：把服务从部署到监控完整走一遍

@@ -16,3 +16,6 @@ chapters:
   - 07-disks-mounts.md
   - 08-shell-scripting.md
   - 09-troubleshooting.md
+next:
+  - id: docker-containers
+    reason: 服务器摸熟了，再把服务装进容器

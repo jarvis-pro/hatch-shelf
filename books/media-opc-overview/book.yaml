@@ -15,3 +15,6 @@ chapters:
   - 06-tech-advantage.md
   - 07-risks-ceiling.md
   - 08-reading-path.md
+next:
+  - id: media-action-plan
+    reason: 看完全景，选一条线照着走

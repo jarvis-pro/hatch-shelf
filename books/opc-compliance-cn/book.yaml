@@ -15,3 +15,6 @@ chapters:
   - 06-pipl.md
   - 07-generative-ai.md
   - 08-store-qualifications.md
+next:
+  - id: growth-marketing
+    reason: 能合规地卖了，接着去找用户

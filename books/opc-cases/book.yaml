@@ -17,3 +17,8 @@ chapters:
   - 08-failures.md
   - 09-patterns.md
   - 10-for-hatch-counter.md
+next:
+  - id: ai-native-opc
+    reason: 整套书的收尾：一个人加一组 agent 撑起整家公司
+  - id: media-opc-overview
+    reason: 另一个方向：把内容本身当成生意

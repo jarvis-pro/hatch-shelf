@@ -23,6 +23,13 @@ describe('parseBookYaml', () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors).toHaveLength(2);
   });
+
+  it('accepts next books with an optional reason and rejects duplicates', () => {
+    const ok = parseBookYaml(`${yaml}next:\n  - id: go-runtime\n    reason: 接着看调度器\n  - id: go-perf\n`);
+    expect(ok.ok && ok.manifest.next).toEqual([{ id: 'go-runtime', reason: '接着看调度器' }, { id: 'go-perf' }]);
+    const dup = parseBookYaml(`${yaml}next:\n  - id: go-perf\n  - id: go-perf\n`);
+    expect(!dup.ok && dup.errors).toEqual(['next: next 中有重复的书']);
+  });
 });
 
 describe('resolveBook', () => {

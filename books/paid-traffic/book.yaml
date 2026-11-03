@@ -17,3 +17,6 @@ chapters:
   - 08-small-budget-testing.md
   - 09-dashboard.md
   - 10-losing-money.md
+next:
+  - id: media-compliance
+    reason: 两条线都要读：广告标注、版权和平台收入的税

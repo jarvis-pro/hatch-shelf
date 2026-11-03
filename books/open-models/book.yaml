@@ -16,3 +16,6 @@ chapters:
   - 07-lora-qlora.md
   - 08-datasets.md
   - 09-dpo-distill.md
+next:
+  - id: llmops
+    reason: 自己跑的模型，也要接进网关和监控

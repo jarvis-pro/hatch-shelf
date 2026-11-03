@@ -16,3 +16,6 @@ chapters:
   - 07-load-testing-k6.md
   - 08-bottleneck-analysis.md
   - 09-capacity-planning.md
+next:
+  - id: database-ops
+    reason: 最不能丢的是数据：备份、复制和慢查询

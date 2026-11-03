@@ -15,3 +15,6 @@ chapters:
   - 06-skills-progressive.md
   - 07-long-running-state.md
   - 08-measure-debug.md
+next:
+  - id: tools-and-mcp
+    reason: 上下文之外，agent 的另一半是工具

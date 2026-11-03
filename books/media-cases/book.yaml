@@ -17,3 +17,8 @@ chapters:
   - 08-failures.md
   - 09-patterns.md
   - 10-for-developers.md
+next:
+  - id: creator-tools
+    reason: 换个角度，给这些创作者做工具
+  - id: ai-native-opc
+    reason: 整套书的收尾

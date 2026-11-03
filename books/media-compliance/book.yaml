@@ -17,3 +17,8 @@ chapters:
   - 08-income-tax.md
   - 09-entity.md
   - 10-account-assets.md
+next:
+  - id: media-cases
+    reason: 看看别人怎么做起来，又怎么翻车
+  - id: creator-tools
+    reason: 想给创作者和短剧团队做工具

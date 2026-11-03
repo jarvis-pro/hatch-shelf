@@ -53,4 +53,15 @@ describe('lintBook', () => {
     ]);
     expect(r.warnings).toEqual(['未列入 chapters，不会被导入：extra.md', '不支持的文件类型，导入时会被丢弃：notes.txt']);
   });
+
+  it('checks that next books exist on the shelf, skipping when there is nothing to compare', () => {
+    const files = (next: string) => [
+      { path: 'book.yaml', size: 1, text: `id: demo\ntitle: D\nchapters: [01-a.md]\nnext:\n${next}` },
+      { path: '01-a.md', size: 1, text: '# A' },
+    ];
+    const shelf = (id: string) => (id === 'known' ? new Map() : null);
+    const r = lintBook('demo', files('  - id: known\n    reason: 接着读\n  - id: missing\n  - id: demo'), { resolveBook: shelf });
+    expect(r.errors).toEqual(['next 推荐的书不存在：missing', 'next 不能推荐本书自己']);
+    expect(lintBook('demo', files('  - id: missing'), { resolveBook: () => undefined }).errors).toEqual([]);
+  });
 });

@@ -17,3 +17,6 @@ chapters:
   - 08-copyright.md
   - 09-contracts.md
   - 10-overseas.md
+next:
+  - id: media-compliance
+    reason: 两条线都要读：AI 标识、版权和收入的税

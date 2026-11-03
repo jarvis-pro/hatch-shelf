@@ -17,3 +17,6 @@ chapters:
   - 08-after-sales.md
   - 09-xhs-vs-channels.md
   - 10-tools-for-devs.md
+next:
+  - id: paid-traffic
+    reason: 内容跑通之后，用投流放大

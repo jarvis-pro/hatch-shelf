@@ -16,3 +16,8 @@ chapters:
   - 07-anti-patterns.md
   - 08-sqlite-local-first.md
   - 09-json-fulltext.md
+next:
+  - id: system-design
+    reason: 从一张表走到一个系统的边界
+  - id: database-ops
+    reason: 开发视角之外，线上数据库怎么运维

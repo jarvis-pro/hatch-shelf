@@ -20,6 +20,8 @@ export type ToReader =
       highlights: HighlightMark[];
       /** 从笔记列表跳转时要滚到的高亮 id（优先于 restore） */
       focusHighlight?: string;
+      /** 最后一章正文之后的「接着读」（book.yaml 的 next）；不是最后一章或没有可推荐的书时省略 */
+      next?: NextRead[];
     }
   | { type: 'setTheme'; theme: ReaderTheme }
   | { type: 'scrollTo'; anchor: string }
@@ -29,7 +31,11 @@ export type ToReader =
    * 新增、删除高亮或修改笔记后重绘本章高亮。
    * animate：刚新增的高亮从左到右扫过（in），刚删除的先反向收回再移除（out）
    */
-  | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } };
+  | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } }
+  /** 听书：请阅读器把本章切成可朗读的段落，回报 ttsBlocks */
+  | { type: 'ttsCollect' }
+  /** 听书：标出正在读的第 index 段（ttsBlocks 里的下标），必要时滚过去；null 表示结束 */
+  | { type: 'ttsMark'; index: number | null };
 
 /** WebView → RN，通过 window.ReactNativeWebView.postMessage(JSON.stringify(msg)) */
 export type FromReader =
@@ -42,6 +48,8 @@ export type FromReader =
   /** 回应 captureSelection；没有选中文字时 quote 为 null */
   | { type: 'selection'; action: SelectionAction; quote: Quote | null }
   | { type: 'highlightTap'; id: string }
+  /** 回应 ttsCollect：按顺序排好的朗读文本，start 是视口里第一段的下标 */
+  | { type: 'ttsBlocks'; texts: string[]; start: number }
   | { type: 'error'; message: string };
 
 /** 跟随 App 外观，阅读页不单独设主题 */
@@ -60,6 +68,19 @@ export interface ReaderPosition {
   scrollRatio: number;
   /** 视口顶部之上最近的标题 id */
   anchor?: string;
+}
+
+/** 「接着读」推荐的一本书；点按时阅读器发出 `../<id>/` 的 link 消息，与跨书链接走同一条路 */
+export interface NextRead {
+  id: string;
+  /** 书架上没有这本书时为 null，阅读器提示先导入 */
+  title: string | null;
+  /** book.yaml 里的一句理由，没写时用那本书的副标题 */
+  reason: string | null;
+  /** cover.png 的 file:// URL；没有封面时画文字封面 */
+  coverUrl: string | null;
+  /** 文字封面的主色，与书架一致 */
+  color: string;
 }
 
 export interface TocItem {

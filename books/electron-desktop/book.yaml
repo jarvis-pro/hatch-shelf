@@ -15,3 +15,6 @@ chapters:
   - 06-packaging-signing.md
   - 07-auto-update.md
   - 08-electron-vs-tauri.md
+next:
+  - id: app-security
+    reason: 能读写本地文件的应用，更要把安全想清楚

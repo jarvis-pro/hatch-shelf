@@ -16,3 +16,8 @@ chapters:
   - 07-inference-sampling.md
   - 08-scaling-laws.md
   - 09-capabilities-limits.md
+next:
+  - id: llm-app-engineering
+    reason: 工程线的起点：把模型用进产品的基本功
+  - id: math-for-ai
+    reason: 想沿原理线往下读，从够用的数学开始

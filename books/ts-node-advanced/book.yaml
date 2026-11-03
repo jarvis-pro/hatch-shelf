@@ -16,3 +16,8 @@ chapters:
   - 07-streams-backpressure.md
   - 08-profiling.md
   - 09-node-runs-ts.md
+next:
+  - id: react-internals
+    reason: 前端那一侧：读懂调和与并发渲染
+  - id: nestjs-backend
+    reason: 服务端那一侧：依赖注入和请求生命周期

@@ -16,3 +16,8 @@ chapters:
   - 07-alignment.md
   - 08-quantization.md
   - 09-interpretability.md
+next:
+  - id: context-engineering
+    reason: 回到 agent，看模型的上下文怎么安排
+  - id: open-models
+    reason: 把原理落到部署、量化和微调

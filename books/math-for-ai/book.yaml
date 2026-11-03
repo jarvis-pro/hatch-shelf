@@ -14,3 +14,6 @@ chapters:
   - 05-derivatives-gradients.md
   - 06-chain-rule-backprop.md
   - 07-gradient-descent.md
+next:
+  - id: python-for-ai
+    reason: 动手之前，先把 AI 领域的通用语言补上

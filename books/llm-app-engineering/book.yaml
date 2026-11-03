@@ -16,3 +16,8 @@ chapters:
   - 07-cost-latency.md
   - 08-model-selection.md
   - 09-errors-retries.md
+next:
+  - id: agent-principles
+    reason: 给模型配上工具和循环，就成了 agent
+  - id: rag-systems
+    reason: 让模型用上你自己的资料

@@ -75,7 +75,7 @@ export function bookAnchors(dirName: string, files: LintFile[]): { id: string; c
 }
 
 export interface LintOptions {
-  /** 另一本书的章节锚点，书不存在时返回 null，无从判断时返回 undefined；不传时跨书链接都按不存在处理 */
+  /** 另一本书的章节锚点，书不存在时返回 null，无从判断时返回 undefined；不传时跨书链接和 next 都按不存在处理 */
   resolveBook?(id: string): ChapterAnchors | null | undefined;
 }
 
@@ -100,6 +100,7 @@ export function lintBook(dirName: string, files: LintFile[], opts: LintOptions =
   for (const f of rootMd) if (!manifest.chapters.includes(f.path)) warnings.push(`未列入 chapters，不会被导入：${f.path}`);
   for (const f of rootMd) if (!CHAPTER_FILE_RE.test(f.path)) errors.push(`文件名只能使用 [a-z0-9-]：${f.path}`);
 
+  const resolveOther = opts.resolveBook ?? (() => null);
   let total = 0;
   for (const f of files) {
     total += f.size;
@@ -110,9 +111,13 @@ export function lintBook(dirName: string, files: LintFile[], opts: LintOptions =
   }
   if (total > MAX_PACKAGE_BYTES) errors.push(`整本书超过 ${MAX_PACKAGE_BYTES / 1024 / 1024} MB`);
 
+  for (const { id } of manifest.next ?? []) {
+    if (id === manifest.id) errors.push('next 不能推荐本书自己');
+    else if (resolveOther(id) === null) errors.push(`next 推荐的书不存在：${id}`);
+  }
+
   const assets = new Set(files.filter((f) => f.path.startsWith('assets/')).map((f) => f.path));
   const self = bookAnchors(dirName, files)!;
-  const resolveOther = opts.resolveBook ?? (() => null);
   for (const ch of chapters) {
     const text = files.find((f) => f.path === ch)?.text ?? '';
     const r = lintChapter(ch, text, assets);

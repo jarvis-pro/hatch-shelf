@@ -17,3 +17,6 @@ chapters:
   - 08-adaptation-and-selling.md
   - 09-example-bible.md
   - 10-example-scripts.md
+next:
+  - id: ai-drama-storyboard
+    reason: 把剧本拆成 AI 能生成的分镜

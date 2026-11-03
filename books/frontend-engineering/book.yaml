@@ -17,3 +17,8 @@ chapters:
   - 08-eslint-prettier.md
   - 09-testing.md
   - 10-cors-csp.md
+next:
+  - id: rn-expo
+    reason: 从网页走到手机 App
+  - id: design-for-devs
+    reason: 工具链顺手了，再把界面做得好看好用

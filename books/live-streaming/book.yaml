@@ -17,3 +17,6 @@ chapters:
   - 08-data-and-review.md
   - 09-clips-redistribution.md
   - 10-violation-risks.md
+next:
+  - id: ecommerce-selling
+    reason: 直播间卖什么：选品和利润测算

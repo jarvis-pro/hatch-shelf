@@ -17,3 +17,8 @@ chapters:
   - 08-mcp-and-skills.md
   - 09-sandbox-permissions.md
   - 10-failure-modes.md
+next:
+  - id: coding-agents
+    reason: 从每天在用的编码 agent 开始实践
+  - id: context-engineering
+    reason: 展开总纲里最关键的一章：agent 每一步看到了什么

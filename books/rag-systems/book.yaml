@@ -15,3 +15,6 @@ chapters:
   - 06-reranking.md
   - 07-evaluation.md
   - 08-rag-vs-long-context.md
+next:
+  - id: llm-evals
+    reason: 检索效果好不好，要靠评测说话

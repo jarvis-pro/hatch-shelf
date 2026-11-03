@@ -15,3 +15,6 @@ chapters:
   - 06-jupyter.md
   - 07-model-api.md
   - 08-build-a-tool.md
+next:
+  - id: deep-learning-basics
+    reason: 用 PyTorch 亲手写一个 mini-GPT

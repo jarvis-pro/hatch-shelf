@@ -16,3 +16,6 @@ chapters:
   - 07-reading-data.md
   - 08-iterate-or-pivot.md
   - 09-tech-creator-route.md
+next:
+  - id: topic-and-hooks
+    reason: 定位清楚了，接着找选题

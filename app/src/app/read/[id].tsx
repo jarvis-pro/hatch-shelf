@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Ellipsis, List, NotebookPen, Type } from 'lucide-react-native';
+import { ChevronLeft, Ellipsis, Headphones, List, NotebookPen, Type } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { parseBookLink } from '@shelf/spec';
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
@@ -22,8 +22,11 @@ import { bookDir } from '@/lib/paths';
 import { applyHighlightAction, chooseHighlightAction, promptNote } from '@/notes/prompts';
 import { addHighlight, listHighlights, toMark } from '@/notes/store';
 import type { FromReader, Quote, ReaderPosition, SelectionAction, ToReader, TocItem } from '@/reader/bridge';
+import { loadNextReads } from '@/reader/next-reads';
 import { COVER_MS, PagePlaceholder, type PlaceholderChapter } from '@/reader/PagePlaceholder';
+import { ReadAloudBar } from '@/reader/ReadAloudBar';
 import { SettingsSheet } from '@/reader/SettingsSheet';
+import { useReadAloud } from '@/reader/speech';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
 import { TocSheet } from '@/reader/TocSheet';
 import { WebView, type WebViewHandle } from '@/reader/web-view';
@@ -96,6 +99,10 @@ export default function ReaderScreen() {
     webRef.current?.injectJavaScript(`window.__shelf.receive(${JSON.stringify(msg)});true;`);
   }, []);
 
+  const speech = useReadAloud(send);
+  const { stop: stopSpeech, onBlocks: onSpeechBlocks } = speech;
+  const speaking = speech.state !== 'idle';
+
   // 章节一确定就画版式占位，不等 WebView；跳转或从中途继续时顶部没有章标题
   useEffect(() => {
     if (idx === null || chapters.length === 0) return;
@@ -130,6 +137,7 @@ export default function ReaderScreen() {
       const restore: ReaderPosition | undefined =
         anchorTo || find || focus ? { scrollRatio: 0, anchor: anchorTo ?? undefined } : await getProgress(id, ch.file);
       const highlights = await listHighlights(id, ch.file);
+      const next = idx === chapters.length - 1 ? await loadNextReads(id) : undefined;
       // 切章时等占位盖住旧正文再换内容
       if (shownFile.current) await new Promise((r) => setTimeout(r, COVER_MS));
       if (cancelled) return;
@@ -146,6 +154,7 @@ export default function ReaderScreen() {
         find: find ?? undefined,
         highlights: highlights.map(toMark),
         focusHighlight: focus ?? undefined,
+        next,
       });
       setReadCount((await getReadChapters(id, idx)).size);
     })().catch((e: Error) => !cancelled && setError(`无法读取章节 ${ch.file}：${e.message}`));
@@ -206,11 +215,13 @@ export default function ReaderScreen() {
     (next: number, anchorTo?: string) => {
       if (next < 0 || next >= chapters.length) return;
       if (next === idx && anchorTo) return send({ type: 'scrollTo', anchor: anchorTo });
+      // 听书只读当前这一章，换章即停
+      if (speaking) stopSpeech();
       pendingAnchor.current = anchorTo ?? null;
       setRendered(false);
       setIdx(next);
     },
-    [chapters.length, idx, send],
+    [chapters.length, idx, send, speaking, stopSpeech],
   );
 
   const onMessage = useCallback(
@@ -250,12 +261,15 @@ export default function ReaderScreen() {
         case 'highlightTap':
           onHighlightTap(msg.id).catch((err: Error) => setError(err.message));
           break;
+        case 'ttsBlocks':
+          onSpeechBlocks(msg.texts, msg.start);
+          break;
         case 'error':
           console.warn('[reader]', msg.message);
           break;
       }
     },
-    [chapters, goTo, id, onSelection, onHighlightTap, themeKey],
+    [chapters, goTo, id, onSelection, onHighlightTap, themeKey, onSpeechBlocks],
   );
 
   const changePrefs = useCallback((next: ReaderPrefs) => {
@@ -328,8 +342,20 @@ export default function ReaderScreen() {
           { label: '目录', icon: List, onPress: () => setPanel('toc') },
           { label: '本书笔记', icon: NotebookPen, onPress: () => openNotes(id) },
           { label: '阅读设置', icon: Type, onPress: () => setPanel('settings') },
+          speaking
+            ? { label: '停止听书', icon: Headphones, onPress: stopSpeech }
+            : { label: '听本章', icon: Headphones, onPress: speech.start },
         ]}
         onClose={() => setPanel(null)}
+      />
+
+      <ReadAloudBar
+        state={speech.state}
+        rate={speech.rate}
+        onPause={speech.pause}
+        onResume={speech.resume}
+        onRate={speech.cycleRate}
+        onStop={stopSpeech}
       />
 
       <TocSheet

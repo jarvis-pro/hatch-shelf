@@ -13,3 +13,6 @@ chapters:
   - 04-secrets.md
   - 05-gitops-argocd.md
   - 06-solo-iac.md
+next:
+  - id: cloud-and-edge
+    reason: VPS、Serverless 和边缘怎么选

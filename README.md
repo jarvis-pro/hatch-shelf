@@ -102,7 +102,12 @@ updated: 2026-11-02           # 可选
 chapters:                     # 必填，显式排序
   - 01-goroutine.md
   - 02-channel.md
+next:                         # 可选，读完后接着读的书，最多 3 本
+  - id: go-runtime            # 书 id；check 校验它是同级目录里已有的书
+    reason: 接着看调度器怎么安排 goroutine   # 可选，一句话（≤ 60 字），缺省时用那本书的副标题
 ```
+
+`next` 是阅读路线的一部分，跟着书走而不是写死在 App 里：80 多本书的 `next` 按 `reading-map` 的阅读路线写，新书加入路线时只改 book.yaml。
 
 ### 4.3 写书硬规则（同步写入 books/AGENTS.md）
 
@@ -251,13 +256,15 @@ documentDirectory/
 - 宽表格放在可横向滚动的容器里；图片支持点击放大
 - 提示块：GitHub 风格的 `> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]` 渲染成带图标和中文标题（注意 / 提示 / 重要 / 警告 / 当心）的彩色卡片，颜色取自阅读器现有的主题变量，亮色暗色各一套；实现是 `app/reader-web/src/callouts.ts` 里的 markdown-it 插件，其余引用块照旧
 - Mermaid：左右方向的流程图比屏幕宽时自动改成上下方向重新渲染；其余过宽的图缩到屏幕宽，不支持点按放大
-- 阅读页只有两颗悬浮按钮：左上角返回，右上角「···」；目录、本书笔记、阅读设置都收在「···」菜单里。不提供上一章 / 下一章，换章走目录，底部不放任何东西，正文铺满到屏幕底
+- 阅读页只有两颗悬浮按钮：左上角返回，右上角「···」；目录、本书笔记、阅读设置、听本章都收在「···」菜单里。不提供上一章 / 下一章，换章走目录，底部不放任何东西（听书时的播放条除外），正文铺满到屏幕底
+- 接着读：最后一章正文之后，按本书 `book.yaml` 的 `next` 列出推荐的书（封面、书名、一句理由），点按与跨书链接一样在当前页之上打开那本书。已读完（`FINISHED_RATIO`）的书不再列出；书架上没有的书显示虚线封面和「需要先导入」，点按弹出同样的提示。卡片在 `#content` 之外，不参与高亮、搜索和目录；阅读进度按正文计算，卡片高度不计入，滚到正文末尾即为读完。App 打开最后一章时读取 book.yaml（`app/src/reader/next-reads.ts`），不进 SQLite
 - 链接：`#锚点` 在页内滚动；`03-x.md#锚点` 切到本书对应章节；`../<id>/…` 在当前阅读页之上打开另一本书的对应章节和小节（只写书 id 时打开到上次读到的位置），返回即回到原书，目标书未导入时给出提示；`http(s)` 链接交给系统打开
 - RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
 - 高亮与笔记：长按选中文字，系统菜单里选「高亮」「笔记」或「存疑」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记、标为 / 取消存疑或删除。存疑用于标出读者认为可能有错的地方：橙色底加波浪线，可以附一句说明；导出时单独放在最前面的「存疑」一节，供 agent 修订时优先核实（见 `books/AGENTS.md`「读者笔记」）。「笔记」Tab 按书列出有高亮的书，阅读页「···」菜单里的「本书笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
 - 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
 - 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
 - 章节更新标记：读过的章节在书更新后内容变了，目录和详情页的章节行显示「已更新」，详情页目录标题写「N 章有更新」；打开这一章即清除。依据是 `progress.seen_hash` 与 `chapters.hash` 不同，没读过的章节不标。升级到带这两个字段的版本后，第一次全量重建索引（`INDEX_VERSION` 2）会按当时的内容补上旧进度的 seen_hash
+- 听书：「···」菜单里的「听本章」用系统语音（`expo-speech`，即 AVSpeechSynthesizer）从视口里第一段读到本章末尾，完全在本机运行。段落由阅读器切好（`app/reader-web/src/tts.ts`）：代码块、表格、Mermaid 和块级公式不朗读，只念一句「此处有代码，略过」之类的提示；行内公式短的念 TeX 原文，长的念「公式」。整章一次排进系统朗读队列，每段开始时阅读器标出这一段，段落离开视口时滚到屏幕上方三分之一处，手动滚动后 5 秒内不跟随。朗读时底部浮出播放条：暂停 / 继续、语速（0.8 / 1 / 1.25 / 1.5 倍，记住上次的选择）、停止。音频会话由 `expo-audio` 设为 playback 并开启 `UIBackgroundModes: audio`，静音键打开、锁屏或切到后台都能读完本章；读完、换章或离开阅读页即停，不自动接下一章，也不做锁屏控制。优先选设备上的增强版普通话语音（设置 → 辅助功能 → 朗读内容 → 声音 里下载）
 - 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
 - 示例书在构建时由 `app/scripts/build-samples.mjs` 生成成 TS 模块，首次启动时写入 `books/`，删除后不会再出现
 
@@ -274,6 +281,7 @@ documentDirectory/
 | 解压 | fflate（纯 JS，`@shelf/spec` 内使用） |
 | 局域网服务 | react-native-tcp-socket + 自己实现的最小 HTTP 解析（只支持上表中的接口） |
 | 渲染 | react-native-webview + 本地打包的 reader bundle |
+| 听书 | expo-speech（系统语音）+ expo-audio（只用来设置音频会话） |
 | 界面 | expo-blur（磨砂玻璃）、expo-linear-gradient、react-native-svg + lucide-react-native（图标）、expo-haptics；动效用 RN 自带的 Animated |
 | 校验 | zod（`@shelf/spec`） |
 | CLI | Node + TypeScript（`tools/shelf-pack`） |
@@ -341,13 +349,16 @@ shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手
 | 传书开关 | 完全手动：进入 Tab 不自动开启，离开 Tab 也不自动关闭，只由「开启传书」/「停止」控制 | 切过去就开会在无意中暴露端口；离开即关则在传书途中切去看书就断了，不好用。改为手动开关，用 Tab 栏状态点提醒服务开着 |
 | 动效实现 | RN Animated，不引入 Reanimated | 设计稿的动效都是淡入、位移、弹簧这类简单动画，Animated 的原生驱动足够；少一个原生依赖 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
-| 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，构建号写在 app.json 由脚本递增，`ios/` 仍然只由 prebuild 生成 |
+| 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，`ios/` 仍然只由 prebuild 生成 |
+| 版本号与构建号 | 只维护 `expo.version`，每次上传升 patch，构建号取同一个值 | 苹果要求包里必须有构建号；两个号分开递增容易忘、TestFlight 列表也难对应。个人自用不需要同一版本多次上传，一次一版最简单 |
 | 书架分组 | 分组名就是 `category` 的第一段，直接写中文；顺序按系列里最早导入的书 | 分组名写死在 App 里时，新增系列要改代码、重新出包，违背「内容跟着书走」；导入时间在重建索引时保留，顺序稳定，不需要额外配置 |
 | 阅读数据备份 | 手动导出 JSON + 合并式恢复，不做自动同步 | App 不联网，iCloud 同步要引入原生能力和冲突处理；进度和高亮都带 `updated_at`，按「较新者胜」合并足够个人使用。备份是个人数据，`backups/` 不入库 |
 | 跨书链接 | 用文件系统式的相对路径 `../<id>/<章节>.md#锚点`，不用自定义 scheme | 在仓库里、GitHub 和编辑器预览中都是能点通的真实路径；与 App 里 `books/<id>/` 的目录结构一致，`check` 按同级目录即可校验 |
 | App 名称 | 显示名「书巢」，内部名保留 `Shelf` | 取陆游《书巢记》里堆满书的书房，也呼应 hatch（孵化）：书在电脑上写成，再落进手机里的巢。「书架」仍作为首页 Tab 的名字；`expo.name` 决定 prebuild 的工程名和 TestFlight 脚本的 scheme，不随之改动 |
 | 冷启动 | 不全量重建索引，开场封面只播一次 | 每次启动都读遍全部章节重建全文索引，书越多开屏越久；索引存在 SQLite 里，导入时已按书更新，冷启动只做不读正文的增删对账，结构变化时靠 `INDEX_VERSION` 触发一次全量重建。开场封面每次都播会让「打开就读」变慢 |
 | 阅读页换章 | 去掉底部上一章 / 下一章，换章只走目录；目录、本书笔记、阅读设置收进「···」菜单 | 底部导航常驻会挡住正文，阅读时几乎只在读完一章时用一次；顶部三颗按钮也让阅读页显得像工具页。只留返回和「···」，正文铺满全屏 |
+| 读完推荐 | 推荐写在 `book.yaml` 的 `next`，App 只负责显示；不按阅读记录自动推荐 | 阅读路线本来就由导读书维护，写在内容里改起来只需推书；按记录推荐需要额外的数据和规则，结果也不如人写的路线可解释。卡片只放书名和一句理由，不放进度、时长之类的统计 |
+| 听书 | 系统语音 expo-speech，音频会话设为 playback，后台读完本章即停；不接下一章、不做锁屏控制 | 系统语音完全在本机、不收费，符合 App 不联网；默认音频会话下静音键会让朗读没声音、锁屏就停，设成 playback 只多一个 expo-audio。后台时 WebView 被冻结，没法可靠地切下一章并取段落；锁屏「正在播放」要自写原生代码，收益不抵成本 |
 | 进书过场 | 按正文版式画静止的占位，渲染完成后原地淡出，不用加载指示 | 转圈和闪白会打断「页面本来就在那里」的感觉；占位与真正文对齐，显影时只有淡墨行化成文字 |
 
 ---
@@ -357,10 +368,11 @@ shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手
 一次性准备：在 App Store Connect 用 Bundle ID `com.jarvis.shelf` 建好 App；Xcode 的 Settings → Accounts 登录开发者账号（脚本用它签名和上传）。
 
 ```bash
-pnpm app testflight              # 构建号 +1 → build:assets → prebuild → archive → 上传
-pnpm app testflight --no-upload  # 只导出 .ipa 到 app/ios/build/export，不改构建号
+pnpm app testflight                  # 版本号升 patch → build:assets → prebuild → archive → 上传
+pnpm app testflight --version 1.1.0  # 指定新版本号（升 minor / major 时用）
+pnpm app testflight --no-upload      # 只导出 .ipa 到 app/ios/build/export，不改版本号
 ```
 
-- 构建号是 `app.json` 的 `expo.ios.buildNumber`，每次上传必须递增，脚本自动 +1，失败时恢复原值；上传成功后把 `app.json` 单独提交（`chore(app): 发布 <版本> (<构建号>)`）
-- 发新版本时手动改 `expo.version`
+- 只维护 `app.json` 的 `expo.version` 一个号：每次上传都是新版本，脚本自动升 patch（或用 `--version` 指定），失败时恢复原值；上传成功后脚本自动单独提交 `app.json`（`chore(release): v<版本>`）并打同名 tag `v<版本>`，不带上工作区的其他改动；`git log --oneline --decorate` 或 `git tag` 即可看到各版本节点（tag 需要 `git push --follow-tags` 才会推到远端）
+- 构建号（`CFBundleVersion`）由 `app/app.config.js` 设成与 version 相同，不要在 `app.json` 里写 `ios.buildNumber`。同一版本不能重复上传，上传后处理失败也要升版本重传
 - 上传后 App Store Connect 处理 5～15 分钟，构建出现在 TestFlight 的内部测试组即可安装；内部测试不需要审核，构建 90 天后过期

@@ -16,3 +16,6 @@ chapters:
   - 07-nat-firewall.md
   - 08-lan-mdns.md
   - 09-troubleshooting.md
+next:
+  - id: nginx-gateway
+    reason: 网络各层清楚了，再看流量怎么进到服务

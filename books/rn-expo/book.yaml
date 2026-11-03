@@ -17,3 +17,8 @@ chapters:
   - 08-local-storage.md
   - 09-performance-reanimated.md
   - 10-signing-testflight.md
+next:
+  - id: electron-desktop
+    reason: 再往桌面端走一步
+  - id: deploy-release
+    reason: 把移动端发版也纳入同一条流水线

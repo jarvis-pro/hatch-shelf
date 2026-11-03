@@ -16,3 +16,6 @@ chapters:
   - 07-automation-pipeline.md
   - 08-org-design.md
   - 09-epilogue.md
+next:
+  - id: reading-map
+    reason: 回到导读，按眼前的目标挑下一本

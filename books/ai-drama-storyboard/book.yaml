@@ -17,3 +17,6 @@ chapters:
   - 08-motion-comic.md
   - 09-full-episode.md
   - 10-batch-production.md
+next:
+  - id: ai-drama-post
+    reason: 画面有了，接着配音、剪辑和成片

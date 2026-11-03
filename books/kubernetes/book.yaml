@@ -15,3 +15,6 @@ chapters:
   - 06-helm.md
   - 07-k3s-cluster.md
   - 08-when-not-k8s.md
+next:
+  - id: iac-gitops
+    reason: 集群和服务器都写成代码

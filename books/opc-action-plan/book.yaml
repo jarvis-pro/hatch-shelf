@@ -17,3 +17,6 @@ chapters:
   - 08-weekly-loop.md
   - 09-when-stuck.md
   - 10-appendix.md
+next:
+  - id: b2b-sales
+    reason: 前十个付费客户，多半要靠自己去谈

@@ -15,3 +15,6 @@ chapters:
   - 06-observability-tracing.md
   - 07-prompt-injection.md
   - 08-data-compliance.md
+next:
+  - id: agent-safety
+    reason: 应用会动手之后，注入和权限更要紧

@@ -14,3 +14,6 @@ chapters:
   - 05-writing-books.md
   - 06-ops.md
   - 07-iteration.md
+next:
+  - id: opc-playbook
+    reason: 有了 agent 当帮手，再想想一个人怎么做公司

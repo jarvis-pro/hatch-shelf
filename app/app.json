@@ -9,7 +9,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jarvis.shelf",
-      "buildNumber": "5",
       "infoPlist": {
         "CFBundleDisplayName": "书巢",
         "ITSAppUsesNonExemptEncryption": false,
@@ -75,6 +74,13 @@
       "expo-router",
       "expo-sqlite",
       "expo-asset",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
       [
         "expo-splash-screen",
         {

@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listBookProgress, listBooks, type BookProgress, type BookRow } from '@/db/queries';
-import { seriesLabel, seriesOf } from '@/shelf/categories';
+import { seriesOf } from '@/shelf/categories';
 import { ShelfBook } from '@/shelf/ShelfBook';
 import { Backdrop } from '@/ui/Backdrop';
 import { FadeInUp } from '@/ui/motion';
@@ -40,7 +40,7 @@ export default function CategoryScreen() {
       <NavBar />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         <View style={styles.head}>
-          <Text style={[styles.title, { color: t.fg }]}>{seriesLabel(name)}</Text>
+          <Text style={[styles.title, { color: t.fg }]}>{name}</Text>
           <Text style={{ color: t.fg3, fontSize: 13 }}>{books.length} 本</Text>
         </View>
         <View style={styles.grid}>

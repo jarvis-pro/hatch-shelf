@@ -94,7 +94,7 @@ books/go-concurrency/
 id: go-concurrency            # 必填，全局唯一，[a-z0-9-]；同 id 再次导入即为更新
 title: Go 并发编程实战          # 必填
 subtitle: 从 goroutine 到调度器  # 可选
-category: tech/go             # 可选，书架分组，用 / 分层
+category: 技术/Go             # 可选，书架分组，用 / 分层
 tags: [go, concurrency]       # 可选
 level: intermediate           # 可选：beginner | intermediate | advanced
 created: 2026-11-02           # 可选
@@ -220,7 +220,7 @@ documentDirectory/
 
 **书架**
 
-- 按 `category` 的第一段分系列（如 `ai/agent` 归入「人工智能」，映射在 `app/src/shelf/categories.ts`），每组横向滚动，「全部」进入该系列的网格；顶部放“继续阅读”卡片（最近读过、还没读完的一本）
+- 按 `category` 的第一段分系列，原样显示为系列名（如 `人工智能/Agent` 归入「人工智能」），App 不维护映射；系列按其中最早导入的书排序，未分类最后。每组横向滚动，「全部」进入该系列的网格；顶部放“继续阅读”卡片（最近读过、还没读完的一本）
 - 封面左下角显示进度：读完显示 ✓，读过显示百分比。书的进度按「已读章节数 + 当前章节滚动比例」估算
 - 封面是 `design/设计稿.pen` 里的原稿导出（600×856），复古丝网印刷风插图 + 每本一个主色，底部统一署名「Jarvis」；没有封面时，按「书架文库」版式用标题、副标题和分类色自动生成文字封面，署名相同
 - 点按书籍进入详情页，封面从书架飞到详情页的大封面，返回时飞回原位；「继续阅读」卡片直接进入阅读
@@ -325,6 +325,7 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 | 动效实现 | RN Animated，不引入 Reanimated | 设计稿的动效都是淡入、位移、弹簧这类简单动画，Animated 的原生驱动足够；少一个原生依赖 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
 | 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，构建号写在 app.json 由脚本递增，`ios/` 仍然只由 prebuild 生成 |
+| 书架分组 | 分组名就是 `category` 的第一段，直接写中文；顺序按系列里最早导入的书 | 分组名写死在 App 里时，新增系列要改代码、重新出包，违背「内容跟着书走」；导入时间在重建索引时保留，顺序稳定，不需要额外配置 |
 | App 名称 | 显示名「书巢」，内部名保留 `Shelf` | 取陆游《书巢记》里堆满书的书房，也呼应 hatch（孵化）：书在电脑上写成，再落进手机里的巢。「书架」仍作为首页 Tab 的名字；`expo.name` 决定 prebuild 的工程名和 TestFlight 脚本的 scheme，不随之改动 |
 
 ---

@@ -9,7 +9,7 @@ import { pickAndImport } from '@/import/incoming';
 import { useLibraryChanged } from '@/library/events';
 import { rebuildIndex } from '@/library/index-books';
 import { BookCover } from '@/shelf/BookCover';
-import { compareSeries, seriesLabel, seriesOf } from '@/shelf/categories';
+import { seriesOf, sortSeries } from '@/shelf/categories';
 import { EmptyShelf } from '@/shelf/EmptyShelf';
 import { openBook, peekBook } from '@/shelf/actions';
 import { ShelfBook } from '@/shelf/ShelfBook';
@@ -73,7 +73,7 @@ export default function ShelfScreen() {
       const key = seriesOf(b.category);
       map.set(key, [...(map.get(key) ?? []), b]);
     }
-    return [...map].sort(([a], [b]) => compareSeries(a, b));
+    return sortSeries([...map]);
   }, [books]);
 
   const header = (
@@ -111,7 +111,7 @@ export default function ShelfScreen() {
             <FadeInUp key={series} index={i + 1} style={styles.section}>
               <View style={styles.sectionHead}>
                 <View style={styles.sectionTitle}>
-                  <Text style={[styles.sectionName, { color: t.fg }]}>{seriesLabel(series)}</Text>
+                  <Text style={[styles.sectionName, { color: t.fg }]}>{series}</Text>
                   <Text style={[styles.count, { color: t.fg3 }]}>{list.length} 本</Text>
                 </View>
                 {list.length > 2 && (

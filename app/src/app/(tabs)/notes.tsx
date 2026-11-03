@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listBooks, type BookRow } from '@/db/queries';
+import { EmptyNotes } from '@/notes/EmptyNotes';
 import { countLabel, formatDay } from '@/notes/format';
 import { listNotesSummary, type NotesSummary } from '@/notes/store';
 import { openNotes } from '@/shelf/actions';
@@ -42,11 +43,7 @@ export default function NotesTab() {
           title="笔记"
           right={<GlassButton icon={Search} label="搜索" onPress={() => router.push('/search')} />}
         />
-        {rows?.length === 0 && (
-          <Text style={[styles.empty, { color: t.fg3 }]}>
-            还没有高亮或笔记。{'\n'}阅读时长按选中文字，在菜单里选「高亮」或「笔记」。
-          </Text>
-        )}
+        {rows?.length === 0 && <EmptyNotes />}
         <View style={styles.list}>
           {rows?.map((r, i) => (
             <FadeInUp key={r.bookId} index={i}>
@@ -81,7 +78,6 @@ export default function NotesTab() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 20, gap: 22 },
-  empty: { textAlign: 'center', lineHeight: 22, paddingVertical: 60 },
   list: { gap: 12 },
   card: { flexDirection: 'row', gap: 14, padding: 14 },
   info: { flex: 1, gap: 6 },

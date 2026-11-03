@@ -30,6 +30,7 @@ import { SettingsSheet } from '@/reader/SettingsSheet';
 import { useReadAloud } from '@/reader/speech';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
 import { TocSheet } from '@/reader/TocSheet';
+import { VoiceSheet } from '@/reader/VoiceSheet';
 import { WebView, type WebViewHandle } from '@/reader/web-view';
 import { openBook, openNotes } from '@/shelf/actions';
 import { GlassButton } from '@/ui/glass';
@@ -67,7 +68,7 @@ export default function ReaderScreen() {
   /** 阅读器已渲染完当前章节；之前由版式占位盖住 */
   const [rendered, setRendered] = useState(false);
   const [placeholder, setPlaceholder] = useState<PlaceholderChapter | null>(null);
-  const [panel, setPanel] = useState<'menu' | 'toc' | 'settings' | null>(null);
+  const [panel, setPanel] = useState<'menu' | 'toc' | 'settings' | 'voice' | null>(null);
   /** 章内查找进行中：顶部换成查找栏；结果为 null 表示还没有回报 */
   const [finding, setFinding] = useState(false);
   const [findResult, setFindResult] = useState<FindState | null>(null);
@@ -376,10 +377,19 @@ export default function ReaderScreen() {
       <ReadAloudBar
         state={speech.state}
         rate={speech.rate}
+        voice={speech.voice}
         onPause={speech.pause}
         onResume={speech.resume}
         onRate={speech.cycleRate}
+        onVoice={() => setPanel('voice')}
         onStop={stopSpeech}
+      />
+      <VoiceSheet
+        visible={panel === 'voice'}
+        voices={speech.voices}
+        voiceId={speech.voiceId}
+        onChoose={speech.chooseVoice}
+        onClose={() => setPanel(null)}
       />
 
       <TocSheet

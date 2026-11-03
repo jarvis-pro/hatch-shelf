@@ -1,23 +1,25 @@
-import { Pause, Play, X } from 'lucide-react-native';
+import { ChevronRight, Pause, Play, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Glass } from '@/ui/glass';
 import { EASE_OUT_QUINT, useReduceMotion } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
-import type { SpeechState } from './speech';
+import { VOICE_TIER_LABELS, type SpeechState, type VoiceOption } from './speech';
 
 interface Props {
   state: SpeechState;
   rate: number;
+  voice: VoiceOption | undefined;
   onPause(): void;
   onResume(): void;
   onRate(): void;
+  onVoice(): void;
   onStop(): void;
 }
 
-/** 听书时浮在底部的播放条：暂停 / 继续、语速、停止。只在朗读时出现，平时底部不放任何东西 */
-export function ReadAloudBar({ state, rate, onPause, onResume, onRate, onStop }: Props) {
+/** 听书时浮在底部的播放条：暂停 / 继续、语音（点开选择）、语速、停止。只在朗读时出现，平时底部不放任何东西 */
+export function ReadAloudBar({ state, rate, voice, onPause, onResume, onRate, onVoice, onStop }: Props) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
@@ -31,6 +33,8 @@ export function ReadAloudBar({ state, rate, onPause, onResume, onRate, onStop }:
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [reduceMotion ? 0 : 12, 0] });
   const playing = state === 'playing';
   const PlayIcon = playing ? Pause : Play;
+  const tier = voice && VOICE_TIER_LABELS[voice.tier];
+  const voiceLabel = voice ? (tier ? `${voice.name} · ${tier}` : voice.name) : '系统语音';
 
   return (
     <Animated.View
@@ -47,7 +51,21 @@ export function ReadAloudBar({ state, rate, onPause, onResume, onRate, onStop }:
         >
           <PlayIcon size={18} color="#fff" fill="#fff" strokeWidth={2} />
         </Pressable>
-        <Text style={[styles.label, { color: t.fg }]}>{playing ? '正在朗读' : '已暂停'}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`语音 ${voiceLabel}，点按选择`}
+          hitSlop={6}
+          style={styles.label}
+          onPress={onVoice}
+        >
+          <Text style={[styles.state, { color: t.fg }]}>{playing ? '正在朗读' : '已暂停'}</Text>
+          <View style={styles.voice}>
+            <Text style={[styles.voiceText, { color: t.fg3 }]} numberOfLines={1}>
+              {voiceLabel}
+            </Text>
+            <ChevronRight size={12} color={t.fg3} strokeWidth={2} />
+          </View>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`语速 ${rate} 倍，点按切换`}
@@ -69,7 +87,10 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   bar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 6, paddingRight: 10, height: 52 },
   play: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 14, fontWeight: '600', minWidth: 56 },
+  label: { minWidth: 56, maxWidth: 140, gap: 1 },
+  state: { fontSize: 14, fontWeight: '600' },
+  voice: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  voiceText: { fontSize: 11, flexShrink: 1 },
   rate: { height: 28, minWidth: 58, paddingHorizontal: 8, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   rateText: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
   close: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },

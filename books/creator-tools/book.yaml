@@ -1,0 +1,19 @@
+id: creator-tools
+title: 给创作者和短剧团队做工具
+subtitle: 痛点地图、产品机会、平台接口边界与 90 天起步计划
+category: media/business
+tags: [media, creator-tools, saas, ai-drama, micro-drama, product, opc, open-platform]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-why-this-market.md
+  - 02-pain-map.md
+  - 03-tool-landscape.md
+  - 04-opportunities.md
+  - 05-platform-apis.md
+  - 06-architecture.md
+  - 07-validation-acquisition.md
+  - 08-pricing.md
+  - 09-dont-do.md
+  - 10-start-and-90-days.md

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="388" viewBox="0 0 360 388" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="387" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="16" y="28" font-size="15" font-weight="600" fill="#1f2328">12 个产品方向的加权得分</text>
+<text x="16" y="46" font-size="11" fill="#656d76">满分 70；权重与各项打分见正文表格（作者判断）</text>
+<text x="134" y="71" font-size="12" fill="#1f2328" text-anchor="end">AI 短剧分镜管理</text>
+<rect x="142" y="60" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="60" width="138" height="15" rx="3" fill="#2f6fdf"/>
+<text x="320" y="72" font-size="12" fill="#656d76">56</text>
+<text x="134" y="95" font-size="12" fill="#1f2328" text-anchor="end">生成记录与素材资产</text>
+<rect x="142" y="84" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="84" width="133" height="15" rx="3" fill="#2f6fdf"/>
+<text x="320" y="96" font-size="12" fill="#656d76">54</text>
+<text x="134" y="119" font-size="12" fill="#1f2328" text-anchor="end">商单管理</text>
+<rect x="142" y="108" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="108" width="133" height="15" rx="3" fill="#2f6fdf"/>
+<text x="320" y="120" font-size="12" fill="#656d76">54</text>
+<text x="134" y="143" font-size="12" fill="#1f2328" text-anchor="end">角色与场景设定库</text>
+<rect x="142" y="132" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="132" width="120" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="144" font-size="12" fill="#656d76">49</text>
+<text x="134" y="167" font-size="12" fill="#1f2328" text-anchor="end">内容复盘看板</text>
+<rect x="142" y="156" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="156" width="120" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="168" font-size="12" fill="#656d76">49</text>
+<text x="134" y="191" font-size="12" fill="#1f2328" text-anchor="end">成片质检</text>
+<rect x="142" y="180" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="180" width="118" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="192" font-size="12" fill="#656d76">48</text>
+<text x="134" y="215" font-size="12" fill="#1f2328" text-anchor="end">短剧成本与进度</text>
+<rect x="142" y="204" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="204" width="118" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="216" font-size="12" fill="#656d76">48</text>
+<text x="134" y="239" font-size="12" fill="#1f2328" text-anchor="end">剧本协作</text>
+<rect x="142" y="228" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="228" width="113" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="240" font-size="12" fill="#656d76">46</text>
+<text x="134" y="263" font-size="12" fill="#1f2328" text-anchor="end">选题库与灵感收集</text>
+<rect x="142" y="252" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="252" width="113" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="264" font-size="12" fill="#656d76">46</text>
+<text x="134" y="287" font-size="12" fill="#1f2328" text-anchor="end">短剧字幕与多语种</text>
+<rect x="142" y="276" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="276" width="113" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="288" font-size="12" fill="#656d76">46</text>
+<text x="134" y="311" font-size="12" fill="#1f2328" text-anchor="end">多平台发布与数据汇总</text>
+<rect x="142" y="300" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="300" width="108" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="312" font-size="12" fill="#656d76">44</text>
+<text x="134" y="335" font-size="12" fill="#1f2328" text-anchor="end">审片批注协作</text>
+<rect x="142" y="324" width="172" height="15" rx="3" fill="#e6e9ed"/>
+<rect x="142" y="324" width="106" height="15" rx="3" fill="#dbe7fb"/>
+<text x="320" y="336" font-size="12" fill="#656d76">43</text>
+<rect x="16" y="352" width="12" height="12" rx="2" fill="#2f6fdf"/><text x="34" y="362" font-size="11" fill="#656d76">54 分及以上：优先考虑</text>
+<rect x="176" y="352" width="12" height="12" rx="2" fill="#dbe7fb"/><text x="194" y="362" font-size="11" fill="#656d76">其余：看你自己的条件</text>
+</svg>

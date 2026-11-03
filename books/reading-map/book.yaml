@@ -1,6 +1,6 @@
 id: reading-map
 title: 书架导读
-subtitle: 通往一人公司的 58 本书
+subtitle: 通往一人公司的 80 本书
 category: guide
 tags: [roadmap, opc]
 level: beginner
@@ -13,5 +13,6 @@ chapters:
   - 04-ai.md
   - 05-agent.md
   - 06-opc.md
+  - 09-media.md
   - 07-reading-paths.md
   - 08-progress.md

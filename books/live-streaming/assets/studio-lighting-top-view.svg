@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="380" viewBox="0 0 360 380" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="379" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="20" y="30" font-size="15" font-weight="600" fill="#1f2328">一人直播间俯视布光图</text>
+<text x="20" y="48" font-size="12" fill="#656d76">主播面朝下方的摄像头</text>
+<rect x="20" y="62" width="320" height="22" rx="4" fill="#e6e9ed"/>
+<text x="180" y="78" font-size="12" fill="#656d76" text-anchor="middle">背景墙：书架、少量物件，比脸暗一档</text>
+<circle cx="52" cy="108" r="12" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="70" y="112" font-size="12" fill="#1f2328">背景灯</text>
+<circle cx="292" cy="122" r="12" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="228" y="104" font-size="12" fill="#1f2328">轮廓灯（后侧方）</text>
+<line x1="282" y1="128" x2="198" y2="160" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="4 3"/>
+<circle cx="180" cy="168" r="22" fill="#2f6fdf"/>
+<text x="180" y="173" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">主播</text>
+<rect x="38" y="252" width="44" height="30" rx="4" fill="#2f6fdf"/>
+<text x="60" y="301" font-size="12" fill="#1f2328" text-anchor="middle">主灯</text>
+<text x="60" y="316" font-size="11" fill="#656d76" text-anchor="middle">斜前方 45°</text>
+<line x1="80" y1="254" x2="164" y2="184" stroke="#2f6fdf" stroke-width="2"/>
+<rect x="290" y="262" width="36" height="24" rx="4" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="308" y="304" font-size="12" fill="#1f2328" text-anchor="middle">辅灯</text>
+<text x="308" y="319" font-size="11" fill="#656d76" text-anchor="middle">亮度约一半</text>
+<line x1="292" y1="264" x2="198" y2="184" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="4 3"/>
+<rect x="166" y="262" width="28" height="18" rx="3" fill="#1f2328"/>
+<text x="180" y="300" font-size="12" fill="#1f2328" text-anchor="middle">摄像头</text>
+<rect x="150" y="308" width="60" height="16" rx="3" fill="#e6e9ed" stroke="#656d76"/>
+<text x="180" y="342" font-size="12" fill="#1f2328" text-anchor="middle">公屏监看屏（镜头正下方）</text>
+<rect x="100" y="198" width="160" height="40" rx="4" fill="#ffffff" stroke="#656d76"/>
+<text x="180" y="222" font-size="12" fill="#656d76" text-anchor="middle">桌面：麦克风、键盘</text>
+<line x1="20" y1="356" x2="44" y2="356" stroke="#2f6fdf" stroke-width="2"/>
+<text x="50" y="360" font-size="11" fill="#656d76">主光方向</text>
+<line x1="120" y1="356" x2="144" y2="356" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="150" y="360" font-size="11" fill="#656d76">辅助光方向</text>
+</svg>

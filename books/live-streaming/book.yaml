@@ -1,0 +1,19 @@
+id: live-streaming
+title: 直播实战
+subtitle: 一个人下班开播：搭直播间、写话术、排品、复盘、守规矩
+category: media/platform
+tags: [live-streaming, douyin, script, live-commerce, review, compliance]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-live-types.md
+  - 02-studio-setup.md
+  - 03-before-going-live.md
+  - 04-script-blocks.md
+  - 05-full-scripts.md
+  - 06-product-lineup.md
+  - 07-solo-host-and-control.md
+  - 08-data-and-review.md
+  - 09-clips-redistribution.md
+  - 10-violation-risks.md

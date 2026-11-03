@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseMultipart, RequestParser, textOf } from './http';
+import { parseMultipart, peekMultipartFilename, RequestParser, textOf } from './http';
 
 const enc = (s: string) => new TextEncoder().encode(s);
 
@@ -66,5 +66,22 @@ describe('parseMultipart', () => {
 
   it('returns null without a boundary', () => {
     expect(parseMultipart(enc('x'), 'application/json')).toBeNull();
+  });
+});
+
+describe('peekMultipartFilename', () => {
+  const ct = 'multipart/form-data; boundary=XYZ';
+  const raw = multipart('XYZ', [{ name: 'pin', body: '1234' }, { name: 'file', filename: '算法.zip', body: 'PK'.repeat(50) }]);
+  const body = enc(raw);
+  // 文件内容刚开始到达：头部已完整，内容只收到一点
+  const fileStart = enc(raw.slice(0, raw.indexOf('PK') + 2)).length;
+
+  it('finds the file name after a leading text field, before the body is complete', () => {
+    expect(peekMultipartFilename(body.subarray(0, fileStart), ct)).toBe('算法.zip');
+  });
+
+  it('returns undefined until the file part header has arrived', () => {
+    expect(peekMultipartFilename(body.subarray(0, 60), ct)).toBeUndefined();
+    expect(peekMultipartFilename(body, 'text/plain')).toBeUndefined();
   });
 });

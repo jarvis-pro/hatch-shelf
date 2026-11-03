@@ -49,10 +49,10 @@ export class RequestParser {
 
   constructor(private readonly maxBodyBytes: number) {}
 
-  /** 请求头解析完之后的接收进度，用于传书页面显示上传进度 */
-  get progress(): { method: string; path: string; received: number; total: number } | null {
+  /** 请求头解析完之后的接收进度，用于传书页面显示上传进度；body 是已收到的部分 */
+  get progress(): (Omit<HttpRequest, 'body'> & { body: Uint8Array; received: number; total: number }) | null {
     if (!this.req || !this.body) return null;
-    return { method: this.req.method, path: this.req.path, received: this.received, total: this.body.length };
+    return { ...this.req, body: this.body.subarray(0, this.received), received: this.received, total: this.body.length };
   }
 
   push(chunk: Uint8Array): ParseResult {
@@ -177,18 +177,41 @@ export function parseMultipart(body: Uint8Array, contentType: string | undefined
     const next = indexOfBytes(body, delimiter, headEnd + 4);
     if (next < 0) return null;
 
-    const head = decoder.decode(body.subarray(pos, headEnd));
-    const disposition = /content-disposition:\s*form-data;([^\r\n]*)/i.exec(head)?.[1] ?? '';
-    const name = /\bname="([^"]*)"/i.exec(disposition)?.[1];
-    // filename*=UTF-8''… 优先，否则用 filename="…"（浏览器会直接放 UTF-8 原文）
-    const extended = /filename\*=UTF-8''([^;\s]+)/i.exec(disposition)?.[1];
-    const plain = /\bfilename="([^"]*)"/i.exec(disposition)?.[1];
-    const filename = extended ? decodeURIComponent(extended) : plain;
+    const { name, filename } = partHeader(decoder.decode(body.subarray(pos, headEnd)));
     // 数据到下一个分隔符前的 CRLF 为止
     if (name !== undefined) parts.push({ name, filename, data: body.subarray(headEnd + 4, next - 2) });
     pos = next;
   }
   return parts;
+}
+
+function partHeader(head: string): { name?: string; filename?: string } {
+  const disposition = /content-disposition:\s*form-data;([^\r\n]*)/i.exec(head)?.[1] ?? '';
+  const name = /\bname="([^"]*)"/i.exec(disposition)?.[1];
+  // filename*=UTF-8''… 优先，否则用 filename="…"（浏览器会直接放 UTF-8 原文）
+  const extended = /filename\*=UTF-8''([^;\s]+)/i.exec(disposition)?.[1];
+  const plain = /\bfilename="([^"]*)"/i.exec(disposition)?.[1];
+  return { name, filename: extended ? decodeURIComponent(extended) : plain };
+}
+
+/**
+ * 请求体还没收完时，从已收到的开头部分找出第一个带文件名的字段的文件名，
+ * 传书页据此在上传过程中就显示是哪本书。找不到（还没收到那部分）返回 undefined。
+ */
+export function peekMultipartFilename(head: Uint8Array, contentType: string | undefined): string | undefined {
+  const m = /multipart\/form-data;.*boundary=(?:"([^"]+)"|([^;\s]+))/i.exec(contentType ?? '');
+  if (!m) return undefined;
+  const delimiter = encoder.encode(`--${m[1] ?? m[2]}`);
+  let pos = indexOfBytes(head, delimiter);
+  while (pos >= 0) {
+    pos += delimiter.length + 2;
+    const headEnd = indexOfBytes(head, CRLFCRLF, pos);
+    if (headEnd < 0) return undefined;
+    const { filename } = partHeader(decoder.decode(head.subarray(pos, headEnd)));
+    if (filename) return filename;
+    pos = indexOfBytes(head, delimiter, headEnd + 4);
+  }
+  return undefined;
 }
 
 export const textOf = (bytes: Uint8Array) => decoder.decode(bytes);

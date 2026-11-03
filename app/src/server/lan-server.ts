@@ -11,6 +11,7 @@ import {
   CONTINUE_RESPONSE,
   jsonResponse,
   parseMultipart,
+  peekMultipartFilename,
   RequestParser,
   textOf,
   type HttpRequest,
@@ -22,12 +23,20 @@ export const MAX_PIN_FAILURES = 5;
 
 export interface LanServerEvents {
   onListening(): void;
-  /** 上传中的进度（0–1）；同一个连接用同一个 key，结束时传 null */
-  onReceiving?(key: number, ratio: number | null): void;
+  /**
+   * 上传中的进度（ratio 0–1，到 1 后进入导入）和上传的文件名（收到文件字段的头部后才有）；
+   * 同一个连接用同一个 key，结束时传 null
+   */
+  onReceiving?(key: number, upload: ReceivingUpload | null): void;
   onUpload(result: ImportResult): void;
   /** PIN 连续错误达到上限，服务已自动关闭 */
   onLocked(): void;
   onError(message: string): void;
+}
+
+export interface ReceivingUpload {
+  ratio: number;
+  name?: string;
 }
 
 export interface LanServer {
@@ -151,19 +160,21 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
     const key = ++connections;
     let done = false;
     let reported = -1;
+    let name: string | undefined;
     const reply = (bytes: Uint8Array) => {
       done = true;
       if (reported >= 0) events.onReceiving?.(key, null);
       socket.end(bytes);
     };
-    /** 每 5% 报一次上传进度 */
+    /** 每 5% 报一次上传进度；认出文件名时也报一次 */
     const report = () => {
       const p = parser.progress;
       if (!p || p.method !== 'POST' || p.path !== '/upload' || p.total === 0) return;
+      const found = name === undefined && (name = peekMultipartFilename(p.body.subarray(0, 16 * 1024), p.headers['content-type']));
       const ratio = Math.floor((p.received / p.total) * 20) / 20;
-      if (ratio === reported) return;
+      if (ratio === reported && !found) return;
       reported = ratio;
-      events.onReceiving?.(key, ratio);
+      events.onReceiving?.(key, { ratio, name });
     };
 
     socket.on('data', (chunk) => {

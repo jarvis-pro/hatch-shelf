@@ -19,7 +19,7 @@ import { Animated, AppState, Easing, Pressable, ScrollView, StyleSheet, Text, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, type BookRow } from '@/db/queries';
 import type { ImportResult } from '@/import/pipeline';
-import { LAN_PORT, MAX_PIN_FAILURES, startLanServer, type LanServer } from '@/server/lan-server';
+import { LAN_PORT, MAX_PIN_FAILURES, startLanServer, type LanServer, type ReceivingUpload } from '@/server/lan-server';
 import { setLanRunning } from '@/server/lan-status';
 import { openBook } from '@/shelf/actions';
 import { BookCover, COVER_RATIO } from '@/shelf/BookCover';
@@ -52,7 +52,7 @@ export default function TransferScreen() {
   const [ip, setIp] = useState<string | null>(null);
   const [onWifi, setOnWifi] = useState(true);
   const [received, setReceived] = useState<Received[]>([]);
-  const [receiving, setReceiving] = useState<Map<number, number>>(new Map());
+  const [receiving, setReceiving] = useState<Map<number, ReceivingUpload>>(new Map());
   const [toast, setToast] = useState<Received | null>(null);
   const server = useRef<LanServer | null>(null);
   // 一批接收中只为第一本弹提示，避免批量推送时提示条连续刷新
@@ -91,11 +91,11 @@ export default function TransferScreen() {
     server.current?.stop();
     server.current = startLanServer(listenPin, {
       onListening: () => setStatus('running'),
-      onReceiving: (key, ratio) =>
+      onReceiving: (key, upload) =>
         setReceiving((m) => {
           const next = new Map(m);
-          if (ratio === null) next.delete(key);
-          else next.set(key, ratio);
+          if (upload === null) next.delete(key);
+          else next.set(key, upload);
           return next;
         }),
       onUpload: (r) => {
@@ -554,12 +554,16 @@ function ReceivedItem({ r }: { r: Received }) {
 }
 
 /**
- * 本次接收列表。一批接收期间顶部固定一行进度（文件之间的空档显示为导入完成），
- * 整批结束后才收起，列表只会逐本变长，不会来回伸缩。
+ * 本次接收列表。一批接收期间顶部固定一行，显示正在上传或导入的书和上传进度；
+ * 文件之间的空档显示为等待下一个文件。整批结束后才收起，列表只会逐本变长，不会来回伸缩。
  */
-function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: boolean; receiving: number[] }) {
+function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: boolean; receiving: ReceivingUpload[] }) {
   const t = useTheme();
-  const ratio = receiving.length > 0 ? Math.min(...receiving) : 1;
+  // 同时有多个时显示最慢的那个
+  const current = receiving.length > 0 ? receiving.reduce((a, b) => (b.ratio < a.ratio ? b : a)) : null;
+  const ratio = current?.ratio ?? 1;
+  const book = useUploadingBook(current?.name);
+  const stage = !current ? '等待下一个文件' : ratio >= 1 ? '正在导入' : '正在上传';
   const more = receiving.length > 1 ? ` · ${receiving.length} 个文件` : '';
   return (
     <Glass radius={24} style={styles.received}>
@@ -574,12 +578,21 @@ function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: b
       </View>
       {batch && (
         <View style={styles.item}>
-          <ItemIcon icon={ArrowDownToLine} color={t.accent} tint={t.accentSoft} />
-          <View style={{ flex: 1, gap: 6 }}>
-            <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }}>
-              {ratio >= 1 ? '正在导入…' : '正在上传…'}
-              {more}
+          {current && book ? (
+            <BookCover book={book} width={ITEM_COVER} radius={6} />
+          ) : (
+            <ItemIcon icon={ArrowDownToLine} color={t.accent} tint={t.accentSoft} />
+          )}
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
+              {current ? (book?.title ?? current.name ?? `${stage}…`) : `${stage}…`}
             </Text>
+            {current && (book || current.name) && (
+              <Text style={{ color: t.fg3, fontSize: 12 }} numberOfLines={1}>
+                {stage}
+                {more}
+              </Text>
+            )}
             <View style={styles.itemProgress}>
               <ProgressBar value={ratio} track={t.track} fill={t.accent} style={{ flex: 1 }} />
               <Text style={{ color: t.fg2, fontSize: 11, fontVariant: ['tabular-nums'] }}>{Math.round(ratio * 100)}%</Text>
@@ -592,6 +605,23 @@ function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: b
       ))}
     </Glass>
   );
+}
+
+/** 按上传的文件名（`<id>.zip`，shelf-pack 推送时就是这样）找书架上已有的同一本书，用来显示封面和书名 */
+function useUploadingBook(name: string | undefined): BookRow | null {
+  const id = name?.replace(/\.(zip|md|markdown)$/i, '');
+  const [found, setFound] = useState<{ id: string; book: BookRow | null } | null>(null);
+  useEffect(() => {
+    if (!id) return;
+    let alive = true;
+    void getBook(id).then((book) => {
+      if (alive) setFound({ id, book });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+  return found && found.id === id ? found.book : null;
 }
 
 /** 导入成功后从顶部滑下的提示，3 秒后收起 */

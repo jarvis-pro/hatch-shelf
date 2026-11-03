@@ -1,0 +1,19 @@
+id: ai-drama-post
+title: AI 短剧后期
+subtitle: 配音、口型、音乐、字幕、剪辑到成片交付
+category: media/drama
+tags: [ai-drama, post-production, tts, voice-clone, lip-sync, subtitles, editing, mixing, delivery]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-post-overview.md
+  - 02-voiceover.md
+  - 03-lip-sync.md
+  - 04-music-sfx-mixing.md
+  - 05-subtitles.md
+  - 06-editing-rhythm.md
+  - 07-color-consistency.md
+  - 08-delivery-specs.md
+  - 09-qc-and-rework.md
+  - 10-walkthrough-and-cost.md

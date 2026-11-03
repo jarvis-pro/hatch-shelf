@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 288" width="360" height="288" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="287" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">单集后期成本构成（按本章假设值）</text>
+<text x="110" y="67" font-size="12" fill="#1f2328" text-anchor="end">后期人工 7 小时</text>
+<rect x="118" y="55" width="144.0" height="16" fill="#2f6fdf"/>
+<text x="267.0" y="67" font-size="11" fill="#656d76">700 元 · 78%</text>
+<text x="110" y="97" font-size="12" fill="#1f2328" text-anchor="end">配音授权分摊</text>
+<rect x="118" y="85" width="15.4" height="16" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="138.4" y="97" font-size="11" fill="#656d76">75 元 · 8%</text>
+<text x="110" y="127" font-size="12" fill="#1f2328" text-anchor="end">主题曲定制分摊</text>
+<rect x="118" y="115" width="10.3" height="16" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="133.3" y="127" font-size="11" fill="#656d76">50 元 · 6%</text>
+<text x="110" y="157" font-size="12" fill="#1f2328" text-anchor="end">对口型生成</text>
+<rect x="118" y="145" width="7.4" height="16" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="130.4" y="157" font-size="11" fill="#656d76">36 元 · 4%</text>
+<text x="110" y="187" font-size="12" fill="#1f2328" text-anchor="end">订阅工具分摊</text>
+<rect x="118" y="175" width="6.2" height="16" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="129.2" y="187" font-size="11" fill="#656d76">30 元 · 3%</text>
+<text x="110" y="217" font-size="12" fill="#1f2328" text-anchor="end">TTS 生成</text>
+<rect x="118" y="205" width="1.5" height="16" fill="#e6e9ed" stroke="#656d76" stroke-width="0.5"/>
+<text x="124.5" y="217" font-size="11" fill="#656d76">5 元 · 1%</text>
+<text x="180" y="252" font-size="12" fill="#1f2328" text-anchor="middle">合计约 896 元 / 集，人工占 78%</text>
+<text x="180" y="272" font-size="11" fill="#656d76" text-anchor="middle">时薪、单价均为假设值，替换成你的实际数字</text>
+</svg>

@@ -264,9 +264,23 @@ th {
   padding: 4px 0;
 }
 
+/* 图表缩到屏幕宽，先看全貌；缩得多的提示点按看原尺寸 */
 .mermaid-wrap {
-  overflow-x: auto;
   margin: 0 0 1.2em;
+}
+
+.mermaid-wrap svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-wrap.shrunk::after {
+  content: '点按查看大图';
+  display: block;
+  margin-top: 4px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 pre.mermaid {
@@ -297,6 +311,29 @@ pre.mermaid {
   max-height: 100%;
   border-radius: 0;
   background: #fff;
+}
+
+/* 图表用页面底色衬底：亮色主题下深色文字在黑色遮罩上看不清 */
+.overlay-diagram {
+  display: none;
+  margin: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+#image-overlay.diagram img {
+  display: none;
+}
+
+#image-overlay.diagram .overlay-diagram {
+  display: block;
+}
+
+.overlay-diagram svg {
+  display: block;
+  max-width: none;
+  height: auto;
 }
 
 #image-overlay.zoomed img {

@@ -54,7 +54,7 @@ const html = `<!doctype html>
 </head>
 <body>
 <article id="content"></article>
-<div id="image-overlay"><button class="overlay-close" type="button">✕</button><img alt=""></div>
+<div id="image-overlay"><button class="overlay-close" type="button">✕</button><img alt=""><div class="overlay-diagram"></div></div>
 <script>${js}</script>
 </body>
 </html>

@@ -22,6 +22,7 @@ import { bookDir } from '@/lib/paths';
 import { applyHighlightAction, chooseHighlightAction, promptNote } from '@/notes/prompts';
 import { addHighlight, listHighlights, toMark } from '@/notes/store';
 import type { FromReader, Quote, ReaderPosition, SelectionAction, ToReader, TocItem } from '@/reader/bridge';
+import { loadNextReads } from '@/reader/next-reads';
 import { COVER_MS, PagePlaceholder, type PlaceholderChapter } from '@/reader/PagePlaceholder';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
@@ -130,6 +131,7 @@ export default function ReaderScreen() {
       const restore: ReaderPosition | undefined =
         anchorTo || find || focus ? { scrollRatio: 0, anchor: anchorTo ?? undefined } : await getProgress(id, ch.file);
       const highlights = await listHighlights(id, ch.file);
+      const next = idx === chapters.length - 1 ? await loadNextReads(id) : undefined;
       // 切章时等占位盖住旧正文再换内容
       if (shownFile.current) await new Promise((r) => setTimeout(r, COVER_MS));
       if (cancelled) return;
@@ -146,6 +148,7 @@ export default function ReaderScreen() {
         find: find ?? undefined,
         highlights: highlights.map(toMark),
         focusHighlight: focus ?? undefined,
+        next,
       });
       setReadCount((await getReadChapters(id, idx)).size);
     })().catch((e: Error) => !cancelled && setError(`无法读取章节 ${ch.file}：${e.message}`));

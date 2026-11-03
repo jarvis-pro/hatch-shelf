@@ -6,6 +6,7 @@ import mermaid from 'mermaid';
 import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
 import type {
   FromReader,
+  NextRead,
   ReaderPosition,
   ReaderTheme,
   ToReader,
@@ -31,6 +32,7 @@ const svg = (body: string) =>
   `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
 const ICON_COPY = svg('<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>');
 const ICON_CHECK = svg('<path d="M20 6 9 17l-5-5"/>');
+const ICON_CHEVRON = svg('<path d="m9 18 6-6-6-6"/>');
 
 // ---------- Markdown 渲染 ----------
 
@@ -99,6 +101,8 @@ function assignHeadingIds(tokens: Token[]): TocItem[] {
 // ---------- 页面状态 ----------
 
 const content = document.getElementById('content')!;
+/** 最后一章正文之后的「接着读」，放在 #content 外面，高亮、搜索和目录都不会碰到它 */
+const nextRead = document.getElementById('next-read')!;
 /** 09 高亮落笔：像荧光笔划过选区 */
 const SWEEP_MS = 280;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -175,8 +179,39 @@ function waitImages(timeoutMs: number) {
   return Promise.race([Promise.all(pending), new Promise((r) => setTimeout(r, timeoutMs))]);
 }
 
+/**
+ * 进度按正文算：「接着读」不计入可滚动高度，滚到正文末尾就是 1，
+ * 「读完」的判定（FINISHED_RATIO）不受卡片高度影响
+ */
 function maxScroll() {
-  return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const tail = nextRead.hidden ? 0 : document.documentElement.scrollHeight - nextRead.offsetTop;
+  return Math.max(0, document.documentElement.scrollHeight - tail - window.innerHeight);
+}
+
+/** 没有 cover.png 时画一个缩小的「书架文库」文字封面：纸底、色块、署名色带 */
+function nextCover(book: NextRead) {
+  if (!book.title) return '<span class="next-cover next-cover-missing"></span>';
+  if (book.coverUrl) return `<span class="next-cover"><img src="${escapeHtml(book.coverUrl)}" alt=""></span>`;
+  return `<span class="next-cover next-cover-text" style="--cover:${escapeHtml(book.color)}"><i></i><b></b></span>`;
+}
+
+function renderNext(books: NextRead[] | undefined) {
+  nextRead.hidden = !books?.length;
+  nextRead.innerHTML = books?.length
+    ? '<p class="next-kicker">接着读</p>' +
+      books
+        .map((b) => {
+          const title = b.title ? escapeHtml(b.title) : '书架上还没有这本书';
+          const note = b.title ? '' : `<span class="next-note">需要先导入「${escapeHtml(b.id)}」</span>`;
+          const reason = b.reason ? `<span class="next-reason">${escapeHtml(b.reason)}</span>` : '';
+          return (
+            `<a class="next-book" href="../${escapeHtml(b.id)}/" data-label="${b.title ? `《${escapeHtml(b.title)}》` : ''}">` +
+            `${nextCover(b)}<span class="next-body"><span class="next-title">${title}</span>${reason}${note}</span>` +
+            `<span class="next-go">${ICON_CHEVRON}</span></a>`
+          );
+        })
+        .join('')
+    : '';
 }
 
 function scrollToAnchor(anchor: string, smooth = false) {
@@ -239,6 +274,7 @@ async function load(msg: Extract<ToReader, { type: 'load' }>) {
   const tokens = md.parse(msg.markdown, env);
   const toc = assignHeadingIds(tokens);
   content.innerHTML = kicker(msg.chapterNo) + md.renderer.render(tokens, md.options, env);
+  renderNext(msg.next);
   post({ type: 'toc', items: toc });
   await renderMermaid();
   renderHighlights(content, msg.highlights);
@@ -375,7 +411,8 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     const href = link.getAttribute('href') ?? '';
     if (href.startsWith('#')) scrollToAnchor(decodeURIComponent(href.slice(1)), true);
-    else if (href) post({ type: 'link', href, text: link.textContent?.trim() ?? '' });
+    // 「接着读」的链接文字是整张卡片，书名另放在 data-label
+    else if (href) post({ type: 'link', href, text: link.dataset.label ?? link.textContent?.trim() ?? '' });
   }
 });
 

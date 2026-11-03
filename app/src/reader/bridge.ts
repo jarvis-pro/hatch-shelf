@@ -20,6 +20,8 @@ export type ToReader =
       highlights: HighlightMark[];
       /** 从笔记列表跳转时要滚到的高亮 id（优先于 restore） */
       focusHighlight?: string;
+      /** 最后一章正文之后的「接着读」（book.yaml 的 next）；不是最后一章或没有可推荐的书时省略 */
+      next?: NextRead[];
     }
   | { type: 'setTheme'; theme: ReaderTheme }
   | { type: 'scrollTo'; anchor: string }
@@ -60,6 +62,19 @@ export interface ReaderPosition {
   scrollRatio: number;
   /** 视口顶部之上最近的标题 id */
   anchor?: string;
+}
+
+/** 「接着读」推荐的一本书；点按时阅读器发出 `../<id>/` 的 link 消息，与跨书链接走同一条路 */
+export interface NextRead {
+  id: string;
+  /** 书架上没有这本书时为 null，阅读器提示先导入 */
+  title: string | null;
+  /** book.yaml 里的一句理由，没写时用那本书的副标题 */
+  reason: string | null;
+  /** cover.png 的 file:// URL；没有封面时画文字封面 */
+  coverUrl: string | null;
+  /** 文字封面的主色，与书架一致 */
+  color: string;
 }
 
 export interface TocItem {

@@ -75,6 +75,13 @@
       "expo-sqlite",
       "expo-asset",
       [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#EEF0F5",

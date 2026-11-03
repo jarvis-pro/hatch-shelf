@@ -502,3 +502,20 @@ mark.hl.doubt.has-note {
   flex: none;
   color: var(--muted);
 }
+
+/* ---------- 听书 ---------- */
+
+/* 正在朗读的段落：浅色底向两侧略微外扩，不改变排版 */
+.tts-on {
+  background: var(--link-soft);
+  box-shadow:
+    -10px 0 0 var(--link-soft),
+    10px 0 0 var(--link-soft);
+  border-radius: 4px;
+  transition: background-color 200ms ease;
+}
+
+/* 朗读期间底部浮着播放条，正文多留出一段可以滚上来的空白 */
+body.tts-playing {
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+}

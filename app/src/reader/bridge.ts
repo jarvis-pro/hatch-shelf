@@ -31,7 +31,11 @@ export type ToReader =
    * 新增、删除高亮或修改笔记后重绘本章高亮。
    * animate：刚新增的高亮从左到右扫过（in），刚删除的先反向收回再移除（out）
    */
-  | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } };
+  | { type: 'setHighlights'; highlights: HighlightMark[]; animate?: { id: string; kind: 'in' | 'out' } }
+  /** 听书：请阅读器把本章切成可朗读的段落，回报 ttsBlocks */
+  | { type: 'ttsCollect' }
+  /** 听书：标出正在读的第 index 段（ttsBlocks 里的下标），必要时滚过去；null 表示结束 */
+  | { type: 'ttsMark'; index: number | null };
 
 /** WebView → RN，通过 window.ReactNativeWebView.postMessage(JSON.stringify(msg)) */
 export type FromReader =
@@ -44,6 +48,8 @@ export type FromReader =
   /** 回应 captureSelection；没有选中文字时 quote 为 null */
   | { type: 'selection'; action: SelectionAction; quote: Quote | null }
   | { type: 'highlightTap'; id: string }
+  /** 回应 ttsCollect：按顺序排好的朗读文本，start 是视口里第一段的下标 */
+  | { type: 'ttsBlocks'; texts: string[]; start: number }
   | { type: 'error'; message: string };
 
 /** 跟随 App 外观，阅读页不单独设主题 */

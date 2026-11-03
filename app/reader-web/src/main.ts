@@ -4,6 +4,7 @@ import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
 import mermaid from 'mermaid';
 import { quoteFromRange, renderHighlights, scrollToHighlight, sweepHighlight } from './highlights';
+import { collectBlocks, markBlock, remarkBlocks, resetBlocks } from './tts';
 import type {
   FromReader,
   NextRead,
@@ -105,6 +106,8 @@ const content = document.getElementById('content')!;
 const nextRead = document.getElementById('next-read')!;
 /** 09 高亮落笔：像荧光笔划过选区 */
 const SWEEP_MS = 280;
+/** 顶部返回、「···」按钮和渐隐区的高度；听书从它下面第一段开始读 */
+const TOP_INSET = 100;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let current: Extract<ToReader, { type: 'load' }> | null = null;
 let restoring = false;
@@ -278,6 +281,7 @@ async function load(msg: Extract<ToReader, { type: 'load' }>) {
   post({ type: 'toc', items: toc });
   await renderMermaid();
   renderHighlights(content, msg.highlights);
+  remarkBlocks(content);
   await waitImages(1500);
   restore(msg.restore);
   if (msg.find) findAndMark(msg.find, msg.restore?.anchor);
@@ -295,6 +299,7 @@ window.__shelf = {
   receive(msg) {
     switch (msg.type) {
       case 'load':
+        resetBlocks();
         // 渲染失败也要回报 rendered，否则 App 的版式占位会一直盖着
         load(msg).catch((e: Error) => {
           post({ type: 'error', message: e.message });
@@ -330,6 +335,12 @@ window.__shelf = {
         if (animate?.kind === 'in' && !reducedMotion.matches) sweepHighlight(content, animate.id, 'in', SWEEP_MS);
         break;
       }
+      case 'ttsCollect':
+        post({ type: 'ttsBlocks', ...collectBlocks(content, TOP_INSET) });
+        break;
+      case 'ttsMark':
+        markBlock(msg.index, TOP_INSET);
+        break;
     }
   },
 };

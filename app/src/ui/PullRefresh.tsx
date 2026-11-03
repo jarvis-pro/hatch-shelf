@@ -32,7 +32,10 @@ const LABELS: Record<PullPhase, string> = {
  * 画面由 PullIndicator 在安全区下方绘制。scrollProps 直接展开到 Animated.ScrollView 上。
  */
 export function usePullRefresh(onRefresh: () => Promise<void>) {
+  // 胶囊的位置、透明度走原生驱动，和内容滚动同一帧，书架书多、JS 忙时也不会落在拉开的空隙外；
+  // SVG 描边不支持原生驱动，圆环进度另用一个 JS 值
   const [scrollY] = useState(() => new Animated.Value(0));
+  const [ringY] = useState(() => new Animated.Value(0));
   const [phase, setPhaseState] = useState<PullPhase>('idle');
   const phaseRef = useRef<PullPhase>('idle');
   const dragging = useRef(false);
@@ -56,14 +59,12 @@ export function usePullRefresh(onRefresh: () => Promise<void>) {
     }
   }, [onRefresh, setPhase]);
 
-  // SVG 的描边属性不支持原生驱动，滚动值走 JS
-  const onScroll = useMemo(
-    () => Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false }),
-    [scrollY],
-  );
+  const onScroll = useMemo(() => Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true }), [scrollY]);
 
+  // 原生驱动的值加了监听后仍会回传到 JS，用来判断阶段、驱动圆环
   useEffect(() => {
     const id = scrollY.addListener(({ value: y }) => {
+      ringY.setValue(y);
       const p = phaseRef.current;
       if (p === 'done' && y >= -1) setPhase('idle');
       if (!dragging.current || (p !== 'idle' && p !== 'armed')) return;
@@ -73,7 +74,7 @@ export function usePullRefresh(onRefresh: () => Promise<void>) {
       setPhase(next);
     });
     return () => scrollY.removeListener(id);
-  }, [scrollY, setPhase]);
+  }, [scrollY, ringY, setPhase]);
 
   const scrollProps = {
     onScroll,
@@ -96,11 +97,17 @@ export function usePullRefresh(onRefresh: () => Promise<void>) {
     ),
   };
 
-  return { scrollY, phase, scrollProps };
+  return { scrollY, ringY, phase, scrollProps };
 }
 
 /** 玻璃胶囊 + 渐变圆环 + 状态文案：下拉时圆环随距离画满，刷新中收成短弧旋转，完成后合拢。top 传安全区上边距 */
-export function PullIndicator({ scrollY, phase, top }: { scrollY: Animated.Value; phase: PullPhase; top: number }) {
+export function PullIndicator({
+  pull: { scrollY, ringY, phase },
+  top,
+}: {
+  pull: Pick<ReturnType<typeof usePullRefresh>, 'scrollY' | 'ringY' | 'phase'>;
+  top: number;
+}) {
   const t = useTheme();
   // hold = 1 时圆环不再跟手，改用 fixed 的长度
   const [hold] = useState(() => new Animated.Value(0));
@@ -130,8 +137,9 @@ export function PullIndicator({ scrollY, phase, top }: { scrollY: Animated.Value
     };
   }, [phase, hold, fixed, spin]);
 
-  const pull = scrollY.interpolate({ inputRange: [-1, 0], outputRange: [1, 0], extrapolateLeft: 'extend', extrapolateRight: 'clamp' });
-  const progress = pull.interpolate({ inputRange: [8, TRIGGER], outputRange: [0, 1], extrapolate: 'clamp' });
+  const toPull = (y: Animated.Value) => y.interpolate({ inputRange: [-1, 0], outputRange: [1, 0], extrapolateLeft: 'extend', extrapolateRight: 'clamp' });
+  const pull = toPull(scrollY);
+  const progress = toPull(ringY).interpolate({ inputRange: [8, TRIGGER], outputRange: [0, 1], extrapolate: 'clamp' });
   const arc = Animated.add(Animated.multiply(progress, Animated.subtract(1, hold)), Animated.multiply(fixed, hold));
   const active = phase !== 'idle';
 

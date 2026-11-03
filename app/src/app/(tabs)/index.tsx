@@ -148,7 +148,7 @@ export default function ShelfScreen() {
           );
         })}
       </Animated.ScrollView>
-      <PullIndicator scrollY={pull.scrollY} phase={pull.phase} top={insets.top} />
+      <PullIndicator pull={pull} top={insets.top} />
     </View>
   );
 }

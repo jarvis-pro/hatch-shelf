@@ -50,6 +50,33 @@ export async function pullDeviceNotes(to: string, pin: string): Promise<DeviceNo
   return body.notes as DeviceNotes[];
 }
 
+/** 备份内容由 App 定义和校验（app/src/backup/format.ts），CLI 只负责原样存取 */
+export interface DeviceBackup {
+  exportedAt: number;
+  progress: { book_id: string }[];
+  highlights: unknown[];
+}
+
+export async function pullBackup(to: string, pin: string): Promise<DeviceBackup> {
+  const { status, body } = await request(`${baseUrl(to)}/backup`, { headers: { 'X-Pin': pin } });
+  if (status === 404) throw new Error('手机上的 App 版本不支持备份，请先更新 App');
+  if (!body.ok) throw new Error(String(body.error ?? '获取备份失败'));
+  return body.backup as DeviceBackup;
+}
+
+/** 把备份文件原样发给手机合并；返回 App 给出的结果说明 */
+export async function pushRestore(to: string, pin: string, json: string): Promise<string> {
+  const data = strToU8(json);
+  const { status, body } = await request(`${baseUrl(to)}/restore`, {
+    method: 'POST',
+    headers: { 'X-Pin': pin, 'Content-Type': 'application/json', 'Content-Length': String(data.length) },
+    body: data,
+  });
+  if (status === 404) throw new Error('手机上的 App 版本不支持恢复，请先更新 App');
+  if (!body.ok) throw new Error(String(body.error ?? '恢复失败'));
+  return String(body.message);
+}
+
 export interface UploadResult {
   ok: boolean;
   status?: 'added' | 'updated';

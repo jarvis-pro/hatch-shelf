@@ -151,6 +151,8 @@ chapters:                     # 必填，显式排序
 | GET | `/books` | 返回本地已有书籍的 id、标题、更新时间和内容指纹 `hash`（CLI 据此判断是否需要推送）；同样需要 `X-Pin` |
 | GET | `/cover/<id>` | 书的 `cover.png`，上传页在导入成功后用来显示封面；需要 `X-Pin`，没有封面时 404 |
 | GET | `/notes` | 每本有高亮的书的笔记：`{ id, title, count, markdown }`，`markdown` 与分享导出的 `<id>.notes.md` 相同；需要 `X-Pin` |
+| GET | `/backup` | 阅读数据备份（见第 7 节），`{ ok, backup }`；需要 `X-Pin` |
+| POST | `/restore` | 请求体是备份 JSON，合并进本机，返回 `{ ok, message, summary }`；需要 `X-Pin` |
 | GET | `/ping` | 不需要 PIN；上传页每 3 秒请求一次，连续两次失败就提示连接已断开 |
 
 响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`；`/upload` 成功时还带 `status`（`added` / `updated`）、`title`、`chapters`（章节数）、`cover`（是否有封面）和 `warnings`。
@@ -207,6 +209,8 @@ documentDirectory/
 | highlights | id, book_id, chapter_file, text, prefix, suffix, anchor, kind（`highlight` / `doubt`）, note, created_at, updated_at | ❌ |
 
 `last_read_at` 由 `progress` 推导；重建索引时从 `progress` 回填。
+
+**备份**：不可重建的三类数据（progress、highlights、settings 里的外观与阅读设置）可以导出成一个 JSON（`app/src/backup/`）。两条路：设置页「备份阅读进度与笔记」经分享面板存到「文件」或 AirDrop，「从备份恢复」从「文件」选回来；或者传书开启时在电脑上 `shelf-pack backup` / `restore`。恢复是合并：本机没有的写入，两边都有的保留 `updated_at` 较新的一份，所以不会冲掉备份之后的新记录（备份之后删掉的高亮会被恢复回来）。书的原文不在备份里，换机后重新推书，进度和高亮按书 id 与章节文件名挂回去。
 
 ---
 
@@ -281,6 +285,8 @@ shelf-pack pack  <book-dir> [-o out.zip]      # 校验后打包成 zip
 shelf-pack push  <book-dir> --to <ip> --pin <pin>   # 打包并通过局域网上传
 shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /books，只推送有变化的书
 shelf-pack pull-notes [notes/] --to <ip> --pin <pin>     # 拉取手机上的全部笔记，写成 notes/<id>.notes.md
+shelf-pack backup  [backups/] --to <ip> --pin <pin>      # 备份阅读数据，写成 backups/shelf-backup-<日期>.json（不入库）
+shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手机
 ```
 
 理想流程：agent 写完一本书 → `shelf-pack push books/<id> --to ... --pin ...` → 手机上直接可读。
@@ -333,6 +339,7 @@ shelf-pack pull-notes [notes/] --to <ip> --pin <pin>     # 拉取手机上的全
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
 | 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，构建号写在 app.json 由脚本递增，`ios/` 仍然只由 prebuild 生成 |
 | 书架分组 | 分组名就是 `category` 的第一段，直接写中文；顺序按系列里最早导入的书 | 分组名写死在 App 里时，新增系列要改代码、重新出包，违背「内容跟着书走」；导入时间在重建索引时保留，顺序稳定，不需要额外配置 |
+| 阅读数据备份 | 手动导出 JSON + 合并式恢复，不做自动同步 | App 不联网，iCloud 同步要引入原生能力和冲突处理；进度和高亮都带 `updated_at`，按「较新者胜」合并足够个人使用。备份是个人数据，`backups/` 不入库 |
 | 跨书链接 | 用文件系统式的相对路径 `../<id>/<章节>.md#锚点`，不用自定义 scheme | 在仓库里、GitHub 和编辑器预览中都是能点通的真实路径；与 App 里 `books/<id>/` 的目录结构一致，`check` 按同级目录即可校验 |
 | App 名称 | 显示名「书巢」，内部名保留 `Shelf` | 取陆游《书巢记》里堆满书的书房，也呼应 hatch（孵化）：书在电脑上写成，再落进手机里的巢。「书架」仍作为首页 Tab 的名字；`expo.name` 决定 prebuild 的工程名和 TestFlight 脚本的 scheme，不随之改动 |
 | 冷启动 | 不全量重建索引，开场封面只播一次 | 每次启动都读遍全部章节重建全文索引，书越多开屏越久；索引存在 SQLite 里，导入时已按书更新，冷启动只做不读正文的增删对账，结构变化时靠 `INDEX_VERSION` 触发一次全量重建。开场封面每次都播会让「打开就读」变慢 |

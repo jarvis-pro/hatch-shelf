@@ -4,7 +4,7 @@ import path from 'node:path';
 import { MAX_PACKAGE_BYTES, prepareImport } from '@shelf/spec';
 import { Command } from 'commander';
 import { findBooks, groupByCategory, lint, packBook, readBook, sameNotes, type LocalBook } from './books';
-import { listDeviceBooks, PinError, pullDeviceNotes, upload } from './device';
+import { listDeviceBooks, PinError, pullBackup, pullDeviceNotes, pushRestore, upload } from './device';
 
 const c = {
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,
@@ -158,6 +158,43 @@ program
       }
       const shown = path.relative(process.cwd(), path.resolve(dir));
       console.log(c.dim(`\n${written} 个文件有变化，写入 ${shown.startsWith('..') ? path.resolve(dir) : shown || '.'}/`));
+    } catch (e) {
+      console.error(c.red((e as Error).message));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('backup')
+  .argument('[dir]', '备份目录', 'backups')
+  .requiredOption('--to <ip>', '手机传书页面上显示的 IP（可带 :端口）')
+  .requiredOption('--pin <pin>', '传书页面上显示的 PIN')
+  .description('把手机上的阅读进度、高亮与笔记、阅读设置备份成 <dir>/shelf-backup-<日期>.json')
+  .action(async (dir: string, opts: { to: string; pin: string }) => {
+    try {
+      const backup = await pullBackup(opts.to, opts.pin);
+      mkdirSync(dir, { recursive: true });
+      const file = path.join(dir, `shelf-backup-${new Date(backup.exportedAt).toISOString().slice(0, 10)}.json`);
+      writeFileSync(file, `${JSON.stringify(backup, null, 2)}\n`);
+      const books = new Set(backup.progress.map((p) => p.book_id)).size;
+      const shown = path.relative(process.cwd(), path.resolve(file));
+      console.log(`${c.green('↓')} ${shown.startsWith('..') ? path.resolve(file) : shown}`);
+      console.log(c.dim(`  ${books} 本书的阅读进度 · ${backup.highlights.length} 条高亮与笔记`));
+    } catch (e) {
+      console.error(c.red((e as Error).message));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('restore')
+  .argument('<file>', 'backup 命令或 App 导出的备份文件')
+  .requiredOption('--to <ip>', '手机传书页面上显示的 IP（可带 :端口）')
+  .requiredOption('--pin <pin>', '传书页面上显示的 PIN')
+  .description('把备份合并回手机：本机没有的写入，两边都有的保留较新的一份')
+  .action(async (file: string, opts: { to: string; pin: string }) => {
+    try {
+      console.log(`${c.green('↑')} ${await pushRestore(opts.to, opts.pin, readFileSync(file, 'utf8'))}`);
     } catch (e) {
       console.error(c.red((e as Error).message));
       process.exitCode = 1;

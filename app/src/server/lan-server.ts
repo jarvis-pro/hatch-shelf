@@ -2,6 +2,8 @@ import { MAX_PACKAGE_BYTES, SLUG_RE } from '@shelf/spec';
 import { Directory, File, Paths } from 'expo-file-system';
 import { strToU8 } from 'fflate';
 import TcpSocket from 'react-native-tcp-socket';
+import { describeRestore, parseBackup } from '@/backup/format';
+import { exportBackup, restoreBackup } from '@/backup/store';
 import { getBook, listBooks } from '@/db/queries';
 import { importFile, type ImportResult } from '@/import/pipeline';
 import { bookDir } from '@/lib/paths';
@@ -56,6 +58,8 @@ const uploadDir = new Directory(Paths.cache, 'lan-upload');
  * GET  /books   本地已有书籍（需要 X-Pin）
  * GET  /cover/<id>  书的封面 cover.png（需要 X-Pin），上传页用来在导入后显示封面
  * GET  /notes   每本有高亮的书导出的笔记 Markdown（需要 X-Pin），shelf-pack pull-notes 用来放回仓库的 notes/
+ * GET  /backup  阅读数据备份 JSON（需要 X-Pin），shelf-pack backup 用来存到电脑
+ * POST /restore 请求体是备份 JSON（需要 X-Pin），合并进本机，shelf-pack restore 使用
  * GET  /ping    不需要 PIN，上传页据此判断服务是否还在
  */
 export function startLanServer(pin: string, events: LanServerEvents): LanServer {
@@ -122,6 +126,19 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       return jsonResponse(200, { ok: true, notes });
     }
 
+    if (req.method === 'GET' && req.path === '/backup') {
+      if (!checkPin(req.headers['x-pin'])) return pinError();
+      return jsonResponse(200, { ok: true, backup: await exportBackup() });
+    }
+
+    if (req.method === 'POST' && req.path === '/restore') {
+      if (!checkPin(req.headers['x-pin'])) return pinError();
+      const parsed = parseBackup(textOf(req.body));
+      if (!parsed.ok) return jsonResponse(422, { ok: false, error: parsed.error });
+      const plan = await restoreBackup(parsed.backup);
+      return jsonResponse(200, { ok: true, message: describeRestore(plan), summary: plan.summary });
+    }
+
     if (req.method === 'POST' && req.path === '/upload') {
       const parts = parseMultipart(req.body, req.headers['content-type']);
       if (!parts) return jsonResponse(400, { ok: false, error: '请使用 multipart/form-data 上传' });
@@ -148,7 +165,7 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       });
     }
 
-    if (['/', '/ping', '/books', '/notes', '/upload'].includes(req.path) || req.path.startsWith('/cover/')) {
+    if (['/', '/ping', '/books', '/notes', '/backup', '/restore', '/upload'].includes(req.path) || req.path.startsWith('/cover/')) {
       return jsonResponse(405, { ok: false, error: '不支持的请求方法' });
     }
     return jsonResponse(404, { ok: false, error: '没有这个接口' });

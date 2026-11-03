@@ -1,6 +1,8 @@
 import Constants from 'expo-constants';
 import {
+  ArchiveRestore,
   ChevronRight,
+  DatabaseBackup,
   FolderInput,
   Info,
   RefreshCcw,
@@ -13,6 +15,7 @@ import {
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { pickAndRestore, shareBackup } from '@/backup/store';
 import { pickAndImport } from '@/import/incoming';
 import { rebuildIndex } from '@/library/index-books';
 import { SettingsSheet } from '@/reader/SettingsSheet';
@@ -50,6 +53,15 @@ export default function SettingsTab() {
       Alert.alert('重建失败', (e as Error).message);
     } finally {
       setRebuilding(false);
+    }
+  };
+
+  const restore = async () => {
+    try {
+      const message = await pickAndRestore();
+      if (message) Alert.alert('恢复完成', message);
+    } catch (e) {
+      Alert.alert('无法恢复', (e as Error).message);
     }
   };
 
@@ -92,6 +104,11 @@ export default function SettingsTab() {
           <Row icon={RefreshCcw} label="重建索引" onPress={rebuilding ? undefined : () => void rebuild()}>
             {rebuilding && <ActivityIndicator size="small" color={t.fg3} />}
           </Row>
+        </Group>
+
+        <Group title="阅读数据">
+          <Row icon={DatabaseBackup} label="备份阅读进度与笔记" onPress={() => void shareBackup()} />
+          <Row icon={ArchiveRestore} label="从备份恢复" onPress={() => void restore()} />
         </Group>
 
         <Group title="关于">

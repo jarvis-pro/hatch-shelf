@@ -5,6 +5,7 @@
 const SERIES: Record<string, string> = {
   ai: '人工智能',
   opc: '一人公司',
+  media: '自媒体与短剧',
   tech: '技术',
   ops: '运维',
   guide: '使用指南',

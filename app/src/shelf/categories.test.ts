@@ -5,6 +5,7 @@ describe('categories', () => {
   it('按第一段归入系列并显示系列名', () => {
     expect(seriesOf('ai/agent')).toBe('ai');
     expect(categoryLabel('opc/growth')).toBe('一人公司');
+    expect(categoryLabel('media/drama')).toBe('自媒体与短剧');
     expect(categoryLabel('go/web')).toBe('go');
     expect(seriesOf(null)).toBe(UNCATEGORIZED);
     expect(categoryLabel(null)).toBeNull();

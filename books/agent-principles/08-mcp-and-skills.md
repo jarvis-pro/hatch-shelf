@@ -2,7 +2,7 @@
 
 到目前为止，agent 的工具和知识都是写在 agent 程序内部的。但你会很快遇到两个问题：想让 Claude Code 查你的 Postgres、读你的设计稿、操作你的日历，难道每接一个系统都要改 agent 的代码？想教 agent 一套「怎么写这个项目的发版说明」的流程，难道每次都在对话里重新解释一遍？
 
-**MCP** 解决第一个问题：用一个标准协议把外部系统的能力接进任何 agent。**Skills** 解决第二个问题：把一套做事方法打包成 agent 可以按需加载的文件夹。这一章讲两者的原理和定位。MCP server 的完整开发见《工具设计与 MCP》，Skills 的加载机制在《上下文工程》里还会展开。
+**MCP** 解决第一个问题：用一个标准协议把外部系统的能力接进任何 agent。**Skills** 解决第二个问题：把一套做事方法打包成 agent 可以按需加载的文件夹。这一章讲两者的原理和定位。MCP server 的完整开发见[《工具设计与 MCP》](../tools-and-mcp/)，Skills 的加载机制在[《上下文工程》](../context-engineering/)里还会展开。
 
 ## MCP：agent 的「USB 接口」
 
@@ -44,7 +44,7 @@ server 能向 agent 提供几类东西：
 
 ### 一个最小的 MCP server
 
-下面用官方 TypeScript SDK 写一个只读的书架查询 server。示例基于 SDK 2.x（`@modelcontextprotocol/server`，实现 2026-07-28 版协议），和《工具设计与 MCP》第 5 章的完整版本同一写法。网上很多教程还是 1.x 的 `@modelcontextprotocol/sdk` 写法，两者的差异见那一章开头的对照表。
+下面用官方 TypeScript SDK 写一个只读的书架查询 server。示例基于 SDK 2.x（`@modelcontextprotocol/server`，实现 2026-07-28 版协议），和[《工具设计与 MCP》第 5 章](../tools-and-mcp/05-build-mcp-server.md)的完整版本同一写法。网上很多教程还是 1.x 的 `@modelcontextprotocol/sdk` 写法，两者的差异见那一章开头的对照表。
 
 ```typescript
 import { McpServer } from "@modelcontextprotocol/server";

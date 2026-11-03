@@ -223,7 +223,7 @@ Pod 被删除时，有两件事**同时**发生：
 
 之后 NestJS 收到 SIGTERM，因为 hatch-counter 在 `main.ts` 里调了 `app.enableShutdownHooks()`，它会停止接新连接、跑完 `onModuleDestroy` 等钩子。整个过程要在 `terminationGracePeriodSeconds`（默认 30 秒）内结束，超时会被 SIGKILL。
 
-还有一点：`CMD ["node", "dist/main.js"]` 让 node 直接作为 PID 1 收信号。如果镜像用 `npm start` 或 shell 包一层启动，SIGTERM 可能传不到 node 进程，优雅停机就形同虚设。这一点《容器技术》讲 Dockerfile 时提过，在 K8s 里它的影响会在每一次滚动发布中体现出来。
+还有一点：`CMD ["node", "dist/main.js"]` 让 node 直接作为 PID 1 收信号。如果镜像用 `npm start` 或 shell 包一层启动，SIGTERM 可能传不到 node 进程，优雅停机就形同虚设。这一点[《容器技术》](../docker-containers/)讲 Dockerfile 时提过，在 K8s 里它的影响会在每一次滚动发布中体现出来。
 
 ### 发布、观察、回滚
 

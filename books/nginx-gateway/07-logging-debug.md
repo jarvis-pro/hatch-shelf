@@ -166,7 +166,7 @@ awk '{ for (i = 1; i <= NF; i++) if ($i ~ /^rt=/) { split($i, a, "="); if (a[2] 
   /var/log/nginx/access.log | head
 ```
 
-这些命令适合临时排查。长期需要的话，把日志送进可观测性系统做聚合和告警，见《可观测性与性能》。
+这些命令适合临时排查。长期需要的话，把日志送进可观测性系统做聚合和告警，见[《可观测性与性能》](../observability-performance/)。
 
 ### 调高 error log 级别
 

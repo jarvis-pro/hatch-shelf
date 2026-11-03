@@ -75,7 +75,7 @@ export const clearRefreshToken = () => SecureStore.deleteItemAsync(KEY);
 
 ![令牌存放位置与威胁对照：localStorage 挡不住 XSS，普通 cookie 挡不住 XSS 和 CSRF，内存访问令牌加 httpOnly cookie 挡住 CSRF、部分挡住 XSS，移动端本机专用的 Keychain 挡住文件或备份被拷走。](assets/token-storage.svg)
 
-网页端那几种的细节见《前端工程化与 Web 平台》；hatch-counter 的网页端把访问令牌放内存、刷新令牌放路径受限的 httpOnly cookie，移动端则是回包体里给票、请求体里递票，令牌存进系统的安全存储。轮换、重放检测、按设备作废这些服务端机制（第 1 章）不分端，它们管的是票，不管票装在哪。
+网页端那几种的细节见[《前端工程化与 Web 平台》](../frontend-engineering/)；hatch-counter 的网页端把访问令牌放内存、刷新令牌放路径受限的 httpOnly cookie，移动端则是回包体里给票、请求体里递票，令牌存进系统的安全存储。轮换、重放检测、按设备作废这些服务端机制（第 1 章）不分端，它们管的是票，不管票装在哪。
 
 ## 通信：只走 HTTPS
 
@@ -176,7 +176,7 @@ default-src 'none'; img-src file: data: blob:; style-src 'unsafe-inline'; font-s
 
 ### Electron 也是同一个问题
 
-Electron 的渲染进程本质上也是一个 WebView，只是权限更大。基本的三个开关：`contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`（新版本 Electron 默认值已经是安全的，不要为了图省事改回去），渲染进程和主进程之间只通过 `contextBridge` 暴露最小的接口，并校验每个 IPC 消息的参数。具体见《Electron 桌面应用》。
+Electron 的渲染进程本质上也是一个 WebView，只是权限更大。基本的三个开关：`contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`（新版本 Electron 默认值已经是安全的，不要为了图省事改回去），渲染进程和主进程之间只通过 `contextBridge` 暴露最小的接口，并校验每个 IPC 消息的参数。具体见[《Electron 桌面应用》](../electron-desktop/)。
 
 ## 本章要点
 

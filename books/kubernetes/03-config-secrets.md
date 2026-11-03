@@ -89,7 +89,7 @@ kubectl -n counter create secret generic counter-api-secret \
 
 `--dry-run=client -o yaml | kubectl apply -f -` 这个组合让命令可以重复执行：第一次创建，之后更新，不会因为「已存在」报错。`secrets/` 目录要加进 `.gitignore`。
 
-把加密后的 Secret 提交进 Git（SOPS、Sealed Secrets）或者从外部密钥库同步（External Secrets + Vault），是更系统的做法，属于 GitOps 的范畴，《基础设施即代码》会展开。单人项目起步时，「env 文件放在一个加密备份过的地方，用上面的命令灌进集群」完全够用。
+把加密后的 Secret 提交进 Git（SOPS、Sealed Secrets）或者从外部密钥库同步（External Secrets + Vault），是更系统的做法，属于 GitOps 的范畴，[《基础设施即代码》](../iac-gitops/)会展开。单人项目起步时，「env 文件放在一个加密备份过的地方，用上面的命令灌进集群」完全够用。
 
 ## 把配置交给容器
 

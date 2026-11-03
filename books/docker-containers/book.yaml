@@ -5,7 +5,7 @@ category: 运维/容器
 tags: [docker, container, compose, devops]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-container-internals.md
   - 02-images-layers.md

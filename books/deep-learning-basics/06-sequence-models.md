@@ -15,7 +15,7 @@ wc -c input.txt
 
 ## 字符级 tokenizer
 
-《大模型原理科普》讲过真实的大模型用 BPE 之类的子词 tokenizer。为了把注意力放在模型本身，我们用最简单的方案：**每个字符就是一个 token**。
+[《大模型原理科普》](../llm-fundamentals/)讲过真实的大模型用 BPE 之类的子词 tokenizer。为了把注意力放在模型本身，我们用最简单的方案：**每个字符就是一个 token**。
 
 ```python
 text = open("input.txt", encoding="utf-8").read()

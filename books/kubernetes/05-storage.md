@@ -191,7 +191,7 @@ spec:
 - **`/dev/shm` 挂内存卷**：容器默认的共享内存只有 64MB，Postgres 的并行查询会用到共享内存，不够时报 `could not resize shared memory segment`。Compose 里用 `shm_size` 解决，K8s 里用 `medium: Memory` 的 emptyDir
 - **只有 readinessProbe，没有 livenessProbe**：数据库在做长时间恢复或检查点时可能暂时无响应，被存活探针误杀重启只会更糟。原 compose 也只有一个 `pg_isready` 健康检查，用途是「什么时候能连」，对应的正是就绪探针
 - **`terminationGracePeriodSeconds: 60`**：给 Postgres 足够的时间做干净的关闭（写检查点）。被 SIGKILL 的 Postgres 下次启动要做崩溃恢复
-- **requests 和 limits**：这里的数值是一台 4GB 机器上的示例预算，要和 Postgres 自身的 `shared_buffers` 等参数一起调，参数怎么定见《PostgreSQL 运维》
+- **requests 和 limits**：这里的数值是一台 4GB 机器上的示例预算，要和 Postgres 自身的 `shared_buffers` 等参数一起调，参数怎么定见[《PostgreSQL 运维》](../database-ops/)
 
 ### 数据库用的角色从哪来
 

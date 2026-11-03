@@ -131,7 +131,7 @@ export async function generateAndStore(env: Env, generate: Generate, prompt: str
 }
 ```
 
-窄接口的思路和《大模型应用工程》里讲的一样：不要试图抽象出覆盖所有厂商所有参数的通用层，上层只需要「给提示、还图片」。
+窄接口的思路和[《大模型应用工程》](../llm-app-engineering/)里讲的一样：不要试图抽象出覆盖所有厂商所有参数的通用层，上层只需要「给提示、还图片」。
 
 ### 成本和滥用
 

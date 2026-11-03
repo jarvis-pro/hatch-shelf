@@ -20,7 +20,7 @@
 | RTO 几小时 | 有文档、演练过的手工恢复流程 | 每季度演练一次的时间 |
 | RTO 几分钟 | 热备、自动故障转移 | 至少两台机器，复杂度翻倍 |
 
-一人公司的早期产品，**RPO 24 小时、RTO 4 小时**通常是合理的起点：每天备份一次，出事后半天内能在一台新机器上恢复。先老老实实做到这个程度，再根据用户的实际要求往上提。PITR 和主从复制在《PostgreSQL 运维》里展开，本章只讲通用的部分。
+一人公司的早期产品，**RPO 24 小时、RTO 4 小时**通常是合理的起点：每天备份一次，出事后半天内能在一台新机器上恢复。先老老实实做到这个程度，再根据用户的实际要求往上提。PITR 和主从复制在[《PostgreSQL 运维》](../database-ops/)里展开，本章只讲通用的部分。
 
 把你的目标写进仓库的运维文档里。写下来之后，「每天备份一次够不够」就不再是一个凭感觉的问题，而是「用户能不能接受丢一天的数据」。
 
@@ -39,7 +39,7 @@
 
 几个容易出问题的地方：
 
-- **密钥**：hatch-counter 的 `api.env` 是在机器上用 `openssl rand` 生成的，不进 git（《部署与 CI/CD》第 3 章）。机器没了，这些值也就没了。数据库密码可以重设，但**签发令牌的密钥丢了，所有用户都会被登出**；安卓签名密钥丢了，就再也发不了同一个应用的更新。这类东西必须另存一份到密码管理器
+- **密钥**：hatch-counter 的 `api.env` 是在机器上用 `openssl rand` 生成的，不进 git（[《部署与 CI/CD》第 3 章](../deploy-release/03-env-secrets.md)）。机器没了，这些值也就没了。数据库密码可以重设，但**签发令牌的密钥丢了，所有用户都会被登出**；安卓签名密钥丢了，就再也发不了同一个应用的更新。这类东西必须另存一份到密码管理器
 - **证书**：Let's Encrypt 证书丢了可以重新申请，不用备份；但要注意签发频率限制，恢复时别反复申请
 - **最后一行**：恢复文档如果只放在那台服务器上，机器挂了就看不到了。放在仓库里，再在密码管理器里放一份
 
@@ -103,7 +103,7 @@ sudo bash -c 'source /etc/restic/env && restic init'
 
 ### 备份脚本
 
-在《Linux 系统与命令行》第 8 章那个本地备份脚本的基础上，加上异地和报警：
+在[《Linux 系统与命令行》第 8 章](../linux-essentials/08-shell-scripting.md)那个本地备份脚本的基础上，加上异地和报警：
 
 ```bash
 #!/usr/bin/env bash
@@ -145,7 +145,7 @@ echo "异地备份完成：$(numfmt --to=iec "$size")"
 - 大小阈值按你的库的实际大小定，目的是挡住「备份了一个空库」这种最隐蔽的失败
 - `BACKUP_PING_URL` 也写进 `/etc/restic/env`
 
-用 systemd timer 每天跑（timer 的写法见《Linux 系统与命令行》第 4 章）：
+用 systemd timer 每天跑（timer 的写法见[《Linux 系统与命令行》第 4 章](../linux-essentials/04-systemd.md)）：
 
 ```ini
 # /etc/systemd/system/offsite-backup.service
@@ -252,7 +252,7 @@ docker exec restore-test psql -U postgres -d app -c \
 
 最后一步的核对要按你的业务写。比如查一下最近一条订单的时间，确认它和备份时间吻合，而不只是「表都在」。
 
-国内服务器拉不到 Docker Hub 时，把 `postgres:16-alpine` 换成你转存到自己镜像仓库里的那一份（《容器技术》第 7 章）。
+国内服务器拉不到 Docker Hub 时，把 `postgres:16-alpine` 换成你转存到自己镜像仓库里的那一份（[《容器技术》第 7 章](../docker-containers/07-registry.md)）。
 
 ### 整机重建演练
 

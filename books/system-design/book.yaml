@@ -5,7 +5,7 @@ category: 技术/架构
 tags: [architecture, system-design, postgres, nestjs]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-modular-monolith.md
   - 02-layers-boundaries.md

@@ -60,7 +60,7 @@ mpstat -P ALL 1             # 每个核的使用率（sysstat 包）
 pidstat 1                   # 每个进程每秒的 CPU 使用
 ```
 
-单个 Node 进程 CPU 长期 100%，说明主线程被占满（Node 的 JavaScript 是单线程的），常见原因是同步的大计算、巨大的 JSON 序列化、正则回溯。用 `node --cpu-prof` 抓一份 CPU profile 分析，详见《TS 与 Node 进阶》。
+单个 Node 进程 CPU 长期 100%，说明主线程被占满（Node 的 JavaScript 是单线程的），常见原因是同步的大计算、巨大的 JSON 序列化、正则回溯。用 `node --cpu-prof` 抓一份 CPU profile 分析，详见[《TS 与 Node 进阶》](../ts-node-advanced/)。
 
 ### 内存
 
@@ -117,7 +117,7 @@ LISTEN  0       4096         127.0.0.1:3000        0.0.0.0:*      users:(("docke
 sudo tcpdump -i any -nn port 3000 -c 20
 ```
 
-DNS、TLS、HTTP 各层的原理和更深入的排查方法，见《计算机网络》。
+DNS、TLS、HTTP 各层的原理和更深入的排查方法，见[《计算机网络》](../networking/)。
 
 ### 进程在干什么
 
@@ -247,7 +247,7 @@ sudo timedatectl set-timezone Asia/Shanghai
 
 每次排障结束，花五分钟记下：现象、原因、怎么修的、怎么防止再发生。hatch-counter 的部署文档末尾有一张「现象 → 原因 → 怎么办」的排障表，每一行都是踩过的坑。下次同样的问题出现，查表比从头排查快得多；把这张表放进项目文档，编码 agent 也能读到。
 
-更进一步的，是在问题发生之前就知道：磁盘使用率超过 80% 告警、服务健康检查失败告警、证书到期前提醒。这是可观测性的范畴，见《可观测性与性能》。
+更进一步的，是在问题发生之前就知道：磁盘使用率超过 80% 告警、服务健康检查失败告警、证书到期前提醒。这是可观测性的范畴，见[《可观测性与性能》](../observability-performance/)。
 
 ## 本章要点
 
@@ -262,6 +262,6 @@ sudo timedatectl set-timezone Asia/Shanghai
 
 读完这本，你应该能自如地登上服务器，看懂上面在跑什么，出了问题知道从哪里查起。接下来：
 
-- **按导读顺序，下一本是《容器技术》**：本书多次提到容器的 PID 1、日志、端口发布和数据卷，那本书会从 namespace 和 cgroup 讲起，把 Docker 和 Compose 讲透
+- **按导读顺序，下一本是[《容器技术》](../docker-containers/)**：本书多次提到容器的 PID 1、日志、端口发布和数据卷，那本书会从 namespace 和 cgroup 讲起，把 Docker 和 Compose 讲透
 - **想搞懂网络那一层**：读《计算机网络》，DNS、TCP、TLS、HTTP 的原理和 `dig`、`curl`、`tcpdump` 的深入用法都在那里
-- **要把服务正式上线**：接着读《Nginx 与反向代理》和《部署与 CI/CD》，前者讲反向代理和 HTTPS，后者讲从服务器初始化到零停机发布的完整流程
+- **要把服务正式上线**：接着读[《Nginx 与反向代理》](../nginx-gateway/)和[《部署与 CI/CD》](../deploy-release/)，前者讲反向代理和 HTTPS，后者讲从服务器初始化到零停机发布的完整流程

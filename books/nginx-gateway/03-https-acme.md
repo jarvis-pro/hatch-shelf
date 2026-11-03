@@ -198,7 +198,7 @@ echo | openssl s_client -connect api.example.com:443 -servername api.example.com
   | openssl x509 -noout -enddate
 ```
 
-把它放进你已有的监控（定时任务 + 告警、或者第三方的拨测服务），剩余不足 14 天就报警。可观测性的整体做法见《可观测性与性能》。
+把它放进你已有的监控（定时任务 + 告警、或者第三方的拨测服务），剩余不足 14 天就报警。可观测性的整体做法见[《可观测性与性能》](../observability-performance/)。
 
 ## 常见问题
 

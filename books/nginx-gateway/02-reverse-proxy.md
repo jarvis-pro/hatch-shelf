@@ -241,7 +241,7 @@ if (-f /srv/app/maintenance.on) {
 - 没用 `error_page 503` 兜底：后端自己在数据库挂掉时也回 503，用 error_page 统一接住会把「库挂了」伪装成「正在维护」
 - 必须写在 location 里而不是 server 里：`add_header` 不允许出现在 server 层的 `if` 中，`nginx -t` 会直接报错
 
-蓝绿发布的完整做法在《部署与 CI/CD》里讲。
+蓝绿发布的完整做法在[《部署与 CI/CD》](../deploy-release/)里讲。
 
 ## 本章要点
 

@@ -20,11 +20,11 @@
 
 相邻的内容放在别的书里，这里只引用不重复：
 
-- 日志、指标、压测、容量估算：《可观测性与性能》
-- Postgres 调参、备份、复制、连接池：《PostgreSQL 运维》
-- 模型网关、降级、配额：《LLM 应用上线》
-- nginx 的长连接、缓存、限流配置：《Nginx 与反向代理》
-- 发布、回滚、零停机：《部署与 CI/CD》
+- 日志、指标、压测、容量估算：[《可观测性与性能》](../observability-performance/)
+- Postgres 调参、备份、复制、连接池：[《PostgreSQL 运维》](../database-ops/)
+- 模型网关、降级、配额：[《LLM 应用上线》](../llmops/)
+- nginx 的长连接、缓存、限流配置：[《Nginx 与反向代理》](../nginx-gateway/)
+- 发布、回滚、零停机：[《部署与 CI/CD》](../deploy-release/)
 
 ## 架构在决定什么
 

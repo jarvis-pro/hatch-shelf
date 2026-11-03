@@ -217,7 +217,7 @@ trivy image my-api:1.4.0
 
 这本书把一个 Node 服务装进了容器，并用 Compose 在单机上跑了起来。按导读的顺序，接下来可以读：
 
-- 《计算机网络》：DNS、TLS、HTTP 这些「访问不了」时最终要落到的知识
-- 《Nginx 与反向代理》：本书一直放在宿主机上的那个 nginx，怎么配 HTTPS、限流和 SSE 代理
-- 《部署与 CI/CD》：本书第 6、7 章的发版流程，扩展成零停机发布和完整的流水线
-- 《Kubernetes 入门到实战》：当单机 Compose 不够用时，下一步是什么，以及什么时候不该迈这一步
+- [《计算机网络》](../networking/)：DNS、TLS、HTTP 这些「访问不了」时最终要落到的知识
+- [《Nginx 与反向代理》](../nginx-gateway/)：本书一直放在宿主机上的那个 nginx，怎么配 HTTPS、限流和 SSE 代理
+- [《部署与 CI/CD》](../deploy-release/)：本书第 6、7 章的发版流程，扩展成零停机发布和完整的流水线
+- [《Kubernetes 入门到实战》](../kubernetes/)：当单机 Compose 不够用时，下一步是什么，以及什么时候不该迈这一步

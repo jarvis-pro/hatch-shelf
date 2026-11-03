@@ -33,7 +33,7 @@ flowchart LR
 2. **漂移会被自动纠正**：有人用 `kubectl edit` 临时改了副本数，Argo CD 会发现并改回去（如果开了自愈）
 3. **Git 历史就是部署历史**：回滚等于 `git revert`，「生产上现在是什么」等于「那个分支上现在是什么」
 
-《部署与 CI/CD》里提到过，hatch-counter 的上线代理 `agent.sh` 定期读下载桶里的指针、变了就切换静态站的版本，这已经是拉模式的思路了，只是期望状态存在对象存储的指针文件里，而不是 Git。
+[《部署与 CI/CD》](../deploy-release/)里提到过，hatch-counter 的上线代理 `agent.sh` 定期读下载桶里的指针、变了就切换静态站的版本，这已经是拉模式的思路了，只是期望状态存在对象存储的指针文件里，而不是 Git。
 
 ## Argo CD 的模型
 
@@ -54,7 +54,7 @@ Argo CD 对每个 Application 持续计算两个状态：
 
 ## 安装
 
-前提是有一个能用的集群。k3s 的安装、kubectl 的配置见《Kubernetes 入门到实战》，这里假设 `kubectl get nodes` 已经能看到节点。
+前提是有一个能用的集群。k3s 的安装、kubectl 的配置见[《Kubernetes 入门到实战》](../kubernetes/)，这里假设 `kubectl get nodes` 已经能看到节点。
 
 ```bash
 kubectl create namespace argocd

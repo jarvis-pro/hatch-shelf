@@ -220,7 +220,7 @@ flowchart LR
 | `CREATE INDEX CONCURRENTLY` | 不阻塞写入 | 慢一些，但**不能在事务里执行** |
 | 加外键 / CHECK | 默认要扫全表验证 | 可以先 `NOT VALID` 再 `VALIDATE` 分两步 |
 
-另一个隐患是**锁排队**：迁移的 `ALTER TABLE` 要等表上正在运行的长查询结束才能拿到排他锁，而在它排队期间，后来的所有查询都排在它后面。迁移里设一个 `SET lock_timeout = '5s'`，拿不到锁就失败重来，比卡住整个服务好。线上锁等待怎么观察，见《PostgreSQL 运维》。
+另一个隐患是**锁排队**：迁移的 `ALTER TABLE` 要等表上正在运行的长查询结束才能拿到排他锁，而在它排队期间，后来的所有查询都排在它后面。迁移里设一个 `SET lock_timeout = '5s'`，拿不到锁就失败重来，比卡住整个服务好。线上锁等待怎么观察，见[《PostgreSQL 运维》](../database-ops/)。
 
 ### CONCURRENTLY 与迁移事务
 

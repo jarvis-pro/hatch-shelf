@@ -200,7 +200,7 @@ networks:
     name: myapp_default
 ```
 
-镜像 tag 写在同目录的 `.env` 里并固定到具体版本。国内服务器拉不到 Docker Hub 时，先转存到自己的镜像仓库（见《容器技术》镜像仓库一章）。
+镜像 tag 写在同目录的 `.env` 里并固定到具体版本。国内服务器拉不到 Docker Hub 时，先转存到自己的镜像仓库（见[《容器技术》](../docker-containers/)镜像仓库一章）。
 
 几个选择的理由：
 

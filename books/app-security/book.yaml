@@ -5,7 +5,7 @@ category: 技术/安全
 tags: [security, auth, owasp, supply-chain, mobile]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-authentication.md
   - 02-authorization.md

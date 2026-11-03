@@ -4,7 +4,7 @@
 
 ## 为什么要流式
 
-《大模型原理科普》第 7 章讲过，输出 token 只能一个一个串行生成。一次请求的耗时大致是：
+[《大模型原理科普》第 7 章](../llm-fundamentals/07-inference-sampling.md)讲过，输出 token 只能一个一个串行生成。一次请求的耗时大致是：
 
 $$
 \text{总耗时} \approx \text{排队与网络} + \text{预填充（随输入变长）} + \text{输出 token 数} \times \text{每个 token 的生成时间}

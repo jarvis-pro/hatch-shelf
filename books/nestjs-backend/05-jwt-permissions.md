@@ -228,7 +228,7 @@ export function requireStore(req: Request): StoreContext {
 
 ## 最后一道防线：数据库
 
-以上都是应用层的判断。hatch-counter 的多租户隔离最终靠的是 PostgreSQL 的行级安全（RLS）：业务查询一条都不写 `where store_id = ?`，全部在设置了门店上下文的事务里跑，数据库自己过滤。漏写一个 where 的后果是「A 店看见了 B 店的账」，而 RLS 漏不了。这部分属于数据库设计，在《数据库原理与实战》里展开。
+以上都是应用层的判断。hatch-counter 的多租户隔离最终靠的是 PostgreSQL 的行级安全（RLS）：业务查询一条都不写 `where store_id = ?`，全部在设置了门店上下文的事务里跑，数据库自己过滤。漏写一个 where 的后果是「A 店看见了 B 店的账」，而 RLS 漏不了。这部分属于数据库设计，在[《数据库原理与实战》](../database-practice/)里展开。
 
 ## 本章要点
 

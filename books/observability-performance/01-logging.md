@@ -10,9 +10,9 @@
 
 适合已经把服务部署上线、开始关心「线上到底怎么样」的人。前置知识：
 
-- 《Linux 系统与命令行》：journald、`journalctl`、logrotate、Docker 日志轮转，本书不再重复
-- 《Nginx 与反向代理》：access log 加耗时字段、按状态码排查，本书也不再重复
-- 《容器技术》：Compose 的基本用法
+- [《Linux 系统与命令行》](../linux-essentials/)：journald、`journalctl`、logrotate、Docker 日志轮转，本书不再重复
+- [《Nginx 与反向代理》](../nginx-gateway/)：access log 加耗时字段、按状态码排查，本书也不再重复
+- [《容器技术》](../docker-containers/)：Compose 的基本用法
 
 章节分三段：
 

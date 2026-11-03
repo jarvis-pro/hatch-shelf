@@ -1,6 +1,6 @@
 # Skills 的渐进式加载
 
-《Agent 原理与设计》第 8 章介绍了 Skills：一个文件夹，核心是一份 `SKILL.md`，按「描述 → 正文 → 附带文件」三层加载。那一章讲了它是什么、和 MCP 有什么区别。这一章从上下文工程的角度讲：**渐进式披露为什么有效，一个 Skill 该怎么切分和组织，描述怎么写才能在对的时候被触发**，以及同样的模式怎么用在工具、文档和你自己的 agent 上。
+[《Agent 原理与设计》第 8 章](../agent-principles/08-mcp-and-skills.md)介绍了 Skills：一个文件夹，核心是一份 `SKILL.md`，按「描述 → 正文 → 附带文件」三层加载。那一章讲了它是什么、和 MCP 有什么区别。这一章从上下文工程的角度讲：**渐进式披露为什么有效，一个 Skill 该怎么切分和组织，描述怎么写才能在对的时候被触发**，以及同样的模式怎么用在工具、文档和你自己的 agent 上。
 
 ## 先算一笔账
 
@@ -213,7 +213,7 @@ export async function runLoadSkill(name: string): Promise<string> {
 - **步骤多、偶尔用**：发版、写书、做数据迁移。最适合 Skill
 - **几乎每次都要用**：放进 `CLAUDE.md`。做成 Skill 反而多一次加载
 - **只有一两句话**：放进 `CLAUDE.md` 或 rules。为一句话单独建 Skill，描述本身的开销就和内容差不多
-- **按文件路径相关**：用带 `paths` 的 rules（《编码 Agent 实战》第 3 章）。但要注意，rules 只在读写匹配的文件时加载；像发版这种「跑一个命令、不碰文件」的流程，rules 触发不了，做成 Skill 更合适
+- **按文件路径相关**：用带 `paths` 的 rules（[《编码 Agent 实战》第 3 章](../coding-agents/03-rules-by-path.md)）。但要注意，rules 只在读写匹配的文件时加载；像发版这种「跑一个命令、不碰文件」的流程，rules 触发不了，做成 Skill 更合适
 
 ## 本章要点
 

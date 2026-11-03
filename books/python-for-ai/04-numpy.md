@@ -242,7 +242,7 @@ X = np.ones((4, 3))          # 4 个样本，每个 3 维
 print((X @ W.T).shape)       # (4, 2)      (4, 3) @ (3, 2) -> (4, 2)
 ```
 
-矩阵乘法 `(m, k) @ (k, n) -> (m, n)`：前一个的列数必须等于后一个的行数。神经网络里的一个全连接层，本质就是 `X @ W.T + b`：一次矩阵乘法加一次广播。矩阵乘法的几何意义可以看《AI 数学直觉》。
+矩阵乘法 `(m, k) @ (k, n) -> (m, n)`：前一个的列数必须等于后一个的行数。神经网络里的一个全连接层，本质就是 `X @ W.T + b`：一次矩阵乘法加一次广播。矩阵乘法的几何意义可以看[《AI 数学直觉》](../math-for-ai/)。
 
 ## AI 里天天用的三个操作
 
@@ -272,7 +272,7 @@ for t in (0.5, 1.0, 2.0):           # 温度：先除以 T 再 softmax
     print(t, softmax(logits / t).round(3))
 ```
 
-`axis=-1` 表示最后一维，`keepdims=True` 让最大值和总和保持可广播的形状，这样同一个函数能处理一个向量，也能处理 `(batch, vocab)` 的一整批。最后那个循环就是 API 里 `temperature` 参数的原理，《大模型原理科普》第 7 章画过它的效果。
+`axis=-1` 表示最后一维，`keepdims=True` 让最大值和总和保持可广播的形状，这样同一个函数能处理一个向量，也能处理 `(batch, vocab)` 的一整批。最后那个循环就是 API 里 `temperature` 参数的原理，[《大模型原理科普》第 7 章](../llm-fundamentals/07-inference-sampling.md)画过它的效果。
 
 ### 余弦相似度与语义搜索
 
@@ -293,7 +293,7 @@ top3 = np.argsort(scores)[::-1][:3]            # 从大到小排，取前 3 个�
 print(top3, scores[top3].round(3))             # 第一个应该是 42
 ```
 
-这几行就是一个最小的「向量检索」：真实系统里 embedding 由模型生成、文档数以百万计，会换成 pgvector 之类的向量库做近似检索，但计算的本质一模一样。《RAG 与知识系统》会接着讲。
+这几行就是一个最小的「向量检索」：真实系统里 embedding 由模型生成、文档数以百万计，会换成 pgvector 之类的向量库做近似检索，但计算的本质一模一样。[《RAG 与知识系统》](../rag-systems/)会接着讲。
 
 数据量大时，`np.argpartition(-scores, k)[:k]` 只找出前 k 个而不对全部排序，会更快。
 
@@ -333,7 +333,7 @@ print(a.T.shape, a.sum(axis=0), a @ a.T)
 | 无 | `requires_grad=True` | 自动求导 |
 | `np.asarray(t)` / `t.numpy()` | `torch.from_numpy(a)` | 两者可以零拷贝互转（CPU 上） |
 
-形状、广播、索引、`@`、`axis/dim` 的规则完全一致，这一章的内容在《动手学深度学习》里会原样用上。
+形状、广播、索引、`@`、`axis/dim` 的规则完全一致，这一章的内容在[《动手学深度学习》](../deep-learning-basics/)里会原样用上。
 
 ## 本章要点
 

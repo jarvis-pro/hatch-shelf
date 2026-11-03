@@ -4,7 +4,7 @@
 
 ## 原理：复用前缀的计算
 
-《大模型原理科普》第 7 章讲过 KV Cache：模型处理输入时，会为每个 token 算出 Key 和 Value，后续生成要反复用到。Prompt 缓存就是把这些中间结果跨请求保存下来。
+[《大模型原理科普》第 7 章](../llm-fundamentals/07-inference-sampling.md)讲过 KV Cache：模型处理输入时，会为每个 token 算出 Key 和 Value，后续生成要反复用到。Prompt 缓存就是把这些中间结果跨请求保存下来。
 
 由于注意力是因果的，每个 token 的计算结果只取决于它**前面**的内容，所以缓存只能按**前缀**复用：
 

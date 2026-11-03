@@ -5,7 +5,7 @@ category: 人工智能/大模型
 tags: [llm, transformer, alignment, quantization, interpretability]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-attention-math.md
   - 02-rope.md

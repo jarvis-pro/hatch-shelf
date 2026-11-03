@@ -361,7 +361,7 @@ kubectl apply -k overlays/prod
 | 迁移顺序 | hook 原生支持 | 要靠外部脚本 |
 | 第三方软件 | 生态主流 | 少 |
 
-对 hatch-counter 来说，「先迁移再发布」和「失败自动回滚」是刚需，Helm 的 hook 和失败自动回滚正好对上，所以选 Helm。如果你的应用没有迁移这类顺序要求，Kustomize 更简单。两者也可以混用：Argo CD 这类 GitOps 工具同时支持它们，《基础设施即代码》会讲。
+对 hatch-counter 来说，「先迁移再发布」和「失败自动回滚」是刚需，Helm 的 hook 和失败自动回滚正好对上，所以选 Helm。如果你的应用没有迁移这类顺序要求，Kustomize 更简单。两者也可以混用：Argo CD 这类 GitOps 工具同时支持它们，[《基础设施即代码》](../iac-gitops/)会讲。
 
 ## 本章要点
 

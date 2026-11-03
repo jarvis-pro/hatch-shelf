@@ -155,7 +155,7 @@ module.exports = function withReleaseSigning(config) {
 
 1. **幂等**：先检查是否已经改过
 2. **锚点找不到就抛**：模板升级后锚点可能消失，这时最坏的结果不是报错，而是安安静静出一个调试签名的包
-3. **验结果不验手法**：CI 出包后再用 `apksigner` 检查证书，不管插件内部怎么实现。这条在《部署与 CI/CD》里讲过
+3. **验结果不验手法**：CI 出包后再用 `apksigner` 检查证书，不管插件内部怎么实现。这条在[《部署与 CI/CD》](../deploy-release/)里讲过
 
 另外，把替换逻辑写成纯函数 `injectReleaseSigning(gradle)`，就能拿一份真实模板做单元测试，不必每次跑 prebuild。
 

@@ -170,7 +170,7 @@ docker exec -i pg-restore-test pg_restore -U counter -d counter --data-only -t s
 
 ## 自动化：systemd timer
 
-手动备份迟早会忘。在宿主机上写一个脚本，用 systemd timer 每天跑一次（systemd 的用法见《Linux 系统与命令行》）。
+手动备份迟早会忘。在宿主机上写一个脚本，用 systemd timer 每天跑一次（systemd 的用法见[《Linux 系统与命令行》](../linux-essentials/)）。
 
 `/usr/local/bin/pg-backup.sh`：
 
@@ -253,7 +253,7 @@ systemctl list-timers pg-backup.timer       # 看下次什么时候跑
 
 同步可以用 rclone 这类工具，加密后再上传。上传凭证只给写入权限、不给删除权限，并在对象存储上开启版本控制或保留策略，防止机器被入侵后攻击者连异地备份一起删掉。具体命令依你选的存储而定，这里不展开，关键是这三条原则。
 
-最后，**备份要有告警**。脚本失败了没人知道，等于没有备份。最简单的办法是脚本成功时去访问一个心跳监控地址，超过 26 小时没收到心跳就通知你。这类监控在《可观测性与性能》里讲。
+最后，**备份要有告警**。脚本失败了没人知道，等于没有备份。最简单的办法是脚本成功时去访问一个心跳监控地址，超过 26 小时没收到心跳就通知你。这类监控在[《可观测性与性能》](../observability-performance/)里讲。
 
 ## 本章要点
 

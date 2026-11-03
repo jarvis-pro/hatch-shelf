@@ -142,15 +142,15 @@ flowchart LR
 
 ## 接下来读什么
 
-这本书是 Agent 系列的总纲。按《书架导读》的推荐路线，接下来读《编码 Agent 实战》，把本书的原理落到你每天使用的编码 agent 上：`CLAUDE.md` 怎么写、hooks 怎么配、子 agent 怎么用；然后是《个人 Agent 工作流》，把 agent 用到写代码之外的日常工作中。
+这本书是 Agent 系列的总纲。按[《书架导读》](../reading-map/)的推荐路线，接下来读[《编码 Agent 实战》](../coding-agents/)，把本书的原理落到你每天使用的编码 agent 上：`CLAUDE.md` 怎么写、hooks 怎么配、子 agent 怎么用；然后是[《个人 Agent 工作流》](../personal-agent-workflow/)，把 agent 用到写代码之外的日常工作中。
 
 想深入某个主题时：
 
-- 上下文和记忆：《上下文工程》
-- 工具和 MCP：《工具设计与 MCP》
-- 多 agent 协作：《多 Agent 编排》
-- 自己从零写一个 agent：《动手构建 Agent》
-- 安全与权限：《Agent 安全》
+- 上下文和记忆：[《上下文工程》](../context-engineering/)
+- 工具和 MCP：[《工具设计与 MCP》](../tools-and-mcp/)
+- 多 agent 协作：[《多 Agent 编排》](../multi-agent/)
+- 自己从零写一个 agent：[《动手构建 Agent》](../build-your-agent/)
+- 安全与权限：[《Agent 安全》](../agent-safety/)
 
 ## 本章要点
 

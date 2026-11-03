@@ -4,47 +4,47 @@
 
 ## 方法与产品
 
-### 一人公司方法论 · `opc-playbook`
+### [一人公司方法论](../opc-playbook/) · `opc-playbook`
 
 讲什么是 OPC、怎么选方向、怎么快速验证、从副业到全职怎么过渡、怎么管理精力，以及什么时候该放弃。
 
-### 产品思维 · `product-thinking`
+### [产品思维](../product-thinking/) · `product-thinking`
 
 需求从哪来、怎么做用户访谈、怎么把问题和方案分开、MVP 的边界在哪、怎么排优先级。
 
-### 写给开发者的设计课 · `design-for-devs`
+### [写给开发者的设计课](../design-for-devs/) · `design-for-devs`
 
 不用成为设计师，但要能做出不难看、好用的界面。内容包括交互原则、排版、色彩、间距、设计系统，以及空态和错误态。
 
 ## 增长
 
-### 文案与内容 · `copywriting-content`
+### [文案与内容](../copywriting-content/) · `copywriting-content`
 
 产品文案、着陆页、内容营销和个人品牌。最后一章讲怎么用 AI 写，又不像 AI 写的。
 
-### 获客与增长 · `growth-marketing`
+### [获客与增长](../growth-marketing/) · `growth-marketing`
 
 讲增长模型、SEO、社交媒体、社区运营、ASO（应用商店优化）、冷启动和留存，以及怎么评估一个渠道值不值得投入。
 
-### 数据分析与埋点 · `product-analytics`
+### [数据分析与埋点](../product-analytics/) · `product-analytics`
 
 没有数据，增长就是猜。这本书讲该看哪些指标、怎么设计埋点、怎么算留存和 LTV、怎么做漏斗分析和 A/B 测试，并用自托管的 PostHog / Umami 实战。
 
 ## 钱与合规
 
-### 定价与商业模式 · `pricing-monetization`
+### [定价与商业模式](../pricing-monetization/) · `pricing-monetization`
 
 讲订阅、买断和内购怎么选，定价心理与价格实验，国内支付和 App Store 内购的接入，以及退款与客诉。
 
-### 财务与税务 · `opc-finance`
+### [财务与税务](../opc-finance/) · `opc-finance`
 
 讲记账基础、税种、发票、现金流，以及怎么把个人和公司的钱分开。
 
-### 国内合规实务 · `opc-compliance-cn`
+### [国内合规实务](../opc-compliance-cn/) · `opc-compliance-cn`
 
 讲个体户与一人有限公司怎么选、注册流程、ICP 备案、App 备案、软件著作权、个人信息保护法、生成式 AI 相关规定，以及上架资质。
 
-### 出海实务 · `going-global`
+### [出海实务](../going-global/) · `going-global`
 
 讲海外主体、Stripe 收款、App Store 海外区、GDPR 与隐私政策、海外云，以及税务和汇款。
 
@@ -52,32 +52,32 @@
 
 前面的书讲每一块是什么、怎么做。这一组把它们排成一条能照着走的路线，并补上销售、个人保障、合同、私域和案例。
 
-### 一人公司行动手册 · `opc-action-plan`
+### [一人公司行动手册](../opc-action-plan/) · `opc-action-plan`
 
 这套书的执行层。以 hatch-counter 为主线，把从在职副业到全职分成六个阶段：盘点、问题验证、前十个付费客户、可重复的获客、辞职决策、全职第一年。每个阶段写清进入条件、按周拆好的任务、量化的退出条件和止损线，附录对照每个阶段该读哪几本书的哪几章。
 
-### 销售与 To B 成交 · `b2b-sales`
+### [销售与 To B 成交](../b2b-sales/) · `b2b-sales`
 
 写给不擅长销售的开发者：怎么列门店名单、地推和转介绍、需求发现、演示与试用、报价谈判、签单收款、交付上线、续费和流失挽回，附话术、演示脚本和异议处理表。
 
-### 过渡期收入与个人保障 · `opc-transition`
+### [过渡期收入与个人保障](../opc-transition/) · `opc-transition`
 
 产品还养不活自己的那段时间怎么过：接外包和咨询撑现金流，个人安全垫和跑道怎么算，离职后社保、医保、公积金怎么续，商业保险的优先级，副业收入怎么报税。
 
-### 合同与法律文书 · `contracts-legal`
+### [合同与法律文书](../contracts-legal/) · `contracts-legal`
 
 SaaS 服务合同、用户协议与隐私政策、外包合同、保密与数据处理协议、知识产权条款、电子签与存证，以及催款、违约和纠纷怎么处理。
 
-### 国内私域与内容平台 · `private-domain-cn`
+### [国内私域与内容平台](../private-domain-cn/) · `private-domain-cn`
 
 小红书、公众号、视频号、抖音、B 站、企业微信和小程序各自适合做什么，一个人怎么只选一两个平台做下去，以及门店 SaaS 从内容到加微信再到试用的打法。
 
-### 一人公司案例库 · `opc-cases`
+### [一人公司案例库](../opc-cases/) · `opc-cases`
 
 44 个国内外真实案例（国内 22 个，失败和关停 10 个），统一按「怎么起步、怎么获客、怎么收费、公开的数字」拆解，数字都标了出处。最后一章落到 hatch-counter 该学谁、不该学谁。
 
 ## 收尾
 
-### 用 AI 撑起一人公司 · `ai-native-opc`
+### [用 AI 撑起一人公司](../ai-native-opc/) · `ai-native-opc`
 
 整套书的最后一本。把技术、运维、AI、Agent 和经营串起来，回答一个问题：研发、客服、运营、营销、财务这些岗位，怎么由你加上一组 agent 来承担。

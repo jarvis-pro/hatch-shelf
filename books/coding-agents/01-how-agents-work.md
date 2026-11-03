@@ -2,7 +2,7 @@
 
 这本书讲怎么把编码 agent 用成一个靠得住的帮手：它到底是怎么干活的，规矩该写在哪儿、怎么写，哪些事要用机器强制而不是靠嘱咐，怎么派活、怎么并行、怎么验收。主要例子是 Claude Code，真实案例取自本书架作者自己的三个项目：hatch-shelf（Expo 离线书架）、hatch-counter（NestJS + Postgres 的门店管理）和 hatch-recordwall（Expo / Electron / Cloudflare Worker 播放器）。
 
-**适合谁**：已经在用 Claude Code、Cursor、Codex 这类工具写代码，觉得它「有时候很神、有时候很蠢」，想把成功率稳定下来的开发者。读过《大模型原理科普》和《Agent 原理与设计》更好，没读过也不影响。
+**适合谁**：已经在用 Claude Code、Cursor、Codex 这类工具写代码，觉得它「有时候很神、有时候很蠢」，想把成功率稳定下来的开发者。读过[《大模型原理科普》](../llm-fundamentals/)和[《Agent 原理与设计》](../agent-principles/)更好，没读过也不影响。
 
 **怎么读**：第 1 章建立心智模型，第 2–4 章是「写规矩、设闸门」的三件套（CLAUDE.md、按路径加载的 rules、hooks），第 5–7 章讲派活、管 monorepo 和验收，第 8 章是踩坑合集。每章都能单独查，但第 1 章建议先读。
 
@@ -56,7 +56,7 @@ Claude Code 内置的主要工具：
 | `Agent` | 派一个子 agent 去干活 | 第 5 章细讲 |
 | `Skill` | 加载一个 Skill 的完整说明 | 第 3 章会和 rules 对比 |
 
-此外还可以通过 MCP 接入外部工具（数据库、浏览器、设计工具等），这属于《工具设计与 MCP》的话题。
+此外还可以通过 MCP 接入外部工具（数据库、浏览器、设计工具等），这属于[《工具设计与 MCP》](../tools-and-mcp/)的话题。
 
 工具名有实际用途：权限规则、hooks 的匹配条件都按工具名写，比如 `Bash(pnpm test *)`、`Edit|Write`。后面几章会反复用到。
 

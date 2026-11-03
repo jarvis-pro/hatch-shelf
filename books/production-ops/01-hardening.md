@@ -8,10 +8,10 @@
 
 这是运维系列的最后一本。前面几本解决的是「怎么把服务送上线」：
 
-- 《Linux 系统与命令行》：权限、systemd、journald、排障工具箱
-- 《容器技术》：Dockerfile、Compose、容器安全
-- 《Nginx 与反向代理》：反代、HTTPS、限流、长连接
-- 《部署与 CI/CD》：VPS 初始化、部署脚本、零停机、回滚
+- [《Linux 系统与命令行》](../linux-essentials/)：权限、systemd、journald、排障工具箱
+- [《容器技术》](../docker-containers/)：Dockerfile、Compose、容器安全
+- [《Nginx 与反向代理》](../nginx-gateway/)：反代、HTTPS、限流、长连接
+- [《部署与 CI/CD》](../deploy-release/)：VPS 初始化、部署脚本、零停机、回滚
 
 这本书解决「上线之后怎么让它一直好好活着」：服务器加固、备份与容灾演练、出事时怎么响应、事后怎么复盘、用 SLO 决定可靠性做到什么程度、管住每个月的账单、一个人怎么安排值班。最后一章把全书收成一份按天、周、月、季度执行的检查清单。
 
@@ -53,11 +53,11 @@ flowchart LR
 
 ## SSH：从「能用」到「收紧」
 
-《部署与 CI/CD》第 1 章已经关了密码登录、禁了 root 密码登录。下面是在它基础上值得补的几项。
+[《部署与 CI/CD》第 1 章](../deploy-release/01-vps-setup.md)已经关了密码登录、禁了 root 密码登录。下面是在它基础上值得补的几项。
 
 ### 补充的 sshd 配置
 
-在同一个 `/etc/ssh/sshd_config.d/10-hardening.conf` 里追加（文件名为什么要以 `10-` 开头，见《Linux 系统与命令行》第 2 章）：
+在同一个 `/etc/ssh/sshd_config.d/10-hardening.conf` 里追加（文件名为什么要以 `10-` 开头，见[《Linux 系统与命令行》第 2 章](../linux-essentials/02-filesystem-permissions.md)）：
 
 ```text
 # 只允许部署用户登录，其他账号哪怕有公钥也进不来
@@ -112,7 +112,7 @@ sudo sshd -T | grep -Ei 'allowusers|maxauthtries|passwordauth|kbdinteractive'
 - 用 `ed25519` 密钥，**给私钥设密码**，配合 macOS 钥匙串或 `ssh-agent` 免得每次输入
 - 有硬件安全密钥（支持 FIDO2 的 U 盘式密钥）的话，可以生成 `ed25519-sk` 类型的密钥，私钥离不开那个硬件，每次登录要触碰一下。需要客户端和服务端都是 OpenSSH 8.2 或更新的版本
 - 每台电脑一把钥匙，在 `authorized_keys` 里用注释标明是哪台。换电脑、丢电脑时删掉对应那一行即可
-- CI 用的部署密钥单独一把，只放在 CI 的 secret 里（《部署与 CI/CD》第 3 章讲过「一个消费方一把钥匙」）
+- CI 用的部署密钥单独一把，只放在 CI 的 secret 里（[《部署与 CI/CD》第 3 章](../deploy-release/03-env-secrets.md)讲过「一个消费方一把钥匙」）
 
 ```bash
 # 生成一把带注释的密钥，注释写清楚是哪台设备
@@ -180,7 +180,7 @@ sudo fail2ban-client set sshd unbanip <你的 IP>
 
 ### 给 nginx 也加几个 jail
 
-fail2ban 自带了一些 nginx 的过滤器。和《Nginx 与反向代理》第 5 章的限流配合，可以把反复触发限流的 IP 升级成直接封禁：
+fail2ban 自带了一些 nginx 的过滤器。和[《Nginx 与反向代理》第 5 章](../nginx-gateway/05-rate-limit.md)的限流配合，可以把反复触发限流的 IP 升级成直接封禁：
 
 ```ini
 # /etc/fail2ban/jail.d/20-nginx.conf
@@ -262,7 +262,7 @@ apt 的配置文件按文件名顺序读取，后读的覆盖先读的，所以�
 
 `unattended-upgrades` 只管 apt 装的包。下面这些要自己留意：
 
-- **容器镜像**：基础镜像（`node:22-alpine`、`postgres:16-alpine`）里的漏洞，要靠重新构建和更新 tag 修复。见《容器技术》第 8 章的扫描
+- **容器镜像**：基础镜像（`node:22-alpine`、`postgres:16-alpine`）里的漏洞，要靠重新构建和更新 tag 修复。见[《容器技术》第 8 章](../docker-containers/08-security.md)的扫描
 - **Docker 本身**：如果用官方脚本装的，它添加了 Docker 的 apt 源，会随 `apt upgrade` 更新，但默认不在 unattended-upgrades 的允许列表里
 - **应用依赖**：npm 包的漏洞，靠 `pnpm audit` 和 Dependabot / Renovate 之类的工具
 - **系统大版本**：Ubuntu LTS 的标准支持期有年限，到期前要规划升级或换机。把到期日写进第 8 章的年度清单
@@ -272,7 +272,7 @@ apt 的配置文件按文件名顺序读取，后读的覆盖先读的，所以�
 - 机器上**只有你需要的账号**。`awk -F: '$7 !~ /(nologin|false)$/' /etc/passwd` 列出所有能登录的账号，认不出来的要查清楚
 - 部署用户在 `docker` 组里就等于有 root 权限（《容器技术》第 8 章），不需要再给免密 sudo
 - 密钥文件 `*.env` 的权限设成 600，属主是部署用户：`chmod 600 /srv/myapp/*.env`
-- 应用进程不以 root 运行：容器里用非 root 用户（《容器技术》第 3 章），systemd 服务写 `User=`（《Linux 系统与命令行》第 4 章）
+- 应用进程不以 root 运行：容器里用非 root 用户（[《容器技术》第 3 章](../docker-containers/03-dockerfile.md)），systemd 服务写 `User=`（[《Linux 系统与命令行》第 4 章](../linux-essentials/04-systemd.md)）
 
 ## 云账号：真正的「root」
 

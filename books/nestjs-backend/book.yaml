@@ -5,7 +5,7 @@ category: 技术/后端
 tags: [nestjs, nodejs, backend, typescript, auth]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-di-modules.md
   - 02-request-lifecycle.md

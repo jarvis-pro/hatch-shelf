@@ -2,7 +2,7 @@
 
 上一章的循环只有一个手写的 `list_books`。这一章给 `shelf-agent` 配齐干活的工具：列目录、读文件、搜索、写文件、跑校验。重点不在工具多，而在三件「循环层面」的事：用一个 schema 同时完成参数说明、校验和类型推导；把文件访问关在工作区里；按风险分级，只读的并行跑，写操作串行并且要人批准。
 
-工具本身怎么设计（命名、描述、参数、错误信息）是《工具设计与 MCP》前三章的内容，这里直接按那套标准来写，只在关键处点一句。
+工具本身怎么设计（命名、描述、参数、错误信息）是[《工具设计与 MCP》](../tools-and-mcp/)前三章的内容，这里直接按那套标准来写，只在关键处点一句。
 
 ## 从 run(input) 到 defineTool
 
@@ -71,7 +71,7 @@ export interface AgentTool {
 }
 ```
 
-风险只分两级，是刻意的简化。《工具设计与 MCP》第 6 章和《Agent 安全》讨论了更细的分法；对一个只操作自己仓库的 agent，「会不会改东西」这一条线就够用了。
+风险只分两级，是刻意的简化。[《工具设计与 MCP》第 6 章](../tools-and-mcp/06-auth-and-permissions.md)和[《Agent 安全》](../agent-safety/)讨论了更细的分法；对一个只操作自己仓库的 agent，「会不会改东西」这一条线就够用了。
 
 ## 把文件访问关在工作区里
 
@@ -221,7 +221,7 @@ export function fileTools(ws: Workspace): AgentTool[] {
 
 ## 校验工具：给 agent 一个编译器
 
-《Agent 原理与设计》说过：想让 agent 在某个领域做好，先问这个领域有没有「编译器」。书库的编译器就是 `shelf-pack check`：
+[《Agent 原理与设计》](../agent-principles/)说过：想让 agent 在某个领域做好，先问这个领域有没有「编译器」。书库的编译器就是 `shelf-pack check`：
 
 ```typescript
 /** 跑书籍校验：命令是写死的，模型只能选书。shelfRepo 是 hatch-shelf 仓库（shelf-pack 所在），booksDir 是要校验的 books 目录 */

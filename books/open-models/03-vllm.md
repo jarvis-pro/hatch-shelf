@@ -6,7 +6,7 @@ vLLM 主要面向 Linux + NVIDIA GPU（也支持 AMD 等其他加速器），Mac
 
 ## 为什么吞吐能高这么多
 
-《大模型原理进阶》第 3 章讲过：解码阶段受显存带宽限制，每生成一个 token 都要把全部权重读一遍。**一次读权重，如果能同时给 32 个请求各算一个 token，代价和只算 1 个差不多**。所以服务端吞吐的关键是把尽量多的请求塞进同一个批次。vLLM 做了三件事：
+[《大模型原理进阶》第 3 章](../llm-deep-dive/03-kv-cache.md)讲过：解码阶段受显存带宽限制，每生成一个 token 都要把全部权重读一遍。**一次读权重，如果能同时给 32 个请求各算一个 token，代价和只算 1 个差不多**。所以服务端吞吐的关键是把尽量多的请求塞进同一个批次。vLLM 做了三件事：
 
 | 技术 | 解决什么问题 |
 |---|---|
@@ -182,7 +182,7 @@ server {
 }
 ```
 
-`proxy_buffering off` 和足够长的 `proxy_read_timeout` 是 LLM 服务最常被忘的两行，细节见《Nginx 与反向代理》。
+`proxy_buffering off` 和足够长的 `proxy_read_timeout` 是 LLM 服务最常被忘的两行，细节见[《Nginx 与反向代理》](../nginx-gateway/)。
 
 ## 一台服务挂多个 LoRA
 
@@ -214,7 +214,7 @@ await client.chat.completions.create({ model: "receipt", messages });
 
 并发从 1 往上加，你会看到吞吐先近似线性增长，然后趋平，同时 TTFT 开始飙升。**拐点附近就是这台机器的合理容量**。
 
-vLLM 在 `/metrics` 暴露 Prometheus 指标（运行中和排队中的请求数、KV Cache 使用率、各类延迟直方图），接到 Prometheus 和 Grafana 就能看板化，做法见《可观测性与性能》。最该设告警的两个：排队请求数持续大于 0、KV Cache 使用率长期接近 100%。
+vLLM 在 `/metrics` 暴露 Prometheus 指标（运行中和排队中的请求数、KV Cache 使用率、各类延迟直方图），接到 Prometheus 和 Grafana 就能看板化，做法见[《可观测性与性能》](../observability-performance/)。最该设告警的两个：排队请求数持续大于 0、KV Cache 使用率长期接近 100%。
 
 ## 算一笔账
 

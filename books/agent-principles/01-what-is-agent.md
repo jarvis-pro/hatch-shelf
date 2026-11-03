@@ -18,18 +18,18 @@
 
 | 本书章节 | 深入阅读 |
 |---|---|
-| 上下文工程概览、记忆 | 《上下文工程》 |
-| 工具与行动、MCP | 《工具设计与 MCP》 |
-| 多 agent 概览 | 《多 Agent 编排》 |
-| 沙箱与权限 | 《Agent 安全》 |
-| 全书的代码片段 | 《动手构建 Agent》会把它们拼成一个能跑的 agent |
-| 日常使用 | 《编码 Agent 实战》《个人 Agent 工作流》 |
+| 上下文工程概览、记忆 | [《上下文工程》](../context-engineering/) |
+| 工具与行动、MCP | [《工具设计与 MCP》](../tools-and-mcp/) |
+| 多 agent 概览 | [《多 Agent 编排》](../multi-agent/) |
+| 沙箱与权限 | [《Agent 安全》](../agent-safety/) |
+| 全书的代码片段 | [《动手构建 Agent》](../build-your-agent/)会把它们拼成一个能跑的 agent |
+| 日常使用 | [《编码 Agent 实战》](../coding-agents/)[《个人 Agent 工作流》](../personal-agent-workflow/) |
 
 ### 适合谁
 
 - 已经在用编码 agent，想知道它为什么有时聪明、有时犯傻
 - 想给自己的产品加一个 agent 功能，不知道从哪里开始设计
-- 读过《大模型原理科普》，知道模型是「预测下一个 token」的机器
+- 读过[《大模型原理科普》](../llm-fundamentals/)，知道模型是「预测下一个 token」的机器
 
 书里的代码用 TypeScript，因为这是读者的日常栈；概念本身与语言无关。
 

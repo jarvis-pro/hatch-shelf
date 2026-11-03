@@ -5,7 +5,7 @@ category: 技术/TypeScript
 tags: [typescript, nodejs, v8, performance]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-types-as-sets.md
   - 02-generics-conditional-infer.md

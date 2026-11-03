@@ -80,7 +80,7 @@ cd /srv/counter
 docker compose stop api
 ```
 
-nginx 这时会对 api 的请求返回 502。更友好的做法是事先配好维护页，见《Nginx 与反向代理》。
+nginx 这时会对 api 的请求返回 502。更友好的做法是事先配好维护页，见[《Nginx 与反向代理》](../nginx-gateway/)。
 
 ### 2. 用新版本的 pg_dump 导出
 

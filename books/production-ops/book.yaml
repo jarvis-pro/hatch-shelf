@@ -5,7 +5,7 @@ category: 运维/SRE
 tags: [sre, security, backup, incident, on-call]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-hardening.md
   - 02-backup-dr.md

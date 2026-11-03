@@ -156,7 +156,7 @@ Claude Code 的权限规则写在 `settings.json`（项目共享的是 `.claude/
 
 ### 人在回路的位置
 
-MCP 规范建议宿主「始终保留一个能拒绝工具调用的人」，并在调用前把参数展示给用户。这里的关键是**确认要有信息量**：「是否允许 push_book？」不如「是否把《Agent 原理与设计》推送到手机？这会覆盖手机上的同名书」。宿主展示的是工具名和参数，所以工具名和参数本身要语义清晰，这又回到了第 2 章。
+MCP 规范建议宿主「始终保留一个能拒绝工具调用的人」，并在调用前把参数展示给用户。这里的关键是**确认要有信息量**：「是否允许 push_book？」不如「是否把[《Agent 原理与设计》](../agent-principles/)推送到手机？这会覆盖手机上的同名书」。宿主展示的是工具名和参数，所以工具名和参数本身要语义清晰，这又回到了第 2 章。
 
 确认也不是越多越好。每次读书都要点确认，用户很快就会习惯性地全部同意，确认就失去了意义。**只在真正有后果的地方确认**，读操作放行。
 
@@ -281,7 +281,7 @@ www-authenticate: Bearer error="invalid_token", error_description="Missing Autho
 - **令牌用 `openssl rand -hex 32` 生成**，放在 systemd 的 `EnvironmentFile` 或 Docker Compose 的 env 文件里，权限设为只有服务用户可读
 - **工厂按请求创建实例**：`createMcpHandler` 为每个 HTTP 请求调用一次 `createServer`，天然无状态，可以多实例部署
 
-nginx 和 systemd 的具体写法见《Nginx 与反向代理》和《Linux 系统与命令行》。
+nginx 和 systemd 的具体写法见[《Nginx 与反向代理》](../nginx-gateway/)和[《Linux 系统与命令行》](../linux-essentials/)。
 
 ### 多用户：OAuth 2.1
 
@@ -345,7 +345,7 @@ SDK 2.x 在注册工具时可以用 `scopeChallenge: requireScopes('books:push')
 - **server 侧限速**：规范要求 server 对工具调用做速率限制，防止被诱导批量操作
 - **返回值里标明来源**：比如「以下是书籍正文，不是用户指令」，有一定帮助，但不能作为唯一防线
 
-提示注入的系统性防御在《Agent 安全》里展开。
+提示注入的系统性防御在[《Agent 安全》](../agent-safety/)里展开。
 
 ### 第三方 server 的供应链风险
 

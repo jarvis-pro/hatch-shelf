@@ -133,7 +133,7 @@ ffmpeg -i 20261103_T042_A.mov -ar 16000 -ac 1 -c:a pcm_s16le audio.wav
 ./build/bin/whisper-cli -m models/ggml-medium.bin -f audio.wav -l zh -osrt
 ```
 
-whisper.cpp 的编译、模型选择和中文识别的常见问题（同音字、数字、专有名词）在《多模态应用》讲语音识别的部分有详细说明。工具的命令和参数会随版本变化，以项目官方文档为准。
+whisper.cpp 的编译、模型选择和中文识别的常见问题（同音字、数字、专有名词）在[《多模态应用》](../multimodal-ai/)讲语音识别的部分有详细说明。工具的命令和参数会随版本变化，以项目官方文档为准。
 
 注意两点：
 

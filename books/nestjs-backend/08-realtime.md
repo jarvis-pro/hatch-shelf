@@ -197,7 +197,7 @@ location /v1/events {
 }
 ```
 
-服务端回包同时带 `X-Accel-Buffering: no`。两处都写是怕哪天只改了一处。更多 nginx 配置见《Nginx 与反向代理》。
+服务端回包同时带 `X-Accel-Buffering: no`。两处都写是怕哪天只改了一处。更多 nginx 配置见[《Nginx 与反向代理》](../nginx-gateway/)。
 
 ## 客户端：为什么不用 EventSource
 

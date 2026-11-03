@@ -5,7 +5,7 @@ category: 运维/部署
 tags: [deploy, ci-cd, github-actions, release, docker]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-vps-setup.md
   - 02-deploy-scripts.md

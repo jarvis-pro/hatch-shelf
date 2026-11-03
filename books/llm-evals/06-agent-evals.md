@@ -100,7 +100,7 @@ export interface AgentRun {
 }
 ```
 
-被测的是你自己的 agent 循环（怎么写见《Agent 原理与设计》），这里假设它的签名是 `runRestockAgent({ message, tools }): Promise<AgentRun>`。它内部调哪个模型、prompt 怎么写都无所谓，评测只看它交回来的东西和环境的最终状态。
+被测的是你自己的 agent 循环（怎么写见[《Agent 原理与设计》](../agent-principles/)），这里假设它的签名是 `runRestockAgent({ message, tools }): Promise<AgentRun>`。它内部调哪个模型、prompt 怎么写都无所谓，评测只看它交回来的东西和环境的最终状态。
 
 ### 样例与评分
 

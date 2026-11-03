@@ -78,7 +78,7 @@ const res = await client.chat.completions.create({
 console.log(res.choices[0].message.content);
 ```
 
-流式输出、`response_format` 的 JSON 模式、工具调用也都支持，具体能力取决于模型本身是否训练过工具调用。这意味着你在《大模型应用工程》里写的代码，把 `baseURL` 和 `model` 换掉就能跑在本地模型上，**开发和测试阶段可以完全不花 API 钱**。
+流式输出、`response_format` 的 JSON 模式、工具调用也都支持，具体能力取决于模型本身是否训练过工具调用。这意味着你在[《大模型应用工程》](../llm-app-engineering/)里写的代码，把 `baseURL` 和 `model` 换掉就能跑在本地模型上，**开发和测试阶段可以完全不花 API 钱**。
 
 用 curl 快速验证：
 

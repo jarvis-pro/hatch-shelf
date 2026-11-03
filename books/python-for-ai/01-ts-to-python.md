@@ -6,7 +6,7 @@ AI 领域几乎所有东西都先有 Python 版：模型厂商的 SDK、PyTorch�
 
 ## 这本书讲什么、适合谁、怎么读
 
-**讲什么**：为了做 AI 相关的工作，一个 TS 开发者需要的那部分 Python。八章分别是：语法对照、uv 与环境管理、类型标注与 Pydantic、NumPy、Pandas、Jupyter、用 Python 调模型 API、动手写一个小工具。不讲 Web 框架（Django、FastAPI 只在需要时一笔带过），也不讲深度学习本身，那是《动手学深度学习》的事。
+**讲什么**：为了做 AI 相关的工作，一个 TS 开发者需要的那部分 Python。八章分别是：语法对照、uv 与环境管理、类型标注与 Pydantic、NumPy、Pandas、Jupyter、用 Python 调模型 API、动手写一个小工具。不讲 Web 框架（Django、FastAPI 只在需要时一笔带过），也不讲深度学习本身，那是[《动手学深度学习》](../deep-learning-basics/)的事。
 
 **适合谁**：日常写 TypeScript（React、NestJS、Node 脚本都算）、没系统学过 Python 的开发者。你不需要先懂 Python，但要懂 TS：全书默认你知道 `interface`、泛型、`Promise`、`async/await`、zod、pnpm 是什么。
 

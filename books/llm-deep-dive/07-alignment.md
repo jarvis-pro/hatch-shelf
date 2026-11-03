@@ -132,7 +132,7 @@ print(dpo_loss(ref_w, ref_l, ref_w, ref_l)[0].round(4))           # 0.6931
 print(dpo_loss(ref_w + 3, ref_l - 4, ref_w, ref_l)[0].round(4))   # 小于 0.6931
 ```
 
-开源生态里 Hugging Face 的 TRL 等库都有现成的 DPO 训练器，《开源模型：部署、量化与微调》会讲实操。
+开源生态里 Hugging Face 的 TRL 等库都有现成的 DPO 训练器，[《开源模型：部署、量化与微调》](../open-models/)会讲实操。
 
 ## DPO 的局限与变体
 

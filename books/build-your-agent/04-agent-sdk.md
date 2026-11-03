@@ -17,7 +17,7 @@
 | Claude Agent SDK | Claude Code 打包成的库 | SDK | 读写文件、编辑、搜索、Bash、网页、子 agent | 你 |
 | Managed Agents | Anthropic 托管的 agent 服务 | Anthropic | 托管沙箱里的 bash、文件等 | Anthropic |
 
-Tool Runner 在《大模型应用工程》第 4 章介绍过，它只是替你写好了第 1 章那个循环。Agent SDK 不一样：调用 `query()` 时，它会**启动一个 Claude Code 子进程**，通过 stdio 和它通信。子进程拥有自己的工作目录、shell 和会话文件。你得到的是一个完整的 Claude Code，只是由代码而不是人来驱动。
+Tool Runner 在[《大模型应用工程》第 4 章](../llm-app-engineering/04-tool-use.md)介绍过，它只是替你写好了第 1 章那个循环。Agent SDK 不一样：调用 `query()` 时，它会**启动一个 Claude Code 子进程**，通过 stdio 和它通信。子进程拥有自己的工作目录、shell 和会话文件。你得到的是一个完整的 Claude Code，只是由代码而不是人来驱动。
 
 ```mermaid
 flowchart LR
@@ -37,7 +37,7 @@ SDK 包里自带对应平台的 Claude Code 可执行文件，版本和 SDK 绑�
 pnpm --filter shelf-agent add @anthropic-ai/claude-agent-sdk@0.3.316 @modelcontextprotocol/sdk@^1.29
 ```
 
-为什么还要装 `@modelcontextprotocol/sdk` 1.x？SDK 把它列为 peer 依赖：下面用来定义自定义工具的 `tool()` 和 `createSdkMcpServer()`，类型来自 MCP TypeScript SDK 的 1.x 版本。这和《工具设计与 MCP》以及第 5 章用的 2.x（`@modelcontextprotocol/server`、`@modelcontextprotocol/client`）是两个不同的包名，可以同时存在。协议层面它们是兼容的；区别只在写代码时的 API，最明显的一处是参数 schema 的写法，下面会看到。
+为什么还要装 `@modelcontextprotocol/sdk` 1.x？SDK 把它列为 peer 依赖：下面用来定义自定义工具的 `tool()` 和 `createSdkMcpServer()`，类型来自 MCP TypeScript SDK 的 1.x 版本。这和[《工具设计与 MCP》](../tools-and-mcp/)以及第 5 章用的 2.x（`@modelcontextprotocol/server`、`@modelcontextprotocol/client`）是两个不同的包名，可以同时存在。协议层面它们是兼容的；区别只在写代码时的 API，最明显的一处是参数 schema 的写法，下面会看到。
 
 ## 对照表
 

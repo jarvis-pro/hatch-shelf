@@ -13,7 +13,7 @@
 
 ## 一个人为什么还在用 VPS
 
-2026 年有很多「不用管机器」的选择：Serverless、PaaS、托管数据库。它们的取舍在《云与边缘》里细讲，这里只说结论：
+2026 年有很多「不用管机器」的选择：Serverless、PaaS、托管数据库。它们的取舍在[《云与边缘》](../cloud-and-edge/)里细讲，这里只说结论：
 
 | 方案 | 适合 | 不适合 |
 |---|---|---|
@@ -120,7 +120,7 @@ sudo apt update && sudo apt install -y unattended-upgrades
 sudo dpkg-reconfigure -plow unattended-upgrades
 ```
 
-它只装安全更新，不升大版本。内核更新后需要重启才生效，这件事要自己留意（《一人运维手册》会讲怎么把它纳入例行检查）。
+它只装安全更新，不升大版本。内核更新后需要重启才生效，这件事要自己留意（[《一人运维手册》](../production-ops/)会讲怎么把它纳入例行检查）。
 
 ### 6. 装 Docker 和 nginx
 
@@ -135,7 +135,7 @@ docker version && docker compose version && nginx -v
 - `docker compose`（插件，带空格）是现在的标准，**不要再装老的 `docker-compose` 命令**，两者参数不完全一样
 - 境内机器装 Docker 慢，官方脚本支持 `--mirror Aliyun` 之类的参数走国内源
 - 境内机器拉 Docker Hub 经常超时。hatch-counter 的解法是用一条 GitHub Actions 工作流把 `postgres:16-alpine` 这类外来镜像转存进自己的镜像仓库，编排里一个 `docker.io` 的镜像都不留
-- nginx 装在宿主机上而不是放进 compose：证书续期用 certbot 加一个 reload 钩子就完事，塞进容器要自己拼一套。nginx 本身的配置在《Nginx 与反向代理》里展开
+- nginx 装在宿主机上而不是放进 compose：证书续期用 certbot 加一个 reload 钩子就完事，塞进容器要自己拼一套。nginx 本身的配置在[《Nginx 与反向代理》](../nginx-gateway/)里展开
 
 ### 7. 打一次快照
 

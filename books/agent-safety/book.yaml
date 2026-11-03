@@ -5,7 +5,7 @@ category: 人工智能/Agent
 tags: [agent, security, prompt-injection, sandbox, audit]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-threat-model.md
   - 02-prompt-injection.md

@@ -1,10 +1,10 @@
 # 接 MCP
 
-回头看第 2 章的工具，`check_book` 调的是 `shelf-pack`，而《工具设计与 MCP》第 5 章写的 `shelf-books` MCP server 里也有一个 `check_book`，背后是同一套 `@shelf/spec` 规则；它的 `read_chapter` 还只允许读 `book.yaml` 里列出的章节，比我们的 `read_file` 更贴合书库。同一件事写两遍，迟早会不一致。hatch-shelf 的原则是「判断书籍结构的逻辑只写在 `@shelf/spec`」，工具层也该如此：**能力写一次，做成 MCP server，谁需要谁来接**。
+回头看第 2 章的工具，`check_book` 调的是 `shelf-pack`，而[《工具设计与 MCP》第 5 章](../tools-and-mcp/05-build-mcp-server.md)写的 `shelf-books` MCP server 里也有一个 `check_book`，背后是同一套 `@shelf/spec` 规则；它的 `read_chapter` 还只允许读 `book.yaml` 里列出的章节，比我们的 `read_file` 更贴合书库。同一件事写两遍，迟早会不一致。hatch-shelf 的原则是「判断书籍结构的逻辑只写在 `@shelf/spec`」，工具层也该如此：**能力写一次，做成 MCP server，谁需要谁来接**。
 
 上一本书站在 server 的一侧，这一章换到另一侧：让 `shelf-agent` 当 MCP 的宿主，连接 `shelf-books`，把它的工具交给模型用。最后再看 Agent SDK 版本怎么做同一件事。
 
-本章用 `@modelcontextprotocol/client` 2.4.0，和《工具设计与 MCP》用的 `@modelcontextprotocol/server` 2.4.0 同属 SDK 2.x，实现 2026-07-28 版协议并兼容旧版。
+本章用 `@modelcontextprotocol/client` 2.4.0，和[《工具设计与 MCP》](../tools-and-mcp/)用的 `@modelcontextprotocol/server` 2.4.0 同属 SDK 2.x，实现 2026-07-28 版协议并兼容旧版。
 
 ## agent 在 MCP 里的位置
 
@@ -108,7 +108,7 @@ function toText(content: unknown): string {
 
 ### 版本协商
 
-`versionNegotiation: { mode: "auto" }` 让客户端先用 2026-07-28 版协议的 `server/discover` 探测，server 支持就用新版，不支持再退回旧版的 `initialize` 握手。不写这个选项时，2.4.0 的客户端默认走旧版握手。对着 `shelf-books` 实测，`client.getNegotiatedProtocolVersion()` 在 `auto` 模式下返回 `2026-07-28`，默认模式下返回 `2025-11-25`。新版协议是无状态的，细节见《工具设计与 MCP》第 4 章。
+`versionNegotiation: { mode: "auto" }` 让客户端先用 2026-07-28 版协议的 `server/discover` 探测，server 支持就用新版，不支持再退回旧版的 `initialize` 握手。不写这个选项时，2.4.0 的客户端默认走旧版握手。对着 `shelf-books` 实测，`client.getNegotiatedProtocolVersion()` 在 `auto` 模式下返回 `2026-07-28`，默认模式下返回 `2025-11-25`。新版协议是无状态的，细节见[《工具设计与 MCP》第 4 章](../tools-and-mcp/04-mcp-protocol.md)。
 
 ### 工具名加前缀
 
@@ -130,7 +130,7 @@ MCP 工具可以带 `annotations`，比如 `readOnlyHint: true`。适配器用�
 
 ### 白名单
 
-`allow` 只暴露你需要的工具。一个通用的 server 可能有几十个工具，全部交给模型，既占上下文又增加选错的概率（《工具设计与 MCP》第 7 章）。白名单也是一道安全边界：server 升级后新增了一个删除数据的工具，不会自动出现在你的 agent 里。
+`allow` 只暴露你需要的工具。一个通用的 server 可能有几十个工具，全部交给模型，既占上下文又增加选错的概率（[《工具设计与 MCP》第 7 章](../tools-and-mcp/07-organizing-toolsets.md)）。白名单也是一道安全边界：server 升级后新增了一个删除数据的工具，不会自动出现在你的 agent 里。
 
 ### 结果转换
 
@@ -219,7 +219,7 @@ const remote = await connectMcp({
 });
 ```
 
-地址和令牌都从环境变量读，不写进代码。需要 OAuth 授权的 server，2.x 客户端提供了 `authProvider` 等选项来完成授权流程，《工具设计与 MCP》第 6 章讲了远程 server 的认证。
+地址和令牌都从环境变量读，不写进代码。需要 OAuth 授权的 server，2.x 客户端提供了 `authProvider` 等选项来完成授权流程，[《工具设计与 MCP》第 6 章](../tools-and-mcp/06-auth-and-permissions.md)讲了远程 server 的认证。
 
 Messages API 本身也有一个 MCP 连接器（beta）：在请求里声明远程 server 的地址，由 Anthropic 的服务器去连接和调用。它省掉了客户端代码，但只支持可以从公网访问的远程 server，工具调用也不经过你的审批函数。`shelf-agent` 需要在本地审批和记录每一次调用，所以用客户端适配器。
 
@@ -234,7 +234,7 @@ Messages API 本身也有一个 MCP 连接器（beta）：在请求里声明远�
 | 注解 | 可以把写操作标成只读，骗过自动放行 | 不可信 server 的注解不作数，用 `writeTools` 覆盖 |
 | 进程本身 | stdio server 是你本机上跑的程序，权限和你一样 | 只运行来源可信的 server；考虑放进容器 |
 
-这一节只点到为止，《工具设计与 MCP》第 6 章和《Agent 安全》会系统地讲。
+这一节只点到为止，《工具设计与 MCP》第 6 章和[《Agent 安全》](../agent-safety/)会系统地讲。
 
 ## 测试
 

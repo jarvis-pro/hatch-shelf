@@ -146,7 +146,7 @@ process.on('SIGTERM', async () => {
 
 在容器里，你的进程往往就是 PID 1。内核对 PID 1 有特殊处理：**没有注册处理函数的信号会被忽略**。如果 Node 进程没写 SIGTERM 处理，`docker stop` 发过去它毫无反应，等满 10 秒被 SIGKILL。
 
-另一个常见原因是用 `npm start` 或 `sh -c` 包了一层：信号发给了 npm 或 sh，它们不一定转发给真正的 Node 进程。解决办法是在 Dockerfile 里直接 `CMD ["node", "dist/main.js"]`，或者用 `docker run --init`、compose 的 `init: true` 加一个会转发信号的小 init 进程。详见《容器技术》。
+另一个常见原因是用 `npm start` 或 `sh -c` 包了一层：信号发给了 npm 或 sh，它们不一定转发给真正的 Node 进程。解决办法是在 Dockerfile 里直接 `CMD ["node", "dist/main.js"]`，或者用 `docker run --init`、compose 的 `init: true` 加一个会转发信号的小 init 进程。详见[《容器技术》](../docker-containers/)。
 
 ### SIGHUP 与 nohup
 

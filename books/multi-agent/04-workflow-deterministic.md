@@ -71,7 +71,7 @@ export async function saveState(path: string, tasks: Task[]) {
 }
 ```
 
-状态文件就是《上下文工程》第 7 章说的「清单文件」，只不过这里的读写者是代码。几个设计点：
+状态文件就是[《上下文工程》第 7 章](../context-engineering/07-long-running-state.md)说的「清单文件」，只不过这里的读写者是代码。几个设计点：
 
 - **状态只有四种**，没有「差不多完成」
 - **`running` 在启动时要处理**：上次脚本中途崩溃，留下的 `running` 其实是没跑完的，重启时改回 `pending`

@@ -181,4 +181,4 @@ useEffect(() => {
 
 ## 接下来读什么
 
-这本书讲的是 React 本身。React 跑在浏览器里，渲染之后的布局、绘制、合成，Vite 的构建和拆包，Web Vitals 的度量方式，这些属于平台和工程层面，接下来可以读《前端工程化与 Web 平台》。如果要把同样的 React 知识带到手机上，《React Native 与 Expo》会讲 Fabric 新架构如何复用本书的 Fiber 和并发机制，以及 Hermes、原生模块这些移动端特有的部分。
+这本书讲的是 React 本身。React 跑在浏览器里，渲染之后的布局、绘制、合成，Vite 的构建和拆包，Web Vitals 的度量方式，这些属于平台和工程层面，接下来可以读[《前端工程化与 Web 平台》](../frontend-engineering/)。如果要把同样的 React 知识带到手机上，[《React Native 与 Expo》](../rn-expo/)会讲 Fabric 新架构如何复用本书的 Fiber 和并发机制，以及 Hermes、原生模块这些移动端特有的部分。

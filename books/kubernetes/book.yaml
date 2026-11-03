@@ -5,7 +5,7 @@ category: 运维/容器
 tags: [kubernetes, k3s, helm, devops]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-why-kubernetes.md
   - 02-core-objects.md

@@ -43,7 +43,7 @@ export function truncateOutput(text: string, maxChars = 8000): string {
 
 注意截断提示里给了**下一步怎么办**。模型知道内容被截断，也知道怎么拿到被截掉的部分，就不会基于残缺信息瞎猜。
 
-工具设计的更多细节在《工具设计与 MCP》里展开。
+工具设计的更多细节在[《工具设计与 MCP》](../tools-and-mcp/)里展开。
 
 ## 清理旧结果：用过的就收起来
 
@@ -250,7 +250,7 @@ messages.push({ role: "assistant", content: response.content });
 - **自动压缩**：上下文接近上限时自动触发
 - **手动 `/compact`**：可以在后面跟上指令，告诉它重点保留什么，比如 `/compact 保留关于数据库迁移方案的所有决定和原因`
 - **`/clear`**：直接清空对话，开始新的上下文。一件事做完、开始下一件不相关的事时，`/clear` 比压缩更干净
-- **压缩后重新注入**：用 `SessionStart` hook 配 `compact` matcher，在压缩后自动补回关键信息，《编码 Agent 实战》第 4 章有完整示例
+- **压缩后重新注入**：用 `SessionStart` hook 配 `compact` matcher，在压缩后自动补回关键信息，[《编码 Agent 实战》第 4 章](../coding-agents/04-hooks.md)有完整示例
 
 一个实用的判断：**还在同一件事里、需要之前的上下文，用 `/compact`；换一件事，用 `/clear`**。很多人习惯一个会话从早用到晚，靠自动压缩续命，结果前一件事的残留不断干扰后一件事。
 

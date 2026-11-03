@@ -5,7 +5,7 @@ category: 人工智能/应用
 tags: [multimodal, vision, ocr, speech, image-generation]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-vision-models.md
   - 02-image-preprocessing.md

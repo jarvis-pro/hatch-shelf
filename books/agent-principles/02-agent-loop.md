@@ -103,7 +103,7 @@ export async function agent(task: string): Promise<string> {
 - **错误也是结果**：读文件失败不抛异常，而是把错误信息返回给模型，让它自己决定换个路径还是放弃。这是 agent 自我纠错的基础，第 3 章会细讲
 - **轮数上限是保险丝**：没有它，一个陷入死循环的 agent 会一直烧钱
 
-《动手构建 Agent》会从这个骨架出发，逐步加上更多工具、记忆、评测，最后换成 Agent SDK。
+[《动手构建 Agent》](../build-your-agent/)会从这个骨架出发，逐步加上更多工具、记忆、评测，最后换成 Agent SDK。
 
 ## 消息历史是怎么长大的
 
@@ -137,7 +137,7 @@ export async function agent(task: string): Promise<string> {
 难点在第一类：**模型说「完成了」不等于真的完成了**。模型有很强的倾向在看起来差不多的时候宣布胜利，比如改完代码没跑测试就说「已修复」。对付它的办法不是在 prompt 里写「请务必确认」，而是给它**客观的完成判据**：
 
 - hatch-shelf 的 `CLAUDE.md` 写着「声明任务完成前必须通过 `pnpm typecheck` 和 `pnpm test`」，这就是把完成条件从模型的主观判断变成可执行的检查
-- 更进一步，可以在程序里强制：模型想停止时，自动跑测试，没通过就把失败输出塞回去，继续循环。Claude Code 的 Stop hook 就能实现这种机制，《编码 Agent 实战》会讲具体写法
+- 更进一步，可以在程序里强制：模型想停止时，自动跑测试，没通过就把失败输出塞回去，继续循环。Claude Code 的 Stop hook 就能实现这种机制，[《编码 Agent 实战》](../coding-agents/)会讲具体写法
 
 ## 反馈信号决定 agent 的上限
 

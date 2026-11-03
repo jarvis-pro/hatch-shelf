@@ -159,7 +159,7 @@ docker_apt_mirror: https://download.docker.com
     state: enabled
 ```
 
-云上的安全组（第 2 章）和机器上的 ufw 是两道独立的防线，各自用各自层的工具管。SSH 加固、fail2ban 这些内容《一人运维手册》讲过，在这里只是把那些命令翻译成任务，不再重复理由。
+云上的安全组（第 2 章）和机器上的 ufw 是两道独立的防线，各自用各自层的工具管。SSH 加固、fail2ban 这些内容[《一人运维手册》](../production-ops/)讲过，在这里只是把那些命令翻译成任务，不再重复理由。
 
 `cache_valid_time` 让 `apt update` 在一小时内只跑一次，否则每次运行都是一次 `changed`。
 
@@ -272,7 +272,7 @@ server {
 {% endfor %}
 ```
 
-这里只展示结构。实际的 server 块（官网走根域名、文档站有密码锁、各站的缓存头）照原配置搬进模板即可，nginx 本身的写法《Nginx 与反向代理》讲过。
+这里只展示结构。实际的 server 块（官网走根域名、文档站有密码锁、各站的缓存头）照原配置搬进模板即可，nginx 本身的写法[《Nginx 与反向代理》](../nginx-gateway/)讲过。
 
 ## certbot：先有鸡还是先有蛋
 

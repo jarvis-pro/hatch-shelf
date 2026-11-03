@@ -120,7 +120,7 @@ flowchart LR
 - **让测试和类型检查替你审一部分**：`pnpm typecheck`、`pnpm test`、lint 规则跑通，再看业务逻辑
 - **一次只开几条线**：同时开太多 agent 任务，切换上下文的成本会吃掉并行的收益
 
-怎么写这些规则文件、怎么组织并行任务，见《编码 Agent 实战》和《个人 Agent 工作流》。
+怎么写这些规则文件、怎么组织并行任务，见[《编码 Agent 实战》](../coding-agents/)和[《个人 Agent 工作流》](../personal-agent-workflow/)。
 
 ## 碎片工作集中处理
 

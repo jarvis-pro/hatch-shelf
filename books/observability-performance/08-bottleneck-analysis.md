@@ -194,7 +194,7 @@ ORDER BY created_at DESC LIMIT 50;
 - `Sort` 节点后面写着 `external merge`：排序超出了 `work_mem`，在用磁盘
 - `Buffers: shared read` 很大：数据不在缓存里，在读磁盘
 
-索引设计、参数调优、慢查询治理的完整内容见《PostgreSQL 运维》。
+索引设计、参数调优、慢查询治理的完整内容见[《PostgreSQL 运维》](../database-ops/)。
 
 ### N+1：ORM 的经典陷阱
 

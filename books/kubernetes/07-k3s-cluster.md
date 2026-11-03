@@ -85,7 +85,7 @@ sudo k3s kubectl get pods -A
 
 ### 境内服务器的镜像问题
 
-《容器技术》里 hatch-counter 的 compose 有一条铁律：编排里一个 Docker Hub 的镜像都不留，因为境内机器访问 Docker Hub 会超时。迁到 k3s 后有一个新的坑：**k3s 自己的系统组件镜像默认也从 Docker Hub 拉**（`rancher/mirrored-...` 这类名字）。
+[《容器技术》](../docker-containers/)里 hatch-counter 的 compose 有一条铁律：编排里一个 Docker Hub 的镜像都不留，因为境内机器访问 Docker Hub 会超时。迁到 k3s 后有一个新的坑：**k3s 自己的系统组件镜像默认也从 Docker Hub 拉**（`rancher/mirrored-...` 这类名字）。
 
 解决办法是 `/etc/rancher/k3s/registries.yaml`，它配置节点上 containerd 的镜像源和仓库凭证：
 
@@ -131,7 +131,7 @@ scp deploy@<服务器>:/etc/rancher/k3s/k3s.yaml ~/.kube/counter-prod.yaml
 
 服务器上的 `k3s.yaml` 是 root 才能读的，拷之前要临时 `sudo cp` 一份到 deploy 用户能读的地方，拷完删掉。默认的 server 地址就是 `https://127.0.0.1:6443`，配合 SSH 隧道正好不用改，只需要把集群名和上下文名从 `default` 改成能一眼认出来的名字，并用 `KUBECONFIG` 环境变量或 `kubectl --context` 明确指定。第 2 章说过：本机同时有练习集群和生产集群时，敲错上下文是真实的风险。
 
-主机层面的加固（SSH 只用密钥、fail2ban、自动安全更新）和以前一样，见《一人运维手册》。
+主机层面的加固（SSH 只用密钥、fail2ban、自动安全更新）和以前一样，见[《一人运维手册》](../production-ops/)。
 
 ## 部署全部对象
 
@@ -297,7 +297,7 @@ kubectl top pods -A --sort-by=memory
 kubectl get events -A --field-selector type=Warning --sort-by=.lastTimestamp
 ```
 
-这些是排障时手动看的。持续的指标、日志、告警（Prometheus、Grafana、Loki 等）可以用 Helm 装进集群，但要注意它们本身吃的内存可能比 hatch-counter 还多。单机上更实际的做法是：外部可用性监控 + 证书到期检查 + 磁盘和内存告警，细节见《可观测性与性能》。
+这些是排障时手动看的。持续的指标、日志、告警（Prometheus、Grafana、Loki 等）可以用 Helm 装进集群，但要注意它们本身吃的内存可能比 hatch-counter 还多。单机上更实际的做法是：外部可用性监控 + 证书到期检查 + 磁盘和内存告警，细节见[《可观测性与性能》](../observability-performance/)。
 
 ## 本章要点
 

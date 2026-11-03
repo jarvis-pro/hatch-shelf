@@ -186,7 +186,7 @@ hatch-counter 用 nginx 补上了防嵌套：每个 location 都加了 `X-Frame-
 | `Permissions-Policy` | 禁用不需要的浏览器能力 | 如关掉 `geolocation`、`microphone` |
 | `X-Frame-Options` | 防止被 iframe 嵌套 | `SAMEORIGIN` 或 `DENY` |
 
-这些头在 nginx 层统一加最方便，具体写法见《Nginx 与反向代理》。
+这些头在 nginx 层统一加最方便，具体写法见[《Nginx 与反向代理》](../nginx-gateway/)。
 
 ## 前端安全清单
 
@@ -210,4 +210,4 @@ hatch-counter 用 nginx 补上了防嵌套：每个 location 都加了 `X-Frame-
 - CSP 是 XSS 的最后防线；内联脚本用构建时计算的哈希放行，开发环境不挂
 - meta 方式的 CSP 不支持 `frame-ancestors`，用响应头补上
 
-前端工程这一侧到这里讲完了。往下读有两个方向：想弄清 React 本身怎么渲染、为什么重渲染、并发特性和 Compiler 怎么帮你优化，读《React 19 原理与模式》；想把本章的安全话题扩展到认证方案、OWASP Top 10 和供应链安全，读《应用安全》。
+前端工程这一侧到这里讲完了。往下读有两个方向：想弄清 React 本身怎么渲染、为什么重渲染、并发特性和 Compiler 怎么帮你优化，读[《React 19 原理与模式》](../react-internals/)；想把本章的安全话题扩展到认证方案、OWASP Top 10 和供应链安全，读[《应用安全》](../app-security/)。

@@ -79,10 +79,10 @@ YAML 行数本身不代表难度，但每一行都是一个以后可能要理解
 | Docker Swarm | 几台机器，想保留 compose 文件格式 | compose 文件加少量字段就能多机部署，社区热度远不如 K8s，长期前景要自己评估 |
 | Nomad | 多机，想要比 K8s 简单的调度器 | 概念少、单二进制，但生态小得多 |
 | PaaS（各类托管平台） | 不想管机器 | 推代码或镜像即部署，按量付费；数据库常配托管服务 |
-| Serverless / 边缘平台 | 无状态 API、静态站 | 比如 Cloudflare Workers，hatch-recordwall 就是这么部署的，见《云与边缘》 |
+| Serverless / 边缘平台 | 无状态 API、静态站 | 比如 Cloudflare Workers，hatch-recordwall 就是这么部署的，见[《云与边缘》](../cloud-and-edge/) |
 | 托管数据库 | 任何阶段 | 把最难运维的那一块交出去，往往比上 K8s 更能降低风险 |
 
-最后一行值得多说一句。一人公司最大的运维风险通常不是「发版有几秒空窗」，而是「数据库备份从来没恢复过」和「机器挂了不知道要多久才能恢复」。把有限的精力花在**备份恢复演练、监控告警、从零重建的手册**上，回报远高于引入编排系统。这些在《一人运维手册》和《PostgreSQL 运维》里有完整的方法。
+最后一行值得多说一句。一人公司最大的运维风险通常不是「发版有几秒空窗」，而是「数据库备份从来没恢复过」和「机器挂了不知道要多久才能恢复」。把有限的精力花在**备份恢复演练、监控告警、从零重建的手册**上，回报远高于引入编排系统。这些在[《一人运维手册》](../production-ops/)和[《PostgreSQL 运维》](../database-ops/)里有完整的方法。
 
 ### 把 K8s 的好想法带回 Compose
 
@@ -105,7 +105,7 @@ YAML 行数本身不代表难度，但每一行都是一个以后可能要理解
 
 并没有。生成配置只是成本里最小的一块，**理解、排障、升级**仍然落在你身上。agent 生成的清单常见的问题，恰好都是本书花篇幅讲过的：存活探针去查数据库、缺 preStop、ConfigMap 里的数字没加引号、StorageClass 的回收策略是 Delete、用了已经弃用的 API 版本。如果你看不出这些问题，生成得再快也只是更快地埋雷。
 
-另外，**不要把生产集群的 kubeconfig 交给 agent 直接操作**。第 7 章说过，kubeconfig 等同于 root 密码；agent 一条误判的 `kubectl delete` 或 `helm uninstall`，影响的是整个线上环境。比较稳妥的分工是：agent 写清单和 chart，用 `helm template` 加 kubeconform 在本地验证，由你审阅后再发布。agent 的权限边界怎么划，《Agent 安全》一书有系统的讨论。
+另外，**不要把生产集群的 kubeconfig 交给 agent 直接操作**。第 7 章说过，kubeconfig 等同于 root 密码；agent 一条误判的 `kubectl delete` 或 `helm uninstall`，影响的是整个线上环境。比较稳妥的分工是：agent 写清单和 chart，用 `helm template` 加 kubeconform 在本地验证，由你审阅后再发布。agent 的权限边界怎么划，[《Agent 安全》](../agent-safety/)一书有系统的讨论。
 
 ## 那前七章学了干什么
 
@@ -134,6 +134,6 @@ YAML 行数本身不代表难度，但每一行都是一个以后可能要理解
 
 这本书把一套单机 Compose 部署迁进了 K8s，又认真讨论了什么时候不该这么做。按导读的顺序，接下来可以读：
 
-- 《基础设施即代码》：本书里手动执行的 `bootstrap.sh`、手工管理的 Secret，用 Terraform、Ansible、GitOps 和 SOPS 做成可重复、可审计的流程
+- [《基础设施即代码》](../iac-gitops/)：本书里手动执行的 `bootstrap.sh`、手工管理的 Secret，用 Terraform、Ansible、GitOps 和 SOPS 做成可重复、可审计的流程
 - 《云与边缘》：VPS、Serverless、托管服务怎么选，以及 Cloudflare Workers 这类不需要管机器的运行模型
 - 《一人运维手册》：无论用 Compose 还是 K8s，备份演练、事故响应、值班制度才是一个人运维的根基

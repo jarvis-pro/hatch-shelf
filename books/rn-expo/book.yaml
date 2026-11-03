@@ -5,7 +5,7 @@ category: 技术/移动端
 tags: [react-native, expo, ios, mobile]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-new-architecture.md
   - 02-hermes.md

@@ -1,0 +1,19 @@
+id: drama-distribution
+title: 短剧发行、投流与备案
+subtitle: AI 短剧和漫剧从成片到回款：审核备案、上线分账、投流测算、版权合同与出海
+category: media/drama
+tags: [micro-drama, ai-drama, distribution, nrta-filing, revenue-share, paid-traffic, copyright]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-landscape.md
+  - 02-entity-qualifications.md
+  - 03-filing-review.md
+  - 04-ai-drama-rules.md
+  - 05-platform-launch.md
+  - 06-revenue-share.md
+  - 07-paid-traffic-roi.md
+  - 08-copyright.md
+  - 09-contracts.md
+  - 10-overseas.md

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" width="360" height="300" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="299" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="28" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">投流累计净回收（按首日 ROI）</text>
+<text x="180" y="46" font-size="11" fill="#656d76" text-anchor="middle">假设：30 日充值为首日的 1.45 倍，扣费 12%</text>
+<line x1="48" y1="232.0" x2="340" y2="232.0" stroke="#d8dee4"/>
+<text x="42" y="236.0" font-size="11" fill="#656d76" text-anchor="end">0.4</text>
+<line x1="48" y1="198.4" x2="340" y2="198.4" stroke="#d8dee4"/>
+<text x="42" y="202.4" font-size="11" fill="#656d76" text-anchor="end">0.6</text>
+<line x1="48" y1="164.8" x2="340" y2="164.8" stroke="#d8dee4"/>
+<text x="42" y="168.8" font-size="11" fill="#656d76" text-anchor="end">0.8</text>
+<line x1="48" y1="131.2" x2="340" y2="131.2" stroke="#d8dee4"/>
+<text x="42" y="135.2" font-size="11" fill="#656d76" text-anchor="end">1.0</text>
+<line x1="48" y1="97.6" x2="340" y2="97.6" stroke="#d8dee4"/>
+<text x="42" y="101.6" font-size="11" fill="#656d76" text-anchor="end">1.2</text>
+<line x1="48" y1="64.0" x2="340" y2="64.0" stroke="#d8dee4"/>
+<text x="42" y="68.0" font-size="11" fill="#656d76" text-anchor="end">1.4</text>
+<line x1="48" y1="131.2" x2="340" y2="131.2" stroke="#1f2328" stroke-dasharray="5 3"/>
+<text x="52" y="126.2" font-size="11" fill="#1f2328">回本线</text>
+<text x="48.0" y="248" font-size="11" fill="#656d76" text-anchor="middle">1</text>
+<text x="108.4" y="248" font-size="11" fill="#656d76" text-anchor="middle">7</text>
+<text x="178.9" y="248" font-size="11" fill="#656d76" text-anchor="middle">14</text>
+<text x="249.4" y="248" font-size="11" fill="#656d76" text-anchor="middle">21</text>
+<text x="340.0" y="248" font-size="11" fill="#656d76" text-anchor="middle">30</text>
+<text x="194.0" y="264" font-size="12" fill="#656d76" text-anchor="middle">上线后天数</text>
+<polyline points="48.0,195.7 58.1,183.3 68.1,175.0 78.2,170.9 88.3,166.7 98.3,164.1 108.4,161.6 118.5,160.5 128.6,159.5 138.6,158.5 148.7,157.4 158.8,156.4 168.8,155.4 178.9,154.3 189.0,154.0 199.0,153.7 209.1,153.3 219.2,153.0 229.2,152.7 239.3,152.4 249.4,152.1 259.4,151.7 269.5,151.4 279.6,151.1 289.7,150.8 299.7,150.4 309.8,150.1 319.9,149.8 329.9,149.5 340.0,149.1" fill="none" stroke="#b6c2cf" stroke-width="2"/>
+<text x="338" y="143.1" font-size="11" fill="#1f2328" text-anchor="end">首日 0.7：0.89</text>
+<polyline points="48.0,180.9 58.1,166.7 68.1,157.3 78.2,152.5 88.3,147.8 98.3,144.9 108.4,141.9 118.5,140.7 128.6,139.5 138.6,138.4 148.7,137.2 158.8,136.0 168.8,134.8 178.9,133.6 189.0,133.2 199.0,132.9 209.1,132.5 219.2,132.1 229.2,131.8 239.3,131.4 249.4,131.0 259.4,130.7 269.5,130.3 279.6,129.9 289.7,129.6 299.7,129.2 309.8,128.8 319.9,128.4 329.9,128.1 340.0,127.7" fill="none" stroke="#7fa6ea" stroke-width="2.5"/>
+<text x="338" y="121.7" font-size="11" fill="#1f2328" text-anchor="end">首日 0.8：1.02</text>
+<polyline points="48.0,166.1 58.1,150.2 68.1,139.5 78.2,134.2 88.3,128.9 98.3,125.6 108.4,122.2 118.5,120.9 128.6,119.6 138.6,118.2 148.7,116.9 158.8,115.6 168.8,114.3 178.9,112.9 189.0,112.5 199.0,112.1 209.1,111.7 219.2,111.3 229.2,110.8 239.3,110.4 249.4,110.0 259.4,109.6 269.5,109.2 279.6,108.8 289.7,108.3 299.7,107.9 309.8,107.5 319.9,107.1 329.9,106.7 340.0,106.3" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="338" y="100.3" font-size="11" fill="#1f2328" text-anchor="end">首日 0.9：1.15</text>
+<circle cx="88.3" cy="128.9" r="4" fill="#2f6fdf"/>
+<line x1="88.3" y1="132.9" x2="88.3" y2="206.8" stroke="#656d76" stroke-dasharray="3 3"/>
+<text x="94.3" y="210.8" font-size="11" fill="#1f2328">首日 0.9：第 5 天回本；0.8：第 21 天</text>
+<line x1="70" y1="282" x2="88" y2="282" stroke="#b6c2cf" stroke-width="3"/>
+<text x="94" y="286" font-size="11" fill="#656d76">首日 ROI 0.7</text>
+<line x1="160" y1="282" x2="178" y2="282" stroke="#7fa6ea" stroke-width="3"/>
+<text x="184" y="286" font-size="11" fill="#656d76">首日 ROI 0.8</text>
+<line x1="250" y1="282" x2="268" y2="282" stroke="#2f6fdf" stroke-width="3"/>
+<text x="274" y="286" font-size="11" fill="#656d76">首日 ROI 0.9</text>
+</svg>

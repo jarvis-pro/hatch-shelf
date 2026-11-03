@@ -9,7 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jarvis.shelf",
-      "buildNumber": "3",
+      "buildNumber": "5",
       "infoPlist": {
         "CFBundleDisplayName": "书巢",
         "ITSAppUsesNonExemptEncryption": false,

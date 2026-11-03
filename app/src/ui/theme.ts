@@ -27,6 +27,8 @@ const light = {
   danger: '#E5484D',
   dangerText: '#B42318',
   warn: '#C2410C',
+  /** 读过的章节有更新 */
+  updated: '#E07A1F',
   success: '#22C55E',
   successText: '#14532D',
   teal: '#0E9384',
@@ -69,6 +71,7 @@ const dark: Theme = {
   danger: '#FF6B6F',
   dangerText: '#FF8A8D',
   warn: '#FB923C',
+  updated: '#FB923C',
   success: '#4ADE80',
   successText: '#86EFAC',
   teal: '#2DD4BF',

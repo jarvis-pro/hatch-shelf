@@ -92,10 +92,6 @@ function AppStack() {
         <Stack.Screen name="(tabs)" />
         {/* iOS 的 fade 默认 500ms，进搜索页会显得拖沓；200ms 与键盘弹起同步 */}
         <Stack.Screen name="search" options={{ animation: 'fade', animationDuration: 200 }} />
-        <Stack.Screen
-          name="peek/[id]"
-          options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
-        />
         <Stack.Screen name="read/[id]" options={{ contentStyle: { backgroundColor: t.paper } }} />
         {/* 封面飞行时页面本身只做淡入淡出 */}
         <Stack.Screen name="book/[id]" options={{ animation: 'fade', animationDuration: isReduceMotion() ? 200 : FLIGHT_MS }} />

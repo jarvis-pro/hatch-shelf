@@ -54,6 +54,8 @@ type PressScaleProps = Omit<PressableProps, 'style'> & {
   style?: StyleProp<ViewStyle>;
   /** 按下时的缩放，默认 0.97 */
   scale?: number;
+  /** 长按触发时的触感，默认 light */
+  longPressHaptic?: Haptics.ImpactFeedbackStyle;
   children: ReactNode;
 };
 
@@ -64,7 +66,16 @@ type PressScaleProps = Omit<PressableProps, 'style'> & {
 export const PressContext = createContext<Animated.Value | null>(null);
 
 /** 按下缩小、松手回弹（02 封面按压）；长按时给一次轻触感反馈 */
-export function PressScale({ style, scale = 0.97, children, onPressIn, onPressOut, onLongPress, ...rest }: PressScaleProps) {
+export function PressScale({
+  style,
+  scale = 0.97,
+  longPressHaptic = Haptics.ImpactFeedbackStyle.Light,
+  children,
+  onPressIn,
+  onPressOut,
+  onLongPress,
+  ...rest
+}: PressScaleProps) {
   const v = useState(() => new Animated.Value(1))[0];
   const pressed = useState(() => new Animated.Value(0))[0];
   const to = (down: boolean) => {
@@ -94,7 +105,7 @@ export function PressScale({ style, scale = 0.97, children, onPressIn, onPressOu
       onLongPress={
         onLongPress &&
         ((e) => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          void Haptics.impactAsync(longPressHaptic);
           onLongPress(e);
         })
       }

@@ -5,12 +5,14 @@ import { useTheme } from '@/ui/theme';
 export function UpdatedTag() {
   const t = useTheme();
   return (
-    <View style={[styles.tag, { backgroundColor: `${t.accent}1A` }]}>
-      <Text style={{ color: t.accent, fontSize: 11, fontWeight: '600' }}>已更新</Text>
+    <View style={[styles.tag, { backgroundColor: `${t.updated}1A` }]}>
+      <View style={[styles.dot, { backgroundColor: t.updated }]} />
+      <Text style={{ color: t.updated, fontSize: 11, fontWeight: '600' }}>已更新</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tag: { borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
+  tag: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
+  dot: { width: 5, height: 5, borderRadius: 2.5 },
 });

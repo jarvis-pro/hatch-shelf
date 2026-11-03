@@ -11,9 +11,10 @@ import { rebuildIndex } from '@/library/index-books';
 import { BookCover } from '@/shelf/BookCover';
 import { seriesOf, sortSeries } from '@/shelf/categories';
 import { EmptyShelf } from '@/shelf/EmptyShelf';
-import { openBook, peekBook } from '@/shelf/actions';
+import { useBookPress } from '@/shelf/actions';
 import { ShelfBook } from '@/shelf/ShelfBook';
 import { Backdrop } from '@/ui/Backdrop';
+import { useCoverHidden } from '@/ui/CoverFlight';
 import { Glass, GlassButton } from '@/ui/glass';
 import { FadeInUp, PressScale, ProgressBar, useFirstEntry } from '@/ui/motion';
 import { PageHeader } from '@/ui/PageHeader';
@@ -79,6 +80,7 @@ export default function ShelfScreen() {
   const header = (
     <PageHeader
       title="书架"
+      count={books?.length ? `${books.length} 本` : undefined}
       right={
         books?.length !== 0 && (
           <>
@@ -156,10 +158,12 @@ export default function ShelfScreen() {
 function ContinueCard({ info, animate }: { info: ContinueInfo; animate: boolean }) {
   const t = useTheme();
   const { book, progress, chapterTitle } = info;
+  const { cover, press } = useBookPress(book);
+  const hidden = useCoverHidden(book.id);
   return (
-    <PressScale onPress={() => openBook(book.id)} onLongPress={() => peekBook(book.id)}>
+    <PressScale {...press}>
       <Glass radius={26} style={styles.continue}>
-        <BookCover book={book} width={108} radius={10} elevation={2} />
+        <BookCover ref={cover} book={book} width={108} radius={10} elevation={2} style={hidden && { opacity: 0 }} />
         <View style={styles.continueInfo}>
           <View style={{ gap: 6 }}>
             <View style={styles.label}>

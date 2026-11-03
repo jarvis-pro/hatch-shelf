@@ -11,9 +11,9 @@ const ART = require('../../assets/images/splash-art.jpg');
 const HOLD_MS = 1200;
 
 /**
- * 07 开场过渡（设计稿「启动 · 淡入淡出」），只在冷启动时播放：
+ * 07 开场过渡（设计稿「启动 · 淡入淡出」），只在安装后第一次启动时播放：
  * 原生纯色启动图 → 封面淡入（400ms）→ 停留并加载数据 → 与书架交叉淡化（500ms）。轻点可跳过。
- * 封面固定用亮色：原生启动图只能是一种底色，两者要一致。
+ * 封面固定用亮色；原生启动图与书架同底色（之后的冷启动直接从它淡入书架），封面从它上面淡入。
  */
 export function Splash({ ready, progress, onDone }: { ready: boolean; progress: Animated.Value; onDone(): void }) {
   const { height } = useWindowDimensions();

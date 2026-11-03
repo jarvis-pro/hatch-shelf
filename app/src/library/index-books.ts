@@ -73,6 +73,29 @@ export async function rebuildIndex() {
 }
 
 /**
+ * 冷启动后在后台做的轻量对账：只比对书目录的增删和 .content-hash，有出入的书单独重建。
+ * 不读章节正文，书多了也不拖慢启动；书内文件被外部改动（没有更新指纹）要靠下拉刷新。
+ * 返回是否有书的索引被改动。
+ */
+export async function syncIndex(): Promise<boolean> {
+  if (!booksDir.exists) return false;
+  const dirs = booksDir.list().filter((e): e is Directory => e instanceof Directory && !e.name.startsWith('.'));
+  const rows = await getDb().getAllAsync<{ id: string; content_hash: string | null }>('SELECT id, content_hash FROM books');
+  const indexed = new Map(rows.map((r) => [r.id, r.content_hash]));
+  const stale: string[] = [];
+  for (const dir of dirs) {
+    const hashFile = new File(dir, HASH_FILE);
+    const hash = hashFile.exists ? hashFile.textSync().trim() || null : null;
+    if (!indexed.has(dir.name) || indexed.get(dir.name) !== hash) stale.push(dir.name);
+    indexed.delete(dir.name);
+  }
+  // 剩下的是目录已经不在的书
+  stale.push(...indexed.keys());
+  for (const id of stale) await reindexBook(id);
+  return stale.length > 0;
+}
+
+/**
  * 只重建一本书的索引，供导入管线使用：全量重建要读遍整个书库，批量推送时每本都会越来越慢。
  * 书目录不存在或解析失败时删掉这本书的索引。
  */

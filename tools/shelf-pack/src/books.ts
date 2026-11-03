@@ -44,6 +44,30 @@ export function lint(book: LocalBook): LintResult {
   return lintBook(book.dirName, book.files);
 }
 
+export interface ListRow {
+  dirName: string;
+  title: string | null;
+  chapters: number;
+  updated: string | null;
+}
+
+export const NO_CATEGORY = '(未分类)';
+
+/** 按 category 分组，组和组内都按字母序；book.yaml 读不出来的书归入未分类，title 为 null */
+export function groupByCategory(books: LocalBook[]): [string, ListRow[]][] {
+  const groups = new Map<string, ListRow[]>();
+  for (const book of books) {
+    const m = lint(book).manifest;
+    const key = m?.category ?? NO_CATEGORY;
+    const row = { dirName: book.dirName, title: m?.title ?? null, chapters: m?.chapters.length ?? 0, updated: m?.updated ?? null };
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+  const byName = (a: string, b: string) => (a === NO_CATEGORY ? 1 : b === NO_CATEGORY ? -1 : a.localeCompare(b));
+  return [...groups]
+    .sort(([a], [b]) => byName(a, b))
+    .map(([k, rows]) => [k, rows.sort((a, b) => a.dirName.localeCompare(b.dirName))]);
+}
+
 /**
  * 打成 App 导入管线接受的 zip：所有文件放在 `<id>/` 下，只包含允许的扩展名。
  */

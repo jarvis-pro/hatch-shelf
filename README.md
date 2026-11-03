@@ -270,6 +270,7 @@ documentDirectory/
 
 ```bash
 shelf-pack check <book-dir|books/>            # 按 spec 校验，检查远程图片、缺失章节等
+shelf-pack ls    [books/]                     # 按 category 分组列出 id、章数、更新日期、书名
 shelf-pack pack  <book-dir> [-o out.zip]      # 校验后打包成 zip
 shelf-pack push  <book-dir> --to <ip> --pin <pin>   # 打包并通过局域网上传
 shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /books，只推送有变化的书

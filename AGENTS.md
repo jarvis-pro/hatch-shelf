@@ -49,6 +49,7 @@ pnpm typecheck               # 全仓类型检查
 pnpm test                    # 全仓测试
 pnpm lint                    # App 的 ESLint（含 no-floating-promises）
 pnpm shelf-pack check books/   # 校验全部书；pack / push 见 README 第 10 节
+pnpm shelf-pack ls             # 按分类列出全部书（id ↔ 中文书名）
 pnpm app testflight          # 构建 Release 并上传 TestFlight（见 README 第 13 节）
 ```
 

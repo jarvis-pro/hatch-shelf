@@ -3,7 +3,7 @@ import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { MAX_PACKAGE_BYTES, prepareImport } from '@shelf/spec';
 import { Command } from 'commander';
-import { findBooks, lint, packBook, readBook, type LocalBook } from './books';
+import { findBooks, groupByCategory, lint, packBook, readBook, type LocalBook } from './books';
 import { listDeviceBooks, PinError, upload } from './device';
 
 const c = {
@@ -48,6 +48,24 @@ program
     const failed = books.map((d) => checkBook(readBook(d))).filter((r) => !r).length;
     console.log(failed ? c.red(`\n${failed} / ${books.length} 本书有错误`) : c.green(`\n${books.length} 本书全部通过`));
     process.exitCode = failed ? 1 : 0;
+  });
+
+program
+  .command('ls')
+  .argument('[path]', 'books/ 根目录', 'books')
+  .description('按分类列出书：id、章数、更新日期、书名')
+  .action((target: string) => {
+    const books = findBooks(target).map(readBook);
+    const groups = groupByCategory(books);
+    const width = Math.max(...books.map((b) => b.dirName.length));
+    for (const [category, rows] of groups) {
+      console.log(`\n${category} ${c.dim(`(${rows.length})`)}`);
+      for (const r of rows) {
+        const meta = c.dim(`${String(r.chapters).padStart(2)} 章  ${r.updated ?? '          '}`);
+        console.log(`  ${r.dirName.padEnd(width)}  ${meta}  ${r.title ?? c.red('book.yaml 有误')}`);
+      }
+    }
+    console.log(c.dim(`\n共 ${books.length} 本，${groups.length} 个分类`));
   });
 
 program

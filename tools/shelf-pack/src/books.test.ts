@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { isAllowedFile, prepareImport } from '@shelf/spec';
 import { describe, expect, it } from 'vitest';
-import { findBooks, lint, packBook, readBook } from './books';
+import { findBooks, groupByCategory, lint, NO_CATEGORY, packBook, readBook } from './books';
 
 const booksRoot = path.resolve(import.meta.dirname, '../../../books');
 
@@ -26,4 +26,29 @@ describe('packBook', () => {
       expect(r.files.map((f) => f.path).sort()).toEqual(expected);
     });
   }
+});
+
+describe('groupByCategory', () => {
+  const groups = groupByCategory(validBooks);
+
+  it('lists every book exactly once', () => {
+    const ids = groups.flatMap(([, rows]) => rows.map((r) => r.dirName)).sort();
+    expect(ids).toEqual(validBooks.map((b) => b.dirName).sort());
+  });
+
+  it('sorts categories and the books inside each one', () => {
+    const keys = groups.map(([k]) => k);
+    expect(keys).toEqual([...keys].sort((a, b) => a.localeCompare(b)));
+    for (const [, rows] of groups) {
+      const ids = rows.map((r) => r.dirName);
+      expect(ids).toEqual([...ids].sort((a, b) => a.localeCompare(b)));
+    }
+  });
+
+  it('puts books without a readable book.yaml last', () => {
+    const broken = { dir: '/x', dirName: 'aaa-broken', files: [{ path: 'book.yaml', abs: '/x/book.yaml', size: 3, text: ': :' }] };
+    const last = groupByCategory([...validBooks, broken]).at(-1)!;
+    expect(last[0]).toBe(NO_CATEGORY);
+    expect(last[1].find((r) => r.dirName === 'aaa-broken')?.title).toBeNull();
+  });
 });

@@ -1,6 +1,5 @@
 import Constants from 'expo-constants';
-import { Directory, File } from 'expo-file-system';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import {
   ChevronRight,
   FolderInput,
@@ -18,6 +17,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listBooks } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
+import { useLibraryChanged } from '@/library/events';
 import { rebuildIndex } from '@/library/index-books';
 import { booksDir } from '@/lib/paths';
 import { SettingsSheet } from '@/reader/SettingsSheet';
@@ -27,10 +27,6 @@ import { Glass, Segmented, Toggle } from '@/ui/glass';
 import { PageHeader } from '@/ui/PageHeader';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
 import { APPEARANCE_LABELS, setAppearance, useAppearanceMode, useTheme, type AppearanceMode } from '@/ui/theme';
-
-function dirSize(dir: Directory): number {
-  return dir.list().reduce((sum, e) => sum + (e instanceof File ? (e.size ?? 0) : dirSize(e)), 0);
-}
 
 const formatSize = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(bytes >= 100 * 1024 * 1024 ? 0 : 1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
@@ -49,14 +45,16 @@ export default function SettingsTab() {
     return onReaderPrefsChange(setPrefs);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      void listBooks().then((books) => {
-        const size = booksDir.exists ? dirSize(booksDir) : 0;
-        setLibrary(`${books.length} 本 · ${formatSize(size)}`);
-      });
-    }, []),
-  );
+  // 统计书库大小要走遍 books/ 下上千个文件，会卡住 JS 线程（Tab 栏滑块的动画也在 JS 线程上），
+  // 所以不在每次切过来时算：打开时算一次，之后只在导入、删除、重建索引后重算
+  const loadLibrary = useCallback(() => {
+    void listBooks().then((books) => {
+      const size = booksDir.exists ? (booksDir.size ?? 0) : 0;
+      setLibrary(`${books.length} 本 · ${formatSize(size)}`);
+    });
+  }, []);
+  useEffect(loadLibrary, [loadLibrary]);
+  useLibraryChanged(loadLibrary);
 
   const changePrefs = (next: ReaderPrefs) => {
     setPrefs(next);
@@ -67,6 +65,7 @@ export default function SettingsTab() {
     setRebuilding(true);
     try {
       await rebuildIndex();
+      loadLibrary();
       Alert.alert('索引已重建', '已重新扫描全部书籍，阅读进度和笔记不受影响。');
     } catch (e) {
       Alert.alert('重建失败', (e as Error).message);

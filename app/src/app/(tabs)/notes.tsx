@@ -62,7 +62,7 @@ export default function NotesTab() {
                     </View>
                     <Text style={{ color: t.fg2, fontSize: 12 }}>{countLabel(r.highlights, r.notes, r.doubts)}</Text>
                     <View style={styles.snip}>
-                      <View style={[styles.bar, { backgroundColor: t.highlight }]} />
+                      <View style={[styles.bar, { backgroundColor: r.latestDoubt ? t.warn : t.highlight }]} />
                       <Text style={{ flex: 1, color: t.fg3, fontSize: 12, lineHeight: 18 }} numberOfLines={2}>
                         {r.latest}
                       </Text>

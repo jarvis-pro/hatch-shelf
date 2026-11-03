@@ -37,8 +37,8 @@ export type FromReader =
   | { type: 'rendered' }
   | { type: 'toc'; items: TocItem[] }
   | { type: 'position'; position: ReaderPosition }
-  /** 点击了非页内锚点的链接；RN 决定是跳章节还是交给系统打开 */
-  | { type: 'link'; href: string }
+  /** 点击了非页内锚点的链接；RN 决定是跳章节、跳到另一本书还是交给系统打开。text 是链接文字 */
+  | { type: 'link'; href: string; text: string }
   /** 回应 captureSelection；没有选中文字时 quote 为 null */
   | { type: 'selection'; action: SelectionAction; quote: Quote | null }
   | { type: 'highlightTap'; id: string }

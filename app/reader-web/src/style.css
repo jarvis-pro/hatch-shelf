@@ -419,6 +419,12 @@ mark.hl.has-note {
 
 mark.hl.doubt {
   background-image: linear-gradient(var(--hl-doubt), var(--hl-doubt));
-  /* 没写说明的存疑也带下划线，和普通高亮一眼区分开 */
-  border-bottom: 2px wavy var(--hl-doubt-note);
+  /* 波浪线只能用 text-decoration（border 不支持 wavy）；有没有说明都画，和普通高亮一眼区分开 */
+  text-decoration: underline wavy var(--hl-doubt-note) 1.5px;
+  text-underline-offset: 4px;
+}
+
+/* 存疑已有波浪线，不再叠加笔记的点线 */
+mark.hl.doubt.has-note {
+  border-bottom: none;
 }

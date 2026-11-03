@@ -31,10 +31,13 @@ import { Glass, GlassButton } from '@/ui/glass';
 import { ProgressBar } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
 
-/** 跨书链接 `../<id>/…`：在当前阅读页之上打开另一本书，返回时回到原处 */
-async function openLinkedBook(bookId: string, chapter?: string, anchor?: string) {
+/**
+ * 跨书链接 `../<id>/…`：在当前阅读页之上打开另一本书，返回时回到原处。
+ * 书还没导入时用链接文字（通常是《书名》）提示，没有文字才显示 id
+ */
+async function openLinkedBook(bookId: string, label: string, chapter?: string, anchor?: string) {
   if (await getBook(bookId)) openBook(bookId, chapter, anchor);
-  else Alert.alert('书架上还没有这本书', `需要先导入「${bookId}」`);
+  else Alert.alert('书架上还没有这本书', `需要先导入${label.startsWith('《') ? label.replace(/》.*$/, '》') : `「${bookId}」`}`);
 }
 
 export default function ReaderScreen() {
@@ -207,7 +210,7 @@ export default function ReaderScreen() {
           if (link?.kind === 'external') {
             if (/^https?:/i.test(link.url)) void Linking.openURL(link.url);
           } else if (link?.kind === 'book' && link.bookId !== id) {
-            openLinkedBook(link.bookId, link.file, link.anchor).catch((err: Error) => setError(err.message));
+            openLinkedBook(link.bookId, msg.text, link.file, link.anchor).catch((err: Error) => setError(err.message));
           } else if (link && link.kind !== 'anchor' && link.file) {
             const target = chapters.findIndex((c) => c.file === link.file);
             if (target >= 0) goTo(target, link.anchor);

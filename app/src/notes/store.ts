@@ -76,18 +76,28 @@ export interface NotesSummary {
   lastAt: number;
   /** 最近一条：有笔记显示笔记，否则显示原文 */
   latest: string;
+  latestDoubt: boolean;
 }
 
 /** 笔记 Tab：每本有高亮的书一行，按最近记录时间倒序 */
 export async function listNotesSummary(): Promise<NotesSummary[]> {
-  const rows = await getDb().getAllAsync<{ book_id: string; n: number; notes: number; doubts: number; last_at: number; latest: string }>(
+  const rows = await getDb().getAllAsync<{
+    book_id: string;
+    n: number;
+    notes: number;
+    doubts: number;
+    last_at: number;
+    latest: string;
+    latest_kind: HighlightKind;
+  }>(
     `SELECT book_id, COUNT(*) AS n, COUNT(note) AS notes, SUM(kind = 'doubt') AS doubts, MAX(created_at) AS last_at,
        (SELECT COALESCE(h2.note, h2.text) FROM highlights h2 WHERE h2.book_id = h.book_id
-        ORDER BY h2.created_at DESC LIMIT 1) AS latest
+        ORDER BY h2.created_at DESC LIMIT 1) AS latest,
+       (SELECT h3.kind FROM highlights h3 WHERE h3.book_id = h.book_id ORDER BY h3.created_at DESC LIMIT 1) AS latest_kind
      FROM highlights h JOIN books b ON b.id = h.book_id
      GROUP BY book_id ORDER BY last_at DESC`,
   );
-  return rows.map((r) => ({ bookId: r.book_id, highlights: r.n, notes: r.notes, doubts: r.doubts, lastAt: r.last_at, latest: r.latest.trim() }));
+  return rows.map((r) => ({ bookId: r.book_id, highlights: r.n, notes: r.notes, doubts: r.doubts, lastAt: r.last_at, latest: r.latest.trim(), latestDoubt: r.latest_kind === 'doubt' }));
 }
 
 export async function addHighlight(bookId: string, chapterFile: string, quote: Quote, note: string | null, kind: HighlightKind = 'highlight') {

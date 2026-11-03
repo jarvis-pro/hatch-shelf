@@ -398,7 +398,7 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     const href = link.getAttribute('href') ?? '';
     if (href.startsWith('#')) scrollToAnchor(decodeURIComponent(href.slice(1)), true);
-    else if (href) post({ type: 'link', href });
+    else if (href) post({ type: 'link', href, text: link.textContent?.trim() ?? '' });
   }
 });
 

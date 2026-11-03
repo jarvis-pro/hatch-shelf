@@ -1,7 +1,7 @@
 id: frontend-engineering
 title: 前端工程化与 Web 平台
 subtitle: 从浏览器渲染到一条完整的前端工具链
-category: tech/frontend
+category: 技术/前端
 tags: [frontend, vite, tailwind, css, web-security]
 level: intermediate
 created: 2026-11-02

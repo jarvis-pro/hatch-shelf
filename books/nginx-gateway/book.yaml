@@ -1,7 +1,7 @@
 id: nginx-gateway
 title: Nginx 与反向代理
 subtitle: 一台 VPS 前面那道门：路由、HTTPS、缓存、限流与长连接
-category: ops/network
+category: 运维/网络
 tags: [nginx, reverse-proxy, https, sse, devops]
 level: intermediate
 created: 2026-11-02

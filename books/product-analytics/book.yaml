@@ -1,7 +1,7 @@
 id: product-analytics
 title: 数据分析与埋点
 subtitle: 一个人也能看懂用户：指标、埋点、留存、实验与自托管
-category: opc/growth
+category: 一人公司/增长
 tags: [analytics, tracking, retention, ab-testing, posthog]
 level: intermediate
 created: 2026-11-02

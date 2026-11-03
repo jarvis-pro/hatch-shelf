@@ -1,7 +1,7 @@
 id: agent-safety
 title: Agent 安全
 subtitle: 威胁模型、注入防御、沙箱、权限、人在回路与审计
-category: ai/agent
+category: 人工智能/Agent
 tags: [agent, security, prompt-injection, sandbox, audit]
 level: advanced
 created: 2026-11-02

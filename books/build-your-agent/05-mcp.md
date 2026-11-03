@@ -281,10 +281,10 @@ describe("MCP 工具接入", () => {
   it("agent 通过 MCP 调用工具，server 的错误变成 is_error", async () => {
     const model = scriptedModel([
       reply([
-        { tool: "mcp__shelf-books__list_books", input: { category: "ai/agent" } },
+        { tool: "mcp__shelf-books__list_books", input: { category: "人工智能/Agent" } },
         { tool: "mcp__shelf-books__read_chapter", input: { bookId: "../etc", file: "x.md" } },
       ]),
-      reply(["ai/agent 下有这些书……"]),
+      reply(["人工智能/Agent 下有这些书……"]),
     ]);
     const r = await runAgent({ model, system: "test", tools: mcp.tools, task: "agent 分类有哪些书？" });
     expect(r.stop).toBe("done");

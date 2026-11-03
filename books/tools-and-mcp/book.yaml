@@ -1,11 +1,11 @@
 id: tools-and-mcp
 title: 工具设计与 MCP
 subtitle: 从一个好工具的标准，到写出、授权、组织自己的 MCP server
-category: ai/agent
+category: 人工智能/Agent
 tags: [mcp, tool-use, agent, typescript, oauth]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-good-tools.md
   - 02-descriptions-and-params.md

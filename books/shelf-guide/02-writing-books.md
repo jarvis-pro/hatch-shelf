@@ -19,7 +19,7 @@ books/go-concurrency/
 id: go-concurrency            # 必填，[a-z0-9-]，同 id 再次导入即为更新
 title: Go 并发编程实战          # 必填
 subtitle: 从 goroutine 到调度器  # 可选
-category: tech/go             # 可选，书架分组，用 / 分层
+category: 技术/Go             # 可选，书架分组，用 / 分层
 level: intermediate           # 可选：beginner | intermediate | advanced
 chapters:                     # 必填，显式排序
   - 01-goroutine.md

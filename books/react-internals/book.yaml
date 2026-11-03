@@ -1,7 +1,7 @@
 id: react-internals
 title: React 19 原理与模式
 subtitle: 从 Fiber、lanes 到 Actions 与 Compiler
-category: tech/frontend
+category: 技术/前端
 tags: [react, fiber, hooks, concurrent, react-compiler]
 level: intermediate
 created: 2026-11-02

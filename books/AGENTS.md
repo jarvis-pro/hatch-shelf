@@ -21,7 +21,7 @@ books/<book-id>/
 id: go-concurrency            # 必填，全局唯一，[a-z0-9-]，必须与目录名一致；同 id 再次导入即为更新
 title: Go 并发编程实战          # 必填
 subtitle: 从 goroutine 到调度器  # 可选
-category: tech/go             # 可选，书架分组，用 / 分层
+category: 技术/Go             # 可选，书架分组，用 / 分层
 tags: [go, concurrency]       # 可选
 level: intermediate           # 可选：beginner | intermediate | advanced
 created: 2026-11-02           # 可选，YYYY-MM-DD
@@ -30,6 +30,8 @@ chapters:                     # 必填，显式排序；未列入的 .md 会被�
   - 01-goroutine.md
   - 02-channel.md
 ```
+
+`category` 的第一段就是书架上显示的分组名，直接写中文（如 `人工智能/Agent`、`自媒体/平台`），同一系列的书第一段要一字不差；App 不做映射，新系列推书即生效。
 
 字段的权威定义是 `packages/spec/src/schema.ts`，两者冲突时以代码为准并修正本文件。
 

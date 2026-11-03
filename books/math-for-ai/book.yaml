@@ -1,7 +1,7 @@
 id: math-for-ai
 title: AI 数学直觉
 subtitle: 给工程师的向量、概率与梯度，重直觉不重证明
-category: ai/ml
+category: 人工智能/机器学习
 tags: [math, linear-algebra, probability, calculus, ml]
 level: beginner
 created: 2026-11-02

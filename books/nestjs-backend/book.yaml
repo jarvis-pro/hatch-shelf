@@ -1,7 +1,7 @@
 id: nestjs-backend
 title: NestJS 后端架构
 subtitle: 从依赖注入到长连接，一个真实多租户服务端的设计取舍
-category: tech/backend
+category: 技术/后端
 tags: [nestjs, nodejs, backend, typescript, auth]
 level: intermediate
 created: 2026-11-02

@@ -1,7 +1,7 @@
 id: ts-node-advanced
 title: TS 与 Node 进阶
 subtitle: 从类型的集合论到事件循环、V8、内存与背压
-category: tech/typescript
+category: 技术/TypeScript
 tags: [typescript, nodejs, v8, performance]
 level: advanced
 created: 2026-11-02

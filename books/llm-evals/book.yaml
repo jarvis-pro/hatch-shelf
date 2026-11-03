@@ -1,7 +1,7 @@
 id: llm-evals
 title: 评测与质量
 subtitle: 用 TypeScript 搭一套自己的 eval，让改 prompt 不再靠感觉
-category: ai/app
+category: 人工智能/应用
 tags: [llm, evals, testing, typescript, llm-as-judge]
 level: advanced
 created: 2026-11-02

@@ -1,7 +1,7 @@
 id: llm-app-engineering
 title: 大模型应用工程
 subtitle: 用 TypeScript 把模型 API 做成靠得住的产品功能
-category: ai/app
+category: 人工智能/应用
 tags: [llm, claude-api, typescript, prompt]
 level: intermediate
 created: 2026-11-02

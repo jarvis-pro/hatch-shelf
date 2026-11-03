@@ -1,7 +1,7 @@
 id: networking
 title: 计算机网络
 subtitle: 给自己运维服务的开发者：从分层模型到抓包排障
-category: ops/network
+category: 运维/网络
 tags: [network, dns, http, tls, troubleshooting]
 level: beginner
 created: 2026-11-02

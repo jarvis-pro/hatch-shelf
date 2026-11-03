@@ -1,7 +1,7 @@
 id: context-engineering
 title: 上下文工程
 subtitle: 让 agent 每一步都只看到该看的：提示词、记忆、压缩、检索与长任务
-category: ai/agent
+category: 人工智能/Agent
 tags: [agent, context, memory, skills, prompt]
 level: advanced
 created: 2026-11-02

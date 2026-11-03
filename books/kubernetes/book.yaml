@@ -1,7 +1,7 @@
 id: kubernetes
 title: Kubernetes 入门到实战
 subtitle: 把一套 Compose 部署迁到 k3s 单机集群，再想清楚值不值
-category: ops/container
+category: 运维/容器
 tags: [kubernetes, k3s, helm, devops]
 level: intermediate
 created: 2026-11-02

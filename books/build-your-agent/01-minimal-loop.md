@@ -305,7 +305,7 @@ console.error(`[${r.stop}] ${r.turns} 轮，输入 ${r.usage.input}，缓存读 
 
 ```bash
 export ANTHROPIC_API_KEY=...   # 或者先用 ant auth login 登录
-npx tsx tools/shelf-agent/src/main-v1.ts "ai/agent 方向的书名里有哪些带 agent 的？"
+npx tsx tools/shelf-agent/src/main-v1.ts "人工智能/Agent 方向的书名里有哪些带 agent 的？"
 ```
 
 这个文件只是让第一版循环跑起来看看，第 2 章扩展了 `AgentTool` 之后可以删掉，入口换成 `cli.ts`。正常情况下是两轮：第一轮模型调用 `list_books`，第二轮根据目录名回答。最后一行的用量能帮你建立直觉：第二轮的输入里，system、工具定义和第一轮的内容都会被重发一次。

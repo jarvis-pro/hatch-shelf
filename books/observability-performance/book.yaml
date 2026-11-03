@@ -1,7 +1,7 @@
 id: observability-performance
 title: 可观测性与性能
 subtitle: 一台 VPS 上的日志、指标、追踪、告警与压测，看见问题再动手
-category: ops/sre
+category: 运维/SRE
 tags: [observability, prometheus, opentelemetry, k6, performance]
 level: intermediate
 created: 2026-11-02

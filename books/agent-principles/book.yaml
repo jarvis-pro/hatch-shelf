@@ -1,11 +1,11 @@
 id: agent-principles
 title: Agent 原理与设计
 subtitle: 从 agent loop 到失败模式，Agent 系列的总纲
-category: ai/agent
+category: 人工智能/Agent
 tags: [agent, llm, mcp, tool-use, context]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-what-is-agent.md
   - 02-agent-loop.md

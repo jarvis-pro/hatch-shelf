@@ -1,7 +1,7 @@
 id: open-models
 title: 开源模型：部署、量化与微调
 subtitle: 什么时候值得自己跑模型，怎么跑，要不要微调
-category: ai/llm
+category: 人工智能/大模型
 tags: [llm, open-models, quantization, fine-tuning, inference]
 level: intermediate
 created: 2026-11-02

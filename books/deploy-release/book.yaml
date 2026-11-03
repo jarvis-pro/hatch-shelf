@@ -1,7 +1,7 @@
 id: deploy-release
 title: 部署与 CI/CD
 subtitle: 一个人把代码稳稳送上线：脚本、密钥、零停机、流水线与回滚
-category: ops/deploy
+category: 运维/部署
 tags: [deploy, ci-cd, github-actions, release, docker]
 level: intermediate
 created: 2026-11-02

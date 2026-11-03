@@ -27,7 +27,7 @@ flowchart TD
 ```text
 ### 39. 个人 Agent 工作流 `personal-agent-workflow`
 
-- 中级 · `ai/agent` · 状态：未写
+- 中级 · `人工智能/Agent` · 状态：未写
 - 章节：把工作拆成 agent 能接的活 · 日常自动化 · 个人知识库 · 定时任务 · 让 agent 写书 · 让 agent 做运维 · 工作流的迭代
 ```
 

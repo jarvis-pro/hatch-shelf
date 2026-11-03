@@ -1,7 +1,7 @@
 id: python-for-ai
 title: 面向 AI 的 Python
 subtitle: 写给 TypeScript 开发者的 Python、uv、Pydantic、NumPy 与 Pandas
-category: ai/ml
+category: 人工智能/机器学习
 tags: [python, uv, numpy, pandas, pydantic]
 level: beginner
 created: 2026-11-02

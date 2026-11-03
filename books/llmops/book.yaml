@@ -1,7 +1,7 @@
 id: llmops
 title: LLM 应用上线
 subtitle: 用一层 TypeScript 模型网关管住降级、配额、成本、版本与追踪
-category: ai/app
+category: 人工智能/应用
 tags: [llmops, llm-gateway, typescript, observability, security]
 level: advanced
 created: 2026-11-02

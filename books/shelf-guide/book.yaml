@@ -1,11 +1,11 @@
 id: shelf-guide
 title: 书架使用指南
 subtitle: 阅读、写书与渲染示例
-category: guide
+category: 使用指南
 tags: [shelf, markdown]
 level: beginner
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 chapters:
   - 01-welcome.md
   - 02-writing-books.md

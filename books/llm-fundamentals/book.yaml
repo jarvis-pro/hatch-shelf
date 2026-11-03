@@ -1,7 +1,7 @@
 id: llm-fundamentals
 title: 大模型原理科普
 subtitle: 从神经网络到 ChatGPT，不需要数学背景
-category: ai/llm
+category: 人工智能/大模型
 tags: [llm, transformer, ai]
 level: beginner
 created: 2026-11-02

@@ -1,7 +1,7 @@
 id: llm-deep-dive
 title: 大模型原理进阶
 subtitle: 从注意力的推导到 RoPE、MoE、推理模型与可解释性
-category: ai/llm
+category: 人工智能/大模型
 tags: [llm, transformer, alignment, quantization, interpretability]
 level: advanced
 created: 2026-11-02

@@ -44,7 +44,7 @@ sequenceDiagram
     "type": "object",
     "properties": {
       "query": { "type": "string", "description": "关键词，空格分隔表示 AND" },
-      "category": { "type": "string", "description": "可选，按分类前缀过滤，如 ai/agent" }
+      "category": { "type": "string", "description": "可选，按分类前缀过滤，如 人工智能/Agent" }
     },
     "required": ["query"]
   }
@@ -67,7 +67,7 @@ sequenceDiagram
 
 ```text
 差：Error 400
-好：参数 category 的值 "agent" 不存在。可用分类：ai/llm, ai/agent, tech/frontend。
+好：参数 category 的值 "agent" 不存在。可用分类：人工智能/大模型, 人工智能/Agent, 技术/前端。
 ```
 
 可行动的错误让模型能在下一轮自己修正，而不是放弃或者胡乱重试。

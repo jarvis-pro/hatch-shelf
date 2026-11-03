@@ -1,7 +1,7 @@
 id: multi-agent
 title: 多 Agent 编排
 subtitle: 拆分、委派、并行、验证与成本，以及这套书是怎么编排出来的
-category: ai/agent
+category: 人工智能/Agent
 tags: [agent, multi-agent, orchestration, workflow, claude-code]
 level: advanced
 created: 2026-11-02

@@ -1,7 +1,7 @@
 id: linux-essentials
 title: Linux 系统与命令行
 subtitle: 登上服务器不再心虚：从命令行到 systemd 与排障
-category: ops/linux
+category: 运维/Linux
 tags: [linux, shell, systemd, ubuntu, ops]
 level: beginner
 created: 2026-11-02

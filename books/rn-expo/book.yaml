@@ -1,7 +1,7 @@
 id: rn-expo
 title: React Native 与 Expo
 subtitle: 以书架 App 为例，从新架构到 TestFlight
-category: tech/mobile
+category: 技术/移动端
 tags: [react-native, expo, ios, mobile]
 level: intermediate
 created: 2026-11-02

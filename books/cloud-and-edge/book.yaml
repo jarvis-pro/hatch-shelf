@@ -1,7 +1,7 @@
 id: cloud-and-edge
 title: 云与边缘
 subtitle: 从 VPS 选型到 Cloudflare Workers + R2，一个人的云上架构与账单
-category: ops/cloud
+category: 运维/云
 tags: [cloud, cloudflare, serverless, object-storage, cost]
 level: advanced
 created: 2026-11-02

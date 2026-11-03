@@ -1,7 +1,7 @@
 id: electron-desktop
 title: Electron 桌面应用
 subtitle: 三个进程、一座桥、一个签好名的 .app
-category: tech/desktop
+category: 技术/桌面
 tags: [electron, desktop, ipc, security, macos]
 level: intermediate
 created: 2026-11-02

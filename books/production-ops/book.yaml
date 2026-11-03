@@ -1,7 +1,7 @@
 id: production-ops
 title: 一人运维手册
 subtitle: 加固、容灾、事故、SLO、成本与值班：一个人也能把线上管稳
-category: ops/sre
+category: 运维/SRE
 tags: [sre, security, backup, incident, on-call]
 level: intermediate
 created: 2026-11-02

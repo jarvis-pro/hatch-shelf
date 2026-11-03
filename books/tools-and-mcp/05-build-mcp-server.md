@@ -26,7 +26,7 @@
 
 按第 1 章的方法，先想清楚 agent 会用它做什么：
 
-- 「ai/agent 分类下有哪些书？」
+- 「人工智能/Agent 分类下有哪些书？」
 - 「读一下《Agent 原理与设计》讲 MCP 的那一章」
 - 「这本书推送前还有格式问题吗？」
 
@@ -229,10 +229,10 @@ export function createServer(): McpServer {
       title: '列出书架上的书',
       description:
         '列出 books/ 下所有能通过解析的书：id、书名、分类、难度、章节数。' +
-        '可按分类前缀过滤（如 ai/agent 会匹配 ai/agent 及其子分类）。' +
+        '可按分类前缀过滤（如 人工智能/Agent 会匹配 人工智能/Agent 及其子分类）。' +
         '只读元数据，不读正文；要读正文用 read_chapter，要查格式问题用 check_book。',
       inputSchema: z.object({
-        category: z.string().optional().describe('分类前缀，如 ai 或 ai/agent；不填返回全部'),
+        category: z.string().optional().describe('分类前缀，如 人工智能 或 人工智能/Agent；不填返回全部'),
       }),
       outputSchema: z.object({ books: z.array(bookSummary) }),
       annotations: { readOnlyHint: true, openWorldHint: false },
@@ -419,10 +419,10 @@ describe('shelf-books MCP server', () => {
   });
 
   it('list_books 按分类前缀过滤，并返回结构化结果', async () => {
-    const r = await client.callTool({ name: 'list_books', arguments: { category: 'ai/agent' } });
+    const r = await client.callTool({ name: 'list_books', arguments: { category: '人工智能/Agent' } });
     const { books } = r.structuredContent as { books: { id: string; category?: string }[] };
     expect(books.length).toBeGreaterThan(0);
-    expect(books.every((b) => b.category?.startsWith('ai/agent'))).toBe(true);
+    expect(books.every((b) => b.category?.startsWith('人工智能/Agent'))).toBe(true);
   });
 
   it('拒绝路径穿越，并在错误里引用传入的值', async () => {
@@ -512,10 +512,10 @@ claude mcp add --scope project shelf-books -- npx tsx tools/shelf-mcp/src/stdio.
 在 Claude Code 里输入 `/mcp`，应该能看到 `shelf-books` 已连接，下面列出三个工具。然后直接用自然语言提问：
 
 ```text
-书架上 ai/agent 分类有哪些书？哪本章节最少？
+书架上 人工智能/Agent 分类有哪些书？哪本章节最少？
 ```
 
-模型会调用 `mcp__shelf-books__list_books`，参数是 `{"category": "ai/agent"}`。提问里没有提到任何工具名，模型是根据描述自己选的。再试试：
+模型会调用 `mcp__shelf-books__list_books`，参数是 `{"category": "人工智能/Agent"}`。提问里没有提到任何工具名，模型是根据描述自己选的。再试试：
 
 ```text
 用 shelf-books 检查一下 agent-principles，有问题的话读一下对应章节

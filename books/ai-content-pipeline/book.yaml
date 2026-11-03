@@ -1,0 +1,19 @@
+id: ai-content-pipeline
+title: AI 内容生产工具链
+subtitle: 文案、图像、视频、配音、数字人，到一条有人把关的自动化流水线
+category: media/ai
+tags: [aigc, content, pipeline, prompt, tts, digital-human, automation, compliance]
+level: intermediate
+created: 2026-11-03
+updated: 2026-11-03
+chapters:
+  - 01-what-ai-can-do.md
+  - 02-topics-and-scripts.md
+  - 03-images.md
+  - 04-video.md
+  - 05-voice.md
+  - 06-digital-human.md
+  - 07-pipeline.md
+  - 08-matrix-and-batch.md
+  - 09-cost.md
+  - 10-platform-rules.md

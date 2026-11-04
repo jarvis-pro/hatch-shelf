@@ -289,7 +289,7 @@ export function TabBar() {
                   {/* 右上角的绿色状态点：传书服务正在运行 */}
                   {live && <View style={[styles.live, { backgroundColor: t.success, borderColor: t.bg }]} />}
                 </View>
-                <Animated.Text style={{ color: colors[i], fontSize: 10, fontWeight: bold.includes(i) ? '600' : '400' }}>{tab.label}</Animated.Text>
+                <Animated.Text style={{ color: colors[i], fontSize: 12, fontWeight: bold.includes(i) ? '600' : '400' }}>{tab.label}</Animated.Text>
               </Pressable>
             );
           })}

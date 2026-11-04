@@ -6,17 +6,16 @@ import { importFile } from './pipeline';
 
 const isFileUrl = (url: string | null): url is string => !!url && url.startsWith('file://');
 
-let chain = Promise.resolve();
 const seen = new Set<string>();
 
-/** 依次导入，避免两个文件同时写同一本书 */
+/** 同一个文件只导入一次；排队由 importFile 负责，和局域网上传共用一个队列 */
 function enqueue(url: string) {
   if (seen.has(url)) return;
   seen.add(url);
-  chain = chain.then(async () => {
-    showImportResult(await importFile(url));
-    seen.delete(url);
-  });
+  void importFile(url)
+    .then(showImportResult)
+    .catch((e: unknown) => console.error('导入反馈失败', e))
+    .finally(() => seen.delete(url));
 }
 
 /**

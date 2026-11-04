@@ -5,6 +5,7 @@ import { notifyLibraryChanged } from '@/library/events';
 import { writeBookAtomically } from '@/library/fs';
 import { reindexBook } from '@/library/index-books';
 import { bookDir, inboxDir } from '@/lib/paths';
+import { createSerialQueue } from '@/lib/serial-queue';
 
 export type ImportResult =
   | { ok: true; status: 'added' | 'updated'; bookId: string; title: string; warnings: string[] }
@@ -12,11 +13,18 @@ export type ImportResult =
 
 const stagingId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
+const runSerially = createSerialQueue();
+
 /**
  * 唯一的导入管线（README 第 6 节）：AirDrop、系统分享、文件选择、局域网上传都调用这里。
- * 来源文件先落到 inbox/<id>/，处理结束后无论成败都清理掉。
+ * 所有通道共用一个队列，一次只导入一个文件，避免同一本书的写入和重建索引交错。
  */
-export async function importFile(uri: string): Promise<ImportResult> {
+export function importFile(uri: string): Promise<ImportResult> {
+  return runSerially(() => importFileNow(uri));
+}
+
+/** 来源文件先落到 inbox/<id>/，处理结束后无论成败都清理掉 */
+async function importFileNow(uri: string): Promise<ImportResult> {
   const source = new File(uri);
   const fileName = decodeURIComponent(source.name);
   const fail = (error: string): ImportResult => ({ ok: false, fileName, error });

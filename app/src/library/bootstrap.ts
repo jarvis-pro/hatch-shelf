@@ -5,6 +5,7 @@ import { getSetting, setSetting } from '@/db/queries';
 import { inboxDir, readerDir } from '@/lib/paths';
 import readerHtml from '../../assets/reader/index.html';
 import { seedSamples } from './books';
+import { recoverInterruptedWrites } from './fs';
 import { rebuildIndex } from './index-books';
 
 /**
@@ -39,6 +40,7 @@ export async function bootstrap() {
   getDb();
   if (!inboxDir.exists) inboxDir.create({ intermediates: true });
   await installReader();
+  recoverInterruptedWrites();
   await seedSamples();
   if ((await getSetting('indexVersion', 0)) !== INDEX_VERSION) {
     await rebuildIndex();

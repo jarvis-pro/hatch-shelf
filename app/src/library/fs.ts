@@ -1,5 +1,6 @@
 import { Directory, File } from 'expo-file-system';
 import { bookDir, booksDir } from '@/lib/paths';
+import { OLD_PREFIX, planRecovery, TMP_PREFIX } from './recovery';
 
 export interface BookFile {
   /** 相对书目录的路径，如 `assets/a.png` */
@@ -14,11 +15,12 @@ export const HASH_FILE = '.content-hash';
 
 /**
  * 原子写入一本书：先完整写到 books/.tmp-<id>/，再整体替换 books/<id>/（README 第 6 节第 4 步）。
- * 替换时先把旧目录挪开，新目录就位后再删旧的，任何时刻 books/<id>/ 要么是旧版要么是新版。
+ * 替换要两次改名：先把旧目录挪成 .old-<id>，再把新目录改成 <id>。两次改名之间 books/<id>/ 短暂不存在，
+ * 如果 App 恰好在这时被杀，下次启动由 recoverInterruptedWrites 把 .old-<id> 改回来，书不会丢。
  */
 export function writeBookAtomically(id: string, files: BookFile[], hash?: string) {
   if (!booksDir.exists) booksDir.create({ intermediates: true });
-  const tmp = new Directory(booksDir, `.tmp-${id}`);
+  const tmp = new Directory(booksDir, `${TMP_PREFIX}${id}`);
   if (tmp.exists) tmp.delete();
   tmp.create();
   for (const f of files) {
@@ -36,9 +38,24 @@ export function writeBookAtomically(id: string, files: BookFile[], hash?: string
   }
 
   const target = bookDir(id);
-  const old = new Directory(booksDir, `.old-${id}`);
+  const old = new Directory(booksDir, `${OLD_PREFIX}${id}`);
   if (old.exists) old.delete();
   if (target.exists) target.rename(old.name);
   tmp.rename(id);
   if (old.exists) old.delete();
+}
+
+/**
+ * 启动时收拾上次被中断的 writeBookAtomically：新版没就位就把旧版改回原名，其余残留删掉。
+ * 恢复出来的是旧版，和数据库里的索引一致（重建索引在写入之后），不需要重新索引。
+ */
+export function recoverInterruptedWrites() {
+  if (!booksDir.exists) return;
+  const names = booksDir
+    .list()
+    .filter((e): e is Directory => e instanceof Directory)
+    .map((d) => d.name);
+  const plan = planRecovery(names);
+  for (const name of plan.restore) new Directory(booksDir, name).rename(name.slice(OLD_PREFIX.length));
+  for (const name of plan.remove) new Directory(booksDir, name).delete();
 }

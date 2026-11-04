@@ -1,0 +1,22 @@
+id: auth-payments
+title: 账号与支付工程
+subtitle: 登录、第三方账号、订阅状态机与支付回调的实现细节
+category: 技术/后端
+tags: [auth, payments, wechat-pay, alipay, iap, subscription, passkey]
+level: intermediate
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-account-model.md
+  - 02-sessions-tokens.md
+  - 03-sms-login.md
+  - 04-social-login.md
+  - 05-passkeys.md
+  - 06-payment-architecture.md
+  - 07-wechat-alipay.md
+  - 08-stripe-iap.md
+  - 09-subscription-state.md
+  - 10-webhooks-reconciliation.md
+next:
+  - id: redis-jobs
+    reason: 查单、补单、对账和到期提醒都是后台任务，接着看队列、定时和重试怎么落地

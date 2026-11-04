@@ -7,15 +7,21 @@
 ## Node 做了什么
 
 > [!WARNING]
-> 下表的版本节点按截至 2026-11 的 Node.js 发布说明整理；type stripping 的稳定性级别（实验 / 稳定）、警告输出和相关参数在 23.x、24.x 及之后的版本里仍有调整，以 Node.js 官方文档的 Modules: TypeScript 页面和 Node.js changelog 为准。
+> 下表按 2026 年 11 月 Node.js 官方文档「Modules: TypeScript」页面（v26.13.0 版）的版本历史整理；22.23 上的行为是笔者实测，24 及以后的行为只按文档和发布说明整理、没有实机重跑。以 Node.js 官方文档和 changelog 为准。
 
 Node 的类型擦除（type stripping）大致经历了这几步：
 
 | 版本 | 状态 |
 |---|---|
 | 22.6 | 加入 `--experimental-strip-types`，需要显式开启 |
+| 22.7 | 加入 `--experimental-transform-types`（见本章末尾） |
 | 23.6 | 默认开启，不再需要参数 |
-| 22.18 | 默认开启被移植回 22 LTS |
+| 22.18 | 默认开启被移植回 22 LTS，同时不再打印实验性警告 |
+| 24.3 | 24 线不再打印实验性警告 |
+| 24.12 / 25.2 | type stripping 标为**稳定**（Stability 2） |
+| 26.0 | 移除 `--experimental-transform-types` |
+
+所以以 Node 24 LTS 为基线时，`node src/index.ts` 用的是一个稳定功能（24.12 及以后）；22 线上它默认开启、不再报警告，但文档的版本历史里没有把 22 标为稳定。
 
 hatch-recordwall 的根 `package.json` 里写着 `"engines": { "node": ">=22.18" }`，就是这个原因：低于 22.18，`node src/index.ts` 会直接报语法错误，不是降级运行。可以用 `node -p process.features.typescript` 检查当前 Node 的模式，22.23 上输出 `strip`。
 
@@ -216,11 +222,71 @@ console.log(a);
 
 ### 如果实在需要 enum
 
-Node 还有一个 `--experimental-transform-types` 参数，会真正转换 enum、namespace 这些语法（同时生成 source map）。它仍是实验性功能，运行时会打印 `ExperimentalWarning`。与其依赖它，不如把代码改成可擦除的写法——那才是这个生态正在收敛的方向。
+Node 22 和 24 还有一个 `--experimental-transform-types` 参数，会真正转换 enum、namespace 这些语法（同时生成 source map）。它一直是实验性功能，运行时会打印 `ExperimentalWarning`，而且 **Node 26.0.0 已经把它移除了**：今天依赖它的代码，升到 26 就跑不起来。把代码改成可擦除的写法，才是这个生态收敛的方向。
+
+## 去工具链：把 tsx 换成 node
+
+前面说 hatch-shelf 的 `tools/shelf-pack` 还在用 `tsx src/cli.ts`。如果要把它改成 Node 直接跑，去掉 tsx 这个开发依赖，会经历什么？这一节按实际顺序走一遍，也是任何「去工具链」迁移的通用清单。
+
+**第一步：先让它失败一次**。在 Node 22.23 上直接运行：
+
+```text
+$ node tools/shelf-pack/src/cli.ts ls
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../tools/shelf-pack/src/books'
+imported from .../tools/shelf-pack/src/cli.ts
+```
+
+擦除这一关已经过了，卡在**模块解析**：源码里写的是 `from './books'`，没有后缀。tsx 和打包工具会替你补后缀，Node 的 ESM 解析不会，这是迁移里工作量最大的一块。
+
+**第二步：tsconfig 改成 Node 的解析规则**。仓库的 `tsconfig.base.json` 用的是 `moduleResolution: Bundler`，它允许不带后缀的导入，所以 `tsc` 从没报过错。给要直接跑的包单独覆盖：
+
+```jsonc
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  },
+  "include": ["src"]
+}
+```
+
+改完先跑 `tsc --noEmit`，它会把每一处不带后缀的相对导入列出来，比运行时一个一个撞快得多。在 shelf-pack 上实测（TypeScript 6.0.3），报了 11 处 `TS2835`：spec 的 `index.ts` 8 处、`cli.ts` 2 处、测试文件 1 处，其余的 `TS2305`、`TS7006` 都是导入解析失败带出来的连锁错误：
+
+```text
+packages/spec/src/index.ts(1,15): error TS2835: Relative import paths need explicit
+file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or
+'nodenext'. Did you mean './schema.js'?
+```
+
+注意它建议的是 `.js`：那是给「先编译再运行」的项目准备的。Node 直接跑时要写 `.ts`，写 `.js` 正是本章要点里提到的那个坑。
+
+**第三步：补后缀，处理共享包**。`./books` 改成 `./books.ts`。真正的麻烦在 `@shelf/spec`：它同时被 App（Metro 打包，`Bundler` 解析）和 CLI 用。好在 Metro 和 `Bundler` 解析都认带 `.ts` 后缀的导入（需要 `allowImportingTsExtensions`），所以把 spec 里的相对导入也统一写成 `.ts`，两边都能用。spec 能被 Node 直接加载的前提本章前面讲过：它在 pnpm workspace 里，解析到的真实路径不在 `node_modules` 下。
+
+**第四步：检查擦不掉的语法**。打开 `erasableSyntaxOnly` 和 `verbatimModuleSyntax` 后 `tsc` 会指出 enum、参数属性、漏写 `type` 的类型导入。上面那次实测里 `TS1294` 和 `TS1484` 一条都没有，这一步对 shelf-pack 是零改动；对用 NestJS 风格写过类的项目，这一步可能才是大头。
+
+**第五步：删依赖，改脚本**。`package.json` 里 `"start": "tsx src/cli.ts"` 改成 `"start": "node src/cli.ts"`，删掉 `tsx`，并写上 `"engines": { "node": ">=22.18" }`（以 Node 24 为基线时可以直接写 `>=24.12`）。
+
+还有几件 tsx 顺手做了、换成 node 后要自己接手的事：
+
+| tsx 替你做的 | 换成 node 后 |
+|---|---|
+| 补导入后缀 | 源码里写 `.ts` 后缀 |
+| `tsconfig` 的 `paths` 别名 | 改用 `package.json` 的 `imports`（`#src/*`） |
+| `tsx watch` | `node --watch src/cli.ts` |
+| 读 `.env` | `node --env-file=.env src/cli.ts` |
+| 测试 | Vitest 自己处理 TS，不受影响 |
+
+**什么时候不值得迁**。shelf-pack 每次运行多花的那点转译时间感觉不到，tsx 也不会在运行时引入额外的风险；迁移换来的是少一个依赖，代价是改一遍全部导入、让 spec 的写法受 Node 规则约束。对一个已经稳定工作的工具，这笔账不一定划算。新写的内部 CLI，从第一行就按 Node 直接跑的规矩写，成本几乎为零，hatch-recordwall 的 `tools/` 就是这样。
 
 ## 本章要点
 
-- Node 22.18+ / 23.6+ 默认能直接运行 `.ts`，方式是把类型替换成空格：行列号不变，不需要 source map，但完全不读 tsconfig、不做类型检查
+- Node 22.18+ / 23.6+ 默认能直接运行 `.ts`，方式是把类型替换成空格：行列号不变，不需要 source map，但完全不读 tsconfig、不做类型检查；24.12 / 25.2 起标为稳定，`--experimental-transform-types` 在 Node 26 被移除
+- 从 tsx 迁到 node，最大的工作量在模块解析：改用 `nodenext`、给相对导入补 `.ts` 后缀
 - 擦不掉的语法：enum、带代码的 namespace、参数属性、尖括号断言、`import =`；装饰器和 `.tsx` 也不支持，所以 NestJS 和 React 代码仍需编译
 - `erasableSyntaxOnly` + `verbatimModuleSyntax` + `allowImportingTsExtensions` + `nodenext` 让这些问题在编辑器里就暴露；装饰器是漏网之鱼，要靠 lint
 - 相对导入写 `.ts` 后缀；写 `.js` 后缀 tsc 不报错但 Node 找不到文件

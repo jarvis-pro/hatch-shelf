@@ -59,6 +59,9 @@ ESLint 自己也已经把格式类规则弃用，转交给社区的 ESLint Styli
 
 ## 扁平配置
 
+> [!WARNING]
+> 「ESLint 10 移除 eslintrc」按 ESLint 官方博客《ESLint v10.0.0 released》（2026 年 2 月 6 日，原文说 eslintrc 配置系统已完全移除）整理。ESLint 小版本迭代很快（2026 年 11 月已到 10.14），配置细节以 eslint.org 最新文档为准。
+
 ESLint 9 起扁平配置（`eslint.config.js` / `.mjs`）成为默认，旧的 `.eslintrc` 格式在 ESLint 10 中已经移除。扁平配置就是一个**配置对象的数组**，每个对象可以用 `files` / `ignores` 限定作用范围，后面的覆盖前面的：
 
 ```mermaid
@@ -264,6 +267,60 @@ GitHub 网页上的 blame 会自动识别这个文件。
 
 hatch-counter 没有 CI，规定提交前在本地跑四条：`pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm test`；发版流水线里 `format:check` 和 `lint` 是硬闸门。用编码 agent 的话，把这四条写进 `CLAUDE.md`，agent 声明完成前必须跑通，效果和 CI 类似。
 
+## Oxlint、Biome 与 Oxfmt
+
+> [!WARNING]
+> 本节按 2026 年 11 月的以下来源整理：oxc.rs 上 Oxlint、类型感知、JS 插件和 Oxfmt 的文档，Oxc 博客《Oxlint v1.0 Stable》（2025 年 6 月）和《Oxfmt Beta》（2026 年 2 月），Biome 官方博客 v2.5（2026 年 6 月）、v2.6（2026 年 10 月）和迁移指南，以及 npm 上的最新版本号（Oxlint 1.91、Oxfmt 0.76、Biome 2.6.4）。这几个工具几乎每周发版，规则覆盖和能力边界变得很快，以各自官方文档为准。
+
+ESLint 和 Prettier 都是用 JavaScript 写的，仓库大了以后，lint 一次几十秒到几分钟很常见。近两年出现了两条用 Rust 重写的路线：
+
+- **Oxc 项目**（和 Vite、Rolldown 同属 VoidZero，[第 4 章](04-vite-bundling.md#esbuildrolluprolldownoxc)提过它的解析器）拆成两个工具：**Oxlint** 对标 ESLint，**Oxfmt** 对标 Prettier。分工和本章前面讲的完全一致，可以只换其中一个
+- **Biome**：一个工具同时做 lint 和格式化，一份 `biome.json`，走的是「一体化」路线
+
+| 工具 | 替代谁 | 2026 年 11 月的成熟度 |
+|---|---|---|
+| Oxlint | ESLint | 1.x 稳定版，2025 年 6 月发布 1.0 |
+| Oxfmt | Prettier | 0.x，2026 年 2 月进入 beta |
+| Biome | 两者都替 | 2.x 稳定版 |
+
+### Oxlint：先并跑，再决定替不替
+
+Oxlint 内置 870 多条规则，覆盖 ESLint 核心规则和最常用的几个插件：typescript-eslint、React、import、unicorn、jsx-a11y、Jest、Vitest。官方给的数据是比 ESLint 快 50 到 100 倍。几个能力边界：
+
+- **类型感知规则**：要另装 `oxlint-tsgolint`，加 `--type-aware` 打开，底层用的是 Go 重写的 TypeScript 7。官方文档写的是 typescript-eslint 的 61 条类型感知规则已支持 59 条（tsgolint 仓库 README 的计数口径略有不同），本章那四条（`no-floating-promises` 等）都在其中；代价是项目得先能跑在 TypeScript 7 上（`baseUrl` 这类旧选项要迁走），monorepo 里被依赖的包要先构建出 `.d.ts`
+- **JS 插件**：能直接加载按 ESLint 9 以后的 API 写的插件，但官方仍标为 alpha；插件里的类型感知规则、Vue / Svelte 这类自定义解析器还不支持
+- 迁移工具 `@oxlint/migrate` 能把现有的 `eslint.config.mjs` 转成 Oxlint 配置
+
+官方推荐的渐进路线是**两个一起跑**：先跑 Oxlint，再跑 ESLint，ESLint 配置里挂上 `eslint-plugin-oxlint` 关掉两边重叠的规则。这样大部分检查走快的那条路，Oxlint 还没有的规则（项目约定、某些插件规则）留在 ESLint 里，哪天 Oxlint 都覆盖了，再把 ESLint 拿掉。
+
+### Oxfmt：换掉 Prettier 的成本最低
+
+Oxfmt 以 Prettier 的输出为基准，用 Prettier 自己的测试集来测；官方称已通过 Prettier JavaScript / TypeScript 一致性测试的全部用例，在 Prettier 本身有 bug 或前后不一致的地方会故意不同。它支持 JS、TS、JSON、YAML、CSS、Markdown、Vue 等二十来种格式，并内置了通常要靠 Prettier 插件才有的功能：import 排序、Tailwind 类名排序。迁移是一条命令：
+
+```bash
+pnpm add -D oxfmt && pnpm oxfmt --migrate prettier && pnpm oxfmt
+```
+
+边界在于：它还是 0.x 的 beta，**不支持 Prettier 插件**。官方的说法是，依赖某个插件的确切行为、而 Oxfmt 还没覆盖的话，就先留在 Prettier。另外，「和 Prettier 一致」指的是测试集，换过去后仍可能有少量 diff，按上面[大面积格式化的提交](#大面积格式化的提交)的办法处理。
+
+### Biome：一个工具两件事
+
+Biome 的卖点是一个二进制、一份配置，lint 和格式化一起跑。到 2.6 版，它有 500 多条规则；类型感知规则用自己的类型推断实现，**不依赖 TypeScript 编译器**，所以不用配 tsconfig 映射，但推断能力不如编译器完整；自定义规则用 GritQL 写插件，JavaScript 插件在 2.6 刚以「开发者预览」推出。2.6 还加了 Markdown、YAML、SCSS 的支持，其中 Markdown 格式化和 Prettier 的一致度约 92%。
+
+迁移命令是 `biome migrate eslint --write` 和 `biome migrate prettier --write`。默认只迁移和 ESLint 规则**行为相同**的那些，插件规则要自己在 `biome.json` 里重新配；格式化的默认值和 Prettier 不同，迁移命令会把选项全部显式写出来。
+
+### 什么时候换
+
+| 情况 | 建议 |
+|---|---|
+| lint 不慢，靠类型感知规则和插件守质量 | 留在 ESLint，没有换的必要 |
+| lint 慢到影响提交节奏 | 先加 Oxlint 并跑，关掉 ESLint 里重叠的规则 |
+| 格式化慢，或想省掉几个 Prettier 插件 | 试 Oxfmt，先在一个分支里看全仓 diff |
+| 依赖特定 Prettier 插件 | 留在 Prettier |
+| 新项目，想要一个工具一份配置 | 可以直接用 Biome |
+
+hatch-counter 留在 ESLint + Prettier，原因落在第一行：仓库规模下 lint 不是瓶颈，而它最看重的几块（指向各自 tsconfig 的类型感知规则、`eslint-plugin-react-hooks` 7 的那批检查、`no-restricted-syntax` 写的项目约定）都是 ESLint 生态里最成熟的部分。换工具前，先把这些规则逐条在新工具里找到对应项，找不到的就是并跑期间要留在 ESLint 里的部分。不管换哪个，本章的原则不变：排版和对错分开管，没有 warning 这一档，忽略规则钉到具体路径。
+
 ## 本章要点
 
 - 排版归 Prettier，对错归 ESLint；`eslint-config-prettier` 放在配置最后
@@ -273,6 +330,7 @@ hatch-counter 没有 CI，规定提交前在本地跑四条：`pnpm format`、`p
 - 类型感知规则挑几条真能抓 bug 的；每个目录要指向正确的 tsconfig，漏了会静默失效
 - 用 `no-restricted-syntax`、`no-restricted-imports` 把项目约定变成机器检查
 - `--fix` 不是绝对安全，修完看 diff、跑 typecheck
+- Oxlint、Oxfmt 分别对标 ESLint、Prettier，Biome 两者合一；lint 真慢了再换，先并跑、逐条对齐规则
 
 ## 动手练习
 

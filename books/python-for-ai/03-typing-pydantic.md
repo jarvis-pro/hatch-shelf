@@ -148,7 +148,15 @@ Python 的类默认是**名义类型**（按继承关系判断），这和 TS �
 | pyright | 微软出品，VS Code 的 Pylance 内核就是它，速度快，推断能力强，体验最接近 tsc |
 | mypy | 历史最久的官方系检查器，生态插件多 |
 
-Astral（uv、ruff 的作者）也在开发自己的类型检查器 ty，`uv check` 子命令与之相关，现状和成熟度以其官方文档为准。本书用 pyright：
+> [!WARNING]
+> 下面关于 ty、pyrefly 和 `uv check` 的状态按 2026 年 11 月 PyPI 上的版本号和本机 uv 0.12.16 的实际输出整理，这几个工具迭代很快，以各自官方文档为准。
+
+另外两个后起之秀值得知道：
+
+- **ty**：Astral（uv、ruff 的作者）用 Rust 写的检查器，速度极快。截至 2026 年 11 月版本号仍是 0.0.x，PyPI 上标注为 Beta。uv 的 `uv check` 子命令就是调用它：会自动下载 ty 对项目做类型检查，运行时提示该命令仍是实验性的
+- **pyrefly**：Meta 用 Rust 写的检查器，同时提供语言服务器，已经发布 1.x 版本
+
+它们和 pyright 的报错大体一致，但对一些边角写法的判断还有差异。本书用最成熟的 pyright：
 
 ```bash
 uv add --dev pyright

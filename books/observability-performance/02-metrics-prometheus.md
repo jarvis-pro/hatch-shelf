@@ -235,6 +235,46 @@ scrape_configs:
 
 整套栈在一台 2 核 4G 的机器上占用通常是几百 MB 内存量级，具体取决于序列数和保留期。机器更小的话，可以用 VictoriaMetrics 单机版替代 Prometheus，它兼容 Prometheus 的抓取配置和查询语言，资源占用更省。
 
+### 另一种接法：用 OTLP 把指标推给 Prometheus
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Prometheus 官方文档的 OpenTelemetry 指南和 feature flags 文档整理：OTLP 接收从 Prometheus 3.0（2024 年 11 月发布）起是正式功能，用 `--web.enable-otlp-receiver` 开启，写作时 Prometheus 最新稳定版为 3.15。参数名和推荐配置以 prometheus.io 的官方文档为准。
+
+上面是拉模型。如果应用已经接了 OpenTelemetry（[第 3 章](03-tracing-otel.md)），也可以让 OTel SDK 把指标**推**给 Prometheus，不再单独维护 `prom-client` 和 `/metrics` 端点。Prometheus 3 原生支持 OTLP 接收，不需要中间再架一个 Collector：
+
+```yaml
+# monitoring/compose.yaml 里 prometheus 的 command 加一行
+      - --web.enable-otlp-receiver
+```
+
+```yaml
+# prometheus.yml 追加
+otlp:
+  # 资源属性默认不变成标签，挑几个有用的提上来
+  promote_resource_attributes:
+    - service.name
+    - service.instance.id
+    - deployment.environment.name
+storage:
+  tsdb:
+    # 推送的数据可能晚到或乱序，给一点容忍窗口
+    out_of_order_time_window: 30m
+```
+
+应用这边只配环境变量，SDK 会在地址后面自动补上 `/v1/metrics`：
+
+```bash
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics
+OTEL_METRIC_EXPORT_INTERVAL=15000   # 默认 60 秒推一次，改成和抓取间隔一致
+```
+
+两种方式怎么选：
+
+- **一个人、一个服务，继续用拉模型**。`up` 指标能直接告诉你「服务没响应」；推模型下服务挂了只是「没数据」，要另写 `absent()` 告警
+- **已经全面用 OTel、或者服务跑在抓不到的地方**（Serverless、在 NAT 后面的机器）时用推送。接收端口等于开放了写入，**只在内网开**，不要把 9090 暴露到公网
+- OTel 的指标名默认会被转成 Prometheus 风格（点换下划线、补单位后缀），比如 `http.server.request.duration` 变成 `http_server_request_duration_seconds`。写 PromQL 和告警前先在 UI 里查一下实际的名字
+
 ## PromQL 入门
 
 几条覆盖日常 80% 需求的查询：
@@ -304,6 +344,7 @@ Grafana 连上 Prometheus 数据源后，不用从零画：node_exporter、postg
 - 标签值必须是有限小集合，用户 ID、完整 URL 不能当标签
 - `/metrics` 不对公网开放；node_exporter 用 apt 装在宿主机上；Prometheus 设时间和大小两个保留上限
 - 延迟看分位数不看平均值，桶边界放在你关心的阈值附近
+- Prometheus 3 能直接接收 OTLP 推送；一个人一个服务仍以拉模型为主，推送端口只在内网开
 
 ## 动手练习
 

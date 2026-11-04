@@ -5,13 +5,29 @@ Electron 应用写起来像网页，跑起来却是好几个进程。很多「�
 ## 这本书讲什么、适合谁、怎么读
 
 > [!WARNING]
-> 本书按 Electron 44（`44.5.1`）、electron-vite 5、electron-builder 26 写成，截至 2026-11。Electron 约每 8 周发一个大版本、官方只维护最新的三个大版本，44 可能已移出支持窗口，API 和安全默认值也会变；以 Electron 官方文档的 Releases 时间表和对应版本的 Breaking Changes 页面为准。
+> 本书按 Electron 44（`44.5.1`）、electron-vite 5、electron-builder 26 写成。下文的支持窗口和 EOL 日期按 2026 年 11 月 Electron 官方时间表（releases.electronjs.org 的 Schedule 页和 Electron Timelines 文档）整理，其中标「暂定」的日期官方还可能调整。Electron 约每 8 周发一个大版本、只维护最新的三个稳定大版本，API 和安全默认值也会变；以官方时间表和对应版本的 Breaking Changes 页面为准。
 
 这本书写给已经会写 React + TypeScript、想把桌面应用做「对」的独立开发者：不是从 `npm init` 教起，而是讲清 Electron 每个设计背后的原因，以及一个人维护时该在哪里省事、在哪里不能省。
 
 贯穿全书的案例是 hatch-recordwall 的桌面端 `apps/desktop`：一个只在 macOS 上用的唱片播放器，electron-vite 工程、三个进程分工明确、请求统一在主进程发、用 ad-hoc 签名出一个本机 `.app`。它的代码量不大（主进程约 500 行、preload 约 170 行），但几乎每一行都对应一个踩过的坑，很适合拿来讲道理。
 
 **版本说明**：案例用的是 Electron 44（`44.5.1`）、electron-vite 5、electron-builder 26，本书讲到具体 API 时以 Electron 44 为准。
+
+截至 2026 年 11 月初，官方时间表上的情况是：
+
+| 大版本 | 稳定版发布 | 支持截止（EOL） | Chromium / Node（x.0.0 时） | 状态 |
+|---|---|---|---|---|
+| 45 | 2026-10-20 | 2027-04-27（暂定） | M156 / 24.22.0 | 最新稳定版，11 月 4 日的补丁是 `45.2.2` |
+| 44 | 2026-08-24 | 2027-03-02（暂定） | M152 / 24.18.1 | 仍受支持，最新补丁 `44.10.2` |
+| 43 | 2026-06-29 | 2027-01-05（暂定） | M150 / 24.17.0 | 仍受支持，46 发布后移出 |
+| 46 | 2027-01-05（暂定） | — | M160 / 26.13.0（计划） | 2026-10-23 进入 alpha |
+
+也就是说，**本书用的 44 仍在支持窗口里**，但有两点要知道：
+
+- 官方只维护每个大版本**最新的那个小版本**。`44.5.1` 之后 44 线已经出到 `44.10.2`，安全修复只会出现在新补丁里，先把项目升到 44 线的最新补丁
+- 46 预计 2027 年 1 月发布，之后 44 就是三个受支持版本里最老的一个，预计 2027 年 3 月 47 发布时移出。在那之前升到 45 或 46。45 的 Breaking Changes 里和本书相关的有两条：沙箱 preload 里不再提供 `events`、`timers`、`url` 这几个 Node 模块的替身，也没有了全局 `Buffer`、`setImmediate`（[沙箱开不开，决定 preload 能做什么](#沙箱开不开决定-preload-能做什么)）；`safeStorage` 的同步方法被标为弃用，计划在 46 移除（[第 5 章](05-native-integration.md#钥匙串safestorage)）
+
+表里的 Chromium 和 Node 版本是各大版本 `x.0.0` 时打包的版本，补丁版本会跟着升级，例如 `44.10.2` 带的是 Chromium 152.0.7977.169、Node 24.22.2。46 计划把 Node 从 24 换到 26。
 
 建议顺序读。第 1–3 章是心智模型，第 4–5 章是工程和系统集成，第 6–7 章是发布，第 8 章帮你判断下一个项目要不要还用 Electron。
 
@@ -111,7 +127,7 @@ flowchart TB
 
 | 设置 | preload 里有什么 |
 |---|---|
-| `sandbox: true`（Electron 20 起的默认值） | 只有受限的 `require`：`electron` 的渲染端子集（`contextBridge`、`ipcRenderer`、`webFrame` 等）和少数 Node 模块的 polyfill；**没有 `fs`** |
+| `sandbox: true`（Electron 20 起的默认值） | 只有受限的 `require`：`electron` 的渲染端子集（`contextBridge`、`ipcRenderer`、`webFrame` 等）；Electron 44 及以前还有 `events`、`timers`、`url` 等少数 Node 模块的替身（polyfill）和全局 `Buffer`，45 起移除；**没有 `fs`** |
 | `sandbox: false` | 完整的 Node.js：`fs`、`path`、`child_process`… |
 
 开着沙箱时，preload 只能做「转发」：把页面的调用通过 IPC 交给主进程办。关掉沙箱，preload 自己就能读写文件。
@@ -170,7 +186,7 @@ sequenceDiagram
 - preload 跑在渲染进程的**隔离世界**里，只能通过 `contextBridge` 交出函数和可克隆数据
 - 沙箱（Electron 20 起默认开）决定 preload 有没有 Node；关掉要有理由和补偿措施
 - **preload 的 `fetch` 和页面一样受同源策略管**，要绕开 CORS 必须到主进程用 `net.fetch`
-- 本书以 Electron 44 为准，API 细节请对照所用版本的官方文档
+- 本书以 Electron 44 为准；截至 2026 年 11 月它仍在支持窗口内（最新稳定版是 45），先升到 44 线最新补丁，并在 2027 年 3 月前计划升级到更新的大版本
 
 ## 动手练习
 

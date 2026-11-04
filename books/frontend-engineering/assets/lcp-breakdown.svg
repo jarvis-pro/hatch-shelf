@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="372" viewBox="0 0 360 372" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="371" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="25" y="32" font-size="15" font-weight="600" fill="#1f2328">LCP 四段的建议占比</text>
+<text x="25" y="52" font-size="12" fill="#656d76">按 LCP 2.5 秒（「良好」上限）折算成时间</text>
+<rect x="25.0" y="68" width="124.0" height="36" fill="#2f6fdf"/>
+<text x="87.0" y="91" font-size="11" text-anchor="middle" fill="#ffffff">约 40%</text>
+<rect x="149.0" y="68" width="31.0" height="36" fill="#e6e9ed"/>
+<text x="164.5" y="91" font-size="11" text-anchor="middle" fill="#1f2328">&lt;10%</text>
+<rect x="180.0" y="68" width="124.0" height="36" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="1"/>
+<text x="242.0" y="91" font-size="11" text-anchor="middle" fill="#1f2328">约 40%</text>
+<rect x="304.0" y="68" width="31.0" height="36" fill="#e6e9ed"/>
+<text x="319.5" y="91" font-size="11" text-anchor="middle" fill="#1f2328">&lt;10%</text>
+<line x1="25" y1="108" x2="335" y2="108" stroke="#d8dee4"/>
+<line x1="25.0" y1="105" x2="25.0" y2="112" stroke="#656d76"/>
+<text x="25.0" y="126" font-size="11" text-anchor="start" fill="#656d76">0</text>
+<line x1="149.0" y1="105" x2="149.0" y2="112" stroke="#656d76"/>
+<text x="149.0" y="126" font-size="11" text-anchor="middle" fill="#656d76">1.0 秒</text>
+<line x1="335.0" y1="105" x2="335.0" y2="112" stroke="#656d76"/>
+<text x="335.0" y="126" font-size="11" text-anchor="end" fill="#656d76">2.5 秒</text>
+<rect x="25" y="148" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="47" y="160" font-size="13" fill="#1f2328">TTFB</text>
+<text x="335" y="160" font-size="13" text-anchor="end" fill="#1f2328">约 40%，约 1.0 秒</text>
+<text x="47" y="179" font-size="12" fill="#656d76">服务器响应、重定向、跨洲访问</text>
+<rect x="25" y="194" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="47" y="206" font-size="13" fill="#1f2328">资源加载延迟</text>
+<text x="335" y="206" font-size="13" text-anchor="end" fill="#1f2328">&lt;10%，不到 0.25 秒</text>
+<text x="47" y="225" font-size="12" fill="#656d76">LCP 资源被发现得太晚</text>
+<rect x="25" y="240" width="14" height="14" rx="3" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="47" y="252" font-size="13" fill="#1f2328">资源加载耗时</text>
+<text x="335" y="252" font-size="13" text-anchor="end" fill="#1f2328">约 40%，约 1.0 秒</text>
+<text x="47" y="271" font-size="12" fill="#656d76">图片体积、带宽</text>
+<rect x="25" y="286" width="14" height="14" rx="3" fill="#e6e9ed"/>
+<text x="47" y="298" font-size="13" fill="#1f2328">元素渲染延迟</text>
+<text x="335" y="298" font-size="13" text-anchor="end" fill="#1f2328">&lt;10%，不到 0.25 秒</text>
+<text x="47" y="317" font-size="12" fill="#656d76">JS、CSS 挡着画不出来</text>
+<line x1="25" y1="330" x2="335" y2="330" stroke="#d8dee4"/>
+<text x="25" y="350" font-size="11" fill="#656d76">来源：web.dev《Optimize LCP》，是建议值而非硬性规定</text>
+</svg>

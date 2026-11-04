@@ -15,6 +15,7 @@ chapters:
   - 06-writing-specs.md
   - 07-roadmap.md
   - 08-feedback-to-iteration.md
+  - 09-validation-pmf.md
 next:
   - id: pricing-monetization
     reason: 想清楚做什么，再想怎么收钱

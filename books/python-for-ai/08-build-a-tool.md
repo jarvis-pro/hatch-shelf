@@ -134,6 +134,8 @@ class PurchaseSlip(BaseModel):
 
 ## 调模型：extract.py
 
+这个文件分三段写，按顺序放在同一个 `src/slip2csv/extract.py` 里。先是导入、常量和缓存路径：
+
 ```python
 import asyncio
 import base64
@@ -162,8 +164,14 @@ MEDIA_TYPES: dict[str, MediaType] = {
 def cache_path(cache_dir: Path, image: Path) -> Path:
     digest = hashlib.sha256(image.read_bytes()).hexdigest()[:16]
     return cache_dir / f"{digest}.json"
+```
 
+- **缓存键用图片内容的哈希**，不用文件名。同一张图片换了名字也能命中缓存，图片换了内容则一定会重新识别
+- `MediaType` 用 `Literal` 标注，pyright 才能确认传给 SDK 的 `media_type` 是它接受的几个值之一；如果写成普通的 `dict[str, str]`，类型检查会报错。这就是第 3 章说的「类型检查器真正在帮你」
 
+接着是识别单张图片的 `extract_one`：先查缓存，没命中再调模型，成功后写回缓存。
+
+```python
 async def extract_one(
     client: anthropic.AsyncAnthropic, model: str, image: Path, cache_dir: Path
 ) -> PurchaseSlip:
@@ -197,8 +205,13 @@ async def extract_one(
     cache_dir.mkdir(parents=True, exist_ok=True)
     cached.write_text(slip.model_dump_json(indent=2), encoding="utf-8")
     return slip
+```
 
+`messages.parse` 直接拿 Pydantic 模型当 `output_format`，返回的 `parsed_output` 已经是校验过的 `PurchaseSlip`。拿不到结构化结果时直接抛异常，交给上层统一处理。
 
+最后是并发处理一批图片的 `extract_all`：
+
+```python
 async def extract_all(
     images: list[Path], model: str, cache_dir: Path, concurrency: int
 ) -> dict[Path, PurchaseSlip | BaseException]:
@@ -213,11 +226,8 @@ async def extract_all(
     return dict(zip(images, results, strict=True))
 ```
 
-几个值得注意的地方：
-
-- **缓存键用图片内容的哈希**，不用文件名。同一张图片换了名字也能命中缓存，图片换了内容则一定会重新识别
-- `MediaType` 用 `Literal` 标注，pyright 才能确认传给 SDK 的 `media_type` 是它接受的几个值之一；如果写成普通的 `dict[str, str]`，类型检查会报错。这就是第 3 章说的「类型检查器真正在帮你」
-- `extract_one` 拿不到结构化结果时直接抛异常；`extract_all` 用 `return_exceptions=True` 收集所有结果，一张失败不影响其他
+- `Semaphore(concurrency)` 限制同时在途的请求数，避免触发限流
+- `return_exceptions=True` 让 `gather` 收集所有结果，一张失败不影响其他，异常对象和正常结果一起返回
 - `zip(..., strict=True)` 在两个序列长度不同时报错而不是悄悄截断，这是 ruff 的 B905 规则要求的写法
 
 ## 汇总：report.py
@@ -281,8 +291,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--concurrency", type=int, default=4, help="并发请求数")
     p.add_argument("--cache", type=Path, default=Path(".slip-cache"), help="结果缓存目录")
     return p.parse_args(argv)
+```
 
+`argparse` 是标准库自带的命令行解析器，大致相当于 Node 里的 `commander` 或 `yargs`，好处是零依赖。想要更好看的帮助信息和子命令，可以换成 Typer 或 Click。
 
+接着在同一个文件里写 `main`，把前面几个模块串起来：
+
+```python
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     images = sorted(p for p in args.folder.iterdir() if p.suffix.lower() in MEDIA_TYPES)
@@ -311,8 +326,6 @@ def main(argv: list[str] | None = None) -> int:
         print(supplier_summary(df).to_string())
     return 0 if len(ok) == len(images) else 2
 ```
-
-`argparse` 是标准库自带的命令行解析器，大致相当于 Node 里的 `commander` 或 `yargs`，好处是零依赖。想要更好看的帮助信息和子命令，可以换成 Typer 或 Click。
 
 `main` 接受一个可选的 `argv` 参数，测试时可以直接 `main(["photos", "--limit", "1"])` 调用，不用起子进程。退出码区分了三种情况：0 全部成功，1 没有输入，2 部分失败。这在脚本里串联调用、或者放进定时任务时很有用。
 
@@ -346,8 +359,11 @@ def test_to_frame_flattens_items() -> None:
     df = to_frame(slips)
     assert len(df) == 3
     assert df.loc[df["品名"] == "土豆", "金额"].item() == 54.0
+```
 
+`make_slip` 是个小工具函数，用元组快速造出测试数据。第一个测试检查展平：两张单子共三行，土豆 30 斤 × 1.80 元 = 54 元。同一个文件里再加三个测试：
 
+```python
 def test_supplier_summary_sorted_by_amount() -> None:
     slips = {
         Path("a.jpg"): make_slip("老王蔬菜", ("土豆", 30, 180)),

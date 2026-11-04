@@ -111,7 +111,7 @@ docker stats api   # 实时看 CPU、内存占用
 
 第三块基石是文件系统。如果每个容器都复制一份完整的根文件系统，十个基于 `node:22-alpine` 的容器就要占十份磁盘，启动时还要拷贝，既慢又浪费。
 
-联合文件系统（union filesystem）的做法是：把若干个**只读层**叠在一起，最上面再加一个**可写层**，对外呈现为一个完整的目录树。Docker 在 Linux 上默认使用的是 overlay2 存储驱动（基于内核的 OverlayFS）。
+联合文件系统（union filesystem）的做法是：把若干个**只读层**叠在一起，最上面再加一个**可写层**，对外呈现为一个完整的目录树。在 Linux 上它基于内核的 OverlayFS。
 
 - **读文件**：从上往下找，第一个找到的就是
 - **改文件**：先把文件从下面的只读层复制到可写层再改，叫**写时复制**（copy-on-write）
@@ -123,6 +123,17 @@ docker stats api   # 实时看 CPU、内存占用
 - 容器启动快，因为不用拷贝文件，只需新建一个空的可写层
 - 在 Dockerfile 后面的步骤里 `rm` 掉前面步骤加的大文件，**镜像并不会变小**，因为文件还在下层
 - 容器删掉，可写层就没了。数据库数据写在可写层，`docker rm` 一下就全没了，这就是为什么必须用卷（第 5 章）
+
+### 存储后端：overlay2 与 containerd 镜像存储
+
+> [!WARNING]
+> 本小节按 2026 年 11 月 Docker 官方文档（docs.docker.com 的 Engine 29 release notes 和「containerd image store」页）整理，以官方文档为准。
+
+Docker 在 Linux 上的分层都落在 OverlayFS 上，管理这些层的组件换过一次：Docker Engine 29 之前默认是 Docker 自己的 overlay2 存储驱动；29.0 起，**新安装**的 Docker 默认改用 containerd 的镜像存储（containerd image store），由 containerd 的 overlayfs snapshotter 来叠层。从老版本升级上来的机器不会自动切换，仍用 overlay2。
+
+查自己的机器用的是哪种：`docker info -f '{{ .DriverStatus }}'` 输出里有 `io.containerd.snapshotter.v1` 就是 containerd 镜像存储；`docker info | grep 'Storage Driver'` 显示 `overlay2` 就是老的存储驱动。两种后端互相看不到对方的镜像，切换后要重新拉取。
+
+两种后端对上面讲的分层原理没有区别，差别在外围：containerd 镜像存储能在本地保存多架构镜像（第 7 章）、支持更多 BuildKit 的导出格式；代价是它同时保留压缩和解压后的层，磁盘占用会比 overlay2 多一些。
 
 下一章会把分层展开讲。
 

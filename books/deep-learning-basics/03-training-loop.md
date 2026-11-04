@@ -223,7 +223,7 @@ model.load_state_dict(torch.load("mlp.pt", map_location="cpu"))
 model.eval()
 ```
 
-**存 `state_dict` 而不是整个模型对象**：整个对象依赖 pickle，代码一改就可能加载失败，也有安全风险——加载来路不明的 pickle 文件等于执行别人的代码。新版 PyTorch 的 `torch.load` 默认开启了 `weights_only=True`，只允许加载张量等安全类型，这也是在提醒同一件事。从网上下模型权重时优先选 safetensors 格式。
+**存 `state_dict` 而不是整个模型对象**：整个对象依赖 pickle，代码一改就可能加载失败，也有安全风险——加载来路不明的 pickle 文件等于执行别人的代码。PyTorch 2.6（2025 年 1 月）起 `torch.load` 默认开启了 `weights_only=True`（按 PyTorch 2.6 发布说明，这是一项有意的不兼容改动），只允许加载张量等安全类型，这也是在提醒同一件事。从网上下模型权重时优先选 safetensors 格式。
 
 要支持断点续训，还要把优化器状态、当前 epoch 一起存：
 

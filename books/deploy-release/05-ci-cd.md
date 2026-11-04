@@ -78,9 +78,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4          # pnpm 版本取自 package.json 的 packageManager
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6          # pnpm 版本取自 package.json 的 packageManager
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
@@ -98,6 +98,37 @@ jobs:
 - **`permissions` 最小化**：默认的 `GITHUB_TOKEN` 权限可能比你需要的大，只读就写 `contents: read`
 - **`timeout-minutes`**：默认上限是几个小时，一个卡住的步骤能悄悄吃掉大量分钟数
 - **把装依赖抽成 composite action**：hatch-counter 把「pnpm + Node 22 + install」写进 `.github/actions/setup/action.yml`，几个 job 共用，Node 版本只写一处
+
+### action 的版本号
+
+> [!WARNING]
+> 本小节的版本号按 2026 年 11 月各 action 仓库的 Releases 页和 GitHub Changelog（2025-09-19《Deprecation of Node 20 on GitHub Actions runners》及其编者注）整理，以各仓库最新说明为准。
+
+上面的例子写的是 `actions/checkout@v6`、`actions/setup-node@v6`、`pnpm/action-setup@v6`。如果你手上的 workflow 还停在 `@v4`，现在该升了：GitHub 的 runner 从 2026 年 6 月 16 日起默认用 Node 24 运行 action，2026 年 9 月 23 日起不再提供 Node 20，而这几个 action 的 v4 是在 Node 20 上写的。升级前后要注意的几处：
+
+| action | 换到 Node 24 的版本 | 升级时留意 |
+|---|---|---|
+| `actions/checkout` | v5 | v6 把凭证从 `.git/config` 挪到了临时目录；v7 禁止在 `pull_request_target` 和 `workflow_run` 里检出 fork 的 PR 代码，普通的 `pull_request` 不受影响 |
+| `actions/setup-node` | v5 | v5 起只要 `package.json` 有 `packageManager` 字段就自动开缓存，v6 把自动缓存收窄到 npm；用 pnpm 的照旧显式写 `cache: pnpm`。v7 改成了 ESM，并去掉了一个占位的 `NODE_AUTH_TOKEN` |
+| `pnpm/action-setup` | v5 | v6 增加了对 pnpm 11 的支持 |
+
+写作时 `checkout` 和 `setup-node` 都已经出到 v7，本书示例停在 v6，是因为 v6 到 v7 的变化对这里的用法没有影响，等 v7 用的人多了再跟进也不迟。升级的节奏可以交给 Dependabot：在 `.github/dependabot.yml` 里给 `github-actions` 这个生态开每周检查，它会替你开升级 PR，你只需要看一眼 release notes 再合并。
+
+对安全更敏感的话，可以把 `@v6` 换成完整的提交 SHA（后面用注释标出版本号）。tag 能被仓库所有者挪动，SHA 不能；代价是升级完全依赖 Dependabot 这类工具，手动维护很快就会落后。
+
+### arm64 runner
+
+[第 1 章](01-vps-setup.md#架构amd64-还是-arm64)说过，在 arm64 的 Mac 上用 QEMU 模拟构建 amd64 镜像很慢，所以交给 amd64 的 runner。反过来也成立：如果你的服务器是 arm64（越来越多的云厂商提供更便宜的 arm 实例），在 amd64 runner 上模拟构建 arm64 镜像同样慢。
+
+GitHub 现在提供原生的 arm64 Linux runner：2025 年先对公开仓库免费开放，2026 年 1 月起私有仓库也能用，标签是 `ubuntu-24.04-arm`（还有 `ubuntu-22.04-arm`），用量从套餐自带的免费分钟里扣。私有仓库的规格是 2 核，公开仓库是 4 核。
+
+```yaml
+jobs:
+  image:
+    runs-on: ubuntu-24.04-arm     # 直接在 arm64 机器上构建 arm64 镜像
+```
+
+需要同时出 amd64 和 arm64 两种镜像时，比起一台 runner 上用 QEMU 构建两种架构，更快的做法是两个 job 分别在 `ubuntu-latest` 和 `ubuntu-24.04-arm` 上原生构建，各自推送带架构后缀的镜像，最后再用 `docker buildx imagetools create` 合成一个多架构的 tag。一个人的项目，服务器只有一种架构的话，选和服务器一致的 runner 就够了。
 
 ### 需要数据库的测试
 
@@ -181,14 +212,14 @@ preflight:
   outputs:
     sha: ${{ steps.pin.outputs.sha }}
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - id: pin
       run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
 image:
   needs: preflight
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.preflight.outputs.sha }}
 ```
@@ -255,6 +286,7 @@ flowchart TD
 | artifact 存储额度 | 免费额度很小，几个上百兆的安装包就会撞满。hatch-counter 改为直接从 runner 上传到自己的对象存储 |
 | 私有仓库的 Release 附件 | 没有仓库权限的人下载是 404，不能拿来给用户分发安装包 |
 | 构建缓存 | `docker/build-push-action` 配 `cache-from: type=gha` 可以复用依赖层 |
+| arm64 runner | 服务器是 arm64 时用 `ubuntu-24.04-arm` 原生构建，别在 amd64 runner 上模拟；私有仓库 2026 年 1 月起可用 |
 | 跨境推镜像 | 从 GitHub 推到境内镜像仓库可能要十几分钟，给 `timeout-minutes` 留余量，别当卡死去取消 |
 
 ## 本章要点
@@ -263,6 +295,7 @@ flowchart TD
 - 推送时跑 CI 的价值取决于改动从哪来和出错代价；**开始用后台 agent 提 PR 时，CI 就很值得上**
 - 不上 CI 时，本机 git hook 是最便宜的替代品
 - workflow 基本功：`--frozen-lockfile`、最小 `permissions`、`concurrency`、`timeout-minutes`、composite action 复用安装步骤
+- action 跟着 runner 换到 Node 24，`@v4` 该升了，交给 Dependabot 跟进；服务器是 arm64 时用原生的 `ubuntu-24.04-arm` runner 构建
 - 发版流水线：不可逆的事（tag、推 main）排在最后；所有 job 钉同一个 SHA；验证痕迹而不是信退出码；关键凭证缺失必须红
 - 能不把生产机的 ssh 私钥放进 CI 就不放，拉模式部署是一个人也负担得起的替代方案
 

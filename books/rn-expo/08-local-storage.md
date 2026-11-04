@@ -57,6 +57,9 @@ export function bookDir(id: string) {
 
 ## expo-file-system：面向对象的新 API
 
+> [!WARNING]
+> 本节的方法签名按 2026 年 11 月 `docs.expo.dev/versions/v58.0.0/sdk/filesystem/` 核对：`write()` 返回 Promise，`writeSync()` 是同步版；`create()` 的 `intermediates` / `overwrite` 默认都是 `false`；`move()` 也是异步的（同步版是 `moveSync()`）；`File.md5` 已废弃，改用 `await file.digest('MD5')`。以官方最新文档为准。
+
 SDK 58 的 `expo-file-system` 默认导出的是面向对象的 API：`File`、`Directory`、`Paths`。旧的函数式 API（`FileSystem.readAsStringAsync` 那一套）要从 `expo-file-system/legacy` 导入，否则直接调用会在运行时抛错。
 
 ```ts
@@ -213,9 +216,12 @@ await db.runAsync(
 | API | 行为 |
 |---|---|
 | `withTransactionAsync(fn)` | **不是排他的**：`fn` 执行期间，其他地方的异步查询可能插进这个事务里 |
-| `withExclusiveTransactionAsync(fn)` | 只有通过 `fn` 收到的 `txn` 对象执行的查询才在事务里 |
+| `withExclusiveTransactionAsync(fn)` | 只有通过 `fn` 收到的 `txn` 对象执行的查询才在事务里；它跑在**一条新连接**上 |
 
-书架的 `rebuildIndex()` 要先清空索引表再写入，期间如果阅读页的 `saveProgress` 插进来，可能被一起回滚，或者读到一半空的书目。所以它用的是排他版本，并且所有语句都通过 `txn` 执行：
+> [!WARNING]
+> 按 2026 年 11 月 `docs.expo.dev/versions/v58.0.0/sdk/sqlite/` 的说明：排他事务用的是新连接，原连接上设的 `PRAGMA foreign_keys = ON` 在 `txn` 里**不生效**，需要外键约束时官方建议用 `withTransactionAsync()`。以官方最新文档为准。
+
+书架的 `rebuildIndex()` 要先清空索引表再写入，期间如果阅读页的 `saveProgress` 插进来，可能被一起回滚，或者读到一半空的书目。所以它用的是排他版本，并且所有语句都通过 `txn` 执行。代价是 `txn` 那条连接上没有外键约束，所以下面显式地把三张表都清一遍，而不是指望 `ON DELETE CASCADE`：
 
 ```ts
 await db.withExclusiveTransactionAsync(async (txn) => {

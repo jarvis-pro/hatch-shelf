@@ -5,7 +5,7 @@
 幂等键、重试的放大效应、outbox 的原理在[《软件架构与系统设计》的幂等、重试与一致性](../system-design/06-idempotency-consistency.md)里讲过，这里只讲任务队列这一侧的写法。
 
 > [!WARNING]
-> 本章的 BullMQ 写法（`UnrecoverableError`、自定义 `backoffStrategy` 的参数、`retryJobs`、`deduplication`）按 BullMQ 5.x 整理，pg-boss 部分按 10.x 整理，选项名和行为在版本之间会变化。以 docs.bullmq.io 和 pg-boss 仓库的说明为准。
+> 本章的 BullMQ 写法（`UnrecoverableError`、自定义 `backoffStrategy` 的参数、`retryJobs`、`deduplication`）按 BullMQ 5.x 整理（6.0 删除了旧的 `debounce` 选项和 `Job#discard()`，本章用的 `UnrecoverableError` 和 `deduplication` 不受影响），pg-boss 部分按 10.x 的 API 写、在 12.x 里同样可用（导入方式见[第 6 章](06-postgres-queue.md#pg-boss)），选项名和行为在版本之间会变化。以 docs.bullmq.io 和 pg-boss 仓库的说明为准。
 
 ## 任务为什么会执行不止一次
 

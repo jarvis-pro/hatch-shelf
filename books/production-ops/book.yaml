@@ -14,6 +14,7 @@ chapters:
   - 05-slo-error-budget.md
   - 06-cost-control.md
   - 07-on-call.md
+  - 07-user-files.md
   - 08-checklists.md
 next:
   - id: observability-performance

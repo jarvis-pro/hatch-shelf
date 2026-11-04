@@ -53,9 +53,9 @@ git ls-files -s app/src/reader/bridge.ts
 ```
 
 ```text
-100644 cf461ecb1c9645469026d8768d0fafcc4e51acec 1	app/src/reader/bridge.ts
-100644 928e71dc95c88f5bc6d5c72f9c8aae16fb1cd7f6 2	app/src/reader/bridge.ts
-100644 ce0155236d59163dee788196645ea46c4945f28f 3	app/src/reader/bridge.ts
+100644 cf461ec 1	app/src/reader/bridge.ts
+100644 928e71d 2	app/src/reader/bridge.ts
+100644 ce01552 3	app/src/reader/bridge.ts
 ```
 
 阶段 1 是共同祖先，2 是我方（ours），3 是对方（theirs）。可以分别取出来看：

@@ -40,7 +40,7 @@ git config core.hooksPath .githooks
 ### 用配置定义 hook
 
 > [!WARNING]
-> 以配置项定义 hook（`hook.<名字>.command` / `hook.<名字>.event`）是较新版本 Git 才有的功能，写作时在 Git 2.54 的文档里可以查到。不同版本行为可能不同，用之前以 `git help config` 和 `git help hook` 的本机文档为准。
+> 以配置项定义 hook（`hook.<名字>.command` / `hook.<名字>.event`）是 Git 2.54（2026 年 4 月）加入的功能，2.55 起还可以配置让同一事件的多个 hook 并行运行（按 2.54、2.55 的发布说明整理）。不同版本行为可能不同，用之前以 `git help config` 和 `git help hook` 的本机文档为准。
 
 较新的 Git 允许不写脚本文件，直接在配置里声明 hook，并且同一个事件可以挂多个：
 

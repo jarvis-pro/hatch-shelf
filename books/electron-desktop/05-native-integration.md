@@ -154,6 +154,9 @@ function load(file: string): string | null {
 }
 ```
 
+> [!WARNING]
+> 上面的同步写法按 Electron 44 整理。按 2026 年 11 月 Electron 官方 Breaking Changes 页面，Electron 45 把 `isEncryptionAvailable`、`encryptString`、`decryptString` 标为弃用，计划在 46 移除，改用 `isAsyncEncryptionAvailable()`、`encryptStringAsync()`、`decryptStringAsync()`（后者返回 `{ result, shouldReEncrypt }`）；用同步方法加密的数据可以用异步方法解密。升级前以所用版本的 `safeStorage` API 文档为准。
+
 唱片墙把发布者的口令这样存在 `Application Support/唱片墙/secrets/` 下，目录 700、文件 600：虽然是密文，也没必要让同一台电脑上的其他用户拿去慢慢试。
 
 注意：macOS 钥匙串按**代码签名**识别应用。签名身份变了（比如从 ad-hoc 换成开发者证书），之前加密的数据可能需要用户重新授权或无法解密。这是第 6 章要强调签名一致性的原因之一。

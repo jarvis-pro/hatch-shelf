@@ -155,7 +155,7 @@ flowchart TD
 > [!WARNING]
 > 推送镜像的菜单位置、是否支持 SSH 密钥认证、同步触发方式在 Forgejo 不同版本间有调整；GitHub fine-grained token 的权限名和最长有效期也可能变化。配置时以两边的当前文档为准。
 
-镜像同步失败不会影响你往 Forgejo 推送，所以它会**静默失败**。在第 4 章的 Uptime Kuma 里加一个监控：每天用 GitHub API 查一次仓库最近的推送时间，超过两天没更新就提醒。更省事的做法是每周手动看一眼 GitHub 仓库的提交时间，写进[《一人运维手册》第 8 章](../production-ops/08-checklists.md)的周检查清单。
+镜像同步失败不会影响你往 Forgejo 推送，所以它会**静默失败**。在第 4 章的 Uptime Kuma 里加一个监控：每天用 GitHub API 查一次仓库最近的推送时间，超过两天没更新就提醒。更省事的做法是每周手动看一眼 GitHub 仓库的提交时间，写进[《一人运维手册》第 9 章](../production-ops/08-checklists.md)的周检查清单。
 
 ### 本机的 remote 怎么设
 

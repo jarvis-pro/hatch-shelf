@@ -712,3 +712,420 @@
 - [ ] `system-design/04` 的 65 行 worker 循环保留：redis-jobs 06 在它之上扩展、自身没有 worker 代码。是否把它搬进 redis-jobs 由作者决定
 - [ ] `agent-principles/01` autonomy-spectrum（系统形态谱系）和 `build-your-agent/07` approval-matrix（同一工具在三种运行方式下的处理）与主图内容不同，保留
 - [ ] 有效时薪统一到 skills-to-business 04 的口径（可计费 48%）后，opc-transition 02/03/08、employee-to-owner 04 的日费率、报价、项目款、记账示例都按新口径重算了，建议通读一遍这几章
+
+## 十四、收尾轮：中低优先级书更新、新章节与第九批大纲（2026-11-04）
+
+第五节「中」「低」优先级的书按一手来源核实修订；新增章节见 AUDIT 第七节。`[ ]` 待复核，`[x]` 或「已核」表示本轮已核实、前面对应条目可勾掉。
+
+### api-design
+
+- `07-openapi-codegen.md#openapi-32要不要升`（新增）：OpenAPI 3.2.0 的发布日期和新增字段按 spec.openapis.org 和 OpenAPI Initiative 公告核实；`@nestjs/swagger`、`zod-openapi`、`openapi-typescript`、`oasdiff`、Prism 各自对 3.2 的支持没有逐一核对
+- AUDIT 第五节建议的「10 补 API 暴露成 MCP」本轮未做（不在本轮分配范围内）
+
+### auth-payments
+
+- `08-stripe-iap.md#app-外付款美区外链与-google-play-替代计费`（新增）：Google 美区替代计费 / 外部内容链接的上报起始日（2026-10-01）、下载上报延期到 2027-02-01、服务费 10% 起、结算费 5% 均按 Play 管理中心帮助页和 2026-06-24 Android Developers Blog 整理；非订阅类交易的服务费率表在官方博客里是图片，没有取到具体数字，正文未写。逐笔上报的时限（第三方资料说 24 小时）没有在官方页面上直接看到，正文只写「按各计划要求」
+- 同节：「跳转时记 link_out 以备将来按 7 天窗口报数」是设计建议，美区 Apple 外链费用和是否需要上报尚无定论
+
+### redis-jobs
+
+- `01-data-structures.md` 版本约定表：Redis 8.10、Valkey 9.1、BullMQ 6、pg-boss 12 按 GitHub releases / npm 发布时间核实；示例仍用 `redis:7.4-alpine`，换 8 系「一般也能跑」未实测
+- `05-bullmq.md#bullmq-6-改了什么`（新增）：按 docs.bullmq.io Changelog 整理 6.0 破坏性变化和 PostgreSQL 后端，未在本书示例上实际升级；`@nestjs/bullmq` 12 对 BullMQ 6 的支持只看了 npm peerDependencies
+- `06-postgres-queue.md#pg-boss`：导入改为 `import { PgBoss } from "pg-boss"`（v12 去掉默认导出）；其余选项（`retryLimit`、`retryBackoff`、`deadLetter`、`singletonKey`、`startAfter`、`schedule` 的 `tz`）按 v10 写法保留，v11 / v12 是否改名未逐项核对
+- `09-ops-monitoring.md#怎么选` 一带：「字段级过期」作为选 Redis 的理由已不成立（Valkey 9.0 起支持，Linux 基金会 2025-10 公告），已改；两边 HFE 命令参数细节是否完全一致未核对
+- `09-ops-monitoring.md`：compose 示例镜像从 `valkey/valkey:8-alpine` 改为 `9-alpine`（Docker Hub 上标签存在），未实际启动验证
+
+### system-design
+
+- `04-queues-jobs.md#持久化执行把多步流程交给引擎`（新增）：DBOS、Temporal、Restate、Inngest、Trigger.dev、Cloudflare Workflows、AWS Step Functions 的形态按公开介绍概括，未部署验证；示意代码不对应任何一家 SDK
+- `05-realtime-push.md#android-和国内厂商通道`（新增）：华为消息分类按华为开发者文档（未申请自分类默认资讯营销、每设备每日 2 或 5 条）概括，正文未写具体条数；其他厂商「也有类似分类和限额」只有第三方（个推）文档佐证
+
+### computer-systems
+
+- `04-virtual-memory.md#android-的-16-kb-页`：已按 developer.android.com 现行页面改为「targetSdk 35+ 的应用，2027-02-01 起不兼容的更新无法发布」。此前流传的 2025-11-01 / 2026-05-31 截止日期在现页面上已不再出现，说明推迟过；以 Play 管理中心提示为准
+- `01-data-representation.md`：Node 22 仍在 LTS、最新 LTS 为 Node 26，按 nodejs.org Releases 页面整理；页面上「最后更新」一栏不是 EOL 日期，Node 22 的确切 EOL 未写
+
+### git-deep-dive
+
+- `04-rewrite-rescue.md#git-history更直接的改写命令`：`git history` 2.54 引入（reword、split）、2.55 加 `fixup`、2.56 加 `drop`，按 RelNotes 2.55.0 / 2.56.0 和 GitHub 博客核实；Git 3.0 无确定发布日期按 BreakingChanges 文档。二手报道称「Git 3.0 计划 2027 年春」，没有一手来源，正文未写
+- 输出里的 40 位哈希已截成 7 位；`hash-object` / `shasum` 对照、`.git/refs` 文件内容、`.git-blame-ignore-revs`（要求完整 ID）、练习答案里的完整 blob ID 保留全长，并在第 1 章加了一句说明
+
+### go-practice
+
+- `01-ts-to-go.md#go-127-带来了什么`（新增）：按 go.dev/doc/go1.27 整理；本机只有 Go 1.26.5，`uuid.NewV7`、`strings.CutLast` 示例没有编译过（API 签名按 pkg.go.dev 核对）
+- `03-structs-interfaces-generics.md`：泛型限制表里「方法自带类型参数」一行改为「1.27 起可以，接口方法仍不行」，书里其余泛型代码未在 1.27 上重跑
+
+### rust-practice
+
+- `01-why-rust.md#edition-2024-的新写法`（新增）：let chains（1.88，仅 2024）、异步闭包和 `AsyncFn`（1.85）等按发布说明和 Edition Guide 整理；本机无 rustc，示例（尤其 `retry` 里异步闭包配合 `?` 的类型推断）未编译
+- 版本约定改为「最新稳定版 Rust 1.99（2026-10-01），补丁版 1.99.1（10-15）」，按 blog.rust-lang.org/releases
+
+### markdown-cheatsheet
+
+- 全章重写为「写法 | 效果」速查，规则以 books/AGENTS.md 为准；`\$` 转义在 `@vscode/markdown-it-katex` 下实测有效，提示块、表格转义竖线在 markdown-it 下渲染核对过，未在 App 里实机看
+
+### shelf-guide
+
+- `01-welcome.md` 首句「离线的 Markdown 阅读器」按要求未改，仍待作者决定（REVIEW 已有条目）
+- `03-rendering-showcase.md`：Go 示例改用 `wg.Go`（Go 1.25 起，本机 1.26.5 编译运行通过）；新增 `assets/squares.svg` 作为 SVG 回归用例，qlmanage 预览无重叠。两本都是 App 内置示例书，需要 `pnpm app build:assets` 后才进安装包
+
+### reading-map
+
+- 书数核对：`shelf-pack ls` 共 98 本 = 96 本（与 01 的系列表、08 的进度表一致）+ shelf-guide + markdown-cheatsheet；各系列章节覆盖的书与分类一致
+- `07-reading-paths.md`：第一到第六批的书名全部改成链接；`01-how-to-use.md`「接下来五章」改为六章
+- `09-media.md` 文件序号与阅读顺序不一致：改文件名会让已有的阅读进度、高亮和笔记失去对应，本轮未改，需作者决定是否重命名
+
+### business-basics
+
+- [ ] 第 5 章 `05-unit-economics.md#一单面馆的堂食和外卖`：外卖费用结构改按中国新闻网「民生调查局」2026-03-13 北京商家个案（技术服务费约 6%、3 公里内商家承担基础运费 3.5 元、7 元红包后 20 元单到手不足 4 元）；京东外卖 2026-01-01 起收佣、淘宝闪购部分地区新签合同佣金上调 0.2%–1% 来自同文及投中网 2026-02-10（商家爆料）。都是媒体个案，没有平台公布的统一费率
+- [ ] 同上：《外卖平台补贴行为规范十条（征求意见稿）》是 2026-06-17 市场监管总局公开征求意见（财联社），截至 2026-11 没查到正式发布；搜索摘要里有些媒体把时间写成 2025 年，以财联社 2026-06-17 报道为准
+- 第 7 章 `07-competition.md#算一笔价格战的账`：新增两家面馆价格战算例，全部为假设数字，按第 3 章公式可复算
+
+### company-basics
+
+- 第 7 章 王蕾担保案例的具体年份已改成「开业第二年 / 第四年」，第十节对应条目可勾掉
+- [ ] 第 5 章 6 个 WARNING 没有合并：硬规则要求 WARNING 放在所在小节开头，6 个分属不同小节，合并会违反规则，建议维持
+
+### skills-to-business
+
+- 第 5 章 `05-first-clients.md#先把三份文件找出来`：已按最高人民法院官网原文补《劳动争议司法解释（二）》第十三至十五条（2025-09-01 施行）。《反不正当竞争法》2025 年修订、2025-10-15 施行只核到施行日期，没打开新法原文确认商业秘密条款的条号（正文没写条号）
+- 第 7 章 `07-from-time-to-leverage.md#ai-助手的位置`：重写为 2026 年版本，不点具体产品；对 AI 能力的描述是概括性判断，没有一手来源
+
+### opc-transition
+
+- 第 8 章 `08-side-income-tax.md#增值税自然人也可能要交`：口径已与 media-compliance 08 对齐，补了 2026 年第 10 号公告全称、发布日期和「3% 减按 1%」。依据是 media-compliance 那边已核实的原文，这一轮没有再打开公告
+- [ ] 第 5 章 `05-social-insurance.md#购房购车落户入学看连续两个字`：北京《关于进一步优化调整本市房地产政策的通知》（住建委、规自委、公积金中心，2026-08-07 印发、08-08 施行）条文按科技日报 2026-08-08 报道引用（「五环内……购房之日前连续缴纳满 1 年及以上」），财联社同期报道一致；住建委官网原文没打开。「五环外此前已是 1 年」只见同花顺等转述（称 2025 年 12 月调整），正文写成「据同期报道」
+
+### opc-action-plan
+
+- 第 1 章：「9–18 个月」第一轮已改成 8–16 / 21–31 个月，这一轮按各章周期复算无误；新增 stage-timeline.svg（各阶段最短 / 最长首尾相接的时间条）
+- 第 2、6 章：ecoi.net 的条文链接已删，改为指向国家法律法规数据库，第七、十节对应条目可勾掉；第 2 章顺带补了司法解释（二）第十三条
+- [ ] 第 4 章 个人收款码 2022 年之后有无新规，这一轮没查
+
+### opc-cases
+
+- [ ] 第 5 章：V2EX 回访只看了 noconfuse、pbk、Eyon 主题列表第一页，部分日期不带年份。noconfuse 2024-10 发过求职帖；pbk 2024-07 之后没有点餐软件的新帖；Eyon 第一页没有云店管的后续。fingal、MioMioOs 没回访
+- [ ] 第 7 章：「是否已出售」只查到「没有出售消息」——TypingMind（Tony Dinh 2026 年在 Product Hunt 发「重新发布」帖）、HeadshotPro（官网 about 页仍署他为创始人，自述累计收入 1,000 万美元以上，已写入正文）、Chatbase、PDF.ai。PDF.ai 当年买下代码库约 2 万美元只见第三方转述，没写进正文
+
+### opc-playbook
+
+- 第 4 章缩成导读：保留三条路径、跑道公式和图、模拟脚本（opc-action-plan 06 依赖它）、辞职信号；副业边界、主体、事务清单压短并指向专门章节，副业边界补了 WARNING。外部链接的锚点 `#副业期间的边界`、`#心理上的落差` 保留。第一节第 23 行对应条目可视为已处理
+- 第 7 章：各模式后加了指向 opc-cases 对应章节 / 案例的链接
+
+### wolf-way
+
+- 第 9 章 `09-stories.md#后来的研究怎么说`：新增「流行版 vs 多因修正版」两张 TD Mermaid 图，内容只用本章已引用的研究，没有新的事实
+
+### design-for-devs
+
+- [ ] `06-mobile-guidelines.md#ios-26liquid-glass`：「UIDesignRequiresCompatibility 用 iOS 27 SDK 构建后不再生效」依据是 Apple 开发者论坛 thread/832710 上标为 Apple Staff 的答复（2026-06），Apple 文档页本身未能读到正文；「玻璃只用在控件层」按 HIG / WWDC25 的通行表述，未逐字核对 HIG 页面
+- [ ] `06-mobile-guidelines.md#androidedge-to-edge-成为强制`：Android 16 停用 `windowOptOutEdgeToEdgeEnforcement` 按 developer.android.com 行为变更页；Expo SDK 54 起不能关闭按 expo.dev/changelog/sdk-54。`expo-glass-effect` 的 `isLiquidGlassAvailable()` 按 SDK 58 文档搜索摘要，未在真机验证
+
+### product-analytics
+
+- [ ] `08-when-not-to-track.md#网络数据安全管理条例里和埋点相关的几条`：第二十一、二十二、二十四、六十四条按网信办网站全文（cac.gov.cn/2024-09/30）摘取，经抓取工具转述，个别措辞以原文为准
+- [ ] `08-when-not-to-track.md#apple-的隐私清单`：2024-05-01 起新增名单内 SDK 需带隐私清单与原因声明，依据是 Apple Developer News 2024-04 公告的搜索摘要；隐私清单文档页为 JS 渲染未能读到正文，四个键名凭记忆；「hatch-shelf 的 NSPrivacyAccessedAPITypes 多半要填几项」未在本项目构建中核对
+
+### ai-native-opc
+
+- `08-org-design.md#一个月度成本算例`：新增算例，单次花费均标为示例假设，content-draft / finance-recon 两条工作流为假设，无需核实；模型单价未写
+
+### copywriting-content
+
+- [ ] `03-landing-page.md#证据凭什么信你`：《广告法》第二十八条引文按君合等律所解读转述，未打开全国人大现行文本逐字核对
+- `07-ai-writing.md#诚实的边界`：《人工智能生成合成内容标识办法》第十条按网信办网站全文核对（施行日 2025-09-01）；02 章唯一的 LR 流程图已改 TD
+
+### ecommerce-selling
+
+- 02-showcase-and-alliance.md#2026-年的变化佣金下限-5：「佣金下限 5%」已在抖音电商学习中心《精选联盟推广费/服务费结算规则》（2026-07-30 公示、08-05 生效，页面 2026-10-12）核到：各推广策略费率区间 5%–50% / 5%–80%，附录 1 特殊类目最低 1%。REVIEW 第 474 行「佣金下限 5%」可关闭；但 2026-03-04 新规公告原文和 4-01 / 4-15 分批生效仍只有北京日报、亿邦动力报道，「店铺授权账号 / 混合经营账号」例外路径规则原文里没看到
+- 02-showcase-and-alliance.md#计算：「达人佣金扣 10% 技术服务费」已按同一规则改正：站内推广按经营评级 A / B+ / B 10%、C 20%、D 40%，站外 10%；结算改为确认收货 15 天后、可冻结近 15 天佣金 5% 作预留金。REVIEW 第 474 行「10% 技术服务费」可关闭（04 章例一同步改了说明）
+- 第 6、7、8、9 章原有待核条目本轮未处理
+
+### knowledge-products
+
+- 06-platforms.md#自建店铺的-saas小鹅通：已按小鹅通官网定价页（xiaoe-tech.com/server_price，2026-11 查看）改正：AI 基础 / 专业 / 旗舰版 6800 / 12800 / 25800 元，私域虚拟商品免收额度 12.5 万 / 25 万 / 62.5 万（原第三方数字 25 / 50 / 125 万，现减半），超出收 2%；公域引流订单 2%。第 6 章到手收入图按 3 万 / 10 万计算仍在免收额度内，数字不变
+- 06-platforms.md#小报童：15% 服务费、24 小时退款仍只有第三方（ai-bot.cn、CreatorCut），官网无公开费率页，维持原说法
+- 06-platforms.md#视频号--微信小店：教培类目「禁止 AI 商业变现课程」补了 AIbase 第二家媒体报道，规则原文仍未找到；抖音课程类目费率仍未找到官方原文
+
+### paid-traffic
+
+- 04-qianchuan.md#20252026-年的变化全域推广成为主流：巨量千川帮助中心、规则中心、抖音电商学习中心都没找到标准推广下线公告。现有三个时间点：品玩 2025-03-18 转述官方「年内推商品 100% 升级全域」；蝉妈妈（亿邦动力 2025-05-07）称 5-22 起推商品标准推广停止操作；搜狐称 2025-12-29 全面下线。正文已改成不下具体日期的写法；规则中心仍挂「标准投放成本保障规则」，推直播是否还有标准推广入口未确认
+
+### micro-drama-industry
+
+- 05-revenue-sharing.md#分成系数：补 2026-07 抖音版权中心更新（腾讯新闻 2026-07-29：仿真人 / 3D / 2D 维持 40，解说漫 1→10，热度阶梯奖励最高 20 万）和 4 月调整的完整系数（澎湃号 2026-05-02：解说漫 5→1，2D 40、表情包 10 不变）。「推测为百分比」已删，改为「单位未公开、相对乘数」。仍无版权中心通知原文；8–10 月未查到新调整
+- 08-policy-trends.md#罚则：已按办法第四十四至四十九条（drama-distribution 第 3 章已核原文）改写，REVIEW 第 466 行罚则部分可关闭；01 章「不超过 20 分钟」改为第二条「少于 20 分钟」
+
+### drama-scriptwriting
+
+- 08-adaptation-and-selling.md#平台的编剧征集：红果 2025-08 剧本评级表保留，补 2026 年零散报道（虎嗅转载最话 FunTalk 2026-06-01：AI 仿真人剧本取消保底改 20% 分成的传闻及红果否认；真人剧按剧本 / 编剧等级最高 10 万保底金、B 级剧启动金 20–30 万）。2026 年完整评级表未找到
+- 著作权法第十、十三、十九条条号与 2020 修正版一致（凭对法条的了解，未打开数据库原文）
+
+### ai-drama-post
+
+- 02-voice-rights.md#法律上的几条底线：深度合成规定已在中国网信网核到原文条号——第十四条第二款（人声编辑单独同意）、第十七条第一款第（二）项（合成人声、仿声显著标识），REVIEW「凭记忆，无条号」可关闭
+- 拆章：02-voiceover.md 的「合同里要写清的授权」「音色克隆：授权与合规」移到新章 02-voice-rights.md，新增「先分清三样东西」「几种常见情形」「授权材料怎么归档」三节（作者整理的做法，无新事实数字）
+
+### creator-tools
+
+- 09-dont-do.md#三爬取平台数据：「被平台以不正当竞争起诉的先例」补了新浪微博诉脉脉、大众点评诉百度地图两案（凭已有知识写「2016 年前后判决」，判决书原文未打开）
+
+### electron-desktop
+
+- [ ] `06-packaging-signing.md#配置`：原说法「`APPLE_API_KEY`（.p8 文件路径）」。`app-builder-lib@26.18.0` 源码把它原样交给 `@electron/notarize`，后者 README 要求填 .p8 绝对路径，正文维持「路径」；但 electron.build 文档站 v26 公证页写的是 base64 编码的 .p8 内容（v27 文档说两种都行），二者不一致，需要用真实账号实测一次确认
+- [ ] `06-packaging-signing.md#macos-签名为什么不能不签` 与 `07-auto-update.md#先决条件签名`：「签名未公证也能自动更新」（signing-levels 图里「开发者证书 → 自动更新：能」）。Electron autoUpdater 文档只写「macOS 上必须签名（Squirrel.Mac 要求）」，没提公证；正文已标为推断，未实测
+- [ ] `06-packaging-signing.md#不签名为什么不行`：「不签名在苹果芯片上不能稳定运行、系统随时可能杀掉进程」。`@electron/fuses` README 写明 arm64 上改过不重签会因签名校验错误拒绝启动，部分佐证；「随时被杀」的具体表现仍是推断，正文已注明
+- [ ] `05-native-integration.md#钥匙串safestorage`：Electron 45 弃用同步 `safeStorage` 方法、46 计划移除（Breaking Changes 页已核实）；异步版 `encryptStringAsync` 等从哪个版本开始提供、44 里能否用，官方 API 页没写版本，未核实
+- [ ] `06-packaging-signing.md#electron-builder-怎么配`：electron-builder 26.18 的 `azureSignOptions` 内部仍调用 PowerShell 模块 `TrustedSigning`（`Invoke-TrustedSigning`），微软已把服务更名为 Artifact Signing；改名后该模块是否继续可用、electron-builder 是否会改名，未查到说明。是否必须在 Windows 主机上构建也未核实（正文写「通常在 Windows 的 CI 机器上构建」）
+- [ ] `06-packaging-signing.md#选哪种方式`：Artifact Signing「每月 9.99 美元起」引自 Microsoft Learn 的 SmartScreen 页，未打开 Azure 定价页核对
+- [ ] `03-security.md#对照唱片墙做了什么为什么没做什么`（REVIEW 第 53 行 hatch-recordwall 条目）：「IPC 不校验发送方；`net:fetch` 接受任意 URL；只读令牌经 preload 交给页面」。书中把前两条标为「可改进」、令牌标为「知情的取舍」，并写明前提（只加载自打包代码、封死导航）和前提变化时要补什么，表述恰当，未改；是否仍是 hatch-recordwall 现状需对照仓库代码
+
+### frontend-engineering
+
+- `02-css-layout-cascade.md#新特性与兼容性线`：新写的「锚点定位：核心属性 2026 年 1 月（Firefox 147）起新近可用，整体仍未达 Baseline」。依据是 web-features 3.45：整体特性 status=false（只列 Safari 27），但 `anchor-name`、`anchor()`、`position-area`、`@position-try` 各自 baseline low 2026-01-13；`position-anchor` 属性要到 2026-09（Chrome/Firefox 151、Safari 27）。MDN 页面上的标记可能随 web-features 下一版变化，需人看一眼 MDN 当前显示。
+- `02-css-layout-cascade.md#新特性与兼容性线`：`popover` 写成「2025 年 1 月起新近可用」，来自 web-features（因 iOS Safari 18.3 才算完整支持）；常见说法是 2024 年 4 月。两种口径都有，按 web-features 写。
+- `08-eslint-prettier.md#oxlintbiome-与-oxfmt`：Oxlint 类型感知覆盖「61 条中的 59 条」取自 oxc.rs 文档；tsgolint 仓库 README 写的是「62 条中 60 条」，口径不一，正文已注明。
+- `08-eslint-prettier.md#oxlintbiome-与-oxfmt`：Oxfmt「0.x，2026 年 2 月进入 beta」——beta 公告是 2026-02-24 的 Oxc 博客；之后没找到 stable 公告，当前 npm 版本 0.76.0（2026-11-03），「仍是 beta」是按版本号推断。「通过 Prettier JS/TS 一致性测试全部用例」是项目方自述（VoidZero 2026 年 2 月月报），未见第三方验证。
+
+### going-global
+
+- [ ] `08-overseas-clients.md#服务出口的增值税零税率和免税`：新章按《增值税法实施条例》（国务院令第 826 号）第九、四十八、四十九条，财政部 税务总局公告 2026 年第 11 号，国家税务总局公告 2026 年第 5 号整理（条例原文在税务总局政策法规库核对；第 11 号、第 5 号公告是经 WebFetch 摘要读的，没有逐条看原文）。财税〔2016〕36 号附件 4、国家税务总局公告 2016 年第 29 号是否已明文废止没查到（第 5 号公告的废止清单在附件 xlsx 里，未打开），正文写了「未查到确切说法」
+- [ ] `08-overseas-clients.md#备案和要留的资料`：「第 11 号公告对部分跨境服务，未签书面合同或未取得收入按征税处理」来自公告摘要（第七条第（一）项第 8 目附近），适用的服务范围未逐字核对；跨境服务免税是否需要备案还是留存备查，第 5 号公告正文没写明
+- [ ] `08-overseas-clients.md#以个人身份接单`：自然人偶尔接海外单的增值税处理（按次 / 按期、能否免税、是否代开）没有查到专门规定，正文写了依据有限
+- [ ] `08-overseas-clients.md#哪些服务落在哪一边`：「技术咨询、架构评审 → 鉴证咨询或专业技术服务 → 免税」是按税目名称粗略对照，正文已要求让代账按税目注释确认
+- [ ] `08-overseas-clients.md#境内所得没有扣缴义务人要自己申报`：远程接单按实施条例第三条属境内所得、没有扣缴义务人时个税法第十三条第一款「次月十五日内」与第十一条综合所得汇算的关系，实务口径未查到统一说明，正文写了依据有限。注意：第 7 章 `07-tax-and-remittance.md#居民个人的全球所得` 把个人在 App Store / MoR 的收入一律称为「境外所得」，与来源地规则（特许权按使用地、劳务按提供地）是否一致值得复核
+- [ ] `08-overseas-clients.md#个人5-万美元的年度便利化额度`：5 万美元和第二、四、十、二十五条按外汇局官网刊载的汇发〔2007〕1 号 PDF 原文核对；「额度按自然年、年末清零」来自外汇局厦门市分局服务小贴士（搜索摘要）；「关注名单当年及之后两年不享有额度」来自银行和分局公开说明，未打开 2015/2016 年那份外汇局通知原文，正文未写文号
+- [ ] `08-overseas-clients.md#选收款服务商时要问的问题`：Wise / Payoneer 对中国大陆居民的开户准入、可收币种、回流方式没有在官方页面核实，正文只列了要问的问题、未写结论
+- [ ] `08-overseas-clients.md#知识产权归属`：美国「work made for hire」对独立承包人的默认规则、`#适用法律与争议解决` 中纽约公约的表述凭常识写，未核对原文；《涉外民事关系法律适用法》第四十一条凭记忆，未打开 flk.npc.gov.cn 原文
+
+### growth-marketing
+
+- [ ] `09-activation-paid.md#中国大陆区能不能投`：新增章节。依据 ads.apple.com「Advertise in Mainland China」帮助页、Countries and Regions 页和《Apple Advertising Guidelines for mainland China》（July 2026 PDF）：主体与 App 需审核、个人需个体工商户营业执照、非企业主体可能不能投放 Books/Periodicals 等类别、产品页广告位在大陆不可用。未查到：Apple Ads Basic 能否投放大陆；书巢这类「阅读用户自己文件」的 App 会被归入哪个类别、需哪些资质。正文已写依据有限
+- [ ] `09-activation-paid.md#名字和投放位置`：Apple Search Ads 改名 Apple Ads 的时间（2025 年 4 月）来自 9to5Mac、Search Engine Land 等媒体报道，未找到 Apple 官方新闻稿原文；官网现已统一用 Apple Ads、searchads.apple.com 301 跳转到 ads.apple.com 已确认
+- [ ] `09-activation-paid.md#出价`：「实际扣费可能低于最高出价」来自 Apple Ads 词汇表（搜索摘要转述，未打开原页逐字核对）；Maximize Conversions 需打开 Search Match、目标 CPA 仅限搜索结果广告位，按 Compare Solutions 和 Ad Placement Options 页
+- [ ] `09-activation-paid.md#归因adservices`：令牌 24 小时 TTL、POST 端点、404 重试建议、30 天点击 / 24 小时浏览归因窗口、年龄性别广告组返回 false 按 developer.apple.com AdServices 文档 JSON 核对；「数据保留 21 天」按 ads.apple.com 归因概览页。是否需要 ATT 授权未核实，正文未提
+- [ ] `09-activation-paid.md#其他付费渠道简述`：Google App Campaigns 按 Google Ads 帮助中心 6247380 页整理；Meta 应用推广和国内安卓商店推广规则未核实，正文已标依据有限
+- `09-activation-paid.md` 全部算例（激活率 35%、付费率 15%、到手 20 元、CPT 2 元、点击到安装 40% 等）均标为示例假设，没有引用任何行业平均 CPT / CPI
+- 章节位置：08-channel-evaluation 是收尾章，但其他书有十余处写「《获客与增长》第 8 章」指渠道评估，插到 08 前会让这些章号全部错位，所以新章追加为 09，并在 08 的「接下来读什么」补一句指向第 9 章；01 的章节表改为九章。若希望全书回顾留在最后一章，需要另行调整
+
+### iac-gitops
+
+- [ ] `03-ansible.md#升级到-ansible-core-219-以后`：2.19 的破坏性变更已按官方 Porting Guide for ansible-core 2.19 和 ansible/ansible GitHub releases（2.19.0 发布于 2025-07-21，Ansible 12 捆绑 2.19，写作时最新 2.22.0）核对，`ANSIBLE_ALLOW_BROKEN_CONDITIONALS` 已在 stable-2.19 的 base.yml 里核对；但本章 playbook 没有在 2.19+ 上实际跑过，只按规则逐条对照。顺带把证书任务的 `acme_staging | default(false)` 改成加 `| bool`（命令行传 `-e acme_staging=false` 时是字符串真值）
+
+### cloud-and-edge
+
+- [ ] `06-wrangler-deploy.md#静态站workers-static-assets`：「新项目从 Workers 开始」按 Cloudflare Pages 文档首页的提示原文；`not_found_handling` 的 `404-page` 取值凭记忆（binding 页只出现了 `single-page-application`），未部署验证
+- [ ] `05-storage-primitives.md#workflows拆成步骤的长任务`：GA 日期（2025-04-07）、默认重试（5 次、10 秒、指数退避、10 分钟超时）、2026-07 计费调整按官方 docs / changelog；示例代码（`WorkflowEntrypoint`、`step.do` 的重试参数写法）未在 wrangler 里实际部署
+- [ ] `05-storage-primitives.md#containers跑不进-isolate-的代码`：GA（2026-04-13，Workers 付费套餐，按活跃 CPU 计费）按官方 changelog；「冷启动秒级」是概括，未实测
+
+### observability-performance
+
+- [ ] `03-tracing-otel.md#在-nestjs-里接入`：已按 OTel JS 3.0.0（2026-10-20 发布）改写，`sdk-trace-base` → `sdk-trace`；`parentSpanContext` 示例在本机 Node 22.23 + sdk-node 0.300.0 上跑通。完整的 NestJS + auto-instrumentations-node 0.82 接入没有跑过
+- [ ] `02-metrics-prometheus.md#另一种接法用-otlp-把指标推给-prometheus`：`--web.enable-otlp-receiver`、`/api/v1/otlp/v1/metrics`、`promote_resource_attributes` 按 prometheus.io 的 OpenTelemetry 指南；`OTEL_METRIC_EXPORT_INTERVAL` 是否被 NodeSDK 读取凭记忆；整套配置没有在容器里跑过（本机 Docker 未运行）
+
+### database-ops
+
+- [ ] 全书基线从 PG 16 改为 18：镜像改 `postgres:18-alpine`，挂载点改 `/var/lib/postgresql`、数据目录 `18/docker`（按 docker-library/postgres 18 的 Dockerfile 和 entrypoint 源码核对，挂旧的 `.../data` 会 exit 1）。各章练习和 `03-wal-pitr.md` 的恢复步骤（`/pg/18/docker` 路径、`chown -R 70:70 /pg/18`）、`04-replication.md` 的 `pg_basebackup -D /var/lib/postgresql/18/docker` 都没有在 18 上实际跑过（本机 Docker 未运行），建议跑一遍
+- [ ] `03-wal-pitr.md#不装工具的折中原生增量备份`：`--incremental`、`pg_combinebackup -n/-o`、`summarize_wal`、`wal_summary_keep_time` 默认 10 天按 PG 18 文档；「pg_combinebackup 读的是目录（plain 格式）」文档没有明说，未实测
+- [ ] `08-major-upgrade.md#18-带来的变化以及-19`：练习 1 里 18 镜像报错的具体文字按 entrypoint 源码概括，未实际运行；PG 19 写作时为 RC1（2026-10-15）
+- [ ] `07-vacuum-bloat.md`：18 起 `autovacuum_max_workers` 可在 `autovacuum_worker_slots` 内重载调整，按 18 Release Notes 与参数文档
+
+### production-ops
+
+- [ ] `07-user-files.md`（新章）：R2 不支持版本控制 / Object Lock、桶锁、`wrangler r2 bucket lifecycle|lock add` 语法、预签名 URL 1 秒到 7 天且不支持 POST 均按 Cloudflare 官方文档核对；rclone 练习（`--backup-dir`、`--max-delete` 超限报错）本机未装 rclone，未实际运行；`rclone check --download` 等参数凭 rclone 文档记忆
+- [ ] `07-user-files.md#删除请求真的删干净`：个保法第四十七条（含「技术上难以实现」时停止除存储和必要安全保护之外的处理）按最高检门户网刊载的法律文本核对
+- [ ] 新章插在 07 之后，检查清单变成第 9 章，书内「第 8 章（清单）」的文字引用已统一改成「第 9 章」
+
+### app-security
+
+- [ ] `07-server-compromise.md`（新章）：《国家网络安全事件报告管理办法》（2025-11-01 施行，一般运营者「较大以上」事件 4 小时内报属地省级网信部门）按中国网信网刊载全文核对；个保法第五十七条按法律文本；练习 1、2（`docker diff`、`/proc/*/exe (deleted)`）本机 Docker 未运行，未实际跑过，`docker diff` 的具体输出行需复核
+- [ ] 新章插在 07 之后，安全自查清单变成第 9 章，01 的「怎么读」已同步
+
+### self-hosting
+
+- [ ] `08-email.md#spfdkimdmarc`：只加了一张 SPF/DKIM/DMARC 验证时序图和一段 DMARC 对齐说明，无事实性变更
+
+### linux-essentials
+
+- [ ] `06-package-management.md#ubuntu-2604-换了哪些底层工具`：sudo-rs / rust-coreutils（cp、mv、rm 仍为 GNU）、chrony、systemd 259、OpenSSH 10.2、内核 7.0 按 Ubuntu 26.04 官方「Summary for LTS users」整理；「sudo-rs 下常见 sudoers 写法照常生效」「通过 update-alternatives --config sudo 切回 sudo.ws」只有二手来源（Ubuntu Server Docs 的 sudo-rs 页未抓到），需在 26.04 机器上实测
+
+### networking
+
+- [ ] `08-ipv6-dual-stack.md#国内的-ipv6-现状`：8.69 亿活跃用户、移动 70.85% / 固定 32.38% 流量占比按 cac.gov.cn 2026-07-28 报道（截至 2025 年底）；全国流量占比 34.55%（2026-06）及 2027/2030 目标只见于二手报道，未写入正文
+- [ ] `08-ipv6-dual-stack.md#happy-eyeballs`：Node 20 起 `autoSelectFamily` 默认开启、约 250 ms 回退，凭记忆写，未查 Node 文档
+- [ ] `08-ipv6-dual-stack.md#系统和服务这一侧`：Docker 发布端口默认同时绑 `[::]`、绑 127.0.0.1 时不暴露 v6，凭记忆写；云厂商开 IPv6 的四步只核对了阿里云的二手整理
+- [ ] `08-ipv6-dual-stack.md#动手练习`：三道练习未实际运行
+- [ ] `05-tls.md#有效期在缩短`：certbot 4.0 起剩余 1/3 有效期续期、4.1 起支持 ARI 来自打包方 changelog 和 Let's Encrypt 社区帖，未查 certbot 仓库原文
+
+### nginx-gateway
+
+- [ ] `03-https-acme.md#nginx-原生-acme-模块`：官方文档和 README 均未说明 HTTP-01 挑战能否与 80 端口的 301 跳转写在同一 server 块、续期后是否需要 reload；Ubuntu / Debian 自带源有无对应模块包未查清；模块仍是 0.x（GitHub README 与 nginx.org 对 TLS-ALPN-01 是否支持说法不一，正文按 nginx.org 写「支持」）
+
+### docker-containers
+
+- [ ] `04-multi-stage.md#量化镜像大小去哪了`：AUDIT 要求复核体积数字，本机 Docker 未运行，没有实测；正文改为加说明「containerd 镜像存储下大小不可直接比，书中 MB 数只是量级」
+- [ ] `06-compose.md#容器起不来排查清单`：退出码表和练习 4（`docker run alpine bash` 得到 127、`-m 32m` 得到 137 + OOMKilled）未实测
+
+### kubernetes
+
+- [ ] `04-networking-ingress.md#gateway-api最小示例`：Traefik 的 Gateway listener 端口须等于其入口端口（8000 / 8443）来自 Traefik Hub helm 参考和社区帖；k3s chart 是否自动创建默认 Gateway 未确认；整段示例未在 k3s 上实测
+- [ ] `07-troubleshooting.md#crashloopbackoff启动就退出`：containerd 下命令不存在时 `StartError` / 退出码 128、退避 10 秒翻倍至 5 分钟凭记忆写；三道练习未实测
+
+### deploy-release
+
+- [ ] `05-ci-cd.md#action-的版本号`：示例停在 checkout / setup-node / pnpm action-setup 的 v6（checkout、setup-node 已有 v7）；其他书里若还有 `@v4` 未一并处理
+
+### llm-deep-dive
+
+- [ ] `04-moe.md#几个代表模型`：新增 Kimi K2 / gpt-oss-120b / gpt-oss-20b / Qwen3-Next-80B-A3B 四行。参数和专家配置来自 Hugging Face 模型卡与 `config.json`（已核对）；发布月份（2025 年 7 / 8 / 9 月）按模型卡 changelog 和论文日期推定，未找到各家官方发布公告原文
+
+### open-models
+
+- [ ] `01-landscape.md#主要家族` NOTE：Qwen3.5（2026-02）、Qwen3.6（2026-04）、Qwen3.8（2026-08）的时间和许可证取自 Hugging Face API 的 `createdAt` 与 `cardData.license`（中小尺寸 apache-2.0，Qwen3.8-Flash-Next 与 Qwen3.8-2.4T-A95B 为 other），未读官方发布博客
+- [ ] `05-gpu.md#2026-年的几类新硬件`：B200 每卡显存各来源 180 / 192 GB 不一（NVIDIA DGX B200 页面是 8 卡共 1440 GB），B300 的 288 GB 来自媒体报道，未读到 NVIDIA 单卡 datasheet
+- [ ] `05-gpu.md#2026-年的几类新硬件`：M5 Pro / Max 带宽（307 / 460 / 614 GB/s）来自 Apple 支持页面 126319；「M5 的 GPU 加入神经网络加速单元」来自 MacRumors 等二手报道；M5 Pro 是否可配 128 GB 支持页面摘要有歧义，正文只写了 M5 Max 最高 128 GB
+
+### math-for-ai
+
+- [ ] `07-gradient-descent.md#muon把整块矩阵的更新拉匀`：`torch.optim.Muon` 在 PyTorch 2.15 文档中存在（默认 momentum 0.95、ns_steps 5），但首次加入的版本号未查到，正文只写「新版 PyTorch」；Newton-Schulz 示例在本机 numpy 上跑过
+
+### python-for-ai
+
+- [ ] `03-typing-pydantic.md#让检查器跑起来`：pyrefly「已发布 1.x」只依据 PyPI 上的版本号 1.4.0，未读其稳定性声明；ty 0.0.97 的 Beta 状态取自 PyPI classifier
+- [ ] `01-ts-to-python.md#313-之后的新变化`：3.15 的条目（PEP 810 / 686 / 814、macOS 安装包默认附带自由线程支持）按 docs.python.org 的 What's New in 3.15 整理；3.14 惰性标注示例在本机 3.12 / 3.14 上实测
+
+### multimodal-ai
+
+- [ ] `05-speech.md#中文场景的开源模型paraformer-与-sensevoice`：SenseVoice 模型卡的语种数自相矛盾（50+ / 5 / 6），正文只列了中粤英日韩；速度数字是作者自报
+- [ ] `05-speech.md#端到端语音模型`：「通义的 Qwen-Omni 系列能直接处理语音输入输出」凭已有知识写，未查官方模型卡
+- [ ] `04-document-understanding.md#不抽文字也能检索colpali`：「基于 PaliGemma」「一页几百到上千个向量」来自对论文的已有了解，arXiv 摘要页未写明
+
+### llm-app-engineering
+
+- [ ] `01-api-basics.md#temperature-去哪了`、`06-prompt-caching.md#自动缓存最简单`、`04-tool-use.md#服务端工具`：三处按 Claude API 技能参考资料（缓存于 2026-10-06）核对一致，未直接抓取 platform.claude.com 的线上页面
+
+### rag-systems
+
+- [ ] `03-pgvector.md`：pgvector 版本节点（HNSW 0.5.0、并行构建 0.6.0、halfvec / sparsevec / L1 0.7.0、迭代扫描 0.8.0）已按 CHANGELOG 核实，`pg16` 和 `0.8.7-pg16` 标签已在 Docker Hub 确认；本章 SQL 在 PG 17 / 18 上未实测
+
+### llmops
+
+- [ ] `llmops/08-data-compliance.md#跨境用境外模型时多想一步`、`#给合规审计留证据`、`#生成式-ai-的专门规定`：出境认证门槛、合规审计办法、网安法修正、标识办法日期直接沿用《国内合规实务》第 6、7 章（第 6 章已按原文核实；第 7 章的标识办法 / GB 45438-2025 仍是「按 2025 年前后整理」口径），本轮未再独立查原文
+
+### agent-principles
+
+- [ ] `agent-principles/04-planning-reflection.md#扩展思考从给预算到给力度`：力度五档的行为描述、默认值（多数 `high`，Opus 5.5 / Haiku 5.5 为 `medium`）、改力度使缓存失效，按 2026-11 platform.claude.com 的 Steering thinking / Effort 页面整理；各家模型变化快，下一轮复查
+
+### agent-safety
+
+- [ ] `agent-safety/01-threat-model.md#三要素私密数据不可信内容对外通信`：Meta「Agents Rule of Two」（2025-10-31）的内容来自 Simon Willison 的转述和其他二手报道，未打开 Meta 原文
+- [ ] `agent-safety/06-audit-replay.md#一次真实事故amazon-q-扩展里的删除指令`：事实以 AWS 安全公告 AWS-2025-015（CVE-2025-8217）为准；「提示词要求清理本地文件和云资源」的具体内容来自 CSO Online、iTnews 报道，AWS 公告本身未描述指令内容
+
+### build-your-agent
+
+- [x] REVIEW 第 70、71 行可以勾掉：`pause_after_compaction`、`stop_reason: "compaction"`、`compact_20260112`、`context-management-2025-06-27` 已在 `@anthropic-ai/sdk` 1.3.0 的类型定义里核到；Agent SDK 0.3.316 的 `tool()` 第三个参数是 `AnyZodRawShape`，peer 依赖 `@modelcontextprotocol/sdk ^1.29.0`、`zod ^4`，发布于 2026-10-31，内置 Claude Code 2.1.316，均按 npm registry 核对。写作时最新为 sdk 1.4.0、agent-sdk 0.3.318，书里锁定的版本未改
+
+### context-engineering
+
+- [ ] `context-engineering/08-measure-debug.md#示例两周账本对比`：周报数字是虚构的演示数据（正文已标明），按 Opus 5.5 价目（4 / 5 / 0.2 / 20 美元每百万 token）计算；价目变动时重算
+- [ ] `context-engineering/01-scarce-window.md#context-rot研究怎么说`：Chroma 报告（2025-07-14）和 NoLiMa（arXiv 2502.05167，ICML 2025）的结论按原文摘要和报告页面整理；《Lost in the Middle》仍只有定性描述（REVIEW 第 130 行不变）
+
+### tools-and-mcp
+
+- [ ] `tools-and-mcp/08-agent-interop.md`（新章）：A2A 1.0.0（2026-03-12）、1.0.1（5 月）按 GitHub releases；150+ 组织、微软 / AWS 接入按 Linux Foundation 2026-04-09 公告；A2A 加入 AAIF（2026-08-17）按 aaif.io 博客。以下只有二手来源：IBM ACP 并入 A2A 的具体日期（2025 年 8 月，原仓库已归档）、JetBrains 加入 Agent Client Protocol（2025 年 10 月，The Register）、ACP Agent Registry 上线（2026 年 1 月）、A2UI 当前生产版本 v0.9.x / 1.0 候选（来自搜索摘要，未直接打开 github.com/google/A2UI）
+- [ ] `tools-and-mcp/08-agent-interop.md#ag-ui事件长什么样`：事件名按 docs.ag-ui.com 的 Events 页面（PascalCase 写法），线上传输的类型名可能是大写下划线形式，未核对
+- [ ] 新增第 8 章后全书为八章，`books/ROADMAP.md` 里 tools-and-mcp 的章节列表（如有）需要同步，本轮未改 ROADMAP（其他 agent 在改）
+
+### media-opc-overview
+
+- `03-platform-landscape.md#用户规模`：腾讯、快手、B 站 2026Q3 业绩截至 2026-11-04 均未发布（按往年 11 月中下旬），仍用 Q2 数据；发布后需更新表格、`assets/platform-mau.svg` 和本章要点
+- `03-platform-landscape.md#用户规模`：抖音月活 10.29 亿（QuestMobile《2026 上半年中国移动互联网实力价值榜》，2026-08-04）只见中华网等转载，未见报告原文；「3 月首次破 10 亿（10.09 亿）」只见经济日报（台）、remio 转述，QuestMobile 春季报告页面未列该数字。同一榜单红果免费短剧 3.68 亿，与正文 2026-05 的 3.56 亿并列写出
+
+### media-action-plan
+
+- `08-d3-d5-release-studio.md#路线一平台分账先算账`：火山引擎「精品 AI 剧激励计划」（2026-10-19 发起；Seedance 全量制作且 2.5 占比 >50%；红果热度前 10 / 20 / 50 名 20 / 10 / 5 万；一半现金一半返券；首期申报截止 2027-01-31）只有财联社 2026-10-21、IT 之家报道，未找到火山引擎官方公告原文
+- 同节：红果取消 AI 仿真人保底、改 20% 分成仍只有骨朵一个来源，本轮未找到新信息
+
+### account-positioning
+
+- `01-track-and-persona.md#资质领域先查再选`、`09-tech-creator-route.md`：《关于加强「自媒体」管理的通知》第 2、3 条已按人民论坛网 2023-07-10 转载全文核对（落款 2023-07-05），中国网信网原文页仍未打开；其余 REVIEW 条目（指标名、改名次数等）本轮未处理
+
+### shooting-editing
+
+- `06-capcut-workflow.md#什么时候换桌面专业软件`：DaVinci Resolve Studio 官网 2026-11 显示「Was $295 Now $236」，属于促销价，过后需复查；免费版「导入不限分辨率、导出最高 UHD」依据官网产品页与 21 版 readme 的第三方摘要
+- `01-equipment.md#第三档800012000-元追求质感`：索尼 ZV-E10 II 国行建议零售价 7499 元本轮未复核
+
+### xhs-channels-bilibili
+
+- `05-channels-content-money.md#变现入口`、`#粉丝阶段与功能`：视频号创作分成计划（100 粉、个人号、原创声明）、互选万粉、各粉丝阶段功能，2026-11 复查仍只有 2023 年资料，规则只在视频号助手登录后可见，维持原说法
+- `07-bilibili-tech-knowledge.md#up-主的变现方式`：花火入驻门槛（2020）、创作激励（2024-04）、包月充电（2023）2026-11 复查未找到官方新版或调整报道，维持原说法
+- `06-bilibili-long-video.md#几个基本数字`：已换成 B 站 2026Q2 数据（DAU 1.17 亿、MAU 3.71 亿、113 分钟、千粉 UP 主 +30%、万粉 +21%、人均收入 +21%），来源为品玩等媒体对财报的报道，未对照 IR 原文；Q3 财报发布后可更新
+
+### live-streaming
+
+- `06-product-lineup.md#怎么算一场的预估佣金`：公式已补技术服务费，档位（A/B+/B 10%、C 20%、D 40%，站外 10%）转引 ecommerce-selling 02（该书据抖音电商学习中心规则原文整理），本轮自己没能打开规则原文；快手、视频号达人扣点未查到公开规则。REVIEW 第十节「live-streaming 第 6 章：示例只算了毛佣金」可勾掉
+
+### opc-finance
+
+- 02-taxes.md#2026-年常用数字参考：新增参考表。已按原文核实：财政部 税务总局公告 2026 年第 10 号（2026-01-30，江苏税务转载全文，起征点与 3% 减按 1% 条款原文）；2023 年第 12 号（2023-08-02，国家税务总局法规库原文）；《个人所得税法》第六条 6 万元（法规库原文）、附表二经营所得税率表（江苏税务转载页附图）。
+- 02-taxes.md#2026-年常用数字参考：「未达到起征点可选择放弃免税、开专票」一句来自 2026 年第 10 号的检索摘要，未逐字核对原文条款，需人复核。
+- 02-taxes.md#2026-年常用数字参考：未放入「只有经营所得、没有综合所得的个人可减除费用 6 万元」——出自《个人所得税法实施条例》第十五条，本轮未查到官网原文，仅有培训课件转述。
+- 02-taxes.md#2026-年常用数字参考：2026 年第 10 号第六条概括废止 2025-12-31 前的国内环节增值税优惠文件，2023 年第 19 号（原 1% 征收率依据）是否随之停止执行原文未点名；表中只引用第 10 号，不受影响，但如他书仍引用 2023 年第 19 号需复核。
+- 02-taxes.md#2026-年常用数字参考：未查到 2026 年对 2023 年第 12 号的调整公告（检索至 2026-11），如有新公告需更新。
+
+### private-domain-cn
+
+- `06-wecom-customer-groups.md#群发和客户朋友圈的上限`：原说法「企业群发每月 4 条 / 当月天数，两处矛盾」。查到：群发规则使用说明页（work.weixin.qq.com/nl/act/p/a7db65e80f964edf）与开发者文档 path/92135 一致——管理员可按日/周/月配置，默认 1 条/日，按月时每月最多当月天数；「群发助手」功能页（nl/act/p/c502a27e56c44feb）仍写「每位客户每月可收到企业的 4 条」。正文已改为以前两者为主、注明功能页可能是旧规则，矛盾本身仍在官方页面上，需人在后台确认
+- `06-wecom-customer-groups.md#开通和认证`：认证后 5 万 / 2000 两种情况、未认证 100（含已删除）、单成员 2 万、个体户按「企业」类型认证、300 元审核费已按帮助中心 help2/pc/20172、19734、14641 核实并改写。「已删除的客户也占名额」帮助中心只对未认证写明，认证后是否同样计入未查到
+- `06-wecom-customer-groups.md#个人微信还是企业微信`：个人微信好友约 1 万，仍只有 2023 年报道转述腾讯客服，本轮未查到官方原文（维持原说法）
+
+### b2b-sales
+
+- `07-close-payment-invoice.md#收集开票信息`：原说法「开专用发票的另需：地址电话、开户行及账号」。查到：国家税务总局公告 2024 年第 11 号只列「购买方信息」不列子项；深圳市税务局问答（搜索摘要，原页 IPv6 连接失败未能打开）和黑龙江税务局《热线问题选编 2026 年第 7 期》称数电票票面删除地址栏和银行账号栏，银行账号可勾选「是否展示」显示在备注栏。数电专票开具时开户行及账号是否必填，未找到总局层面的明确条文；北京市税务局《数电票常见问题清单》PDF 已下载但无法提取文本，未读到。正文改为「票面不再显示、专票照收、按开票界面提示填」，需人在电子税务局实际开一张专票确认
+
+### product-thinking
+
+- [ ] `09-validation-pmf.md#40-是怎么来的`：「Ellis 对比将近一百家初创公司得出 40%」只查到 Rahul Vohra 2018-11-12 First Round Review 文章的转述；Ellis 本人 2009-05-18《Free Customer Development Help – Survey.io》、2010-03-01《Optimization Mistakes That Kill Startups》只给 40% 不讲来历；《Hacking Growth》（2017）原书未能核对。正文已写明依据有限、当经验线看
+- [ ] `09-validation-pmf.md#问谁`：抽样条件（体验过核心、至少用过两次、最近两周用过）已按 Ellis 2009 原文核实；「约 40 份回答起有方向性」出自 Vohra 文章，Ellis 原文无最低样本数
+- [ ] `09-validation-pmf.md#国内收款的注意点`：消保法预收款退还义务、2024 年《消费者权益保护法实施条例》预付式消费条款只查到人民日报海外版 2024-04-16 报道，未核对条文原文与条号；「个人收款码不宜用于经营收款」凭记忆写，未找到支付平台 / 人民银行一手文件。已加 WARNING
+- [ ] `09-validation-pmf.md`：「接下来读什么」一节从 08 章末尾移到 09 章末尾（新章追加在最后）；08 章末尾改为一句指向第 9 章。如更希望新章放在 04 之后，需要同步改全书「第 N 章」的编号引用
+
+### react-internals
+
+- `01-jsx-to-fiber.md#这本书讲什么适合谁怎么读`：原说法「19.3 与 19.2 差异未逐项核对」。已按 React 仓库 CHANGELOG（v19.3.1 标签）和 npm 发布记录核对：19.2.0 = 2025-10-01，19.3.0 = 2026-09-09，最新 19.3.1 = 2026-10-14，正文补了两版新增对照表。react.dev 博客没有找到 19.3 的发布文章（只查到 CHANGELOG），如官方后来发了博客，建议对照一遍表格措辞。REVIEW.md 第 490 行那条可以视为已处理。
+- `04-concurrent-rendering.md#lanes-在树上的传播`：新增「19.3 起 transition 各自独立渲染」的说法，依据是 CHANGELOG 19.3.0「Render transitions independently instead of entangling them」(#37290) 和 v19.3.1 源码 `enableParallelTransitions = true`、`getHighestPriorityLanes` 对 TransitionLane1–10 只取最高位。「同一个 transition 里的多次 setState 仍在同一条 lane」是按 `requestTransitionLane` 的逐事件复用推断的，没有实际跑过验证。
+- `06-actions-and-forms.md#form-action把函数交给表单`：原说法「失败也会重置非受控字段」维持。react.dev `<form>` 文档写的是「action 成功后」重置；v19.3.1 源码 `startHostTransition` 在调用 action 前无条件 `requestFormReset`，所以返回错误 state 也会重置。action 抛错（reject）时重置是否仍然提交没有实测，正文只写了「错误交给 Error Boundary」。章末练习 1 的预期结果没有在 19.3 上实际运行确认。
+
+### rn-expo
+
+- [x] REVIEW 第三节 `rn-expo` 一条（Gesture Handler 3 Hook API、Reanimated 4 / worklets、Expo Babel 预设自动配置、Hermes V1 默认、app config 无 `jsEngine`）：2026-11 按 SDK 58 文档、`expo@58.0.22` 的 bundledNativeModules.json、Reanimated 3.x 迁移指南、RNGH「升级到 3」指南核实，均属实，各节已加带来源的 WARNING。「免费账号 7 天描述文件」只找到 Apple 开发者论坛的官方回复，没找到会员说明页原文，`10-signing-testflight.md#装到自己手机上` 已注明依据
+- [ ] `08-local-storage.md#查询与事务`：SDK 58 文档说 `withExclusiveTransactionAsync` 跑在新连接上、原连接的 `PRAGMA foreign_keys` 不生效。书中 `rebuildIndex()` 显式清三张表所以不受影响，但请确认 hatch-shelf 的 `rebuildIndex` 里有没有依赖外键级联的写法
+- [ ] `10-signing-testflight.md#美区外链支付`（新增）：审核指南条文按 2026-11 现行文本核对；`Storefront.current?.countryCode` 的 Expo 模块写法（`AsyncFunction` 用 Swift `async` 闭包）没有编译验证；「美区可否只给外链、不提供 IAP」指南没有直接写明，正文未作断言
+- [ ] `11-android-china.md`（新增章）：以下几点依据有限或未实测：「国内商店普遍收 APK」是公开资料的普遍说法、未逐家核对；VasDolly helper 的包路径 `com.tencent.vasdolly.helper.ChannelReaderUtil` 与 Kotlin 模块写法未编译验证（版本 3.0.6 取自其 README）；华为 Maven 仓库地址和 `agconnect-services.json` 凭经验写；「厂商后台登记 SHA-256 指纹、调试包可能拿不到令牌」是一般经验，未逐家核对；「不少 SDK 通过 ContentProvider 自动初始化」是一般性描述；HarmonyOS NEXT 不运行 APK 依据 Reuters / 财新 / 第一财经报道（2024），未查华为官方原文
+
+### ts-node-advanced
+
+- [x] REVIEW 第三节 `ts-node-advanced` 一条和第十节「Node 22.23 默认 `--no-maglev`」：2026-11 已核。类型擦除版本节点按 Node 官方「Modules: TypeScript」版本历史核对属实，并补了 24.3 去警告、24.12 / 25.2 标稳定、26.0 移除 `--experimental-transform-types`；Maglev 关闭来自 v22.9.0 发布说明（仅针对 v22 线）；字节流 64 KiB 来自 Node 22 发布公告，另据 Node 24 文档补了「Windows 上仍是 16 KiB」；Clinic.js README 写明不再积极维护；VS Code 的 Flame Chart Visualizer 扩展属实
+- [ ] 全书基线：按指示改为 Node 24 LTS，但 2026-11 时 Node 26 已于 10-28 进入 Active LTS，Node 24 / 22 都在维护期。是否把基线进一步换到 26，请作者决定。实验仍是 Node 22.23 上跑的（order.mjs 本轮在 22.23.1 上复跑，输出一致），Node 24 未实机重跑，`05-v8-pipeline-hidden-classes.md#分层编译管线` 里 Node 24 的 Maglev 默认值没查到官方说明，正文写成「自己用命令查」
+- [ ] `09-node-runs-ts.md#去工具链把-tsx-换成-node`（新增）：tsc 报错数是本轮在 shelf-pack 上实测的；「Metro 认带 `.ts` 后缀的相对导入」、`node --env-file` / `--watch` 替代 tsx 的说法没有在本仓库实际迁移验证
+### react-internals
+
+- `01-jsx-to-fiber.md#这本书讲什么适合谁怎么读`：原说法「19.3 与 19.2 差异未逐项核对」。已按 React 仓库 CHANGELOG（v19.3.1 标签）和 npm 发布记录核对：19.2.0 = 2025-10-01，19.3.0 = 2026-09-09，最新 19.3.1 = 2026-10-14，正文补了两版新增对照表。react.dev 博客没有找到 19.3 的发布文章（只查到 CHANGELOG），如官方后来发了博客，建议对照一遍表格措辞。REVIEW.md 第 490 行那条可以视为已处理。
+- `04-concurrent-rendering.md#lanes-在树上的传播`：新增「19.3 起 transition 各自独立渲染」的说法，依据是 CHANGELOG 19.3.0「Render transitions independently instead of entangling them」(#37290) 和 v19.3.1 源码 `enableParallelTransitions = true`、`getHighestPriorityLanes` 对 TransitionLane1–10 只取最高位。「同一个 transition 里的多次 setState 仍在同一条 lane」是按 `requestTransitionLane` 的逐事件复用推断的，没有实际跑过验证。
+- `06-actions-and-forms.md#form-action把函数交给表单`：原说法「失败也会重置非受控字段」维持。react.dev `<form>` 文档写的是「action 成功后」重置；v19.3.1 源码 `startHostTransition` 在调用 action 前无条件 `requestFormReset`，所以返回错误 state 也会重置。action 抛错（reject）时重置是否仍然提交没有实测，正文只写了「错误交给 Error Boundary」。章末练习 1 的预期结果没有在 19.3 上实际运行确认。
+### frontend-engineering
+
+- `02-css-layout-cascade.md#新特性与兼容性线`：新写的「锚点定位：核心属性 2026 年 1 月（Firefox 147）起新近可用，整体仍未达 Baseline」。依据是 web-features 3.45：整体特性 status=false（只列 Safari 27），但 `anchor-name`、`anchor()`、`position-area`、`@position-try` 各自 baseline low 2026-01-13；`position-anchor` 属性要到 2026-09（Chrome/Firefox 151、Safari 27）。MDN 页面上的标记可能随 web-features 下一版变化，需人看一眼 MDN 当前显示。
+- `02-css-layout-cascade.md#新特性与兼容性线`：`popover` 写成「2025 年 1 月起新近可用」，来自 web-features（因 iOS Safari 18.3 才算完整支持）；常见说法是 2024 年 4 月。两种口径都有，按 web-features 写。
+- `08-eslint-prettier.md#oxlintbiome-与-oxfmt`：Oxlint 类型感知覆盖「61 条中的 59 条」取自 oxc.rs 文档；tsgolint 仓库 README 写的是「62 条中 60 条」，口径不一，正文已注明。
+- `08-eslint-prettier.md#oxlintbiome-与-oxfmt`：Oxfmt「0.x，2026 年 2 月进入 beta」——beta 公告是 2026-02-24 的 Oxc 博客；之后没找到 stable 公告，当前 npm 版本 0.76.0（2026-11-03），「仍是 beta」是按版本号推断。「通过 Prettier JS/TS 一致性测试全部用例」是项目方自述（VoidZero 2026 年 2 月月报），未见第三方验证。
+### electron-desktop
+
+- [ ] `06-packaging-signing.md#配置`：原说法「`APPLE_API_KEY`（.p8 文件路径）」。`app-builder-lib@26.18.0` 源码把它原样交给 `@electron/notarize`，后者 README 要求填 .p8 绝对路径，正文维持「路径」；但 electron.build 文档站 v26 公证页写的是 base64 编码的 .p8 内容（v27 文档说两种都行），二者不一致，需要用真实账号实测一次确认
+- [ ] `06-packaging-signing.md#macos-签名为什么不能不签` 与 `07-auto-update.md#先决条件签名`：「签名未公证也能自动更新」（signing-levels 图里「开发者证书 → 自动更新：能」）。Electron autoUpdater 文档只写「macOS 上必须签名（Squirrel.Mac 要求）」，没提公证；正文已标为推断，未实测
+- [ ] `06-packaging-signing.md#不签名为什么不行`：「不签名在苹果芯片上不能稳定运行、系统随时可能杀掉进程」。`@electron/fuses` README 写明 arm64 上改过不重签会因签名校验错误拒绝启动，部分佐证；「随时被杀」的具体表现仍是推断，正文已注明
+- [ ] `05-native-integration.md#钥匙串safestorage`：Electron 45 弃用同步 `safeStorage` 方法、46 计划移除（Breaking Changes 页已核实）；异步版 `encryptStringAsync` 等从哪个版本开始提供、44 里能否用，官方 API 页没写版本，未核实
+- [ ] `06-packaging-signing.md#electron-builder-怎么配`：electron-builder 26.18 的 `azureSignOptions` 内部仍调用 PowerShell 模块 `TrustedSigning`（`Invoke-TrustedSigning`），微软已把服务更名为 Artifact Signing；改名后该模块是否继续可用、electron-builder 是否会改名，未查到说明。是否必须在 Windows 主机上构建也未核实（正文写「通常在 Windows 的 CI 机器上构建」）
+- [ ] `06-packaging-signing.md#选哪种方式`：Artifact Signing「每月 9.99 美元起」引自 Microsoft Learn 的 SmartScreen 页，未打开 Azure 定价页核对
+- [ ] `03-security.md#对照唱片墙做了什么为什么没做什么`（REVIEW 第 53 行 hatch-recordwall 条目）：「IPC 不校验发送方；`net:fetch` 接受任意 URL；只读令牌经 preload 交给页面」。书中把前两条标为「可改进」、令牌标为「知情的取舍」，并写明前提（只加载自打包代码、封死导航）和前提变化时要补什么，表述恰当，未改；是否仍是 hatch-recordwall 现状需对照仓库代码
+

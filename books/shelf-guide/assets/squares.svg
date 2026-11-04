@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 230" width="360" height="230" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+  <rect x="0.5" y="0.5" width="359" height="229" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+  <text x="20" y="32" font-size="15" font-weight="600" fill="#1f2328">Go 示例的输出：n 的平方</text>
+  <!-- 网格线：0、3、6、9，绘图区 y 从 190（0）到 70（10），每单位 12px -->
+  <g stroke="#d8dee4" stroke-width="1">
+    <line x1="60" y1="190" x2="330" y2="190"/>
+    <line x1="60" y1="154" x2="330" y2="154"/>
+    <line x1="60" y1="118" x2="330" y2="118"/>
+    <line x1="60" y1="82" x2="330" y2="82"/>
+  </g>
+  <g font-size="12" fill="#656d76" text-anchor="end">
+    <text x="50" y="194">0</text>
+    <text x="50" y="158">3</text>
+    <text x="50" y="122">6</text>
+    <text x="50" y="86">9</text>
+  </g>
+  <!-- 柱子：1、4、9 -->
+  <rect x="85" y="178" width="50" height="12" fill="#dbe7fb"/>
+  <rect x="170" y="142" width="50" height="48" fill="#dbe7fb"/>
+  <rect x="255" y="82" width="50" height="108" fill="#2f6fdf"/>
+  <g font-size="13" font-weight="600" fill="#1f2328" text-anchor="middle">
+    <text x="110" y="172">1</text>
+    <text x="195" y="136">4</text>
+    <text x="280" y="76">9</text>
+  </g>
+  <g font-size="12" fill="#656d76" text-anchor="middle">
+    <text x="110" y="208">n = 1</text>
+    <text x="195" y="208">n = 2</text>
+    <text x="280" y="208">n = 3</text>
+  </g>
+</svg>

@@ -114,7 +114,7 @@ npx @electron/asar list release/mac-arm64/*.app/Contents/Resources/app.asar | he
 - 下载下来的 `Electron.app` 本身带着 Electron 官方的签名，签名封住了整个包的内容
 - electron-builder 改了 `Info.plist`、塞进了 `app.asar`，这个签名就**坏了**
 
-坏签名比没签名更糟：`codesign --verify` 失败，系统随时可能杀掉进程。钥匙串（`safeStorage`）也按签名识别应用。唱片墙的配置注释里写的就是这件事。
+坏签名比没签名更糟：`codesign --verify` 失败，系统随时可能杀掉进程。`@electron/fuses` 的 README 也写明了同一件事：苹果芯片上改过二进制后不重新签名，应用会因签名校验错误拒绝启动。「系统随时可能杀掉」是按苹果「arm64 原生代码必须签名」的规则推断的，具体表现（启动即被拒，还是加载某个库时才被杀）随系统版本不同。钥匙串（`safeStorage`）也按签名识别应用。唱片墙的配置注释里写的就是这件事。
 
 ### ad-hoc 签名
 
@@ -166,7 +166,7 @@ sequenceDiagram
 ### 配置
 
 > [!WARNING]
-> 本节的 `notarize` 配置写法和公证、签名用的环境变量名按 electron-builder 26 整理，这些键名在不同版本间有过调整（早期版本的 `notarize` 是对象而非布尔值）；以你所用版本的 electron-builder 官方文档和 changelog 为准。
+> 本节的 `notarize` 配置写法和公证、签名用的环境变量名按 2026 年 11 月 electron-builder 26（对照 `app-builder-lib@26.18.0` 的源码和类型注释、`@electron/notarize` 的 README）整理，这些键名在不同版本间有过调整（早期版本的 `notarize` 是对象而非布尔值；正在预发布的 27 把 `hardenedRuntime`、`entitlements` 挪到了 `mac.sign` 下）；以你所用版本的 electron-builder 官方文档和 changelog 为准。
 
 ```yaml
 # electron-builder.yml（发布版）
@@ -187,6 +187,9 @@ mac:
 |---|---|
 | App Store Connect API Key（推荐，适合 CI） | `APPLE_API_KEY`（.p8 文件路径）、`APPLE_API_KEY_ID`、`APPLE_API_ISSUER` |
 | Apple ID + App 专用密码 | `APPLE_ID`、`APPLE_APP_SPECIFIC_PASSWORD`、`APPLE_TEAM_ID` |
+| 钥匙串里存好的 notarytool 凭据（适合本机） | `APPLE_KEYCHAIN_PROFILE`，可选 `APPLE_KEYCHAIN` |
+
+在 26 里，**触发公证的是这些环境变量**，不是 `notarize: true`：检测到任意一组凭据就公证，同一组缺一个变量直接报错；一组都没有时打一条警告、跳过公证；只有显式写 `notarize: false` 才会在有凭据时也跳过。所以配置里的 `notarize: true` 主要是表明意图，CI 上要确认构建日志里出现了 `notarization successful`，而不是只看构建成功。`APPLE_API_KEY` 在 26 里原样交给 `@electron/notarize`，按后者的文档填 `.p8` 文件的绝对路径；electron-builder 文档站上 v26 的公证页写的是 base64 内容，和 26.18 的源码对不上，以你所用版本实测为准。
 
 在 CI 上签名时，证书本身用 `CSC_LINK`（p12 文件的路径或 base64）和 `CSC_KEY_PASSWORD` 提供。
 
@@ -208,7 +211,77 @@ spctl --assess --type execute -vv "dist/MyApp.app"   # 应显示 source=Notarize
 | Windows | 代码签名证书（OV / EV），或云签名服务 | SmartScreen 警告「Windows 已保护你的电脑」，用户要点「仍要运行」 |
 | Linux | 一般不要求 | AppImage、deb、rpm 各有分发习惯，Snap / Flatpak 商店有自己的签名流程 |
 
-Windows 证书的获取方式、价格和 SmartScreen 信誉规则近几年变化较多，做 Windows 版时请查阅最新的官方说明。
+Windows 证书的获取方式、价格和 SmartScreen 信誉规则近几年变化较多，下一节单独讲。
+
+## Windows 代码签名
+
+> [!WARNING]
+> 本节按 2026 年 11 月的以下来源整理：Microsoft Learn 的「SmartScreen reputation for Windows app developers」和 Artifact Signing 文档（概览、快速入门、FAQ）、CA/Browser Forum 的 CSC-31 投票公告、`app-builder-lib@26.18.0` 的类型定义和源码。证书规则、Artifact Signing 的开放地区和价格都在变，以微软和你所选证书机构的最新说明为准。
+
+### 这几年变了什么
+
+如果你几年前做过 Windows 签名，下面几条已经不一样了：
+
+| 变化 | 现在的情况 |
+|---|---|
+| 私钥存放 | CA/Browser Forum 的代码签名基线要求自 2023 年 6 月起，OV 证书的私钥也必须放在硬件里（USB 令牌或云端 HSM），不再发可以随手拷贝的 `.pfx` 文件 |
+| EV 证书 | Microsoft Learn 写明：EV 证书**不再**让 SmartScreen 直接放行，只为绕过 SmartScreen 多付 EV 的钱已经不值得 |
+| 有效期 | CA/Browser Forum CSC-31 投票通过：2026 年 3 月 1 日起签发的代码签名证书最长 460 天，以前是 39 个月 |
+| 托管签名 | 微软的 Trusted Signing 已更名为 **Artifact Signing** 并正式可用（GA），官方说只是改名，功能不变 |
+
+SmartScreen 现在看两样东西：发布者证书的信誉和这个文件哈希的信誉。不管 OV 还是 EV，新证书签出来的新文件一开始都会提示「无法识别的应用」，只是会显示经过验证的发布者名称；下载量多了、没有异常行为，提示才会消失。微软文档说没有固定门槛，可能要几周、几百次来自不同用户的干净安装。**同一个身份持续签名**，信誉才能延续到新版本；不签名的文件每个版本都从零开始。Windows 11 的「智能应用控制」开着时，没签名又没信誉的文件会被直接拦下。
+
+### 选哪种方式
+
+| 方式 | 适合 | 要点 |
+|---|---|---|
+| Artifact Signing | 符合地区条件的个人或公司 | 按月付费（Learn 文档写的是每月 9.99 美元起），需要付费的 Azure 订阅；微软验证身份后托管证书，私钥不落到你手里，适合 CI；不签发 EV |
+| 证书机构的 OV 证书 + 令牌或云 HSM | 不符合 Artifact Signing 地区条件的开发者 | 令牌插在本机签；要在 CI 签，选机构提供的云签名服务，用自定义签名函数接进来 |
+| 上架 Microsoft Store | 能接受商店规则的应用 | 商店会用微软的证书重签，用户不会看到 SmartScreen 下载警告 |
+
+Artifact Signing 的地区限制要先看清：按快速入门文档，公共信任证书只对美国、加拿大、欧盟、英国、澳大利亚、新西兰、日本、韩国、新加坡、瑞士、挪威、以色列的**组织**开放，**个人开发者**只限美国和加拿大。名单里没有中国大陆；在国内注册的个人或公司，目前要走证书机构的 OV 证书。身份验证需要 1 到 20 个工作日，资料对不上要重来，签名前留出时间。
+
+### electron-builder 怎么配
+
+electron-builder 26 的 `win` 下有两组互斥的签名配置：`signtoolOptions`（用 Windows 的 signtool 和你自己的证书）和 `azureSignOptions`（Artifact Signing）。
+
+用 Artifact Signing：
+
+```yaml
+# electron-builder.yml
+win:
+  target: nsis
+  azureSignOptions:
+    publisherName: "Example Studio"            # 和证书上的名称一致
+    endpoint: https://eus.codesigning.azure.net # 按账户所在区域
+    codeSigningAccountName: example-signing
+    certificateProfileName: example-public
+```
+
+认证用 Azure 的服务主体，通过环境变量给：`AZURE_TENANT_ID`、`AZURE_CLIENT_ID`、`AZURE_CLIENT_SECRET`，这个服务主体要在 Azure 里分配「Certificate Profile Signer」角色。electron-builder 26.18 在内部用 PowerShell 安装并调用名为 `TrustedSigning` 的模块（`Invoke-TrustedSigning`），配置项也还叫 `azureSignOptions`，改名还没传到这里；通常在 Windows 的 CI 机器上构建。
+
+用证书机构的证书：
+
+```yaml
+win:
+  target: nsis
+  signtoolOptions:
+    certificateSubjectName: "Example Studio"   # 证书在本机证书库里时，按名称找
+    # certificateSha1: "<指纹>"                # 有多张证书时用指纹精确指定
+    # sign: ./scripts/win-sign.cjs             # 机构的云签名服务，用自定义函数调用它的工具
+    publisherName: "Example Studio"
+```
+
+证书若是 `.pfx` 文件（旧证书或私有信任场景），用环境变量 `CSC_LINK` / `CSC_KEY_PASSWORD`（只给 Windows 时用 `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD`），不要写进配置。
+
+`publisherName` 不只是显示用。electron-updater 在 Windows 上安装更新前，会按它校验新安装包的签名（`verifyUpdateCodeSignature` 默认开启，见[第 7 章](07-auto-update.md#先决条件签名)）。**换证书、换签名方式时发布者名称要保持一致**，否则老用户的自动更新会因校验失败卡住。
+
+签完在 Windows 上验证：
+
+```powershell
+signtool verify /pa /v .\release\MyApp-Setup-1.4.0.exe
+Get-AuthenticodeSignature .\release\MyApp-Setup-1.4.0.exe | Format-List
+```
 
 ## 一人公司的建议路径
 
@@ -227,7 +300,8 @@ Windows 证书的获取方式、价格和 SmartScreen 信誉规则近几年变�
 - `files` 只放构建产物；不同 `appId` + `productName` 让开发包和正式包共存
 - Electron 应用**不能不签名**：改过的包会破坏 Electron 自带的签名
 - 自用选 ad-hoc（`identity: "-"`）并关 hardened runtime；发布选 Developer ID + hardened runtime + 公证
-- 公证凭据走环境变量，推荐 App Store Connect API Key
+- 公证凭据走环境变量，推荐 App Store Connect API Key；26 里有凭据就公证，日志里要看到公证成功
+- Windows：私钥必须在硬件里，EV 不再让 SmartScreen 直接放行；符合地区条件用 Artifact Signing（`azureSignOptions`），否则用机构的 OV 证书（`signtoolOptions`），发布者名称保持不变
 - 用 `codesign --verify`、`spctl --assess`、`stapler validate` 验证每一步
 - 证书费用、变量名、平台规则都会变，以官方文档为准
 

@@ -1,6 +1,6 @@
 # 大版本升级
 
-PostgreSQL 每年发布一个大版本，每个大版本官方支持 5 年。hatch-counter 现在用的 16 是 2023 年发布的，按这个周期，2028 年底前总要升一次。大版本之间数据文件格式不兼容，不能像升级 Node 依赖那样改个版本号就完事。本章先区分小版本和大版本升级，比较三种大版本升级方式，然后给出一份在 docker compose 上从 16 升到 17 的完整手册，最后说明升到 18 时要额外注意的地方。
+PostgreSQL 每年发布一个大版本，每个大版本官方支持 5 年。hatch-counter 现在用的 16 是 2023 年发布的，按这个周期，2028 年底前总要升一次。大版本之间数据文件格式不兼容，不能像升级 Node 依赖那样改个版本号就完事。本章先区分小版本和大版本升级，比较三种大版本升级方式，然后给出一份在 docker compose 上从 16 直接升到 18（本书的基线）的完整手册，最后列出 18 带来的、和本书操作相关的变化，以及 19 的情况。
 
 ## 小版本和大版本
 
@@ -39,6 +39,8 @@ DETAIL:  The data directory was initialized by PostgreSQL version 16, which is n
 
 这是好事：Postgres 拒绝用新版本打开旧格式的数据，不会把数据弄坏。改回 `16-alpine` 就能恢复。
 
+换成 `18-alpine` 时报错会更早：18 的镜像发现 `/var/lib/postgresql/data` 上挂着一个卷，就直接拒绝启动、提示挂载点变了，根本走不到版本检查（见[下文](#18-带来的变化以及-19)）。
+
 ## 三种升级方式
 
 ```mermaid
@@ -63,13 +65,13 @@ hatch-counter 这样的业务库，数据量在几 GB 以内，dump / restore �
 
 升级当天之前要完成的事：
 
-1. **读发布说明里的「不兼容变更」**（Migration to Version 17 一节）。重点看是否有你用到的函数、参数被删除或改了行为
+1. **读发布说明里的「不兼容变更」**（Migration to Version 18 一节；从 16 跨过 17 直接升到 18，要把 17 和 18 两个版本的这一节都读一遍）。重点看是否有你用到的函数、参数被删除或改了行为
 2. **检查扩展**：`SELECT extname, extversion FROM pg_extension;`，确认每个扩展在新版本都可用。官方镜像自带的 contrib 扩展（如 `pg_stat_statements`、`pgstattuple`）没有问题，自己装的第三方扩展要确认有对应新版本的构建
 3. **检查应用依赖**：驱动、ORM 是否支持新版本。主流驱动对新版本的支持一般都很及时
-4. **准备好镜像**：hatch-counter 需要先把 `postgres:17-alpine` 转存到自己的镜像仓库，否则升级当天才发现拉不到
-5. **完整彩排一次**：按第 2 章的方法，把最新的 dump 恢复进一个 `postgres:17-alpine` 临时容器，在它上面跑一遍迁移和服务端的测试，记下导出和恢复各用了多久。这个时间就是升级当天的停机时间
+4. **准备好镜像**：hatch-counter 需要先把 `postgres:18-alpine` 转存到自己的镜像仓库，否则升级当天才发现拉不到
+5. **完整彩排一次**：按第 2 章的方法，把最新的 dump 恢复进一个 `postgres:18-alpine` 临时容器，在它上面跑一遍迁移和服务端的测试，记下导出和恢复各用了多久。这个时间就是升级当天的停机时间
 
-## 手册：compose 上从 16 升到 17
+## 手册：compose 上从 16 升到 18
 
 前提：项目名 `counter`，compose 网络 `counter_default`，现有数据卷 `pgdata`，密码在 `postgres.env`。
 
@@ -84,16 +86,16 @@ nginx 这时会对 api 的请求返回 502。更友好的做法是事先配好�
 
 ### 2. 用新版本的 pg_dump 导出
 
-官方建议用**新版本**的 `pg_dump` 去导出旧版本的库，它知道怎样生成新版本最能接受的输出。在 compose 网络里起一个 17 的临时容器去连旧库：
+官方建议用**新版本**的 `pg_dump` 去导出旧版本的库，它知道怎样生成新版本最能接受的输出。在 compose 网络里起一个 18 的临时容器去连旧库：
 
 ```bash
 mkdir -p /srv/pg-backups/upgrade
 
-docker run --rm --network counter_default --env-file postgres.env postgres:17-alpine \
+docker run --rm --network counter_default --env-file postgres.env postgres:18-alpine \
   sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" pg_dump -h postgres -U counter -d counter -Fc' \
   > /srv/pg-backups/upgrade/counter-pg16.dump
 
-docker run --rm --network counter_default --env-file postgres.env postgres:17-alpine \
+docker run --rm --network counter_default --env-file postgres.env postgres:18-alpine \
   sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -h postgres -U counter --roles-only' \
   > /srv/pg-backups/upgrade/roles-pg16.sql
 
@@ -113,16 +115,16 @@ docker compose stop postgres
 ```yaml
 services:
   postgres:
-    image: registry.example.com/counter/postgres:17-alpine
+    image: registry.example.com/counter/postgres:18-alpine
     volumes:
-      - pgdata17:/var/lib/postgresql/data   # 新卷
+      - pgdata18:/var/lib/postgresql   # 新卷；18 起挂载点不再是 .../data
 
 volumes:
   pgdata:      # 旧卷保留，不要删，它是回滚的后路
-  pgdata17:
+  pgdata18:
 ```
 
-**用新卷，不要动旧卷**。旧卷原封不动地保留着，回滚只需要把这两行改回去。
+**用新卷，不要动旧卷**。旧卷原封不动地保留着，回滚只需要把这两行改回去。注意挂载点也跟着变了：18 的镜像把卷挂在 `/var/lib/postgresql`，数据目录是卷里的 `18/docker`；照旧写成 `pgdata18:/var/lib/postgresql/data`，18 的镜像会拒绝启动。
 
 ### 4. 启动新库
 
@@ -177,7 +179,7 @@ curl -fsS http://127.0.0.1:3000/v1/health
 
 ```bash
 docker compose stop api postgres
-# 把 compose 里的镜像改回 16-alpine，卷改回 pgdata
+# 把 compose 里的镜像改回 16-alpine，卷改回 pgdata:/var/lib/postgresql/data
 docker compose up -d --wait postgres api
 ```
 
@@ -189,16 +191,22 @@ docker compose up -d --wait postgres api
 - 立即做一次新的基础备份和 dump。如果配了 WAL 归档（第 3 章），**旧版本的基础备份和 WAL 不能用来恢复新版本的库**，归档目录要换一个新的
 - 一两周后确认无误，再删除旧卷：`docker volume rm counter_pgdata`
 
-## 升到 18 时要额外注意
+## 18 带来的变化，以及 19
 
-PostgreSQL 18 于 2025 年发布。如果你从 16 直接升到 18，流程同上，另有几处差异：
+> [!WARNING]
+> 本节按 2026 年 11 月 PostgreSQL 18 官方 Release Notes、docker-library/postgres 的 18 镜像 Dockerfile 和 postgresql.org 版本支持页整理。只列与本书操作直接相关的几条，完整变化以官方 Release Notes 为准。
 
-- **官方镜像的数据目录变了**。18 起，镜像的 `PGDATA` 默认是 `/var/lib/postgresql/18/docker`，声明的卷挂载点改成了 `/var/lib/postgresql`。compose 里要写成 `pgdata18:/var/lib/postgresql`，照抄旧的 `/var/lib/postgresql/data` 会出问题。这个改动的意图正是方便以后用 `pg_upgrade` 在同一个卷里放多个版本的目录。具体以官方镜像说明为准
-- **新集群默认开启数据校验和**。`initdb` 在 18 默认启用 data checksums。dump / restore 不受影响；用 `pg_upgrade` 从未开启校验和的旧集群升级时，新旧两边要一致
+PostgreSQL 18.0 于 2025 年 9 月 25 日发布。从 16 升上来，上面的手册已经处理了挂载点，另外几处差异：
+
+- **官方镜像的数据目录变了**。18 起，镜像的 `PGDATA` 默认是 `/var/lib/postgresql/18/docker`，声明的卷挂载点改成了 `/var/lib/postgresql`。改动的意图是方便以后用 `pg_upgrade` 在同一个卷里放多个版本的目录。备份脚本、恢复步骤里写死的 `/var/lib/postgresql/data` 都要跟着改（第 3 章的恢复步骤已按 18 写）
+- **新集群默认开启数据校验和**。`initdb` 在 18 默认启用 data checksums（`--no-data-checksums` 关闭）。dump / restore 不受影响；用 `pg_upgrade` 从未开启校验和的旧集群升级时，新旧两边要一致
 - **`pg_upgrade` 会保留优化器统计信息**，升级后不用马上 ANALYZE。dump / restore 方式仍然需要第 6 步
-- `EXPLAIN ANALYZE` 默认带上 `BUFFERS` 信息
+- **`EXPLAIN ANALYZE` 默认带上 `BUFFERS`**（第 6 章）
+- **I/O 相关的默认值**：新增异步 I/O（`io_method`），`effective_io_concurrency` 和 `maintenance_io_concurrency` 的默认值都改成了 16。用默认值的不用动；以前手动调过这两个参数的，升级后重新评估
+- **MD5 密码开始告警**：用 `CREATE ROLE` / `ALTER ROLE` 设置 MD5 密码时会给出弃用警告。角色文件里如果还有 `md5` 开头的哈希，趁升级改成 SCRAM：先把 `password_encryption` 保持默认的 `scram-sha-256`，再给这些角色重设一次密码
+- **`pg_verifybackup` 能校验 tar 格式的备份**（第 3 章）
 
-每个大版本的完整变化请读官方发布说明，上面只列了与本书操作直接相关的几条。
+**19 呢？** 写作时 19 在 2026 年 10 月发布了 RC1，还没有正式版。一个人维护的生产库没有必要赶第一时间：等正式版发布、出过一两个小版本、你用到的扩展和驱动都声明支持之后再按本章的流程升。16 的社区支持到 2028 年 11 月，时间是够的。
 
 ## 逻辑复制：几乎不停机的升级
 
@@ -219,11 +227,11 @@ PostgreSQL 18 于 2025 年发布。如果你从 16 直接升到 18，流程同�
 - 用**新版本**的 `pg_dump` 导出；**用新卷、保留旧卷**作为回滚后路
 - 恢复后必须 `vacuumdb --analyze-in-stages`；验证完成再放开写入
 - 升级后旧的物理备份和 WAL 归档作废，立即做新备份
-- 升到 18 注意官方镜像的挂载点变成 `/var/lib/postgresql`
+- 升到 18 注意官方镜像的挂载点变成 `/var/lib/postgresql`，数据目录是 `18/docker`；19 等正式版和小版本稳定后再升
 
 ## 动手练习
 
-全部用一次性容器和卷，做完执行 `docker rm -f old new; docker volume rm up16 up17; docker network rm upnet` 清理。先准备一个 16 的「旧库」：
+全部用一次性容器和卷，做完执行 `docker rm -f old new; docker volume rm up16 up18; docker network rm upnet` 清理。先准备一个 16 的「旧库」：
 
 ```bash
 docker network create upnet
@@ -234,15 +242,15 @@ docker exec old psql -U postgres -c "CREATE TABLE t (id serial PRIMARY KEY, v te
   -c "INSERT INTO t (v) SELECT 'row' FROM generate_series(1, 10000)"
 ```
 
-1. **直接换标签会怎样**：`docker stop old`，用同一个卷起 17：`docker run --rm -v up16:/var/lib/postgresql/data postgres:17-alpine`。然后 `docker start old`。
+1. **直接换标签会怎样**：`docker stop old`，用同一个卷先起 17：`docker run --rm -v up16:/var/lib/postgresql/data postgres:17-alpine`，再起 18：`docker run --rm -v up16:/var/lib/postgresql/data postgres:18-alpine`。然后 `docker start old`。
 
-   验证：17 的容器立刻退出，日志里有 `database files are incompatible with server`，并说明数据目录由 16 初始化；`docker start old` 之后 `SELECT count(*) FROM t` 仍然是 `10000`。
+   验证：17 的容器立刻退出，日志里有 `database files are incompatible with server`，并说明数据目录由 16 初始化；18 的容器也立刻退出，但报的是镜像入口脚本的错误：在 `/var/lib/postgresql/data` 发现了旧数据，建议 18 起只在 `/var/lib/postgresql` 挂一个卷。`docker start old` 之后 `SELECT count(*) FROM t` 仍然是 `10000`。
 
-   参考答案：大版本数据文件格式不兼容，Postgres 拒绝打开而不是改写，所以改回旧标签就能恢复。
+   参考答案：大版本数据文件格式不兼容，Postgres 拒绝打开而不是改写，所以改回旧标签就能恢复。18 的镜像在更早一步就拦下了：挂载点变了，它不会去碰 `.../data` 里的旧数据。
 
-2. **dump / restore 彩排**：起一个用新卷的 17：`docker run -d --name new --network upnet -e POSTGRES_PASSWORD=x -v up17:/var/lib/postgresql/data postgres:17-alpine`，用 **17 的** `pg_dump` 从 `old` 导出、恢复进 `new`，再执行 `vacuumdb --all --analyze-in-stages`，给每一步计时。
+2. **dump / restore 彩排**：起一个用新卷的 18（注意挂载点）：`docker run -d --name new --network upnet -e POSTGRES_PASSWORD=x -v up18:/var/lib/postgresql postgres:18-alpine`，用 **18 的** `pg_dump` 从 `old` 导出、恢复进 `new`，再执行 `vacuumdb --all --analyze-in-stages`，给每一步计时。
 
-   验证：`new` 上 `SHOW server_version;` 以 `17.` 开头，`SELECT count(*) FROM t` 是 `10000`；`vacuumdb` 之后 `SELECT last_analyze FROM pg_stat_user_tables WHERE relname = 't';` 有值；卷 `up16` 原封不动，随时可以换回去。
+   验证：`new` 上 `SHOW server_version;` 以 `18.` 开头，`SELECT count(*) FROM t` 是 `10000`；`vacuumdb` 之后 `SELECT last_analyze FROM pg_stat_user_tables WHERE relname = 't';` 有值；卷 `up16` 原封不动，随时可以换回去。
 
    参考答案：
 

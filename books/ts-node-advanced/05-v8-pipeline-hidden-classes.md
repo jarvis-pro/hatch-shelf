@@ -7,7 +7,7 @@ JS 是动态语言：对象随时可以加属性，变量随时可以换类型�
 ## 分层编译管线
 
 > [!WARNING]
-> 表中「Maglev 默认关闭」是笔者在 Node 22.23 上用 `node --v8-options` 看到的结果，不同 Node 版本、不同 CPU 架构的默认值可能不同；以 Node.js 发布说明和 V8 官方博客为准，并用下文的命令在你自己的环境里确认。
+> 表中「Maglev 默认关闭」按 2026 年 11 月核对：Node.js v22.9.0 的发布说明写明，因为在 v22（V8 12.4）上发现多起 Maglev 导致的崩溃和异常行为，且 v22 会一直停在 V8 12.4、很难回移修复，所以在 v22 线上关闭 Maglev；笔者在 22.23 上用 `node --v8-options` 看到的也是 `default: --no-maglev`。这个改动只针对 v22，Node 24（V8 13.6）的发布说明没有提到 Maglev，笔者没有在 24 上实测，默认值以你自己环境里下文命令的输出为准。
 
 ```mermaid
 flowchart TD
@@ -23,7 +23,7 @@ flowchart TD
 |---|---|---|
 | Ignition | 解释器 | 启动快、内存省；执行的同时记录每个操作见过什么类型（类型反馈，feedback vector） |
 | Sparkplug | 基线编译器 | 把字节码一对一翻译成机器码，省掉解释开销，编译极快 |
-| Maglev | 中层优化编译器 | 介于两者之间；在笔者的 Node 22.23 上默认关闭（`node --v8-options` 里显示 `default: --no-maglev`），新版本 Node 可能默认开启 |
+| Maglev | 中层优化编译器 | 介于两者之间；Node 22 从 22.9.0 起在构建时关闭了它（`node --v8-options` 里显示 `default: --no-maglev`），Node 24 换了 V8 13.6，默认值要自己查 |
 | TurboFan | 顶层优化编译器 | 基于类型反馈做内联、逃逸分析、去掉类型检查，生成最快的代码 |
 
 可以用 `node --v8-options | grep -A1 maglev` 查你那个版本的默认值，也可以用 `--trace-opt` 看函数最终被编译到哪一层（输出里的 `target TURBOFAN` / `target MAGLEV`）。

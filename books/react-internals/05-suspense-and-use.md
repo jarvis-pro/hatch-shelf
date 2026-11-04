@@ -80,7 +80,7 @@ void loadOverview();
 
 ### 显示节流
 
-多个边界陆续就绪时，如果每个都立即替换 fallback，页面会频繁跳动。React 对 fallback 到内容的切换做了节流（源码里约 300ms），让相近时间就绪的边界一起显示。React 19.2 起服务端渲染的 Suspense 边界也采用类似的批量显示。具体时长是实现细节。
+多个边界陆续就绪时，如果每个都立即替换 fallback，页面会频繁跳动。React 对 fallback 到内容的切换做了节流（v19.3.1 源码 `ReactFiberWorkLoop.js` 里的 `FALLBACK_THROTTLE_MS` 是 300ms，2026 年 11 月核对），让相近时间就绪的边界一起显示。React 19.2 起服务端渲染的 Suspense 边界也采用类似的批量显示（见 19.2 的 CHANGELOG）。具体时长是实现细节，可能随版本调整。
 
 ## use：在渲染中读 Promise 和 Context
 
@@ -202,6 +202,76 @@ import { Activity } from "react";
 
 掌柜眼有一个反复出现的需求叫「记得住」：离开一页再回来，上次的筛选、上次的数据当场画出来。现在的实现是两块模块级 Map，`useViewState` 记筛选这类「看法」，`useAsync` 的 `memory` 记数据。`<Activity>` 提供了另一条路：不卸载页面，只是隐藏。它的代价是隐藏的页面仍然占内存和 DOM 节点，适合少量、切换频繁的视图（比如几个 tab），不适合把几十个路由全挂着。两种方案也可以组合：常用的两三个 tab 用 Activity，其他页面继续用缓存。
 
+## Server Components 与 "use client" 边界
+
+> [!WARNING]
+> 本节按 2026 年 11 月 react.dev 的 Server Components、`'use client'`、`'use server'` 参考文档整理。RSC 的打包和路由由框架实现（如 Next.js App Router），各框架的细节和稳定程度不同，以 react.dev 和所用框架的官方文档为准。
+
+本书只讲客户端，掌柜眼也是纯客户端的 Vite 应用，用不到 Server Components（RSC）。但 `use`、Suspense、Actions 这几章的设计都留着 RSC 的影子，看一眼它的边界规则，前面几章的一些约束就好理解了。
+
+**Server Components 是什么**：只在服务端（或构建时）运行的组件。它可以是 `async` 函数，直接 `await` 数据库或文件；它的代码和依赖不会打进浏览器的 JS 包；它不能用 `useState`、`useEffect` 这类依赖客户端运行时的 hooks，也不能绑定事件处理函数。它的渲染结果是一份序列化的 React 树（RSC payload），客户端的 React 拿到后和普通元素树一样做调和。
+
+**两个指令管的是两件事**：
+
+| 指令 | 写在哪 | 作用 |
+|---|---|---|
+| `"use client"` | 文件第一行（import 之前） | 在模块依赖图上划一条边界：这个模块和它引入的模块都会打进客户端包，在浏览器里运行 |
+| `"use server"` | async 函数体第一行，或文件第一行 | 把函数标成 **Server Function**，客户端可以像调用普通异步函数一样调用它，实际是一次网络请求 |
+
+常见的误解是 `"use server"` 用来标 Server Component。其实 Server Component **没有指令**，在支持 RSC 的框架里，组件默认就是服务端的；`"use server"` 只标函数。另一个误解是每个客户端文件都要写 `"use client"`：它只需要写在「服务端代码第一次引入客户端代码」的那个入口文件上，从客户端模块里再引入的模块自动是客户端代码。
+
+```tsx
+// SupplierPage.tsx：Server Component，没有指令
+import { db } from "./db";
+import { SupplierCard } from "./SupplierCard";
+import { rename } from "./actions";
+
+export default async function SupplierPage({ id }: { id: string }) {
+  const supplier = await db.supplier.find(id); // 直接在服务端取数
+  const orders = db.order.listBySupplier(id);  // 不 await，把 Promise 传下去
+  return <SupplierCard supplier={supplier} ordersPromise={orders} onRename={rename} />;
+}
+```
+
+```tsx
+// SupplierCard.tsx
+"use client";
+import { use, useState } from "react";
+
+export function SupplierCard({ supplier, ordersPromise, onRename }: Props) {
+  const [editing, setEditing] = useState(false);
+  const orders = use(ordersPromise); // 本章前面的 use：这个 Promise 来自服务端，天然是「缓存好的」
+  // ……onRename 是 Server Function，可以直接交给 <form action>
+}
+```
+
+```ts
+// actions.ts
+"use server";
+export async function rename(formData: FormData) {
+  // 参数完全由客户端控制，要当作不可信输入校验，并检查当前用户有没有权限
+}
+```
+
+**能跨边界传什么**：Server Component 传给 Client Component 的 props 要经过序列化，所以有限制。react.dev 列出的可序列化类型：
+
+- 原始值：string、number、bigint、boolean、`undefined`、`null`，以及用 `Symbol.for` 注册的 symbol
+- 内容可序列化的 Array、Map、Set、TypedArray / ArrayBuffer，以及 Date
+- 普通对象（对象字面量创建、属性都可序列化）
+- Promise（客户端用 `use` 读取）
+- JSX 元素（Server 或 Client Component 都行，这就是「把服务端组件当 children 传进客户端组件」的写法）
+- Server Function（`"use server"` 标记的函数）
+
+不能传的：普通函数（包括事件处理函数和组件函数本身）、class、class 实例（上面列出的内建类型除外）、原型为 `null` 的对象、没有全局注册的 symbol。反方向也一样：客户端调用 Server Function 时，参数和返回值也要可序列化（参数额外支持 `FormData`，但不能传 JSX 和普通函数）。
+
+落到前面几章的心智模型上，有三点对应：
+
+1. **边界划在模块上，不在组件树上**。Server Component 可以把服务端渲染好的 JSX 作为 `children` 传给 Client Component，所以客户端组件的「子节点」完全可能是服务端组件，组件树和模块边界是两张图
+2. **`use(promise)` 的缓存问题在 RSC 里由框架解决**。上一节说客户端里 Promise 必须跨渲染缓存，从 Server Component 传下来的 Promise 是一次序列化传输的结果，不会每次渲染重新创建
+3. **Server Function 就是第 6 章 Action 的服务端版本**。它可以直接交给 `<form action>`，pending、错误、乐观更新都走第 6 章那套 API
+
+所以把一个客户端应用迁到 RSC，最主要的工作不是改写组件，而是**决定边界放在哪**：交互多、有状态的叶子组件标 `"use client"`，取数和拼装留在服务端，跨边界的 props 改成可序列化的形状。
+
 ## 本章要点
 
 - Suspense 让组件在渲染中**挂起**，最近的边界显示 fallback；Promise 完成后从头重新渲染，挂起前不能有副作用
@@ -212,6 +282,7 @@ import { Activity } from "react";
 - `use(context)` 可以条件调用；React 19 起 `<Context>` 可直接作为 Provider
 - 从 effect 取数迁到 Suspense 牵涉缓存、失效、加载态和离线语义，是架构决定，通常借助数据请求库分步完成
 - React 19.2 的 `<Activity>` 隐藏子树但保留状态，是实现「离开再回来还在」的另一种方式
+- Server Components 只在服务端运行、没有指令；`"use client"` 在模块依赖图上划客户端边界，`"use server"` 标记可从客户端调用的 Server Function；跨边界的 props 和参数必须可序列化，普通函数和 class 实例传不过去
 
 ## 动手练习
 

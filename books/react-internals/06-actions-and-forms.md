@@ -25,6 +25,9 @@ React 把「在 transition 里执行的函数」统称为 **Action**。异步 Ac
 
 ## form action：把函数交给表单
 
+> [!WARNING]
+> 本节的自动重置行为按 2026 年 11 月 react.dev `<form>` 文档和 React v19.3.1 源码整理，属于可能随版本调整的细节，以 react.dev 和 React 仓库的 CHANGELOG 为准。
+
 ```tsx
 function RenameForm({ id }: { id: string }) {
   async function rename(formData: FormData) {
@@ -45,7 +48,7 @@ function RenameForm({ id }: { id: string }) {
 2. 收集表单字段为 `FormData`，在 **transition 里**调用你的函数
 3. 函数结束后，**自动重置表单里的非受控字段**
 
-第 3 点要特别留意：重置发生在 Action 结束之后，不管你在函数里认为它是成功还是失败。如果校验失败时希望保留用户的输入，要么用受控组件，要么把提交的值放进返回的 state，作为 `defaultValue` 回填（见下一节的例子）。需要在其他时机手动重置时可以用 `react-dom` 导出的 `requestFormReset(form)`。
+第 3 点要特别留意：重置发生在 Action 结束之后，不管你在函数里认为它是成功还是失败。react.dev 的 `<form>` 文档写的是「action 成功后」重置，容易让人以为业务失败时不会重置；但按 2026 年 11 月 React v19.3.1 源码（`ReactFiberHooks.js` 的 `startHostTransition`），React 在调用你的函数**之前**就已经在同一个 transition 里排好了重置，它不看返回值。所以只要函数正常返回（包括 `useActionState` 返回一个「名字重复」的错误 state），字段都会被清空；函数抛错时错误交给最近的 Error Boundary。React 19.3 起，这次自动重置还会触发表单的 `onReset` 事件。如果校验失败时希望保留用户的输入，要么用受控组件，要么把提交的值放进返回的 state，作为 `defaultValue` 回填（见下一节的例子）。需要在其他时机手动重置时可以用 `react-dom` 导出的 `requestFormReset(form)`。
 
 `<button formAction={fn}>` 可以让同一个表单的不同按钮执行不同的 Action。
 

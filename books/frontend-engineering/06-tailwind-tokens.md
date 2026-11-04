@@ -6,6 +6,9 @@ Tailwind 常被批评为「把样式写回了 HTML 里」。但它真正的价�
 
 ## v4 变了什么
 
+> [!WARNING]
+> 表中浏览器要求按 2026 年 11 月 Tailwind 官方文档「Compatibility」页整理（核心功能依赖 Chrome 111、Safari 16.4、Firefox 128；`field-sizing`、`@starting-style` 等个别工具类要求更高）。其余行为以 Tailwind 4.3 为准，升级前以 tailwindcss.com 的文档和升级指南为准。
+
 | | Tailwind 3 | Tailwind 4 |
 |---|---|---|
 | 配置 | `tailwind.config.js`（JS） | CSS 里的 `@theme` 指令（CSS-first） |

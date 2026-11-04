@@ -166,18 +166,27 @@ hatch-counter 的侧栏和名字卡用了毛玻璃（`--glass` 配 `backdrop-fil
 
 ## 新特性与兼容性线
 
-近几年 CSS 加了很多过去要靠 JavaScript 或预处理器才能做到的能力：
+> [!WARNING]
+> 下表的 Baseline 状态和日期按 2026 年 11 月 web-features 数据（3.45 版，MDN 和 web.dev 页面上的 Baseline 标记都来自它）整理；Tailwind 4 的浏览器线按 2026 年 11 月 Tailwind 官方文档「Compatibility」页整理。浏览器每月都在发版，用前以 MDN 对应页面的 Baseline 标记和 caniuse 为准。
 
-| 特性 | 用途 |
+近几年 CSS 和 HTML 加了很多过去要靠 JavaScript 或预处理器才能做到的能力。表里的 **Baseline** 是 web.dev 和 MDN 共用的标记：「新近可用」指 Chrome、Edge、Firefox、Safari 的当前版本都已支持；满 30 个月后变成「广泛可用」，大致可以不加降级直接用：
+
+| 特性 | 用途与 Baseline 状态 |
 |---|---|
-| `:has()` | 父选择器：`label:has(input:checked)` |
-| 原生嵌套 | `.card { &:hover { } }` |
-| `color-mix()` | 在 CSS 里混色：`color-mix(in oklab, var(--card) 86%, white)` |
-| `oklch()` | 感知均匀的色彩空间，调亮度不偏色 |
-| `@property` | 给自定义属性声明类型，使其可动画 |
-| 层 `@layer` | 见上文 |
+| 层 `@layer` | 见上文；2024 年 9 月起广泛可用 |
+| `:has()` | 父选择器：`label:has(input:checked)`；2026 年 6 月起广泛可用 |
+| 原生嵌套 | `.card { &:hover { } }`；2026 年 6 月起广泛可用 |
+| `color-mix()` | 在 CSS 里混色：`color-mix(in oklab, var(--card) 86%, white)`；2025 年 11 月起广泛可用 |
+| `oklch()` | 感知均匀的色彩空间，调亮度不偏色；2025 年 11 月起广泛可用 |
+| `@property` | 给自定义属性声明类型，使其可动画；2024 年 7 月（Firefox 128）起新近可用 |
+| `@starting-style` | 元素刚出现时的起始样式，做进场动画；2024 年 8 月起新近可用 |
+| `popover` 属性 | HTML 原生弹层，自带置顶层、点外面关闭、Esc 关闭；2025 年 1 月起新近可用 |
+| View Transitions | `document.startViewTransition()` 做同页状态切换动画；2025 年 10 月（Firefox 144）起新近可用。跨页面的版本 Firefox 还不支持，未达 Baseline |
+| 锚点定位 | `anchor-name` / `position-area` 让浮层贴着触发元素放、放不下自动换边；核心属性 2026 年 1 月（Firefox 147）起新近可用，整个特性因个别子功能未齐，仍未达 Baseline |
 
-用这些特性之前要先定**兼容性线**。hatch-counter 的线是 Chrome / Edge 111，来源是 Tailwind 4 本身：Tailwind 4 依赖层、`@property`、`color-mix()` 这些特性，官方给出的最低版本是 Safari 16.4、Chrome 111、Firefox 128。够不着时不是「部分样式不对」，而是大面积塌掉。所以它的做法是：`index.html` 里测 `color-mix()`，测不过就整页换成提示，而不是让用户面对一个乱掉的界面；构建目标也钉在 `chrome111`，第 4 章细讲。
+后三行和本章后面讲的浮层问题直接相关：`popover` 把元素放进浏览器的**置顶层**（top layer），天然跳出所有层叠上下文和 `overflow` 裁剪，等于浏览器自带了 Portal；锚点定位则能替代 Floating UI 这类库算坐标。它们都还在「新近可用」或更早的阶段，而且远高于 hatch-counter 的 Chrome 111 线（`popover` 要 Chrome 116，锚点定位要 Chrome 125），所以 Radix 的 Portal 方案在这类项目里仍是正解。新项目如果兼容线够高，可以先用 `popover` 做简单的提示和菜单。
+
+用这些特性之前要先定**兼容性线**。hatch-counter 的线是 Chrome / Edge 111，来源是 Tailwind 4 本身：Tailwind 4 依赖层、`@property`、`color-mix()` 这些特性，官方给出的最低版本是 Safari 16.4、Chrome 111、Firefox 128（Firefox 128 正是它支持 `@property` 的版本）。够不着时不是「部分样式不对」，而是大面积塌掉。所以它的做法是：`index.html` 里测 `color-mix()`，测不过就整页换成提示，而不是让用户面对一个乱掉的界面；构建目标也钉在 `chrome111`，第 4 章细讲。
 
 ## 本章要点
 
@@ -188,7 +197,7 @@ hatch-counter 的侧栏和名字卡用了毛玻璃（`--glass` 配 `backdrop-fil
 - flex 子项默认 `min-width: auto`，滚动区和省略号不生效时加 `min-w-0` / `min-h-0`
 - 组件响应式用容器查询；有固定侧栏的应用尤其不该用视口断点
 - `z-index` 只在同一层叠上下文里比较；`transform`、`opacity`、`backdrop-filter` 都会创建新上下文，浮层用 Portal 逃出去
-- 先定浏览器兼容性线，再决定能用哪些新特性
+- 先定浏览器兼容性线，再决定能用哪些新特性；按 Baseline「新近可用 / 广泛可用」判断，`popover`、锚点定位这类新浮层能力要看线够不够高
 
 ## 动手练习
 

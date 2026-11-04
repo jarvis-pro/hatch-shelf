@@ -2,7 +2,7 @@
 
 上一章的 `pg_dump` 每天一份，出事时最多丢一天数据。对一个记账类系统，「今天店里录的进货单全没了」是很难向用户交代的。**时间点恢复**（Point-in-Time Recovery，PITR）能把库恢复到任意一个时刻，比如「14:25，那条手写 `UPDATE` 执行之前」。本章讲清它的原理，然后在 hatch-counter 的 compose 里把 WAL 归档配起来，完整走一遍恢复步骤。
 
-命令以 PostgreSQL 16、`postgres:16-alpine` 镜像、compose 项目名 `counter` 为准。Alpine 版官方镜像里 `postgres` 用户的 uid 是 70（Debian 版是 999），下文的 `chown` 用的是 70。
+命令以 PostgreSQL 18、`postgres:18-alpine` 镜像、compose 项目名 `counter` 为准。Alpine 版官方镜像里 `postgres` 用户的 uid 是 70（Debian 版是 999），下文的 `chown` 用的是 70。18 的镜像把卷挂在 `/var/lib/postgresql`，真正的数据目录是卷里的 `18/docker` 子目录（[第 1 章](01-install-tuning.md#关于这本书)），下文操作数据卷时都要落到这一层。
 
 ## 原理：基础备份 + WAL 重放
 
@@ -51,7 +51,7 @@ sudo chmod 700 /srv/pg-backups/wal /srv/pg-backups/base
 ```yaml
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     command:
       - postgres
       - -c
@@ -63,7 +63,7 @@ services:
       - -c
       - archive_timeout=300
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
       - /srv/pg-backups/wal:/wal-archive
       - /srv/pg-backups/base:/base-backup
 ```
@@ -72,7 +72,7 @@ services:
 
 | 参数 | 含义 |
 |---|---|
-| `wal_level=replica` | WAL 里记录足够的信息供归档和复制使用。16 的默认值就是 `replica`，写出来是为了明确 |
+| `wal_level=replica` | WAL 里记录足够的信息供归档和复制使用。默认值就是 `replica`，写出来是为了明确 |
 | `archive_mode=on` | 开启归档。改它**需要重启** |
 | `archive_command` | 每个 WAL 段写满后执行的命令。`%p` 是段文件路径，`%f` 是文件名 |
 | `archive_timeout=300` | 即使 WAL 段没写满，最多 300 秒也切换一次并归档 |
@@ -114,11 +114,13 @@ docker compose exec postgres \
 
 它走的是复制协议。官方镜像初始化时，容器内本地连接是信任认证，`counter` 又是 superuser，所以在容器里直接执行即可。
 
-完成后目录里有 `backup_manifest`、`base.tar.gz`、`pg_wal.tar.gz` 三个文件。校验一下。`pg_verifybackup` 从 13 起提供，但在 16 上只能校验 plain 格式的备份，tar 格式的校验从 18 才支持；在 16 上先用 `tar -tzf` 确认压缩包完好：
+完成后目录里有 `backup_manifest`、`base.tar.gz`、`pg_wal.tar.gz` 三个文件。用 `pg_verifybackup` 按清单逐个文件校验（18 起支持 tar 格式）：
 
 ```bash
-tar -tzf /srv/pg-backups/base/2026-11-02/base.tar.gz > /dev/null && echo base ok
+docker compose exec postgres pg_verifybackup /base-backup/2026-11-02
 ```
+
+还在 16、17 上的话，`pg_verifybackup` 只能校验 plain 格式，tar 格式先用 `tar -tzf base.tar.gz > /dev/null` 确认压缩包完好。
 
 把基础备份加进上一章的 systemd 体系，每周一次，比如周日 03:00；`pg_dump` 照样每天跑。
 
@@ -154,8 +156,8 @@ cd /srv/counter
 docker compose stop api postgres
 docker volume ls | grep pgdata     # 确认卷名，本书是 counter_pgdata
 
-docker run --rm -v counter_pgdata:/data -v /srv/pg-backups:/out alpine \
-  tar -C /data -czf /out/pgdata-before-restore-$(date +%F-%H%M).tar.gz .
+docker run --rm -v counter_pgdata:/pg -v /srv/pg-backups:/out alpine \
+  tar -C /pg -czf /out/pgdata-before-restore-$(date +%F-%H%M).tar.gz .
 ```
 
 **不要跳过留存这一步**。恢复的目标时刻选错了、恢复中途出问题，你需要能回到起点。这份打包也包含 `pg_wal/` 里还没来得及归档的最后几个 WAL 段。
@@ -163,28 +165,33 @@ docker run --rm -v counter_pgdata:/data -v /srv/pg-backups:/out alpine \
 ### 2. 清空数据卷，放回基础备份
 
 ```bash
+# 卷挂在 /pg，数据目录是 /pg/18/docker
 docker run --rm \
-  -v counter_pgdata:/data \
+  -v counter_pgdata:/pg \
   -v /srv/pg-backups/base/2026-11-02:/base:ro \
   alpine sh -c '
-    find /data -mindepth 1 -delete &&
-    tar -C /data -xzf /base/base.tar.gz &&
-    tar -C /data/pg_wal -xzf /base/pg_wal.tar.gz &&
-    chown -R 70:70 /data && chmod 700 /data
+    D=/pg/18/docker &&
+    find "$D" -mindepth 1 -delete &&
+    tar -C "$D" -xzf /base/base.tar.gz &&
+    tar -C "$D/pg_wal" -xzf /base/pg_wal.tar.gz &&
+    chown -R 70:70 /pg/18 && chmod 700 "$D"
   '
 ```
+
+16 及以前的镜像没有 `18/docker` 这一层，`D` 就是卷的根目录。
 
 ### 3. 写恢复配置
 
 ```bash
-docker run --rm -v counter_pgdata:/data alpine sh -c '
-  touch /data/recovery.signal &&
-  cat >> /data/postgresql.auto.conf <<EOF
+docker run --rm -v counter_pgdata:/pg alpine sh -c '
+  D=/pg/18/docker &&
+  touch "$D/recovery.signal" &&
+  cat >> "$D/postgresql.auto.conf" <<EOF
 restore_command = '"'"'cp /wal-archive/%f %p'"'"'
 recovery_target_time = '"'"'2026-11-02 14:24:00+08'"'"'
 recovery_target_action = '"'"'promote'"'"'
 EOF
-  chown 70:70 /data/recovery.signal /data/postgresql.auto.conf
+  chown 70:70 "$D/recovery.signal" "$D/postgresql.auto.conf"
 '
 ```
 
@@ -257,9 +264,58 @@ docker compose up -d api
 - 自动按保留策略清理旧的基础备份和 WAL
 - 增量 / 差异备份，基础备份不必每次全量
 
-另外，PostgreSQL 17 起 `pg_basebackup` 原生支持增量备份（`--incremental`），配合 `pg_combinebackup` 合成完整备份。如果你已经在 17 以上，可以先看看原生方案够不够用。
-
 需要注意：这两个工具都不在官方镜像里，要自己做一个带工具的镜像，或者在宿主机上安装、通过共享卷访问数据目录。选型和版本请看各自的官方文档。
+
+### 不装工具的折中：原生增量备份
+
+> [!WARNING]
+> 本节按 2026 年 11 月 PostgreSQL 18 官方文档（pg_basebackup、pg_combinebackup、Making an Incremental Backup、`summarize_wal` 参数）整理。增量备份从 17 开始提供，16 及以前没有；参数和限制以你所用大版本的官方文档为准。
+
+基础备份每周全量做一次，库大了以后每次都要读写整个数据目录。17 起 `pg_basebackup` 自己就能做增量：只传上一次备份之后改过的数据块，恢复前用 `pg_combinebackup` 把「全量 + 若干增量」合成一份完整的备份。它不替代 WAL 归档（PITR 仍然要靠 WAL），省的是基础备份的时间和空间。
+
+前提是打开 WAL 汇总：服务端要记下每段 WAL 改了哪些块，增量备份才知道该传什么。在 compose 的 `command` 里加两行：
+
+```yaml
+      - -c
+      - summarize_wal=on
+```
+
+汇总文件放在 `pg_wal/summaries/`，默认保留 10 天（`wal_summary_keep_time`）。增量备份要求从上一次备份到这一次之间的汇总都还在，所以**两次备份的间隔要小于这个保留期**，否则增量会直接失败，只能重新做全量。
+
+```bash
+# 周日：全量，plain 格式（pg_combinebackup 读的是目录）
+docker compose exec postgres \
+  pg_basebackup -U counter -D /base-backup/full-2026-11-01 -Fp -X stream -c fast
+
+# 周一到周六：每天一份增量，参照前一份备份的 backup_manifest
+docker compose exec postgres \
+  pg_basebackup -U counter -D /base-backup/incr-2026-11-02 -Fp -X stream -c fast \
+    --incremental=/base-backup/full-2026-11-01/backup_manifest
+
+docker compose exec postgres \
+  pg_basebackup -U counter -D /base-backup/incr-2026-11-03 -Fp -X stream -c fast \
+    --incremental=/base-backup/incr-2026-11-02/backup_manifest
+```
+
+恢复时先合成，再按上文的步骤把合成结果当作基础备份放回数据目录：
+
+```bash
+# 按从旧到新的顺序列出整条链，-o 指定输出目录；-n 先演习
+docker compose exec postgres pg_combinebackup -n \
+  /base-backup/full-2026-11-01 /base-backup/incr-2026-11-02 /base-backup/incr-2026-11-03 \
+  -o /base-backup/combined-2026-11-03
+docker compose exec postgres pg_combinebackup \
+  /base-backup/full-2026-11-01 /base-backup/incr-2026-11-02 /base-backup/incr-2026-11-03 \
+  -o /base-backup/combined-2026-11-03
+docker compose exec postgres pg_verifybackup /base-backup/combined-2026-11-03
+```
+
+几点要知道：
+
+- **链断一环，后面全废**。增量之间是串起来的，中间任何一份丢了或坏了，它之后的增量都无法合成。保留策略要按「整条链」删，而不是按单份文件的日期删
+- `pg_combinebackup` 只检查几份备份之间的先后关系对不对，不检查每一份本身完不完整；合成之后要再跑一次 `pg_verifybackup`
+- 合成时会生成一份完整大小的目录，磁盘要留够空间
+- 对几 GB 的库，每周全量的代价本来就小，增量省不了多少，手写方案保持全量更简单。库到了几十 GB、全量要跑很久时，再考虑它或者 pgBackRest
 
 ## 本章要点
 
@@ -268,7 +324,7 @@ docker compose up -d api
 - `archive_command` 用 `test ! -f ... && cp ...`，绝不覆盖；`archive_timeout` 决定低峰期的 RPO
 - 用 `pg_stat_archiver` 监控归档，`failed_count` 上涨就要处理，否则 `pg_wal` 会撑满磁盘
 - 恢复步骤：停服务 → **留存现场** → 放回基础备份 → `recovery.signal` + `restore_command` + 带时区的 `recovery_target_time` → 观察日志 → 核对 → 清理参数
-- 长期运行换成 pgBackRest / WAL-G，归档直接进异地对象存储
+- 长期运行换成 pgBackRest / WAL-G，归档直接进异地对象存储；17 起也可以用原生增量备份（`summarize_wal` + `--incremental` + `pg_combinebackup`），链断一环后面全废
 
 ## 动手练习
 
@@ -276,8 +332,8 @@ docker compose up -d api
 
 ```bash
 docker run -d --name pitr -e POSTGRES_PASSWORD=x \
-  -v pitr_data:/var/lib/postgresql/data -v pitr_bk:/bk \
-  postgres:16-alpine -c archive_mode=on -c archive_timeout=60 \
+  -v pitr_data:/var/lib/postgresql -v pitr_bk:/bk \
+  postgres:18-alpine -c archive_mode=on -c archive_timeout=60 \
   -c 'archive_command=test ! -f /bk/wal/%f && cp %p /bk/wal/%f'
 sleep 5
 docker exec pitr sh -c 'mkdir -p /bk/wal /bk/base && chown -R postgres:postgres /bk'
@@ -291,19 +347,20 @@ docker exec pitr sh -c 'mkdir -p /bk/wal /bk/base && chown -R postgres:postgres 
 
    ```bash
    docker stop pitr
-   docker run --rm -v pitr_data:/data -v pitr_bk:/bk alpine sh -c '
-     find /data -mindepth 1 -delete &&
-     tar -C /data -xzf /bk/base/b1/base.tar.gz &&
-     tar -C /data/pg_wal -xzf /bk/base/b1/pg_wal.tar.gz &&
-     touch /data/recovery.signal &&
-     echo "restore_command = '"'"'cp /bk/wal/%f %p'"'"'" >> /data/postgresql.auto.conf &&
-     echo "recovery_target_time = '"'"'<记下的时间>'"'"'" >> /data/postgresql.auto.conf &&
-     echo "recovery_target_action = '"'"'promote'"'"'" >> /data/postgresql.auto.conf &&
-     chown -R 70:70 /data && chmod 700 /data'
+   docker run --rm -v pitr_data:/pg -v pitr_bk:/bk alpine sh -c '
+     D=/pg/18/docker &&
+     find $D -mindepth 1 -delete &&
+     tar -C $D -xzf /bk/base/b1/base.tar.gz &&
+     tar -C $D/pg_wal -xzf /bk/base/b1/pg_wal.tar.gz &&
+     touch $D/recovery.signal &&
+     echo "restore_command = '"'"'cp /bk/wal/%f %p'"'"'" >> $D/postgresql.auto.conf &&
+     echo "recovery_target_time = '"'"'<记下的时间>'"'"'" >> $D/postgresql.auto.conf &&
+     echo "recovery_target_action = '"'"'promote'"'"'" >> $D/postgresql.auto.conf &&
+     chown -R 70:70 /pg/18 && chmod 700 $D'
    docker start pitr
    ```
 
-2. **归档失败时 pg_wal 会涨**：执行 `docker exec pitr chmod 000 /bk/wal`，然后连续执行几次 `SELECT pg_switch_wal();`（中间插几行数据），观察 `pg_stat_archiver` 和 `docker exec pitr ls /var/lib/postgresql/data/pg_wal/archive_status`。再 `chmod 700 /bk/wal` 恢复权限。
+2. **归档失败时 pg_wal 会涨**：执行 `docker exec pitr chmod 000 /bk/wal`，然后连续执行几次 `SELECT pg_switch_wal();`（中间插几行数据），观察 `pg_stat_archiver` 和 `docker exec pitr sh -c 'ls "$PGDATA/pg_wal/archive_status"'`。再 `chmod 700 /bk/wal` 恢复权限。
 
    验证：权限被收走期间，`failed_count` 持续上涨，`last_failed_wal` 有值，`archive_status` 目录里出现若干 `.ready` 文件，`docker logs pitr` 里有 `archive command failed`；恢复权限后一两分钟内 `.ready` 变成 `.done`，`archived_count` 追上来。
 

@@ -27,6 +27,10 @@ flowchart TD
 
 每天的检查不应该靠人。下面这个脚本把最常见的几项检查放在一起，每天由 timer 跑一次，有问题就推送到你的告警渠道。它不替代真正的监控系统，但在你还没搭监控的时候，能抓住大部分「定时炸弹」。
 
+脚本分三部分：开头的骨架、六项互相独立的检查、最后的汇总推送。下面按顺序拆开讲，**把各段依次拼进同一个文件**（例如 `/usr/local/bin/ops-check`，权限 755）就是完整的脚本。用不上的检查整段删掉即可，不影响其他段。
+
+### 骨架
+
 ```bash
 #!/usr/bin/env bash
 #
@@ -38,14 +42,26 @@ source /etc/ops-check.env  # DOMAINS、APP_DIR、NOTIFY_URL、BACKUP_MAX_AGE_HOU
 
 problems=()
 warn() { problems+=("$1"); }
+```
 
-# 1. 磁盘：任何挂载点超过 80%
+每项检查只做一件事：发现问题就调用 `warn` 往数组里记一条，不退出、不推送。故意不用 `set -e`，这和[《Linux 系统与命令行》第 8 章](../linux-essentials/08-shell-scripting.md)推荐的严格模式不同，是有意为之：一项检查出错不能让后面的检查不跑。
+
+### 检查 1：磁盘
+
+```bash
+# 任何挂载点超过 80%
 while read -r use mount; do
   pct=${use%\%}
   (( pct >= 80 )) && warn "磁盘 ${mount} 已用 ${use}"
 done < <(df -P -x tmpfs -x devtmpfs -x overlay | awk 'NR>1 {print $5, $6}')
+```
 
-# 2. 证书：剩余天数少于 14 天
+`-P` 让每个挂载点固定占一行，`-x` 排除内存文件系统和容器的 overlay，不然一台跑着十个容器的机器会刷出一屏重复的告警。
+
+### 检查 2：证书
+
+```bash
+# 剩余天数少于 14 天
 for d in $DOMAINS; do
   end=$(echo | openssl s_client -servername "$d" -connect "$d:443" 2>/dev/null \
         | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
@@ -56,15 +72,31 @@ for d in $DOMAINS; do
   days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
   (( days < 14 )) && warn "证书：${d} 还剩 ${days} 天"
 done
+```
 
-# 3. 需要重启
+从机器上连自己的域名，能发现「续期了但 nginx 没 reload」这类问题。但它发现不了 DNS 或者网络层面的问题，所以外部拨测仍然需要。`date -d` 是 GNU date 的写法，在服务器（Linux）上可用，在 macOS 上不行。
+
+### 检查 3：需要重启
+
+```bash
 [[ -f /var/run/reboot-required ]] && warn "需要重启：$(tr '\n' ' ' < /var/run/reboot-required.pkgs)"
+```
 
-# 4. systemd 里失败的单元
+自动安全更新装了新内核或 libc 之后，Ubuntu 会留下这个标记文件（第 1 章）。
+
+### 检查 4：systemd 失败的单元
+
+```bash
 failed=$(systemctl --failed --no-legend --plain | awk '{print $1}' | tr '\n' ' ')
 [[ -n "$failed" ]] && warn "失败的 systemd 单元：${failed}"
+```
 
-# 5. 容器：不健康，或者最近在反复重启
+备份、证书续期这些 timer 驱动的任务失败后，单元会停在 failed 状态，这一项能把它们一网打尽。
+
+### 检查 5：容器
+
+```bash
+# 不健康，或者最近在反复重启
 cd "$APP_DIR"
 for c in $(docker compose ps -q); do
   name=$(docker inspect -f '{{.Name}}' "$c")
@@ -73,8 +105,14 @@ for c in $(docker compose ps -q); do
   [[ "$health" == "unhealthy" ]] && warn "容器 ${name} 不健康"
   (( restarts > 3 )) && warn "容器 ${name} 已重启 ${restarts} 次"
 done
+```
 
-# 6. 备份：最新的异地快照是否太旧
+`RestartCount` 是容器创建以来的累计重启次数，重新创建容器（比如发版）后会归零。阈值按你的发版频率调整。Compose 不会自动重启 unhealthy 的容器，所以「不健康」只能靠这类检查发现。
+
+### 检查 6：备份时效
+
+```bash
+# 最新的异地快照是否太旧
 if source /etc/restic/env 2>/dev/null; then
   last=$(restic snapshots --tag pg --latest 1 --json 2>/dev/null \
          | python3 -c 'import json,sys; s=json.load(sys.stdin); print(s[-1]["time"] if s else "")')
@@ -85,8 +123,13 @@ if source /etc/restic/env 2>/dev/null; then
     (( age > BACKUP_MAX_AGE_HOURS )) && warn "备份：最新异地快照是 ${age} 小时前"
   fi
 fi
+```
 
-# 汇总
+第 2 章的心跳能发现「备份没跑」，这一项从另一头查「异地仓库里真的有新快照」，两者互补。
+
+### 汇总与推送
+
+```bash
 if (( ${#problems[@]} == 0 )); then
   echo "例行检查通过"
   exit 0
@@ -100,13 +143,7 @@ curl -fsS -m 10 -X POST --data-binary "$msg" "$NOTIFY_URL" >/dev/null || echo "�
 exit 1
 ```
 
-几点说明：
-
-- 故意不用 `set -e`，每一项检查独立，一项出错不影响其他项。这和[《Linux 系统与命令行》第 8 章](../linux-essentials/08-shell-scripting.md)推荐的严格模式不同，是有意为之
-- 证书检查是从机器上连自己的域名，能发现「续期了但 nginx 没 reload」这类问题。但它发现不了 DNS 或者网络层面的问题，所以外部拨测仍然需要
-- `RestartCount` 是容器创建以来的累计重启次数，重新创建容器（比如发版）后会归零。阈值按你的发版频率调整
-- `date -d` 是 GNU date 的写法，在服务器（Linux）上可用，在 macOS 上不行
-- 不同告警渠道的 webhook 格式不同（企业微信、飞书、Telegram 都要求特定的 JSON），最后一段按实际情况改
+没问题时只往日志写一行，不推送，免得每天一条「一切正常」把你训练成不看告警。不同告警渠道的 webhook 格式不同（企业微信、飞书、Telegram 都要求特定的 JSON），这一段按实际情况改。有问题时退出码为 1，timer 那边能看到这次检查失败。
 
 配置文件和 timer：
 
@@ -252,7 +289,7 @@ WantedBy=timers.target
 
    参考答案：把「取数据」和「判断」分开，就能不写满真实磁盘也测到告警分支。改脚本时用这种假输入跑一遍，比等真出问题时才发现判断写反了要好。
 
-2. **在一次性容器里把整个脚本跑一遍**：`docker run --rm -it ubuntu:24.04 bash`，在里面 `apt update && apt install -y openssl curl ca-certificates`，把本章的脚本存成 `/root/ops-check.sh`；写 `/etc/ops-check.env`，其中 `DOMAINS=example.com`、`APP_DIR=/tmp`、`NOTIFY_URL=http://127.0.0.1:9/`、`BACKUP_MAX_AGE_HOURS=30`；再造一个重启标记 `echo linux-image-test > /var/run/reboot-required.pkgs && touch /var/run/reboot-required`，然后 `bash /root/ops-check.sh; echo "exit=$?"`。
+2. **在一次性容器里把整个脚本跑一遍**：`docker run --rm -it ubuntu:24.04 bash`，在里面 `apt update && apt install -y openssl curl ca-certificates`，把本章各段脚本按顺序拼起来存成 `/root/ops-check.sh`；写 `/etc/ops-check.env`，其中 `DOMAINS=example.com`、`APP_DIR=/tmp`、`NOTIFY_URL=http://127.0.0.1:9/`、`BACKUP_MAX_AGE_HOURS=30`；再造一个重启标记 `echo linux-image-test > /var/run/reboot-required.pkgs && touch /var/run/reboot-required`，然后 `bash /root/ops-check.sh; echo "exit=$?"`。
 
    验证：输出里有 `需要重启：linux-image-test`，接着是 `推送失败`（9 号端口没有服务在听），最后 `exit=1`。容器里没有 systemd 和 docker，这两项会报找不到命令，但其余检查照样跑完。
 

@@ -3,7 +3,7 @@
 上一章开出了一台只有 `deploy` 用户和 Python 的空机器。这一章用 Ansible 把它配成 hatch-counter 线上那台的样子：装 docker、nginx、certbot，放好 compose 文件和 nginx 配置，装上 systemd 常驻的上线代理，把服务端跑起来。重点是 Ansible 的几个核心概念怎么对应到部署文档里的那些步骤，以及哪些事情该交给 Ansible、哪些该继续留给 `deploy.sh`。
 
 > [!WARNING]
-> 本章的 playbook 按 ansible-core 2.17 写成。2.19 起引入 data tagging，模板和条件表达式有破坏性变更（`when` 等条件必须求值为布尔值、不再接受字符串式的真假，部分隐式模板和过滤器行为调整），书中写法未在 2.19 上逐条验证；以 Ansible 官方的 Porting Guide for ansible-core 2.19 和 ansible-core changelog 为准，升级后先用 `--check --diff` 跑一遍。
+> 本章的 playbook 按 ansible-core 2.17 写成。按 2026 年 11 月 Ansible 官方 Porting Guide for ansible-core 2.19 和 ansible/ansible 的 GitHub releases 整理：2.19 于 2025 年 7 月发布，从 Ansible 12 社区包起捆绑，模板引擎重写（data tagging），有一批破坏性变更，`pipx install ansible` 现在装到的已是 2.19 以后的版本（写作时最新为 2.22）。本章示例按 [升级到 ansible-core 2.19 以后](#升级到-ansible-core-219-以后) 里的规则逐条对照过，但没有在新版本上实际跑过；以官方 Porting Guide 和 changelog 为准，升级后先用 `--check --diff` 跑一遍。
 
 ## Ansible 的工作方式
 
@@ -40,7 +40,7 @@ sequenceDiagram
 ```bash
 # 本机跑：用 pipx 装，与系统 Python 隔离
 pipx install --include-deps ansible
-ansible --version   # 本书按 ansible-core 2.17 及以上写
+ansible --version   # 本书按 ansible-core 2.17 写，2.19 起的变化见本章末尾
 
 # 装要用到的 collection
 ansible-galaxy collection install -r infra/ansible/requirements.yml
@@ -312,7 +312,7 @@ server {
     certbot certonly --webroot -w /var/www/certbot
     -d {{ item }}.{{ domain }}
     --non-interactive --agree-tos -m {{ acme_email }}
-    {{ '--staging' if acme_staging | default(false) else '' }}
+    {{ '--staging' if acme_staging | default(false) | bool else '' }}
   args:
     creates: "/etc/letsencrypt/live/{{ item }}.{{ domain }}/fullchain.pem"
   loop: "{{ site_hosts }}"
@@ -423,6 +423,30 @@ ansible-lint site.yml
 ```
 
 它会抓出常见的问题：用了短模块名（`apt` 而不是 `ansible.builtin.apt`）、`command` 任务没有 `changed_when`、文件权限没写成字符串等。最后一条值得记住：`mode: 0644` 不加引号会被 YAML 当成八进制数解析，在某些情况下得到意料之外的权限，一律写成 `"0644"`。
+
+### 升级到 ansible-core 2.19 以后
+
+2.19 把模板引擎整个换掉了，很多以前「碰巧能跑」的写法会直接报错。对一个人维护的 playbook，影响最大的是这几条：
+
+| 变化 | 以前 | 2.19 起 |
+|---|---|---|
+| 条件必须是布尔值 | `when: some_string` 按字符串真假判断 | 报错 `Conditionals must have a boolean result`；写成 `when: some_string \| length > 0` 或 `\| bool` |
+| 不再多次模板化 | `"{{ '{{ x }}' }}"` 这类嵌套会被再展开一次 | 不再展开；动态拼表达式的写法要改成直接用变量 |
+| 模板来源要可信 | 任何字符串里的 `{{ }}` 都会被渲染 | 只有 playbook、变量文件等可信来源的字符串才当模板；从命令输出、外部文件读进来的不再渲染 |
+| 未定义的属性 | `result.exists` 写错层级时静默得到假 | 直接报错，要写对成 `result.stat.exists` |
+| 提权超时 | 算任务失败，`ignore_errors` 能兜住 | 算主机不可达，要用 `ignore_unreachable` |
+
+本章用到的条件只有 `when: acme_conf.changed`（本来就是布尔值）。证书任务里的 `acme_staging` 加了 `| bool`：用 `-e acme_staging=false` 从命令行传进来的是字符串 `"false"`，在 Jinja 里是真值，不加 `| bool` 会误申请测试证书，这一条和版本无关，新旧版本都该这么写。
+
+升级时的顺序：
+
+```bash
+pipx upgrade --include-injected ansible
+ansible --version                          # 确认 core 版本
+ansible-playbook site.yml --check --diff   # 先演习，看报错和 changed
+```
+
+演习时如果大量条件报错、一时改不完，可以临时设环境变量 `ANSIBLE_ALLOW_BROKEN_CONDITIONALS=true` 把错误降成警告，逐条改完再去掉。不要把它写进 `ansible.cfg` 长期开着。
 
 ## 本章要点
 

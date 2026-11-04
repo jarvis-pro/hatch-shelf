@@ -17,7 +17,7 @@
 ### 版本约定
 
 > [!WARNING]
-> 本书按 2026 年 11 月的情况整理：Rust **edition 2024**（需要 Rust 1.85 及以上，写作时稳定版在 1.9x），主要 crate 的大版本为 serde 1、clap 4、tokio 1、thiserror 2、anyhow 1、tauri 2、wasm-bindgen 0.2、napi-rs 3。Rust 每六周发一个稳定版，crate 也会升级大版本，编译器行为和 API 以 [Rust 官方发布说明](https://blog.rust-lang.org/) 和各 crate 在 docs.rs 上的文档为准。本书的示例代码未在写作机器上实际编译，照抄遇到报错时，先看编译器的提示，它通常会直接告诉你怎么改。
+> 本书按 2026 年 11 月的情况整理：Rust **edition 2024**（随 2025 年 2 月的 Rust 1.85 发布，需要 1.85 及以上；写作时最新稳定版是 2026 年 10 月 1 日发布的 **Rust 1.99**，10 月 15 日有补丁版 1.99.1，按 [blog.rust-lang.org/releases](https://blog.rust-lang.org/releases/) 整理），主要 crate 的大版本为 serde 1、clap 4、tokio 1、thiserror 2、anyhow 1、tauri 2、wasm-bindgen 0.2、napi-rs 3。Rust 每六周发一个稳定版，crate 也会升级大版本，编译器行为和 API 以 [Rust 官方发布说明](https://blog.rust-lang.org/) 和各 crate 在 docs.rs 上的文档为准。本书的示例代码未在写作机器上实际编译，照抄遇到报错时，先看编译器的提示，它通常会直接告诉你怎么改。
 
 ## 为什么一个 TS 开发者要学 Rust
 
@@ -357,6 +357,59 @@ help: consider making this binding mutable
 | `non-exhaustive patterns` | `match` 漏了分支 | 补上，或用 `_ =>` 兜底 |
 | 第一次 `cargo build` 很慢 | 依赖从源码编译 | 正常；日常用 `cargo check` |
 | `target/` 有好几个 GB | 调试和 release 产物、增量缓存 | 偶尔 `cargo clean` |
+
+## edition 2024 的新写法
+
+> [!WARNING]
+> 本节按 2026 年 11 月的 [Rust 2024 Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2024/index.html) 和 Rust 1.85、1.88 的发布说明整理，示例未在写作机器上编译。旧资料和 agent 生成的代码里常见 2021 的写法，两者混用时以编译器提示为准。
+
+网上的 Rust 教程大多还是 edition 2021 的写法。本书统一用 2024，下面几处和老教程不一样，看到老写法别困惑：
+
+| 写法 | 2021 及以前 | 2024 / 新版本 |
+|---|---|---|
+| `if let` 后面再加条件 | 只能嵌套两层 `if` | **let chains**：`if let Some(x) = a && x > 0 { }`，Rust 1.88 起、只在 edition 2024 可用 |
+| 异步闭包 | `\|x\| async move { .. }`，闭包返回一个 Future，借用捕获的变量很别扭 | `async \|x\| { .. }`，参数约束写 `F: AsyncFn(u32) -> String`，Rust 1.85 起 |
+| 返回位置的 `impl Trait` | 默认不捕获参数的生命周期，常要补 `+ '_` | 默认捕获作用域里所有生命周期；想精确控制写 `+ use<'a, T>` |
+| 链接相关的属性 | `#[no_mangle]` | `#[unsafe(no_mangle)]`，提醒你这里绕过了编译器的检查 |
+| 声明外部函数 | `extern "C" { .. }` | `unsafe extern "C" { .. }`，里面的函数可以单独标 `safe fn` |
+| 改环境变量 | `std::env::set_var(..)` | 变成 `unsafe` 函数，多线程程序里改环境变量本来就不安全 |
+| `gen` | 普通标识符 | 保留关键字，给以后的生成器语法用；变量名叫 `gen` 要改成 `r#gen` |
+
+最常用的是前两条。[第 4 章](04-types-traits-generics.md)判断代码块有没有标语言，用 let chains 可以写成一层：
+
+```rust
+// edition 2024：if let 和普通条件用 && 连起来
+if let Some(rest) = line.trim_start().strip_prefix("```")
+    && rest.trim().is_empty()
+{
+    problems.push(format!("第 {n} 行：代码块没有标语言"));
+}
+```
+
+异步闭包让「把一段异步操作交给别人重试」这种写法终于顺手，对照 TS 的 `retry(() => fetch(url))`：
+
+```rust
+async fn retry<F>(times: u32, f: F) -> anyhow::Result<String>
+where
+    F: AsyncFn() -> anyhow::Result<String>,
+{
+    let mut last = None;
+    for _ in 0..times {
+        match f().await {
+            Ok(v) => return Ok(v),
+            Err(e) => last = Some(e),
+        }
+    }
+    Err(last.unwrap())
+}
+
+// 调用：闭包可以直接借用外面的 client，不用先 clone
+let body = retry(3, async || Ok(client.get(&url).send().await?.text().await?)).await?;
+```
+
+还有两处是行为变化，不改代码也会受影响：`if let` 的 `else` 分支执行前，条件里产生的临时值（比如 `mutex.lock()` 拿到的锁）已经释放；块最后一个表达式里的临时值，会在块内局部变量之前释放。这两条修掉的都是 2021 里「锁没放、死锁了」的老坑。
+
+老项目升级的步骤：先 `cargo fix --edition` 自动改写能改的地方，再把 `Cargo.toml` 的 `edition` 改成 `"2024"`，最后 `cargo build` 和 `cargo test` 过一遍。不同 edition 的 crate 可以互相依赖，依赖库不需要跟着升级。
 
 ## 本章要点
 

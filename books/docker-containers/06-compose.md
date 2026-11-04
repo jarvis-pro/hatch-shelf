@@ -236,6 +236,80 @@ docker compose up -d --wait --wait-timeout 90
 
 还要注意：这种 `up` 方式会先停旧容器再起新容器，中间有几秒不可用。对单机小项目通常可以接受；需要零停机就要起两个实例在 nginx 后面轮换，这是[《部署与 CI/CD》](../deploy-release/)里的话题。
 
+## 容器起不来：排查清单
+
+发版脚本报错、`up --wait` 超时、`docker compose ps` 里某个服务一直在 `Restarting`，这是单机部署最常见的故障。原因五花八门，但查的顺序是固定的：**先看状态，再看退出码，再看日志，最后进去看**。（在 Kubernetes 里同样的问题换了一套名字，见[《Kubernetes 入门到实战》排障](../kubernetes/07-troubleshooting.md)。）
+
+```mermaid
+flowchart TD
+  A["compose ps -a<br/>看状态"] --> B{"状态是什么"}
+  B -->|"Exited / Restarting"| C["inspect 看退出码"]
+  B -->|"unhealthy"| D["看健康检查输出"]
+  B -->|"根本没创建"| E["看 up 的报错"]
+  C --> F["logs 看最后几行"]
+  F --> G["run --entrypoint sh<br/>进去手动跑"]
+```
+
+### 第一步：状态和退出码
+
+```bash
+docker compose ps -a                      # -a 才能看到已经退出的
+docker inspect -f 'exit={{.State.ExitCode}} oom={{.State.OOMKilled}} restarts={{.RestartCount}} err={{.State.Error}}' counter-api-1
+```
+
+退出码本身就能缩小一半范围：
+
+| 退出码 | 含义 | 常见原因 |
+|---|---|---|
+| 0 | 进程正常结束 | 命令本来就是一次性的；或者启动脚本没把主进程留在前台 |
+| 1 | 应用自己报错退出 | 配置缺失、连不上数据库、端口被占，看日志 |
+| 125 | Docker 自己没能启动容器 | 参数错、挂载路径不存在，报错在 `up` 的输出里 |
+| 126 | 命令找到了但不能执行 | 入口脚本没有执行权限，或者被 Windows 换行符弄坏 |
+| 127 | 命令找不到 | `CMD` 拼错、镜像里没有这个程序（alpine 里没有 bash） |
+| 137 | 被 SIGKILL 杀掉（128+9） | `oom=true` 就是超了内存上限（第 1 章）；否则多半是 `stop` 超时被强杀 |
+| 139 | 段错误（128+11） | 原生模块和基础镜像的 libc 不匹配（glibc 编的包放进 alpine） |
+| 143 | 收到 SIGTERM 后退出（128+15） | 正常停止；如果你没停它，看是谁发的 |
+
+状态里的 `Restarting` 说明 `restart` 策略在反复拉起一个启动就退出的进程，退出码和日志才是真正的线索。
+
+### 第二步：日志
+
+```bash
+docker compose logs --tail 50 api         # 最后 50 行，崩溃原因通常在最后几行
+docker compose logs --since 10m api       # 只看最近 10 分钟
+```
+
+日志为空也是线索：进程可能在打日志之前就死了（127、`exec format error`），或者被 OOM 直接杀掉，应用来不及写任何东西。
+
+### 第三步：常见原因对照
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| `exec format error` | 镜像架构和机器不一致，Mac 上构建的 arm64 推到了 amd64 服务器 | 构建时指定 `--platform linux/amd64` 或交给 CI（第 7 章） |
+| `port is already allocated` | 宿主机端口被别的容器或进程占了 | `ss -tlnp` 找占用者；常见是旧项目名的容器还在（所以要写 `name:`） |
+| `dependency failed to start: container ... is unhealthy` | 依赖的服务健康检查没通过，api 根本没启动 | 先查被依赖的那个服务，别盯着 api 看 |
+| 日志里 `EACCES` / `permission denied` | 绑定挂载的目录属主和容器里的用户对不上 | 见[第 5 章](05-network-storage.md#绑定挂载权限是最大的坑) |
+| 日志里连不上 `localhost:5432` | 容器里的 localhost 是它自己 | 用服务名 `postgres` 连接，见[第 5 章](05-network-storage.md#常见误区容器里连-localhost) |
+| 日志里某个环境变量是 `undefined` | 变量写进了 `.env` 而不是 `env_file` | `docker compose config` 看最终配置 |
+| 一直 `unhealthy` 但服务看起来正常 | 健康检查命令本身有问题，比如镜像里没有 curl | `docker inspect -f '{{json .State.Health}}' <容器>` 看每次检查的输出 |
+| 拉不到镜像 | 没登录私有仓库、tag 写错、境内拉 Docker Hub 超时 | 在服务器上手动 `docker compose pull` 看完整报错 |
+
+### 第四步：进去手动跑
+
+前三步还看不出原因，就绕过原来的启动命令，起一个带 shell 的同配置容器，在里面手动执行：
+
+```bash
+# 用服务的完整配置（环境变量、网络、挂载）起一个容器，但入口换成 shell
+docker compose run --rm --entrypoint sh api
+
+# 进去之后：环境变量对不对、文件在不在、手动启动看完整报错
+env | sort
+ls -la
+node dist/main.js
+```
+
+这一步之所以用 `compose run` 而不是 `docker run`，理由和跑迁移一样：只有它带着服务的网络和环境变量，你在里面看到的才是真实的运行环境。
+
 ## 常用命令速查
 
 | 命令 | 作用 |
@@ -261,6 +335,7 @@ docker compose up -d --wait --wait-timeout 90
 - 开发和生产配置差别大时分成两份文件，不要互相抄端口和密码
 - 发版顺序：拉镜像 → 起库 → `compose run --rm` 跑迁移 → `up --wait` 等健康检查；失败自动回滚镜像
 - 回滚只能退镜像，退不了迁移，迁移必须向后兼容
+- 容器起不来按固定顺序查：`ps -a` 看状态 → `inspect` 看退出码和 OOM → `logs --tail` → `compose run --entrypoint sh` 进去手动跑
 
 ## 动手练习
 
@@ -306,3 +381,12 @@ docker compose up -d --wait --wait-timeout 90
    验证：第一条能解析出 `db` 的地址并收到回应；第二条报 `bad address 'db'`。做完 `docker compose down`。
 
    参考答案：`compose run` 用服务的配置起临时容器，加入项目网络，能用服务名；裸 `docker run` 在默认 bridge 上，解析不了服务名。部署脚本跑迁移连不上库，常见原因就是这一条。
+
+4. **用退出码认出三种失败**：分别执行下面三条，每条之后用 `docker inspect -f 'exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' t` 看结果，再 `docker rm t`：
+   - `docker run --name t alpine:3.20 bash`
+   - `docker run --name t alpine:3.20 sh -c 'exit 3'`
+   - `docker run --name t -m 32m node:22-alpine node -e "const a=[];setInterval(()=>a.push(Buffer.alloc(1e7,1)),20)"`
+
+   验证：第一条 `exit=127`，报错说找不到 `bash`；第二条 `exit=3`；第三条过几秒退出，`exit=137 oom=true`，`docker logs t` 什么都没有。
+
+   参考答案：127 是命令不存在（alpine 只有 `sh`），普通的非零值是应用自己选的退出码，137 加 `OOMKilled: true` 是超了内存上限被内核杀掉。日志为空时，退出码往往是唯一的线索。

@@ -231,6 +231,9 @@ const finalMessage = await client.beta.messages.toolRunner({
 
 ## 服务端工具
 
+> [!WARNING]
+> 服务端工具的类型名和支持的模型按 2026 年 10 月 Anthropic 官方文档整理，以 Anthropic 文档的 Web search tool 页面为准。
+
 除了你自己实现的工具，Anthropic 还提供一些**在它的服务器上执行**的工具，比如网页搜索、网页抓取、代码执行。声明之后模型会自己调用，结果直接出现在回复里，你不需要写执行逻辑。
 
 ```typescript
@@ -242,7 +245,9 @@ const res = await client.messages.create({
 });
 ```
 
-服务端工具按次数额外计费，工具类型名带日期版本，用之前查一下文档里的最新类型名。另外它们的错误不会抛异常，而是以一个错误内容块的形式出现在结果里，要记得检查。
+服务端工具按次数额外计费，工具类型名带日期版本，用之前查一下文档里的最新类型名。按 2026 年 10 月 Anthropic 的文档，`web_search_20260209`（以及对应的 `web_fetch_20260209`）带动态过滤，支持 Opus 和 Sonnet 的 4.6 及之后版本；更老的模型（以及 Vertex AI 上）要用基础版 `web_search_20250305`。另外它们的错误不会抛异常，而是以一个错误内容块的形式出现在结果里，要记得检查。
+
+服务端工具只覆盖少数通用能力。要接自己的数据库、内部系统或第三方服务，就得自己写工具，或者把它们包成 MCP server 供多个应用复用；怎么设计工具、怎么写 MCP server，见[《工具设计与 MCP》](../tools-and-mcp/)，从[第 1 章](../tools-and-mcp/01-good-tools.md)读起。
 
 ## 从工具调用到 Agent
 

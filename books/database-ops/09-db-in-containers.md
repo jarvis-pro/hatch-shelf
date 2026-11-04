@@ -1,6 +1,6 @@
 # 容器里跑数据库的取舍
 
-「数据库不要放在 Docker 里」是一句流传很广的话。hatch-counter 恰恰就是这么做的：生产库是 compose 里的一个 `postgres:16-alpine` 容器。这一章回到这个问题本身：容器给数据库带来了哪些真实的风险、每一条怎么防，什么时候该搬到宿主机安装或托管数据库，以及搬家时会遇到什么。最后整理一份 compose 里跑 Postgres 的完整配置，作为全书的收尾。
+「数据库不要放在 Docker 里」是一句流传很广的话。hatch-counter 恰恰就是这么做的：生产库是 compose 里的一个 `postgres:16-alpine` 容器（第 8 章会把它升到 18）。这一章回到这个问题本身：容器给数据库带来了哪些真实的风险、每一条怎么防，什么时候该搬到宿主机安装或托管数据库，以及搬家时会遇到什么。最后整理一份 compose 里跑 Postgres 的完整配置，作为全书的收尾。
 
 ## 先说结论
 
@@ -19,7 +19,7 @@
 | 共享内存不够 | Docker 默认 `/dev/shm` 只有 64MB | 设 `shm_size` |
 | 日志撑满磁盘 | 容器日志默认不轮转 | 配置 json-file 的 `max-size` / `max-file` |
 | 意外暴露端口 | `ports: "5432:5432"` 会绕过部分防火墙规则直接对外 | 不映射端口，只走 compose 内网 |
-| 镜像标签漂移 | 写成 `postgres:latest`，某天拉到了新的大版本 | 至少固定到大版本，如 `16-alpine` |
+| 镜像标签漂移 | 写成 `postgres:latest`，某天拉到了新的大版本 | 至少固定到大版本，如 `18-alpine` |
 
 逐条看几个需要展开的。
 
@@ -93,14 +93,14 @@ WAL 归档和从库则可以不做，等迁到托管数据库后由平台提供�
 
 ## 完整配置：compose 里的 Postgres
 
-把全书各章的配置汇总在一起，这是一份在单机 compose 里跑 PostgreSQL 16 的参考配置，适合 4GB 内存、SSD 的云服务器：
+把全书各章的配置汇总在一起，这是一份在单机 compose 里跑 PostgreSQL 18 的参考配置，适合 4GB 内存、SSD 的云服务器：
 
 ```yaml
 name: counter
 
 services:
   postgres:
-    image: registry.example.com/counter/postgres:16-alpine   # 固定大版本，私有仓库转存
+    image: registry.example.com/counter/postgres:18-alpine   # 固定大版本，私有仓库转存
     restart: unless-stopped
     env_file: postgres.env                                   # 密码不进 compose，不进 Git
     shm_size: 256mb                                          # 第 1 章
@@ -145,7 +145,7 @@ services:
       - -c
       - archive_timeout=300
     volumes:
-      - pgdata:/var/lib/postgresql/data          # 18 起改为 /var/lib/postgresql（第 8 章）
+      - pgdata:/var/lib/postgresql               # 18 起的挂载点；16 及以前是 .../data（第 8 章）
       - /srv/pg-backups/wal:/wal-archive
       - /srv/pg-backups/base:/base-backup
     healthcheck:
@@ -186,19 +186,19 @@ volumes:
 
 都在本机一次性容器里做，不要在生产机上试 `down -v`、`prune` 或强杀。
 
-1. **没挂命名卷，数据去哪了**：`docker run -d --name nov -e POSTGRES_PASSWORD=x postgres:16-alpine`，建一张表插几行，然后 `docker rm -f nov`，用同样的命令再起一个 `nov` 查这张表。最后执行 `docker volume ls -f dangling=true`。
+1. **没挂命名卷，数据去哪了**：`docker run -d --name nov -e POSTGRES_PASSWORD=x postgres:18-alpine`，建一张表插几行，然后 `docker rm -f nov`，用同样的命令再起一个 `nov` 查这张表。最后执行 `docker volume ls -f dangling=true`。
 
    验证：新容器里报 `relation ... does not exist`；`dangling` 列表里多出一个长串哈希名的匿名卷，旧数据就在里面，但没有任何容器再引用它。
 
    参考答案：官方镜像声明了 `VOLUME`，不挂命名卷时 Docker 会建匿名卷；新容器拿到的是另一个新的匿名卷。一次 `docker volume prune` 就能把旧数据彻底清掉，所以生产必须用命名卷。清理：`docker rm -f nov` 后对那个匿名卷执行 `docker volume rm`。
 
-2. **被强杀之后的启动**：`docker run -d --name stopx -e POSTGRES_PASSWORD=x -v stopx:/var/lib/postgresql/data postgres:16-alpine`，插入一些数据，然后分别用 `docker stop stopx`（正常停止）和 `docker kill stopx`（直接 SIGKILL）停掉，每次停完 `docker start stopx`，看 `docker logs stopx` 的最后几行。
+2. **被强杀之后的启动**：`docker run -d --name stopx -e POSTGRES_PASSWORD=x -v stopx:/var/lib/postgresql postgres:18-alpine`，插入一些数据，然后分别用 `docker stop stopx`（正常停止）和 `docker kill stopx`（直接 SIGKILL）停掉，每次停完 `docker start stopx`，看 `docker logs stopx` 的最后几行。
 
    验证：正常停止后，启动日志里是 `database system was shut down at ...`；强杀后是 `database system was interrupted ...`，接着出现 `redo starts at ...` 的崩溃恢复。两种情况下已提交的数据都在。
 
    参考答案：强杀不丢已提交数据（WAL 已落盘），但下次启动要重放 WAL。`stop_grace_period` 给快速关闭留出做检查点的时间，避免走到这一步。清理：`docker rm -f stopx; docker volume rm stopx`。
 
-3. **内存上限下的 OOM**：`docker run -d --name oom --memory=256m -e POSTGRES_PASSWORD=x postgres:16-alpine`，在 psql 里执行 `SET work_mem = '1GB';` 后跑 `SELECT count(*) FROM (SELECT g, count(*) FROM generate_series(1, 20000000) g GROUP BY g) s;`，同时另开一个终端连着这个库。
+3. **内存上限下的 OOM**：`docker run -d --name oom --memory=256m -e POSTGRES_PASSWORD=x postgres:18-alpine`，在 psql 里执行 `SET work_mem = '1GB';` 后跑 `SELECT count(*) FROM (SELECT g, count(*) FROM generate_series(1, 20000000) g GROUP BY g) s;`，同时另开一个终端连着这个库。
 
    验证：查询失败，`docker logs oom` 里有 `server process (PID ...) was terminated by signal 9: Killed` 和 `terminating any other active server processes`，另一个终端的连接也被断开。没触发时把行数再加大。
 

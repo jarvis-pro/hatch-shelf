@@ -307,7 +307,7 @@ kubectl -n counter logs -f job/backup-manual-1
 
 如果选择把数据库留在集群外（比如继续用 compose 跑，或者直接装在宿主机上，或者用云数据库），集群里的应用照样可以用 `postgres` 这个名字访问它：建一个**不带 selector 的 Service**，再手写一个 EndpointSlice 指向外部地址；如果外部数据库有域名，用 `type: ExternalName` 的 Service 更简单。应用的连接串一个字都不用改。
 
-《PostgreSQL 运维》最后一章「容器里跑数据库的取舍」讨论得更细。本书的贯穿练习选择放进集群，是为了把 StatefulSet、PVC、CronJob 这些概念走一遍；第 8 章会回头评估这个选择。
+《PostgreSQL 运维》最后一章「容器里跑数据库的取舍」讨论得更细。本书的贯穿练习选择放进集群，是为了把 StatefulSet、PVC、CronJob 这些概念走一遍；第 9 章会回头评估这个选择。
 
 ## 本章要点
 

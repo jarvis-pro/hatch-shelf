@@ -3,7 +3,7 @@
 [队列与异步任务](../system-design/04-queues-jobs.md#实现方式的光谱)把实现方式排成一条光谱，BullMQ 在 Postgres 表队列的右边：多一个 Redis，换来更高的吞吐和更丰富的调度功能（优先级、限速、进度、父子任务、可视化面板）。这一章讲决定用它之后的落地写法：核心概念、连接配置、在 NestJS 里怎么组织、任务保留多少、卡住的任务怎么回收，以及一个独立的 worker 进程。重试、死信和幂等放到第 8 章，定时任务放到第 7 章。
 
 > [!WARNING]
-> 本章按 BullMQ 5.x 和 `@nestjs/bullmq` 10.x / 11.x 的 API 整理；本书其余部分以 NestJS 12 为准，与 NestJS 12 配套的 `@nestjs/bullmq` 版本的 API 未逐一核对。BullMQ 迭代很快，选项名和默认值在小版本之间也会变化（例如重复任务在 5.16 起改为 Job Scheduler 写法）。写代码前以 docs.bullmq.io 和 NestJS 官方文档的 Queues 一节为准。
+> 本章正文按 BullMQ 5.x 和 `@nestjs/bullmq` 10.x / 11.x 的 API 整理。2026 年 7 月发布的 BullMQ 6.0 有一批破坏性变化，见本章末尾[「BullMQ 6 改了什么」](#bullmq-6-改了什么)；`@nestjs/bullmq` 12.x 同时支持 BullMQ 5 / 6 和 NestJS 10–12（按 npm 上的 peerDependencies），具体 API 未逐一核对。BullMQ 迭代很快，选项名和默认值在小版本之间也会变化（例如重复任务在 5.16 起改为 Job Scheduler 写法）。写代码前以 docs.bullmq.io 和 NestJS 官方文档的 Queues 一节为准。
 
 ## 核心概念
 
@@ -399,6 +399,26 @@ export class QueueBoardModule {}
 
 > [!CAUTION]
 > 面板能看到任务数据（手机号、订单内容），还能删除和重试任务。必须放在鉴权后面：最简单的是 nginx 对 `/admin/queues` 加 basic auth 并限制来源 IP，或者只在内网端口暴露、通过 SSH 隧道访问。不要裸挂在公网上。
+
+## BullMQ 6 改了什么
+
+> [!WARNING]
+> 本节按 2026 年 11 月 [docs.bullmq.io 的 Changelog](https://docs.bullmq.io/changelog) 中 6.0.0（2026-07-30）的 BREAKING CHANGES 和 PostgreSQL backend 指南整理，没有在本书示例上实际升级验证。升级前以官方 Changelog 和迁移说明为准。
+
+本章的代码按 5.x 写。5.x 仍在维护分支上发补丁，老项目不急着升；新项目或决定升级时，下面这些地方会碰到：
+
+| 变化 | 对本书代码的影响 |
+|---|---|
+| ioredis 不再是 BullMQ 的直接依赖，改为可选的 peer 依赖 | 要自己 `pnpm add ioredis`。本章本来就显式安装了它，不受影响 |
+| 旧的重复任务（`queue.add(.., { repeat })`、`getRepeatableJobs`、`removeRepeatable`）**被删除** | 只能用 Job Scheduler（`upsertJobScheduler`），[第 7 章](07-scheduled-delayed.md)已经按新写法写 |
+| 去掉了 `paused` 任务状态：队列暂停时，任务算在 `waiting` 里 | 监控里按状态分组统计的代码少一类；[第 9 章](09-ops-monitoring.md)的积压告警不用改 |
+| `Queue#client`、`Queue#redisVersion`、`Worker#blockingClient` 等直接暴露 Redis 的属性被删除 | 要拿底层 Redis 客户端，改用 `getBackend()` 返回的 Redis 后端对象 |
+| `debounce` 选项删除；`Job#discard()` 删除 | 去重统一用 `deduplication`；「这个任务别再重试了」统一抛 `UnrecoverableError`（[第 8 章](08-retry-dlq-idempotency.md)） |
+| `Worker#resume()` 改为异步，要 `await` | 有暂停 / 恢复 worker 逻辑的地方加 `await`；开了 `no-floating-promises` 的项目会直接报出来 |
+
+6.0 最大的新东西不是删了什么，而是多了一层**后端抽象**：同一套 `Queue` / `Worker` / `QueueEvents` / `FlowProducer` API，可以跑在 Redis 上，也可以跑在 PostgreSQL 上（需要 Postgres 13 及以上，自己安装 `pg`，表建在独立的 `bullmq` schema 里）。按官方指南，限速、优先级、延迟任务、去重、指标和事件在 Postgres 后端上都支持，只有 Redis 专属的东西（原始客户端、`redisVersion`）不可用。
+
+这让[第 6 章](06-postgres-queue.md)的取舍多了一个选项：「想要 BullMQ 的 API 和面板，又不想多维护一个 Redis」。不过它的历史只有几个月，性能、和业务数据同事务入队这类细节，官方文档之外的一手资料还很少；对一人项目，**先等它在 6.x 里稳定几个小版本，再考虑拿它替换 pg-boss 或手写队列**。
 
 ## 本章要点
 

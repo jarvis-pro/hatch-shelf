@@ -85,9 +85,9 @@ Compiler 遇到它能识别的违规时，会**跳过这个组件**，不做优�
 ## ESLint 规则
 
 > [!WARNING]
-> 规则名、起始版本（v6）和预设名（`configs.flat.recommended` 等）按 `eslint-plugin-react-hooks` v7 整理，各版本的预设名和默认开启的规则有过调整；以插件的 README 和 changelog 为准。
+> 规则名、起始版本（v6）和预设名按 2026 年 11 月 `eslint-plugin-react-hooks` 7.1.1 的 README 核对，各版本的预设名和默认开启的规则有过调整；以插件的 README 和 changelog 为准。
 
-`eslint-plugin-react-hooks` 从 v6 起带了一批由 Compiler 驱动的规则，它们用同一套分析器在编辑时就报出违规。较新的版本已经把它们放进推荐配置。掌柜眼用的是 v7 的 `configs.flat.recommended`：
+`eslint-plugin-react-hooks` 从 v6 起带了一批由 Compiler 驱动的规则，它们用同一套分析器在编辑时就报出违规。较新的版本已经把它们放进推荐配置。v7 的 README 给了两个 flat config 预设：`configs.flat.recommended`（全部推荐规则）和 `configs.flat['recommended-latest']`（再加上还在实验中的 Compiler 规则）；还在用 ESLint 9 以下旧配置格式的，写 `"extends": ["plugin:react-hooks/recommended"]`。掌柜眼用的是 v7 的 `configs.flat.recommended`：
 
 ```js
 // eslint.config.mjs（节选）

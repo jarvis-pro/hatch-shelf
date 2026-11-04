@@ -89,7 +89,7 @@ export default defineConfig(({ mode }) => {
 
 唱片墙的 `package.json` 里**所有包都在 devDependencies**，包括 React、`@recordwall/core`。这违反直觉，原因是两个工具都会读 `dependencies`：
 
-1. **electron-vite** 默认把 `dependencies` 里的包当作外部模块，不打进 main / preload，留给运行时的 Node 去 `require`（早期版本需要手动加 `externalizeDepsPlugin`，新版本默认如此）。而 `@recordwall/core` 是 workspace 里的 TS 源码包，不带后缀的导入 Node 不认，主进程一启动就 `ERR_MODULE_NOT_FOUND`
+1. **electron-vite** 默认把 `dependencies` 里的包当作外部模块，不打进 main / preload，留给运行时的 Node 去 `require`（electron-vite 5 起默认如此，可用 `build.externalizeDeps` 的 `include` / `exclude` 调整；5 之前要手动加 `externalizeDepsPlugin`。渲染进程的 `dependencies` 照常打包）。而 `@recordwall/core` 是 workspace 里的 TS 源码包，不带后缀的导入 Node 不认，主进程一启动就 `ERR_MODULE_NOT_FOUND`
 2. **electron-builder** 会把 `dependencies` 连同整棵依赖树复制进 `.app`
 
 既然三份产物都已经把需要的代码打包进去了，运行时根本不需要 `node_modules`，那就全放 devDependencies。打出来的包里只有 `out/` 和 `package.json`。
@@ -236,6 +236,57 @@ onlyBuiltDependencies:
 
 国内网络下载慢时，可以设 `ELECTRON_MIRROR` 环境变量指向镜像。
 
+## 用 Playwright 做端到端测试
+
+> [!WARNING]
+> 本节按 2026 年 11 月 playwright.dev 的 `Electron` 和 `ElectronApplication` API 文档整理。Playwright 对 Electron 的支持标注为**实验性**（experimental），文档写明支持 Electron v21 及以上；API 和已知问题以 playwright.dev 最新文档为准。
+
+上一节的 CDP 端口适合「让 agent 钻进去看一眼」，要把验证固定成每次都跑的测试，更顺手的是 Playwright 的 `_electron`：它直接启动 Electron，返回一个能同时操作**主进程**和**窗口**的对象。
+
+```bash
+pnpm add -D @playwright/test
+```
+
+```ts
+// e2e/app.spec.ts
+import { test, expect, _electron as electron } from "@playwright/test";
+
+test("启动后打开设置页", async () => {
+  // "." 让 Electron 读 package.json 的 main，也就是 out/main/index.js
+  const app = await electron.launch({
+    args: ["."],
+    env: { ...process.env, E2E_USER_DATA: test.info().outputPath("user-data") },
+  });
+
+  // evaluate 里的函数在主进程执行，参数是 require("electron") 的结果
+  expect(await app.evaluate(({ app }) => app.isPackaged)).toBe(false);
+
+  const win = await app.firstWindow(); // 一个 Playwright Page
+  await win.getByRole("button", { name: "设置" }).click();
+  await expect(win.getByText("曲库地址")).toBeVisible();
+
+  await app.close();
+});
+```
+
+```json
+{
+  "scripts": {
+    "e2e": "electron-vite build && playwright test"
+  }
+}
+```
+
+几个要点：
+
+- **测构建产物，不测开发服务器**。先 `electron-vite build`，测试时没有 `ELECTRON_RENDERER_URL`，窗口走 `loadFile`，和打包后的加载路径一致。这也顺带避开了前面说的「省掉 `main: {}` 用旧产物」那类问题：测试跑的就是刚构建的东西
+- **主进程里的依赖可以在测试里换掉**。`app.evaluate(fn, arg)` 的函数会被序列化后送进主进程执行，拿不到测试文件里的变量，要用第二个参数传。系统对话框这类测试里点不到的东西，可以在主进程里替换：`await app.evaluate(({ dialog }, p) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [p] }); }, fixturePath)`
+- **用户数据要隔离**。不要让测试读写你日常用的那份数据目录。上面通过环境变量传一个临时目录，主进程在 `app.ready` 之前判断它，调用 `app.setPath("userData", dir)`；这段代码只认这个变量，正式环境不会触发
+- **多窗口**用 `app.windows()` 拿到全部 Page，`app.browserWindow(page)` 拿到对应的 `BrowserWindow` 句柄（比如检查是否隐藏）
+- **和 fuses 冲突**。Playwright 文档的已知问题里写明：启动超时时，要确认 `EnableNodeCliInspectArguments` 这个 fuse **没有**被关掉。[第 3 章](03-security.md#fuses关掉不需要的后门)建议正式包关掉它，所以端到端测试跑在未打包的构建产物上（用 `node_modules` 里的 Electron），不要直接拿翻转过 fuse 的 `.app` 来测；确实要测打包产物时，另打一份不翻这个 fuse 的测试包，用 `executablePath` 指向它
+
+一个人维护时不需要很多端到端测试。挑三五条「坏了自己最先发现不了」的路径就够：冷启动出窗口、关窗再从托盘唤回、一次经主进程的请求、数据目录升级。单元测试照常放在 `packages/core` 这类纯 TS 的包里跑，端到端只负责证明「三个进程接得上」。
+
 ## 本章要点
 
 - electron-vite 用一份配置构建 main / preload / renderer 三份产物，开发时通过 `ELECTRON_RENDERER_URL` 把开发服务器交给窗口
@@ -245,6 +296,7 @@ onlyBuiltDependencies:
 - 环境变量按前缀进不同产物，密钥用 `MAIN_VITE_`；它们是构建时内联的
 - 出包闸门用 `loadEnv`，和打包读同一份来源
 - 主进程改动用 `--watch` 自动重启；CDP 调试端口只在开发时开
+- 端到端测试用 Playwright 的 `_electron.launch` 跑构建产物，`evaluate` 进主进程替换对话框，用户数据目录要隔离；它依赖 `--inspect`，不要拿关了该 fuse 的包来测
 
 ## 动手练习
 

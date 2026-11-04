@@ -148,6 +148,7 @@ lsb_release -a
 |---|---|---|
 | Ubuntu | 22.04 LTS | jammy |
 | Ubuntu | 24.04 LTS | noble |
+| Ubuntu | 26.04 LTS | resolute |
 | Debian | 12 | bookworm |
 | Debian | 13 | trixie |
 
@@ -194,6 +195,36 @@ cat /var/run/reboot-required.pkgs 2>/dev/null   # 哪些包要求重启
 - 先做好完整备份，或者给云服务器打快照
 - 第三方源会被暂时禁用，升级后要逐个检查
 - 对单机部署的小项目来说，**新开一台机器部署新版本再切流量**，往往比原地升级更稳妥
+
+## Ubuntu 26.04 换了哪些底层工具
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Ubuntu 官方发行说明（documentation.ubuntu.com/release-notes/26.04 的「Summary for LTS users」）整理。这些替换还在演进，后续点版本可能调整哪些命令用 Rust 版、哪些退回 GNU 版，以官方发行说明和 Known issues 页为准。
+
+2026 年 4 月发布的 Ubuntu 26.04 LTS（代号 resolute）是第一个默认用 Rust 重写版 `sudo` 和核心命令的 LTS。从 24.04 升上来或新开一台 26.04，有几处变化会直接碰到本书讲的命令：
+
+| 组件 | 24.04 | 26.04 | 对你的影响 |
+|---|---|---|---|
+| `sudo` | 原版 sudo | **sudo-rs**；原版改名为 `sudo.ws` 仍可装 | 日常 `sudo` 用法不变；少数冷门的 sudoers 选项不支持 |
+| `ls`、`cat`、`sort` 等核心命令 | GNU coreutils | **rust-coreutils（uutils）**；`cp`、`mv`、`rm` 因为还有未解决的缺陷，仍用 GNU 版 | 个别报错文案、少见参数的行为可能和 GNU 不同 |
+| 时间同步 | systemd-timesyncd | 新装机默认 **chrony** | `timedatectl` 照常用；从旧版升级上来的机器不会自动换 |
+| systemd | 255 | 259，删掉了 cgroup v1 支持 | 依赖 cgroup v1 的老容器运行时要升级 |
+| OpenSSH | 9.6 | 10.2，不再支持 DSA 密钥 | 还在用 `ssh-dss` 密钥的老客户端会登不上 |
+| 内核 | 6.8 | 7.0 | 一般无感 |
+
+对写脚本的人，要紧的是第二行：**脚本如果解析了命令的输出或报错文字，换到 26.04 上要重新跑一遍**。依赖退出码的脚本基本不受影响（第 8 章一直强调的就是看退出码而不是 grep 报错）。遇到怀疑是 Rust 版行为差异的问题，可以先用 GNU 版对比：26.04 上 GNU 版命令都带 `gnu` 前缀，例如 `gnuls`、`gnusort`。确认是兼容问题后，可以整体切回 GNU coreutils：
+
+```bash
+# 切回 GNU coreutils（命令来自官方发行说明）
+sudo apt install coreutils-from-gnu coreutils-from-uutils- --allow-remove-essential
+
+# 再切回 Rust 版
+sudo apt install coreutils-from-uutils coreutils-from-gnu- --allow-remove-essential
+```
+
+`sudo` 这边，把用户加进 `sudo` 组、在 `/etc/sudoers.d/` 下给某个用户放行几条命令，这类常见写法在 sudo-rs 下照常生效。改完 sudoers 后用 `sudo -l` 看一眼当前用户被允许做什么，比等到要用时才发现失效好。确实需要原版 sudo 时，它以 `sudo.ws` 的名字保留，通过 `update-alternatives --config sudo` 切换，Ubuntu 官方不推荐这样做，只当作临时退路。
+
+这些变化也是上一小节建议「新开一台机器再切流量」的又一个理由：在新机器上把部署脚本、备份脚本完整跑一遍，比在生产机上原地升级后再发现某个 `sort` 的输出变了要好处理得多。
 
 ## 运行时怎么装：以 Node 为例
 
@@ -249,6 +280,7 @@ systemd、journald 以及本书其余大部分内容在两大家族上是通用�
 - `dpkg -S` 查文件属于哪个包，`apt-cache policy` 查版本来自哪个源，`/var/log/apt/history.log` 查升级历史
 - 第三方源用独立 keyring 加 `signed-by` 绑定，不要用已废弃的 `apt-key`
 - 开启 unattended-upgrades 自动打安全补丁；看到 `reboot-required` 挑低峰手动重启
+- Ubuntu 26.04 默认用 sudo-rs 和 Rust 版 coreutils（`cp`、`mv`、`rm` 仍是 GNU 版），解析命令输出的脚本升级后要重测
 - 宿主机尽量保持干净，运行时放进 Docker 镜像是单机部署的好选择
 
 ## 动手练习

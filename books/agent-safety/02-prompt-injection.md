@@ -146,6 +146,8 @@ export async function pin(server: string, tools: ToolDef[], pinFile: string) {
 
 既然模型层面无法杜绝注入，就要让系统的结构本身限制注入的后果。下面几种模式在学术界和工程实践中都被讨论过，适用的场景不同。
 
+它们的出处值得知道，方便你去读原文：隔离模型来自 Simon Willison 2023 年 4 月的博客文章《The Dual LLM pattern for building AI assistants that can resist prompt injection》；把它推到完整形态的是 Google DeepMind 等机构 2025 年 3 月的论文《Defeating Prompt Injections by Design》（arXiv 2503.18813，系统名 CaMeL）；2025 年 6 月，IBM、Invariant Labs、苏黎世联邦理工、Google、微软等机构的研究者合写的《Design Patterns for Securing LLM Agents against Prompt Injections》（arXiv 2506.08837）把这类做法整理成六种模式：Action-Selector、Plan-Then-Execute、LLM Map-Reduce、Dual LLM、Code-Then-Execute、Context-Minimization。本节的模式二对应其中的 Plan-Then-Execute，模式三对应 Dual LLM。污染跟踪是这些论文里共同的底层思路（追踪每个值来自哪里），这里取了最容易落地的一种形态。
+
 ### 模式一：污染跟踪
 
 最通用、最容易落地的一种。思路：
@@ -284,7 +286,7 @@ export async function triage(issueBody: string): Promise<IssueTriage> {
 
 特权模型拿到的是 `{ kind: 'bug', area: 'reader-web', hasRepro: true, severity: 2 }`，它可以据此决定「分配给阅读器相关的修复流程」，但 issue 里写的任何指令都到不了它。
 
-这个模式的局限也很明显：很多任务需要特权模型理解不可信内容的细节（比如「根据 issue 描述修 bug」），没法压缩成枚举。它最适合分类、路由、提取结构化字段这类任务。学术界有更完整的版本，把用户请求先编译成一段受控的程序，再用能力标签追踪每个值的来源，但目前更多是研究方向，工程上可以先从这个简化版用起。
+这个模式的局限也很明显：很多任务需要特权模型理解不可信内容的细节（比如「根据 issue 描述修 bug」），没法压缩成枚举。它最适合分类、路由、提取结构化字段这类任务。Willison 的原始设想里还有第三个角色：一个**控制器**，它是普通代码而不是模型，负责调用两个模型、替特权模型执行动作，并把不可信内容存成变量（如 `$VAR1`），特权模型只能引用变量名、看不到内容。CaMeL 在此基础上更进一步：特权模型把用户请求写成一段受控的程序，由专门的解释器执行，每个值都带着「来自哪里、能流向哪里」的能力标签，策略在解释器里强制执行。论文在 AgentDojo 基准上报告：带可证明安全性时完成了 77% 的任务，不设防的系统是 84%，安全换来了一部分完成率。它目前更多是研究方向，工程上可以先从上面的简化版用起。
 
 ### 模式选择
 

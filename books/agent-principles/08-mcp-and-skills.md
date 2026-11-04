@@ -8,9 +8,12 @@
 
 ### 为什么需要协议
 
+> [!WARNING]
+> 本节 MCP 的治理归属按 2025 年 12 月 Anthropic 与 Linux Foundation 的公告整理；协议细节随规范版本变化，以 modelcontextprotocol.io 的最新规范为准。
+
 没有标准时，每个 agent 产品都要为每个外部系统各写一套集成。M 个 agent 乘以 N 个系统，就是 M×N 份胶水代码。
 
-MCP（Model Context Protocol，模型上下文协议）是 Anthropic 在 2024 年底开源的协议，后来被多家 AI 工具采纳。它规定了 agent 和外部能力提供方之间怎么对话，于是问题变成 M+N：每个 agent 实现一次 MCP 客户端，每个系统实现一次 MCP 服务端。
+MCP（Model Context Protocol，模型上下文协议）是 Anthropic 在 2024 年底开源的协议，后来被多家 AI 工具采纳；2025 年 12 月，Anthropic 把它捐给了 Linux Foundation 旗下新成立的 Agentic AI Foundation，由中立基金会治理。它规定了 agent 和外部能力提供方之间怎么对话，于是问题变成 M+N：每个 agent 实现一次 MCP 客户端，每个系统实现一次 MCP 服务端。
 
 ```mermaid
 flowchart TD
@@ -42,13 +45,15 @@ server 能向 agent 提供几类东西：
 
 其中 Tools 最常用，它和第 3 章讲的工具是同一回事，只是定义和执行挪到了一个独立的进程里。消息格式基于 JSON-RPC 2.0，传输方式主要有两种：本地进程间用 **stdio**，远程服务用 **HTTP**（规范中称 Streamable HTTP）。协议还在演进，具体细节以官方规范为准。
 
+这一章只讲不随版本变的部分：角色分工、原语、信任边界。MCP 规范按日期发版，每一版都可能调整握手、会话和原语的细节，SDK 也随之换大版本。具体哪一版改了什么、当前该用哪个 SDK，以 modelcontextprotocol.io 的规范和 changelog 为准，[《工具设计与 MCP》第 4 章](../tools-and-mcp/04-mcp-protocol.md)按写作时的最新版逐条讲了。MCP 只管 agent 和工具之间这一条边，agent 和 agent、agent 和用户界面之间的协议（A2A、AG-UI 等）见该书[第 8 章](../tools-and-mcp/08-agent-interop.md)。
+
 ### 写一个 server 是什么样子
 
 写一个 MCP server 的工作量很小：用官方 SDK 创建一个 server，逐个注册工具（名字、给模型看的描述、参数的 schema、执行函数），再挂到 stdio 或 HTTP 传输上；客户端那边，在项目根目录的 `.mcp.json` 里写上启动命令，Claude Code 就能发现它（首次使用时会请你确认是否信任）。工具的执行函数和第 3 章的工具没有区别：返回文本，失败时返回错误信息而不是抛异常。
 
 有一点原理层面的要求值得单独说：**server 收到的参数来自模型，模型的输入又可能受到外部内容影响，所以 server 必须像对待任何不可信输入一样校验参数**，比如只允许读 `.md`、禁止路径穿越。hatch-shelf 把 zip slip 检查写在 `@shelf/spec` 里，道理相同。
 
-完整的书架查询 server（SDK 2.x 写法、和 1.x 的差异、用真实客户端测试、接入 Claude Code）见[《工具设计与 MCP》第 5 章](../tools-and-mcp/05-build-mcp-server.md#注册工具资源和提示模板)，协议本身的消息格式和传输方式见[第 4 章](../tools-and-mcp/04-mcp-protocol.md#消息格式json-rpc-20)。
+完整的书架查询 server（官方 SDK 写法、用真实客户端测试、接入 Claude Code）见[《工具设计与 MCP》第 5 章](../tools-and-mcp/05-build-mcp-server.md#注册工具资源和提示模板)，协议本身的消息格式和传输方式见[第 4 章](../tools-and-mcp/04-mcp-protocol.md#消息格式json-rpc-20)。
 
 ### 使用 MCP 的注意事项
 

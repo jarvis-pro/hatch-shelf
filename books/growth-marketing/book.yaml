@@ -15,6 +15,7 @@ chapters:
   - 06-cold-start.md
   - 07-retention.md
   - 08-channel-evaluation.md
+  - 09-activation-paid.md
 next:
   - id: opc-finance
     reason: 有了收入，把账记清、税交对

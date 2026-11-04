@@ -208,7 +208,7 @@ performance.measure("render", "render:start", "render:end");
 
 | 工具 | 用途 | 备注 |
 |---|---|---|
-| Clinic.js（doctor / flame / bubbleprof） | 自动诊断问题类型、火焰图、异步调用可视化 | 曾是 Node 社区的常用工具；根据公开信息其维护已不活跃，在新版 Node 上使用前先看仓库状态 |
+| Clinic.js（doctor / flame / bubbleprof） | 自动诊断问题类型、火焰图、异步调用可视化 | 曾是 Node 社区的常用工具；仓库 README 写明「Clinic.js is not being actively maintained」（2026-11 查看），在新版 Node 上不一定能用 |
 | 0x | 生成火焰图 | 底层同样基于 V8 的剖析数据 |
 | autocannon / k6 | 压测，制造可复现的负载 | 剖析要在有负载时做才有意义 |
 | speedscope | 打开 `.cpuprofile` 的火焰图查看器 | 有本地 CLI，可离线使用 |

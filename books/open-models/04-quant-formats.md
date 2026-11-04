@@ -59,8 +59,24 @@ FP8 需要硬件原生支持（NVIDIA Ada、Hopper 及之后的架构）；老�
 | FP8（W8A8） | 8 | 接近无损 | 预填充和解码都加速 | 支持 FP8 的新卡，**服务端首选** |
 | INT8（W8A8） | 8 | 接近无损 | 加速 | 不支持 FP8 的卡 |
 | AWQ / GPTQ（W4A16） | 4 | 小幅损失 | 解码加速，大批量时优势变小 | 显存紧张，单卡塞大模型 |
+| NVFP4 / MXFP4（W4A4） | 4 | 小幅损失，需实测 | 权重和激活都是 4 位，预填充和解码都加速 | 只在 Blackwell 等原生支持 FP4 的卡上有意义 |
 
 为什么 4 位在大批量时优势变小？仅权重量化的收益来自「少读数据」，适合带宽受限的解码阶段。批次很大时计算开始成为瓶颈，而 W4A16 计算前要把权重解压回 16 位，反而多了开销。所以**高并发服务优先 FP8，显存装不下才退到 4 位**。
+
+### FP4：新卡上的 4 位
+
+> [!WARNING]
+> 本小节按 2026 年 11 月 LLM Compressor 仓库 `examples/` 目录（含 `quantization_w4a4_fp4`、`quantization_w4a4_mxfp4` 示例）和 NVIDIA 的 NVFP4 技术博客整理，FP4 的框架支持仍在快速变化，以 vLLM 和 LLM Compressor 的最新文档为准。
+
+Blackwell 一代（B200、RTX 50 系、DGX Spark 的 GB10）原生支持 4 位浮点，于是出现了 W4A4 的方案：权重和激活都是 4 位，矩阵乘直接在 4 位上做。它和上表的 AWQ / GPTQ 有本质区别：W4A16 只省「读权重」，算的时候还要解压回 16 位；W4A4 连计算也省了，所以高并发时也不吃亏。
+
+常见的两种格式是 **NVFP4**（每 16 个数一个 FP8 缩放因子）和 **MXFP4**（每 32 个数一个 2 的幂缩放因子），原理见[《大模型原理进阶》的 FP4 一节](../llm-deep-dive/08-quantization.md#fp4mxfp4-与-nvfp4)。选择上：
+
+- 卡是 Hopper（H100 / H200）或更早：不用考虑 FP4，FP8 仍是首选
+- 卡是 Blackwell：先找官方或社区发布的 `-NVFP4` / `-FP4` 仓库，再跟同一模型的 FP8 版本对比自己的评测集；损失可接受就用 FP4，换来一半的显存和更高的吞吐
+- 有些模型直接以 FP4 发布，比如 gpt-oss 的 MoE 层权重就是 MXFP4，这时没有「再选」的余地，按官方说明部署即可
+
+自己量化 FP4 同样用 LLM Compressor，它的示例目录里有 NVFP4 和 MXFP4 的脚本，做法和下文的 FP8 一样：换模型名、换校准数据。
 
 vLLM 一般能从模型目录的配置文件自动识别量化方式，直接 `vllm serve <AWQ 仓库名>` 即可。手上只有 BF16 权重又想用 FP8，可以加 `--quantization fp8` 在线量化，权重会在加载时转换，省去自己准备文件，但每次启动都要转一次。
 
@@ -137,6 +153,7 @@ llama-perplexity -m model-Q4_K_M.gguf -f eval.txt
 - GGUF 默认 `Q4_K_M`，有余量选 `Q5_K_M` 到 `Q8_0`，`Q3` 以下只在装不下时用；优先带 imatrix 的版本
 - 同样内存下，大模型低位量化通常胜过小模型高位量化，但 `Q3` 以下要实测
 - GPU 服务端优先 FP8；显存装不下才用 4 位 AWQ / GPTQ，高并发时 4 位的速度优势会变小
+- Blackwell 等新卡原生支持 FP4（NVFP4 / MXFP4），权重和激活都是 4 位；先和 FP8 版本对比评测再上线
 - KV Cache 量化到 8 位几乎无损，换来一倍上下文或并发
 - 自己量化：llama.cpp 的 `convert_hf_to_gguf.py` + `llama-quantize`，MLX 用 `mlx_lm.convert`，GPU 端用 LLM Compressor
 - 验证用困惑度粗筛，**用自己的任务评测**定夺，并逐条看格式类错误

@@ -257,6 +257,46 @@ jobs:
 
 API 令牌在 Cloudflare 控制台创建，从「编辑 Workers」一类的模板开始，**只勾选需要的权限和账号**，不要用全局 API Key。Cloudflare 也提供官方的 `wrangler-action`，做的事情相同。
 
+## 静态站：Workers Static Assets
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Cloudflare 官方文档（Pages 首页提示、Workers Static Assets 的 binding 与迁移指南）整理。Pages 仍可用，但官方已把 Workers 定为主平台、建议新项目从 Workers 开始；配置项和免费额度以 Cloudflare 官方文档为准。
+
+文档站、落地页、App 的隐私政策页这类纯静态内容，以前在 Cloudflare 上用 Pages 托管。现在 Pages 文档首页直接提示：新项目从 Workers 开始，Workers 覆盖了 Pages 的大部分用法，功能更全（Cron、Workers Logs、灰度部署这些 Pages 都没有）。具体做法是给 Worker 配一个静态资源目录，**连代码都可以没有**：
+
+```jsonc
+{
+  "name": "my-site",
+  "compatibility_date": "2026-09-18",
+  "assets": {
+    "directory": "./dist",                       // 构建产物目录
+    "not_found_handling": "single-page-application"
+  }
+}
+```
+
+`wrangler deploy` 会把 `dist/` 上传，按路径直接返回文件。几个要点：
+
+- **静态资源请求不收费**，和 Pages 一样；只有走到 Worker 代码的请求才按第 4 章的方式计费。所以纯静态站放在这里，被刷也不会刷出账单
+- `not_found_handling`：单页应用写 `single-page-application`（找不到的路径回落到 `index.html`，交给前端路由）；普通多页站写 `404-page`，返回最近的 `404.html`
+- 要「静态 + 一点 API」时加上 `main` 和 `binding`：默认先匹配静态文件，匹配不到才进 Worker；如果 `/api/*` 必须先过代码（比如鉴权），用 `run_worker_first: ["/api/*"]` 只让这部分先走 Worker
+- 已有的 Pages 项目没有必要急着迁。要迁时按官方的迁移指南把 `pages_build_output_dir` 换成 `assets.directory`、Pages Functions 改成 Worker 路由，新的 Worker 验证无误后再删掉 Pages 项目
+
+```jsonc
+{
+  "name": "my-site",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-18",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",                 // 代码里用 env.ASSETS.fetch(req) 取静态文件
+    "run_worker_first": ["/api/*"]
+  }
+}
+```
+
+和第 3 章的「R2 桶自定义域」比：两者都能把文件放到 CDN 上，但 Static Assets 适合**跟着代码一起发版**的前端产物，R2 适合**用户上传、和发版无关**的文件。别把网站本身塞进 R2 公开桶，也别把用户文件塞进构建目录。
+
 ## 多环境
 
 需要预发环境时，用配置里的 `env` 段：
@@ -293,6 +333,7 @@ binding 类配置**不会从顶层继承**到环境里，每个环境要写全�
 - `wrangler dev` 在本地完整模拟存储；操作线上数据的命令一律显式加 `--remote`
 - 部署脚本别叫 `deploy`（会被 pnpm 内置命令吞掉）；部署后用独立请求验证
 - 版本和部署可以分开，`wrangler rollback` 只回滚代码不回滚数据
+- 静态站用 Workers Static Assets（`assets.directory`），新项目不再用 Pages；静态资源请求不收费
 - CI 里用最小权限的 API 令牌；多环境的 binding 和 secret 要逐个环境配全
 
 ## 动手练习

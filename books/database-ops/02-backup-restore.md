@@ -2,7 +2,7 @@
 
 备份这件事，判断标准只有一个：**能不能恢复回来**。没恢复过的备份，你只是相信它能用。本章先讲 Postgres 有哪几种备份、各自能解决什么问题，然后给 hatch-counter 搭一套每天自动跑的 `pg_dump` 备份，并完整走一遍「在一个临时容器里恢复出来、核对数据」的演练。下一章在此基础上做按时间点恢复（PITR）。
 
-命令以 PostgreSQL 16、`postgres:16-alpine` 镜像、compose 项目名 `counter` 为准。
+命令以 PostgreSQL 18、`postgres:18-alpine` 镜像、compose 项目名 `counter` 为准（版本约定见[第 1 章](01-install-tuning.md#关于这本书)）。
 
 ## 先想清楚要防什么
 
@@ -14,7 +14,7 @@
 | 误操作改坏数据 | 手写 `UPDATE` 忘了 `WHERE` | 只能退到快照时刻 | 只能退到备份时刻 | **能退到出事前一秒** |
 | 只要一部分数据 | 只恢复一家门店、一张表 | 不能直接做 | **能** | 先整库恢复再导出 |
 | 云账号出问题 | 欠费、被封、账号被盗 | 跟着一起没 | 能（存到另一家） | 能（存到另一家） |
-| 大版本升级 | 16 → 17 | 不适用 | **能** | 不能跨大版本 |
+| 大版本升级 | 16 → 18 | 不适用 | **能** | 不能跨大版本 |
 
 两个衡量指标：
 
@@ -78,7 +78,7 @@ docker compose exec -T postgres pg_restore --list < /srv/pg-backups/dump/counter
 
 ```mermaid
 flowchart TD
-  A["取最近一份<br/>dump + roles"] --> B["起临时容器<br/>postgres:16-alpine"]
+  A["取最近一份<br/>dump + roles"] --> B["起临时容器<br/>同版本镜像"]
   B --> C["导入角色"]
   C --> D["pg_restore 建库并导入"]
   D --> E["核对：表数、行数、<br/>最新一条记录"]
@@ -92,7 +92,7 @@ docker run -d --name pg-restore-test \
   -e POSTGRES_USER=counter \
   -e POSTGRES_PASSWORD=restore-test-only \
   -e POSTGRES_DB=postgres \
-  postgres:16-alpine
+  postgres:18-alpine   # 和生产同一个大版本
 
 # 等它真的可连（initdb 时会先起一个临时实例再重启）
 until docker exec pg-restore-test pg_isready -U counter -d postgres; do sleep 1; done
@@ -261,7 +261,7 @@ systemctl list-timers pg-backup.timer       # 看下次什么时候跑
 全部在一次性容器里做，不要碰生产库。先准备一个「源库」：
 
 ```bash
-docker run -d --name src -e POSTGRES_USER=counter -e POSTGRES_PASSWORD=x postgres:16-alpine
+docker run -d --name src -e POSTGRES_USER=counter -e POSTGRES_PASSWORD=x postgres:18-alpine
 until docker exec src pg_isready -U counter; do sleep 1; done
 docker exec -i src psql -U counter -d counter <<'SQL'
 CREATE ROLE counter_app LOGIN;
@@ -277,7 +277,7 @@ SQL
 
    参考答案：分配了伪终端后，终端驱动会把输出里的换行改写成回车加换行，二进制格式就坏了。`docker exec` 默认不分配伪终端，`docker compose exec` 默认分配，所以 compose 里要显式加 `-T`。
 
-2. **少了角色会怎样**：用 `a.dump` 在第二个一次性容器 `docker run -d --name dst -e POSTGRES_USER=counter -e POSTGRES_PASSWORD=x -e POSTGRES_DB=postgres postgres:16-alpine` 里执行 `pg_restore -U counter -d postgres --create --exit-on-error`，**不先导入角色**。然后删掉 `dst` 重来，这次先用 `pg_dumpall --roles-only` 导出角色并导入，再恢复。
+2. **少了角色会怎样**：用 `a.dump` 在第二个一次性容器 `docker run -d --name dst -e POSTGRES_USER=counter -e POSTGRES_PASSWORD=x -e POSTGRES_DB=postgres postgres:18-alpine` 里执行 `pg_restore -U counter -d postgres --create --exit-on-error`，**不先导入角色**。然后删掉 `dst` 重来，这次先用 `pg_dumpall --roles-only` 导出角色并导入，再恢复。
 
    验证：第一次在 `GRANT` 那一步停下，报 `role "counter_app" does not exist`；第二次恢复成功，`docker exec dst psql -U counter -d counter -c "SELECT count(*) FROM stores"` 返回 `1000`。
 

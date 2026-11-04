@@ -189,9 +189,18 @@ export class RateLimitGuard implements CanActivate {
 - Problem Details，`code: "rate_limited"`
 
 > [!WARNING]
-> `RateLimit` / `RateLimit-Policy` 响应头目前是 IETF 草案（draft-ietf-httpapi-ratelimit-headers），各版草案的字段格式变化较大，常见的 `X-RateLimit-*` 也只是事实惯例。本节按凭记忆的草案内容概括，以 IETF 最新草案为准。
+> 按 2026 年 11 月 IETF datatracker 的记录，`RateLimit` / `RateLimit-Policy` 响应头仍是草案（最新为 draft-ietf-httpapi-ratelimit-headers-11，2026 年 5 月更新），**尚未成为正式 RFC**。历次草案的字段格式变化较大，常见的 `X-RateLimit-*` 也只是事实惯例。下面的写法按 -11 整理，以 IETF 最新草案为准。
 
-除了被拒时告诉调用方，还可以在**每个成功的回包**上告诉调用方剩余额度，让行为良好的客户端主动放慢。历史上大家各用各的 `X-RateLimit-Limit`、`X-RateLimit-Remaining`、`X-RateLimit-Reset`；IETF 正在把它标准化为 `RateLimit-Policy`（描述策略）和 `RateLimit`（当前剩余）两个头。对一人公司来说，被拒时给出 `Retry-After` 就已经覆盖了大部分价值，每个回包都带额度信息是锦上添花，等第三方真的需要时再加。
+除了被拒时告诉调用方，还可以在**每个成功的回包**上告诉调用方剩余额度，让行为良好的客户端主动放慢。历史上大家各用各的 `X-RateLimit-Limit`、`X-RateLimit-Remaining`、`X-RateLimit-Reset`；IETF 正在把它标准化为 `RateLimit-Policy`（描述策略）和 `RateLimit`（当前剩余）两个头。按 -11 草案，两个头都是 HTTP 结构化字段，每一项是「策略名 + 参数」：
+
+```text
+RateLimit-Policy: "per-minute";q=60;w=60
+RateLimit: "per-minute";r=12;t=25
+```
+
+`q` 是窗口内的额度、`w` 是窗口秒数；`r` 是还剩多少、`t` 是多少秒后窗口重置。和 `X-RateLimit-*` 三个头相比，它能在一个回包里同时描述多条策略（比如每分钟 60 次、每小时 1000 次，用逗号分隔）。草案还在改，真要加的话按当时的最新版写，并在文档里写清楚用的是哪一版。
+
+对一人公司来说，被拒时给出 `Retry-After` 就已经覆盖了大部分价值，每个回包都带额度信息是锦上添花，等第三方真的需要时再加。
 
 ### 客户端要遵守 Retry-After
 

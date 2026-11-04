@@ -21,7 +21,7 @@ fb1b1de HEAD@{1}: rebase (pick): feat: f3
 7ec4daf HEAD@{2}: rebase (pick): feat: f2
 784b823 HEAD@{3}: rebase (fixup): feat: f1
 d40ef3b HEAD@{4}: rebase: fast-forward
-fc5cc67 HEAD@{5}: rebase (start): checkout fc5cc67c5aaf59202cc341b5e8fc73b6f407910c
+fc5cc67 HEAD@{5}: rebase (start): checkout fc5cc67
 2f3de4f HEAD@{6}: commit: fixup! feat: f1
 d2faa92 HEAD@{7}: commit: feat: f3
 ```
@@ -62,8 +62,8 @@ git fsck --lost-found
 ```
 
 ```text
-dangling blob f3d43775e65ac68c0589a8961c9e665ee8436944
-dangling commit 1599b981fe9a16efba4771ded859e223c963bb11
+dangling blob f3d4377
+dangling commit 1599b98
 ```
 
 `--lost-found` 还会把它们写到 `.git/lost-found/commit/` 和 `.git/lost-found/other/` 下，方便逐个查看：
@@ -163,14 +163,15 @@ git config --global rebase.autoSquash true
 ### git history：更直接的改写命令
 
 > [!WARNING]
-> `git history` 在写作时（Git 2.54）仍标注为实验性命令，子命令和行为可能变化，以 `git help history` 和 git-scm.com 的发布说明为准。
+> 本节按 2026 年 11 月 Git 2.54–2.56 的发布说明整理：`git history` 在 Git 2.54（2026 年 4 月）引入，当时只有 `reword` 和 `split`；2.55 加了 `fixup`，2.56（2026 年 9 月，写作时的最新版）加了 `drop`，至今仍标注为实验性命令。子命令和行为可能继续变化，以 `git help history` 和 git-scm.com 的发布说明为准。
 
 较新的 Git 提供了一个专门做「改某一个提交」的命令，不经过变基的交互流程：
 
 ```bash
 git history reword <提交>            # 改某个提交的消息
-git history fixup <提交>             # 把暂存区的改动并进某个提交
+git history fixup <提交>             # 把暂存区的改动并进某个提交（2.55 起）
 git history split <提交> -- <路径>   # 把某个提交按路径拆成两个
+git history drop <提交>              # 删掉某个提交，后面的提交接上来（2.56 起）
 ```
 
 它默认会把所有基于这个提交的分支都挪到新历史上。目前不支持含合并提交的历史，也不处理会产生冲突的改写，遇到这些情况仍要用 `rebase`。

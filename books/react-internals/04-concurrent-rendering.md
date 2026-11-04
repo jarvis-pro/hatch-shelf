@@ -3,7 +3,7 @@
 前三章的渲染都是「开始了就一口气做完」。这在大多数时候够用，但碰上大列表过滤、复杂图表切换时，一次渲染占住主线程几十毫秒，用户敲的字要等它算完才出现在输入框里。React 18 引入、19 继续完善的**并发渲染**解决的就是这个问题：渲染可以被打断、可以分优先级、可以在后台准备好再一次性换上。本章讲它的三块核心机制：用位掩码表示优先级的 **lanes**、负责切片和让出主线程的 **Scheduler**、以及在应用层使用它们的 `useTransition` / `useDeferredValue`，最后讲并发带来的副作用「撕裂」和 `useSyncExternalStore`。
 
 > [!WARNING]
-> lanes 的具体位布局、Scheduler 的切片时长、各种事件对应哪个 lane，都属于实现细节，本章数字以 React 19 前后源码为参照，会随版本调整，以 React 仓库对应版本的源码为准。公开 API（transition、deferred value、`useSyncExternalStore`）的行为是稳定的，以 react.dev 为准。
+> lanes 的具体位布局、Scheduler 的切片时长、各种事件对应哪个 lane，都属于实现细节。本章数字按 2026 年 11 月 React 仓库 v19.3.1 标签的源码核对（`ReactFiberLane.js` 的 `TotalLanes = 31`、`SchedulerFeatureFlags.js` 的 `frameYieldMs = 5`），会随版本调整，以 React 仓库对应版本的源码为准。公开 API（transition、deferred value、`useSyncExternalStore`）的行为是稳定的，以 react.dev 为准。
 
 ## 并发不是多线程
 
@@ -57,11 +57,11 @@ const highest = set & -set;                // 取最低位：找出最紧急的�
 3. 沿 `return` 往上，把 lane 合并进每个祖先的 `childLanes`
 4. 合并进根节点的 `pendingLanes`，请 Scheduler 安排一个任务
 
-渲染开始时，React 从 `pendingLanes` 里挑出这次要处理的 lanes（通常是最高优先级那一组）。遍历时，一个 Fiber 自己的 `lanes` 与本次 lanes 没有交集、`childLanes` 也没有交集，就整棵 bailout；有交集才往下走。处理 `useState` 队列时，lane 不在本次范围内的更新被跳过（第 3 章的 baseState 机制）。
+渲染开始时，React 从 `pendingLanes` 里挑出这次要处理的 lanes（通常是最高优先级那一组）。transition 是个例外：19.2 及以前，所有待处理的 transition lane 会被一起挑出、合并成一次渲染；19.3 起（源码里的 `enableParallelTransitions`）每次只挑一个 transition lane，互不相关的 transition 各自渲染、各自提交，一个慢的 transition 不再拖住另一个。同一个 transition 里的多次 setState 仍然在同一条 lane 上一起处理。遍历时，一个 Fiber 自己的 `lanes` 与本次 lanes 没有交集、`childLanes` 也没有交集，就整棵 bailout；有交集才往下走。处理 `useState` 队列时，lane 不在本次范围内的更新被跳过（第 3 章的 baseState 机制）。
 
 ### 饥饿与过期
 
-如果高优先级更新源源不断，低优先级的 transition 岂不是永远轮不到？React 给每个待处理 lane 记一个过期时间，超过之后这个 lane 被标为「已过期」，下次渲染当作同步任务处理，不再切片、不再被打断。具体时长是实现细节，你只需要知道 transition 不会无限期饿死。
+如果高优先级更新源源不断，低优先级的 transition 岂不是永远轮不到？React 给每个待处理 lane 记一个过期时间，超过之后这个 lane 被标为「已过期」，下次渲染当作同步任务处理，不再切片、不再被打断。具体时长是实现细节（v19.3.1 源码里 transition 和 Retry lane 都是 5 秒），你只需要知道 transition 不会无限期饿死。
 
 ## Scheduler：切片与让出
 
@@ -83,7 +83,7 @@ function workLoopConcurrent() {
 
 ![同步渲染一次占住主线程 40ms，期间按键无法响应；切片渲染每 5ms 让出一次，按键在下一次让出时就能被处理](assets/time-slicing.svg)
 
-图中的数字是示意：真实的切片时长会随实现调整，每个 Fiber 单元的耗时也不均匀（一个慢组件本身就超过 5ms 时，切片也帮不了它，因为检查只发生在单元之间）。
+图中的数字是示意。5ms 来自 Scheduler 的 `frameYieldMs`；v19.3.1 源码里另有一个默认关闭的实验开关 `enableThrottledScheduling`，打开后 transition 渲染改为约 25ms 让出一次，可见真实的切片时长会随实现调整。另外，每个 Fiber 单元的耗时也不均匀（一个慢组件本身就超过 5ms 时，切片也帮不了它，因为检查只发生在单元之间）。
 
 ### 打断与重来
 
@@ -144,7 +144,10 @@ function DishFilter({ dishes }: { dishes: Dish[] }) {
 
 ### 路由导航也是 transition
 
-React Router 7 默认把导航包在 `startTransition` 里。掌柜眼外壳的注释记录了这件事带来的好处：页面都是 `lazy()` 按需加载的，切到「经营分析」这种大包时需要一点时间，但因为导航是 transition，**旧页面会一直留在屏幕上**直到新页面准备好，而不是先闪一下 Suspense 的 fallback。这部分在第 5 章展开。
+> [!WARNING]
+> 本节按 2026 年 11 月 React Router 文档《React Transitions》整理（7.x 与 8.x 文档一致），路由库的默认行为可能随版本调整，以 reactrouter.com 对应版本的文档为准。
+
+React Router 7 默认把路由内部的所有状态更新（包括导航）包在 `startTransition` 里，这是 6.13 的 `future.v7_startTransition` 开关在 v7 转正的结果。不想要这个行为（比如应用大量依赖 `useSyncExternalStore`，它的更新无法成为 transition）时，可以在 `<BrowserRouter>` / `<RouterProvider>` 上传 `useTransitions={false}` 关掉。掌柜眼外壳的注释记录了这件事带来的好处：页面都是 `lazy()` 按需加载的，切到「经营分析」这种大包时需要一点时间，但因为导航是 transition，**旧页面会一直留在屏幕上**直到新页面准备好，而不是先闪一下 Suspense 的 fallback。这部分在第 5 章展开。
 
 ## useDeferredValue
 

@@ -129,6 +129,9 @@ Testing Library 的原则是**按用户感知的方式查找元素**：优先 `g
 
 ### 浏览器模式
 
+> [!WARNING]
+> 「Vitest 4 起转为稳定」按 Vitest 官方博客《Vitest 4.0》（2025 年 10 月 22 日，原文是去掉了浏览器模式的 experimental 标记）整理。配置项和驱动方式以 vitest.dev 最新文档为准。
+
 jsdom 是用 JavaScript 模拟的 DOM，没有布局引擎：`getBoundingClientRect()` 永远返回 0，CSS 不生效，`ResizeObserver` 要自己补。像 hatch-counter 的 `ScrollBox` 这种依赖真实尺寸的组件，在 jsdom 里测不了。Vitest 提供了**浏览器模式**，在真浏览器里跑组件测试（底层可以用 Playwright 驱动），Vitest 4 起这一模式已转为稳定。需要测真实布局时考虑它，具体配置以 Vitest 官方文档为准。
 
 ## Playwright：端到端测试

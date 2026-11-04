@@ -14,7 +14,7 @@ AI 领域几乎所有东西都先有 Python 版：模型厂商的 SDK、PyTorch�
 
 **几个约定**：
 
-- Python 版本以 **3.12** 为基线，代码在 3.12 上实际跑过；3.13、3.14 同样适用
+- Python 版本以 **3.12** 为基线，代码在 3.12 上实际跑过；3.13 及之后的版本同样适用，新版本多了什么见[3.13 之后的新变化](#313-之后的新变化)
 - 包管理统一用 **uv**（第 2 章），不用 pip / conda / poetry。运行示例的方式是 `uv run xxx.py`
 - 写作时（2026 年 11 月）本书用到的库版本大致是：NumPy 2.x、Pandas 3.x、Pydantic 2.x、Anthropic Python SDK 2.x。库更新快，遇到行为不一致以官方文档为准
 
@@ -469,6 +469,45 @@ asyncio.run(main())                   # 顶层没有 await，要用 asyncio.run 
 | 改了一个列表，另一个变量也变了 | 赋值只是引用 | `xs.copy()`、`list(xs)`，嵌套结构用 `copy.deepcopy` |
 | 脚本 `import` 自己写的 `json.py` 出问题 | 和标准库模块重名 | 别用标准库模块名给自己的文件命名 |
 
+## 3.13 之后的新变化
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Python 官方文档的「What's New in Python 3.13 / 3.14 / 3.15」整理。3.15 于 2026 年 10 月发布，第三方库（尤其是带 C 扩展的 NumPy、PyTorch）跟进新版本需要时间，以各库的发布说明为准。
+
+Python 每年 10 月发一个大版本。本书用 3.12 当基线，是因为 AI 相关的库对它的支持最稳；但 3.13 之后有几项变化值得知道，读新代码时会遇到。
+
+### 自由线程：去掉 GIL
+
+CPython 长期有一把全局解释器锁（GIL），同一时刻只有一个线程在执行 Python 字节码，所以多线程对 CPU 密集的纯 Python 代码没用。这件事正在改变：
+
+| 版本 | 状态 |
+|---|---|
+| 3.13（2024） | 提供**实验性**的自由线程构建（PEP 703），解释器名带 `t`，如 `python3.13t` |
+| 3.14（2025） | 自由线程构建转为**官方支持**（PEP 779），单线程性能损失约 5%–10% |
+| 3.15（2026） | 官方 macOS 安装包默认附带自由线程支持，C 扩展有了自由线程的稳定 ABI |
+
+注意它仍然是一个**单独的构建**，默认的 `python3.14` 依然带 GIL。用 uv 可以装自由线程版：`uv python install 3.14t`。
+
+对本书的读者，实际影响不大：调模型 API 是 I/O 密集，用 asyncio 就够（见[异步](#异步asyncio)）；NumPy、PyTorch 的计算在 C / CUDA 里，本来就会释放 GIL。自由线程真正有用的场景是「大量纯 Python 的 CPU 计算想用多核」，并且依赖的 C 扩展都发布了自由线程版本的 wheel。
+
+### 类型标注变成惰性求值
+
+3.14 起（PEP 649 / 749），函数和类上的类型标注**不再在定义时求值**，而是第一次被读取时才算。最直接的好处：引用后面才定义的类，不用再写成字符串。
+
+```python
+class Node:
+    def add(self, child: Node) -> Node:   # 3.14 起合法；3.12 要写成 "Node"
+        ...
+```
+
+同样的代码在 3.12 上会在定义时报 `NameError: name 'Node' is not defined`。老代码里常见的 `from __future__ import annotations` 就是为了达到类似效果，3.14 起一般不再需要。Pydantic 这类在运行时读取标注的库会通过新的 `annotationlib` 模块拿到标注，正常使用不受影响。
+
+### 其他值得一提的
+
+- **3.13**：新的交互式 REPL（彩色、支持多行编辑）；实验性 JIT 编译器
+- **3.14**：模板字符串 `t"..."`（PEP 750），写法像 f-string，但得到的是一个可以分别处理固定部分和插值部分的 `Template` 对象，适合拼 SQL、HTML 时做转义；`except A, B:` 可以不写括号；标准库加入 `compression.zstd`
+- **3.15**：`lazy import json` 显式惰性导入（PEP 810），模块第一次用到时才加载，能缩短命令行工具的启动时间；不写 `encoding` 时默认用 UTF-8（PEP 686），在 Windows 上读写中文文件不再容易乱码；新增不可变的 `frozendict`
+
 ## 本章要点
 
 - Python 是动态类型语言，类型标注只给工具看，运行时不检查
@@ -478,6 +517,7 @@ asyncio.run(main())                   # 顶层没有 await，要用 asyncio.run 
 - 关键字参数是 Python API 的主流风格，`*` 之后的参数只能按名字传
 - 默认参数不要用可变对象；数据结构用 `dataclass`，校验外部数据用 Pydantic
 - 异步要显式用 `asyncio`，`asyncio.gather` 相当于 `Promise.all`
+- 3.14 起自由线程（无 GIL）构建获得官方支持但仍是单独构建，类型标注改为惰性求值；3.15 默认 UTF-8 编码、支持 `lazy import`
 
 ## 动手练习
 

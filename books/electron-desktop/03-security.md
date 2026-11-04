@@ -191,6 +191,10 @@ exports.default = async function afterPack(context) {
 afterPack: scripts/fuses.cjs
 ```
 
+`resetAdHocDarwinSignature` 这一项来自 `@electron/fuses` 的 README：苹果芯片（arm64）的 macOS 构建，如果翻转后不立即重新签名，要传 `true`，否则应用会因签名校验错误拒绝启动。electron-builder 的 `afterPack` 在签名之前执行，签名步骤会再签一次，写上它也无害。electron-builder 26 还提供了内置的 `electronFuses` 配置项（字段名是小驼峰，如 `runAsNode: false`），可以不写钩子；两种方式选一种。
+
+关掉 `EnableNodeCliInspectArguments` 后，Playwright 这类靠 `--inspect` 连接主进程的测试工具也连不上了，端到端测试的做法见[第 4 章](04-electron-vite.md#用-playwright-做端到端测试)。
+
 完整的 fuse 列表和各自含义随 Electron 版本增加，以 `@electron/fuses` 的文档为准。
 
 ## 对照唱片墙：做了什么、为什么没做什么

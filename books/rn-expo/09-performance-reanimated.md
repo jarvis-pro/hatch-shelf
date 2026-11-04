@@ -53,6 +53,9 @@ npx expo run:ios --configuration Release --device
 
 ## Reanimated 的模型
 
+> [!WARNING]
+> 本节的版本号按 2026 年 11 月 `expo@58.0.22` 的 `bundledNativeModules.json` 核对（`react-native-reanimated` 4.7.1、`react-native-worklets` 0.13.0、`react-native-gesture-handler` ~3.3.0）；`runOnJS` 被 `scheduleOnRN` 取代、Babel 插件改名、只支持新架构，按 Reanimated 官方的 3.x 迁移指南核对；「Expo 的 Babel 预设自动配置插件」按 Expo SDK 58 的 Reanimated 文档核对。以官方最新文档为准。
+
 Reanimated（SDK 58 配套版本 4.7）的核心思想：**动画的每一帧在 UI 线程上计算**，JS 线程只负责「启动」动画。
 
 ```mermaid
@@ -153,6 +156,9 @@ Reanimated 4 新增了 CSS 风格的动画和过渡：状态驱动、不需要 S
 
 ## 手势：Gesture Handler 3
 
+> [!WARNING]
+> 下表按 2026 年 11 月 Gesture Handler 官方的「升级到 3」指南核对：`onStart` → `onActivate`、`onEnd` → `onDeactivate`、`success` → 事件的 `canceled`、`onChange` 并入 `onUpdate`；旧写法的组件和类型改以 `Legacy` 前缀导出。以官方最新文档为准。
+
 动画最常见的驱动源是手势。SDK 58 配套的 `react-native-gesture-handler` 是 3.x，引入了**基于 Hook 的 API**：
 
 | 2.x 写法 | 3.x Hook 写法 |
@@ -161,6 +167,7 @@ Reanimated 4 新增了 CSS 风格的动画和过渡：状态驱动、不需要 S
 | `Gesture.Tap()` | `useTapGesture({...})` |
 | `Gesture.Exclusive(a, b)` | `useExclusiveGestures(a, b)` |
 | `Gesture.Simultaneous(a, b)` | `useSimultaneousGestures(a, b)` |
+| `Gesture.Race(a, b)` | `useCompetingGestures(a, b)` |
 | 回调参数 `success` | 事件的 `canceled` 字段（含义相反） |
 
 一个跟手拖动、松手回弹的例子：

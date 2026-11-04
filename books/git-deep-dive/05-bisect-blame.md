@@ -24,7 +24,7 @@ git bisect good v1.0.0         # 这个版本是好的
 
 ```text
 Bisecting: 31 revisions left to test after this (roughly 5 steps)
-[83670d771a494bd6f7340d60947c7b1b5fb71edf] Merge branch 'main' into claude/focused-snyder-557e2d
+[83670d7] Merge branch 'main' into claude/focused-snyder-557e2d
 ```
 
 两个版本之间有 64 个提交，第一个被选中测试的恰好是第 3 章提到的那个合并提交，本章后面讲 `--first-parent` 时会回到这一点。
@@ -110,7 +110,7 @@ running '/tmp/bisect-check.sh'
 Bisecting: 0 revisions left to test after this (roughly 0 steps)
 [ead0209...] chore: step 63
 running '/tmp/bisect-check.sh'
-ead02099d631ee8e2ac462b4e7860b2277656407 is the first bad commit
+ead0209 is the first bad commit
 ```
 
 依次测了第 50、75、62、68、65、64、63 个提交，一共 7 次，和 $\lceil \log_2 99 \rceil = 7$ 一致。

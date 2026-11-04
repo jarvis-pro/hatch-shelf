@@ -7,7 +7,7 @@
 已经讲过的部分：Stripe 的 Checkout、webhook 验签、客户门户和本地联调见[《出海实务》第 3 章](../going-global/03-stripe-payments.md)；什么时候必须用内购、StoreKit 2 的整体流程、App Store 服务器通知的基本处理、沙盒测试见[《定价与商业模式》第 6 章](../pricing-monetization/06-app-store-iap.md)。
 
 > [!WARNING]
-> 本章涉及的 Stripe API（含 API 版本之间的字段变化）、App Store Server API 与服务器通知 V2、Google Play Developer API 与实时开发者通知，均按 2025 年前后的官方文档整理，三家都在持续调整接口、字段和规则，Google Play 在中国大陆不可用。以 Stripe 文档（docs.stripe.com）、Apple Developer 文档（App Store Server API、App Store Server Notifications）和 Google Play 开发者文档的最新版本为准。
+> 本章涉及的 Stripe API（含 API 版本之间的字段变化）、App Store Server API 与服务器通知 V2、Google Play Developer API 与实时开发者通知，均按 2025 年前后的官方文档整理，三家都在持续调整接口、字段和规则，Google Play 在中国大陆不可用。外链支付和 Google Play 替代计费单独成节，按 2026 年 11 月核对过，见[「App 外付款：美区外链与 Google Play 替代计费」](#app-外付款美区外链与-google-play-替代计费)。以 Stripe 文档（docs.stripe.com）、Apple Developer 文档（App Store Server API、App Store Server Notifications）和 Google Play 开发者文档的最新版本为准。
 
 ## 原则：收到通知，回头去问
 
@@ -374,6 +374,42 @@ async rtdn(@Headers("authorization") auth: string, @Body() body: PubSubPush) {
 | Google Play | 订阅状态变化通知；另有「已作废的购买」API 可定期拉取 | 按 API 返回 |
 
 退款权在苹果和 Google 手里（[《定价与商业模式》第 7 章](../pricing-monetization/07-refunds-disputes.md)讲过「苹果说了算」），你的服务端只需要正确地同步。苹果还会在用户申请退款时发 `CONSUMPTION_REQUEST`，询问这个用户的使用情况，你可以选择回应，回应内容要符合苹果的数据规范和你的隐私政策。
+
+## App 外付款：美区外链与 Google Play 替代计费
+
+> [!WARNING]
+> 本节按 2026 年 11 月查到的官方资料整理：Google 部分依据 Play 管理中心帮助页「An update regarding Google Play's policies for developers serving users in the US」（含 2026-10-21 的通知）、Android Developers Blog 2026-06-24 的「Expanded billing choice and lower fees on Google Play」，以及 developer.android.com 的「Backend integration guidance for monetization outside of Google Play Billing」；Apple 部分沿用[《定价与商业模式》第 6 章「地区规则」](../pricing-monetization/06-app-store-iap.md#地区规则)的核对结果。两家的费率、上报时限和适用地区都还在变，美区规则以法院的最新裁定为准，接入前以 Apple 开发者网站、Play 管理中心和各自开发者协议的最新版本为准。
+
+前面三节都假设「在 App 里买就走内购」。这两年美国、欧盟、日本、韩国等地陆续放开了 App 外付款：App 里可以放链接去网页买，或者在系统内购之外再给一个自己的支付方式。规则本身（能不能放、抽多少）在《定价与商业模式》里讲；这里只讲**服务端要多做什么**。
+
+### 苹果美区：外链买到的就是一份 Stripe 订阅
+
+2025 年 4 月的法院裁定之后，美区 App 可以直接放按钮链接到网页购买，不用申请权限；Apple 对这类购买能收多少费用，写作时还在重审，没有定论。对服务端来说，用户从 App 跳到网页、用 Stripe 付完款，得到的就是本章前面那种 Stripe 订阅，落进镜像表的 `provider = 'stripe'` 一行，权益合成照旧。
+
+要多想的是两件事：
+
+- **跳转时带上身份，但别把令牌放进 URL**。用户在 App 里已经登录，到了网页不应该再登录一次，否则很可能用另一个账号付款，订阅挂错人。做法是 App 先向服务端要一个一次性的短期代码（几十秒有效、用一次就作废），网页用它换会话，再按[「客户和你的账号一一对应」](#客户和你的账号一一对应)的规则建 Checkout
+- **记下这笔是从哪里来的**。欧盟和日本的外链条款都按「点链接之后 7 天内」的网页销售向 Apple 报告并交佣金，美区将来定下来的费用很可能也要你自己报数。在跳转时记一条 `link_out(account_id, platform, at)`，镜像表的 `raw` 里留着 Checkout 的创建时间，到时候能按任意窗口算出来，比事后翻日志可靠
+
+### Google Play：替代计费要向 Google 逐笔上报
+
+Google 这边因为 Epic 诉 Google 案，在美国开放了两个计划：**替代计费**（App 里用自己的支付，可以和 Google Play 结算并列给用户选）和**外部内容链接**（链到网页购买或下载）。两者都在 2025 年 12 月上线，从 2026 年 10 月 1 日起要上报交易并交服务费（外部内容链接计划的下载上报延到 2027 年 2 月 1 日）。2026 年 6 月 30 日起，美国、英国、欧洲经济区改成「服务费 + 结算费」分开计：服务费不论用哪种支付都要交，年收入前 100 万美元和自动续期订阅按 10% 起算；5% 的结算费只在用 Google Play 结算时才收。
+
+和苹果不同，Google 的替代计费**要求服务端逐笔上报**，用的是 Google Play Developer API 的 `externaltransactions`：
+
+| 什么时候报 | 怎么报 |
+|---|---|
+| 首次购买（包括 0 元的免费试用） | 带上 App 从 Play Billing Library 拿到的 `externalTransactionToken`，加你自己生成的 `externalTransactionId` |
+| 每次续费 | 新的 `externalTransactionId`，用 `initialExternalTransactionId` 指向首笔；不再需要 token |
+| 升级、降级、退订后重新买 | 当成新的首笔：新 token、新 ID |
+| 退款 | 调退款接口，指明退的是**哪一笔**；整个订阅全退要对每一笔分别报 |
+
+上报的金额分税前和税额两个字段，`userTaxAddress` 写用户所在国家；只能对计划支持的国家上报，其他国家的调用会被拒绝。`externalTransactionId` 里不能放个人信息，用订单号或它的哈希就行。
+
+这一块正好可以复用[第 10 章](10-webhooks-reconciliation.md)的管线：Stripe 的 `invoice.paid`、`charge.refunded` 事件进来，处理器在更新镜像表之外，再往「待上报」表里写一行，由同一个 `SKIP LOCKED` 处理器调 Google 的接口，失败了按退避重试，成功了记下回执。对账时多一本账：Stripe 的成交明细和已上报给 Google 的明细，两边逐笔对得上，才说明没有漏报。
+
+> [!TIP]
+> 一人公司的 Android 收入如果主要在国内渠道，这一节暂时用不上。真到出海、Google Play 订阅收入可观时，先算一笔账：自建支付省下的结算费，够不够抵上报、对账、客服和税务的额外工作量。
 
 ## 本章要点
 

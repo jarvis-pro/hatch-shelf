@@ -107,7 +107,7 @@ ALTER TABLE jobs SET (
 手写版加上面几项补丁，再加上 cron、优先级、去重、死信、批量取任务，就是 pg-boss 做的事。它是一个 Node 库，在你的 Postgres 里建一个 `pgboss` schema，思路和手写版一样是 `SKIP LOCKED`。
 
 > [!WARNING]
-> 本节按 pg-boss 10.x 整理。v10 相比 v9 有破坏性变化：队列要先 `createQueue` 才能用，`work` 的处理函数收到的是任务数组，部分选项改名。之后的大版本可能还有调整（包括导入方式）。写代码前以 pg-boss 仓库的 README 和 releases 说明为准。
+> 本节按 2026 年 11 月 pg-boss 仓库的 README 和 v10–v12 的 releases 说明整理，写作时最新是 12.x。v10 起队列要先 `createQueue` 才能用，`work` 的处理函数收到的是任务数组；**v11（2025 年 9 月）**不支持从 v10 自动迁移数据，去掉了归档表（完成的任务留在 job 表里，默认 7 天后删除，用 `deleteAfterSeconds` 调），时间类选项统一改成以秒为单位（如 `expireInSeconds`），最低 Node 22；**v12（2025 年 11 月）**改成 ESM + TypeScript，**去掉了默认导出**，要写 `import { PgBoss } from "pg-boss"`，最低 Node 22.12，队列名只能用字母、数字、`-`、`_`、`.`。写代码前以 pg-boss 仓库的 README 和 releases 说明为准。
 
 ### 启动和建队列
 
@@ -116,7 +116,7 @@ pnpm add pg-boss
 ```
 
 ```typescript
-import PgBoss from "pg-boss";
+import { PgBoss } from "pg-boss"; // v12 起只有具名导出
 
 const boss = new PgBoss({
   connectionString: process.env.DATABASE_URL,
@@ -190,7 +190,7 @@ await sql.begin(async (tx) => {
 ```typescript
 // src/jobs/boss.provider.ts
 import { Inject, Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown } from "@nestjs/common";
-import PgBoss from "pg-boss";
+import { PgBoss } from "pg-boss"; // v12 起只有具名导出
 
 @Injectable()
 export class BossService implements OnApplicationBootstrap, OnApplicationShutdown {

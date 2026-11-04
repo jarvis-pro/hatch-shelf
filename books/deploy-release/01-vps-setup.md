@@ -43,7 +43,7 @@ hatch-counter 选 VPS 的理由很典型：服务端要连 Postgres、要 SSE �
 
 ### 架构：amd64 还是 arm64
 
-开发用的 Mac 是 arm64，大多数云主机是 amd64。本地 `docker build` 出来的镜像扔上去会报 `exec format error`。可以 `docker buildx build --platform linux/amd64` 交叉构建，但 QEMU 模拟下 `pnpm install` 加 `tsc` 会慢好几倍。hatch-counter 的做法是**不在本地编镜像**，GitHub 的 Linux runner 本来就是 amd64。
+开发用的 Mac 是 arm64，大多数云主机是 amd64。本地 `docker build` 出来的镜像扔上去会报 `exec format error`。可以 `docker buildx build --platform linux/amd64` 交叉构建，但 QEMU 模拟下 `pnpm install` 加 `tsc` 会慢好几倍。hatch-counter 的做法是**不在本地编镜像**，GitHub 默认的 `ubuntu-latest` runner 就是 amd64。如果你选的是 arm64 服务器，GitHub 也有原生的 arm64 runner，见[第 5 章](05-ci-cd.md#arm64-runner)。
 
 ### 系统
 

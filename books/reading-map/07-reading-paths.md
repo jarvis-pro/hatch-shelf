@@ -22,57 +22,57 @@ flowchart TD
 
 先建立对 AI 和 agent 的整体认知，同时补上运维最基础的两块。
 
-1. 书架导读
-2. 大模型原理科普
-3. 大模型应用工程
-4. Agent 原理与设计
-5. 编码 Agent 实战
-6. 个人 Agent 工作流
-7. 一人公司方法论
-8. Linux 系统与命令行
-9. 容器技术
+1. 书架导读（就是这本）
+2. [大模型原理科普](../llm-fundamentals/)
+3. [大模型应用工程](../llm-app-engineering/)
+4. [Agent 原理与设计](../agent-principles/)
+5. [编码 Agent 实战](../coding-agents/)
+6. [个人 Agent 工作流](../personal-agent-workflow/)
+7. [一人公司方法论](../opc-playbook/)
+8. [Linux 系统与命令行](../linux-essentials/)
+9. [容器技术](../docker-containers/)
 
 ### 第二批：运维上手
 
 把一个服务从部署到监控、再到出事故时的处理，完整走一遍。
 
-1. 计算机网络
-2. Nginx 与反向代理
-3. 部署与 CI/CD
-4. 一人运维手册
-5. 可观测性与性能
-6. PostgreSQL 运维
+1. [计算机网络](../networking/)
+2. [Nginx 与反向代理](../nginx-gateway/)
+3. [部署与 CI/CD](../deploy-release/)
+4. [一人运维手册](../production-ops/)
+5. [可观测性与性能](../observability-performance/)
+6. [PostgreSQL 运维](../database-ops/)
 
 ### 第三批：AI 纵深
 
 沿原理线读到底，再补上 agent 的两本核心原理书和 AI 工程的两本质量书。
 
-1. AI 数学直觉
-2. 面向 AI 的 Python
-3. 动手学深度学习
-4. 大模型原理进阶
-5. 上下文工程
-6. 工具设计与 MCP
-7. RAG 与知识系统
-8. 评测与质量
+1. [AI 数学直觉](../math-for-ai/)
+2. [面向 AI 的 Python](../python-for-ai/)
+3. [动手学深度学习](../deep-learning-basics/)
+4. [大模型原理进阶](../llm-deep-dive/)
+5. [上下文工程](../context-engineering/)
+6. [工具设计与 MCP](../tools-and-mcp/)
+7. [RAG 与知识系统](../rag-systems/)
+8. [评测与质量](../llm-evals/)
 
 ### 第四批：OPC 商业
 
-1. 产品思维
-2. 定价与商业模式
-3. 国内合规实务
-4. 获客与增长
-5. 财务与税务
-6. 数据分析与埋点
+1. [产品思维](../product-thinking/)
+2. [定价与商业模式](../pricing-monetization/)
+3. [国内合规实务](../opc-compliance-cn/)
+4. [获客与增长](../growth-marketing/)
+5. [财务与税务](../opc-finance/)
+6. [数据分析与埋点](../product-analytics/)
 
 ### 第五批：OPC 落地
 
-1. 一人公司行动手册（先读第 1 章总览，之后按自己所在的阶段读对应章节）
-2. 销售与 To B 成交
-3. 过渡期收入与个人保障
-4. 合同与法律文书
-5. 国内私域与内容平台
-6. 一人公司案例库
+1. [一人公司行动手册](../opc-action-plan/)（先读第 1 章总览，之后按自己所在的阶段读对应章节）
+2. [销售与 To B 成交](../b2b-sales/)
+3. [过渡期收入与个人保障](../opc-transition/)
+4. [合同与法律文书](../contracts-legal/)
+5. [国内私域与内容平台](../private-domain-cn/)
+6. [一人公司案例库](../opc-cases/)
 
 行动手册不必等前四批读完：任何时候都可以先读它的总览，确定自己在哪个阶段，再按附录去读当下需要的书。
 
@@ -80,9 +80,9 @@ flowchart TD
 
 这一批是一个独立方向，不必等前五批读完。先读[《自媒体与短剧一人公司全景》](../media-opc-overview/)和[《自媒体与短剧行动手册》](../media-action-plan/)的总览，确定走账号线还是 AI 短剧线，再按行动手册里每个阶段的「这一阶段要读的」去读。
 
-- 账号线：账号定位与对标拆解 → 选题与爆款结构 → 短视频脚本与分镜 → 拍摄与剪辑实务 → 所在平台那本 → 变现那几本
-- AI 短剧线：微短剧行业全景 → 短剧编剧 → AI 短剧分镜与画面生成 → AI 短剧后期 → 短剧发行、投流与备案
-- 两条线都要读：自媒体与短剧合规财税；想做工具的再读[《给创作者和短剧团队做工具》](../creator-tools/)
+- 账号线：[账号定位与对标拆解](../account-positioning/) → [选题与爆款结构](../topic-and-hooks/) → [短视频脚本与分镜](../video-script-storyboard/) → [拍摄与剪辑实务](../shooting-editing/) → 所在平台那本 → 变现那几本（平台和变现各本的分工见[自媒体与短剧](09-media.md)一章）
+- AI 短剧线：[微短剧行业全景](../micro-drama-industry/) → [短剧编剧](../drama-scriptwriting/) → [AI 短剧分镜与画面生成](../ai-drama-storyboard/) → [AI 短剧后期](../ai-drama-post/) → [短剧发行、投流与备案](../drama-distribution/)
+- 两条线都要读：[自媒体与短剧合规财税](../media-compliance/)；想做工具的再读[《给创作者和短剧团队做工具》](../creator-tools/)
 
 ### 第七批：工程基本功与第二语言
 

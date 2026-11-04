@@ -8,7 +8,7 @@
 
 这本书讲一台 Linux 服务器上你迟早要碰到的东西：Shell 与命令、文件和权限、进程和信号、systemd 管服务、journald 看日志、apt 装软件、磁盘与挂载、写 Shell 脚本，最后是一套排障工具箱。
 
-以 **Ubuntu / Debian 服务器**为主，示例按 Ubuntu 24.04 LTS 和 Debian 12 写，更新的版本命令基本一致。CentOS / Rocky 这类 RHEL 系发行版只在差别大的地方提一句（主要是包管理）。
+以 **Ubuntu / Debian 服务器**为主，示例按 Ubuntu 24.04 LTS 和 Debian 12 写，更新的版本命令基本一致。Ubuntu 26.04 LTS 把 `sudo` 和一部分核心命令换成了 Rust 重写版，日常用法不变，差异集中在少数参数和报错文案，见[第 6 章](06-package-management.md#ubuntu-2604-换了哪些底层工具)。CentOS / Rocky 这类 RHEL 系发行版只在差别大的地方提一句（主要是包管理）。
 
 ### 适合谁
 
@@ -217,7 +217,7 @@ sudo -i                 # 切到 root 的交互 Shell，用完 exit
 sudo -u postgres psql   # 以另一个用户身份执行
 ```
 
-有了 `sudo`，每次提权都有日志可查，误操作的范围也小。很多云厂商的镜像默认直接给 root 登录，第 2 章讲用户与权限时会说怎么改。
+有了 `sudo`，每次提权都有日志可查，误操作的范围也小。Ubuntu 26.04 起默认的 `sudo` 是 Rust 重写的 sudo-rs，上面这些用法完全一样。很多云厂商的镜像默认直接给 root 登录，第 2 章讲用户与权限时会说怎么改。
 
 ## 远程连接：ssh
 

@@ -198,10 +198,13 @@ whisper.cpp 的编译、模型选择和中文识别的常见问题（同音字�
 - 不想依赖会员订阅，想要一次买断或免费
 - 需要对音频做专业处理（多轨混音、精细降噪）
 
+> [!WARNING]
+> 下表收费方式按 2026 年 11 月各软件官方页面整理：Final Cut Pro 的买断价取自 Mac App Store 中国区，Creator Studio 订阅价取自 Apple 中国官网，DaVinci Resolve 取自 Blackmagic Design 官网。价格和订阅内容会调整，以各官方商店当时的标价为准。
+
 | 软件 | 平台 | 收费方式（截至 2026 年 11 月） | 特点 |
 |---|---|---|---|
-| DaVinci Resolve | Windows / macOS / Linux | 免费版功能完整；Studio 版一次性买断，海外定价 295 美元 | 调色是行业标准；2026 年 6 月发布的 21 版免费版仍可处理不限分辨率的素材，大部分 AI 功能在 Studio 版 |
-| Final Cut Pro | 仅 macOS | 在 Mac App Store 购买，价格以商店为准 | 对 Mac 硬件优化好，剪辑流畅 |
+| DaVinci Resolve | Windows / macOS / Linux | 免费版功能完整；Studio 版一次性买断，官网标价 295 美元、2026 年 11 月优惠价 236 美元 | 调色是行业标准；21 版免费版可导入、剪辑不限分辨率的素材，但导出最高 3840×2160（竖屏短视频够用）；降噪和大部分 AI 功能在 Studio 版 |
+| Final Cut Pro | macOS（订阅版另含 iPad 版） | 两种方式并存：Mac App Store 一次性买断（国区 1998 元）；或订阅 Apple Creator Studio（2026 年 1 月推出，中国大陆 38 元 / 月或 380 元 / 年，含 Logic Pro、Pixelmator Pro 等） | 对 Mac 硬件优化好，剪辑流畅；部分新的智能功能和素材只给订阅用户 |
 | Adobe Premiere Pro | Windows / macOS | 订阅制 | 与 Photoshop、After Effects 等配合；团队协作常见 |
 
 建议：

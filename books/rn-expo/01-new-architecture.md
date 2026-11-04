@@ -4,9 +4,10 @@
 
 **适合谁**：会 React 和 TypeScript，写过或者跑过 Expo 项目，想知道「为什么要这样配」、遇到原生层的问题不再只会删 `node_modules`。不讲 JSX 和 Hooks 入门。
 
-**怎么读**：第 1–2 章是运行时原理，看懂后面的很多「坑」都能自己推出来；第 3–6 章是工程链路（路由 → 原生工程 → config plugin → 原生模块），建议按顺序读；第 7–9 章按需看；第 10 章在第一次出包前读。
+**怎么读**：第 1–2 章是运行时原理，看懂后面的很多「坑」都能自己推出来；第 3–6 章是工程链路（路由 → 原生工程 → config plugin → 原生模块），建议按顺序读；第 7–9 章按需看；第 10 章在第一次出包前读；第 11 章讲 Android 与国内分发，要在国内安卓上发时再读。
 
-> **版本说明**：Expo 每个 SDK 都有破坏性变更。本书的 API 以 **Expo SDK 58** 为准（React Native 0.88、React 19.3、最低 iOS 16.4、Xcode 26.4 及以上、Node 22.13 及以上）。用其他版本时，请对照 Expo 官网对应版本的文档。
+> [!WARNING]
+> **版本说明**：Expo 每个 SDK 都有破坏性变更。本书的 API 以 **Expo SDK 58** 为准（React Native 0.88、React 19.3、最低 iOS 16.4、Xcode 26.4 及以上、Node 22.13 及以上）。这组版本号按 2026 年 11 月 Expo 文档首页的 SDK 版本对照表核对过；全书各章的 API 名按 2026 年 11 月的 Expo SDK 58 changelog 和 `docs.expo.dev/versions/v58.0.0/` 逐条核对。用其他版本时，请对照 Expo 官网对应版本的文档，以官方最新文档为准。
 
 这一章先回答一个问题：一行 JS 里写的 `<View>`，是怎么变成屏幕上的 `UIView` 的？「新架构」改的就是这条路。
 
@@ -129,12 +130,17 @@ npx expo-doctor
 
 ## SDK 58 带来的其他变化
 
+> [!WARNING]
+> 本节按 2026 年 11 月 Expo 官网的 SDK 58 changelog（expo.dev/changelog/sdk-58）整理，补丁版本可能还会调整，升级前以官方 changelog 和升级指南为准。
+
 和新架构无关、但升级到 SDK 58 时会碰到的几条（来自 Expo 官方的升级指南）：
 
 - **Strict TypeScript API 默认开启**：从 `react-native/Libraries/*` 深层导入会报类型错误，ref 要用 `ViewInstance`、`TextInputInstance` 这样的实例类型
-- **删掉了一些 API**：`InteractionManager`（改用 `requestIdleCallback`）、`Modal` 的 `animated` 属性、`StatusBar` 的 `backgroundColor` / `translucent` 等属性
+- **删掉了一些 API**：`InteractionManager`（改用 `requestIdleCallback`）、根导出的 `Touchable`、`Modal` 的 `animated` 属性、`StatusBar` 的 `backgroundColor` / `translucent` / `networkActivityIndicatorVisible` 属性；`ImageBackground` 标记为废弃。Strict TypeScript API 可以先在 `tsconfig.json` 里用 `customConditions` 暂时退出，官方说这个退路会在 RN 0.89 之后移除
 - **iOS 场景生命周期**：`expo prebuild` 现在会生成 `SceneDelegate.swift`，窗口由场景代理创建。用 config plugin 和 Expo Modules 的项目基本无感，手改过 `AppDelegate` 的项目要迁移（[第 4 章](04-dev-client-prebuild.md)）
 - **iOS 26 以上的导航栏**默认透明（Liquid Glass 风格），内容会延伸到导航栏下面（[第 3 章](03-expo-router.md)）
+- **Android release 构建默认开启 R8**（`android.enableMinifyInReleaseBuilds` 默认为真）：用反射的库（推送、统计这类 SDK 常见）可能需要补 keep 规则，见[第 11 章](11-android-china.md)
+- **`NODE_ENV` 由 Expo CLI 按命令设成 `development` 或 `production`**，会覆盖你自己设的值，进而影响加载哪个 `.env` 文件
 
 书架 App 升 SDK 58 时还踩了一个 `expo-file-system` 的坑：`File.write()` 变成了异步，原子写入书籍时如果不 `await`，后面的 `rename` 可能抢在写入之前执行。修法是改用 `writeSync()`，并在 ESLint 里打开 `no-floating-promises`，让漏写的 `await` 过不了检查（[第 8 章](08-local-storage.md)）。
 

@@ -20,7 +20,7 @@
 | 8 | 文件系统与持久化 | 页缓存、fsync、原子替换、数据库 WAL |
 | 9 | 链接、加载与可执行文件 | 动态链接、glibc 与 musl、原生模块 |
 
-书里的实验数字大多在一台 Apple M3 Pro（arm64，macOS）上用 Node 22 实测，换一台机器数字会变，但量级关系通常不变。Linux 命令和工具的用法见[《Linux 实战》](../linux-essentials/)，Node 运行时本身的细节见[《TS 与 Node 进阶》](../ts-node-advanced/)，两本书讲过的这里只点到为止。
+书里的实验数字大多在一台 Apple M3 Pro（arm64，macOS）上用 Node 22（22.23）实测，换一台机器数字会变，但量级关系通常不变。Node 22 写作时（2026 年 11 月）仍在 LTS 维护期，最新的 LTS 已经是 Node 26；书里用到的 Node API 在 22 及以上都能用，和版本有关的行为在对应小节单独标出（版本状态以 nodejs.org 的 Releases 页面为准）。Linux 命令和工具的用法见[《Linux 实战》](../linux-essentials/)，Node 运行时本身的细节见[《TS 与 Node 进阶》](../ts-node-advanced/)，两本书讲过的这里只点到为止。
 
 ## 一切都是比特，含义由解释决定
 

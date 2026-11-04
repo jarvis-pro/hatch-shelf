@@ -26,7 +26,7 @@ hatch-counter 用「过点且本周期没跑」的状态判断解决了第一个
 ### BullMQ 的 Job Scheduler
 
 > [!WARNING]
-> BullMQ 5.16 起推荐用 `upsertJobScheduler` 管理周期任务，旧的 `repeat` 选项（`queue.add(name, data, { repeat })`）被标为弃用。本节按 5.x 新写法整理，以 docs.bullmq.io 的 Job Schedulers 一节为准。
+> BullMQ 5.16 起推荐用 `upsertJobScheduler` 管理周期任务，旧的 `repeat` 选项（`queue.add(name, data, { repeat })`）被标为弃用，2026 年 7 月的 BullMQ 6.0 已经把它和 `getRepeatableJobs` 等配套 API 一起删除（按 docs.bullmq.io 的 Changelog）。本节按 5.x 新写法整理，这套写法在 6.x 里不变，以 docs.bullmq.io 的 Job Schedulers 一节为准。
 
 ```typescript
 await healthQueue.upsertJobScheduler(

@@ -22,6 +22,9 @@ flowchart TD
 
 ### 版本
 
+> [!WARNING]
+> 下表版本和书中用到的 beta 标识（`context-management-2025-06-27`、`clear_tool_uses_20250919`、`compact-2026-01-12` / `compact_20260112`、`stop_reason: "compaction"`）按 2026 年 11 月 npm registry 的发布记录和 `@anthropic-ai/sdk` 1.3.0、`@anthropic-ai/claude-agent-sdk` 0.3.316 自带的类型定义核对过。核对时两者已分别发布到 1.4.0 和 0.3.318，beta 标识也在持续增加（例如更新的压缩 beta `compact-2026-09-04`）。升级前看各自的更新日志，模型参数以 Anthropic 官方文档为准。
+
 agent 相关的 SDK 变化很快。本书代码在下面这些版本上通过了类型检查和测试：
 
 | 依赖 | 版本 | 用在 |

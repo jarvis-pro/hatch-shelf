@@ -3,7 +3,7 @@
 ## 关于这本书
 
 > [!WARNING]
-> 下面「版本约定」里的版本按 2026 年前后整理，Redis、Valkey、pg-boss 可能已有更新的大版本（如 Redis 8、Valkey 9、pg-boss 11），命令和 API 可能有变化；以 Redis / Valkey 官方命令文档、docs.bullmq.io、pg-boss 仓库的 releases 和 NestJS 官方迁移指南为准。
+> 下面「版本约定」按 2026 年 11 月各项目 GitHub releases、npm 发布记录和 docs.bullmq.io 的 Changelog 整理。这几个项目发版都很勤，命令和 API 可能继续变化；以 Redis / Valkey 官方命令文档、docs.bullmq.io、pg-boss 仓库的 releases 和 NestJS 官方迁移指南为准。
 
 [《软件架构与系统设计》](../system-design/)的[缓存策略](../system-design/03-caching.md)和[队列与异步任务](../system-design/04-queues-jobs.md)两章讲的是**要不要**：什么时候值得缓存、缓存放哪一层、队列选光谱上的哪一档。这本书接着讲**怎么写**：决定用 Redis 之后，缓存、限流、锁、队列分别用哪个命令、哪个库、哪几个参数，坑在哪里；决定不用 Redis 的时候，Postgres 上的 pg-boss 和 `SKIP LOCKED` 怎么接住同样的活。原理和取舍那两章已经讲过的，这里不再重复，用到时链接过去。
 
@@ -11,7 +11,15 @@
 
 案例主线还是 hatch-counter：门店管理 SaaS，NestJS + Postgres + Drizzle，生产环境是一台云服务器上的 docker compose。按[《软件架构与系统设计》](../system-design/)里记录的做法，它只有一个实例，缓存在进程内存里，队列是进程内队列加数据库记状态，定时任务靠 `job_runs` 表；本书不假设它已经用上了 Redis。本书的写法是：每一章先看那些已记录的做法，再看「如果开第二个实例、加了 Redis」这件事会怎么写。第 6 章专门回答一个人什么时候根本不需要 Redis。
 
-**版本约定**：命令以 Redis 7.x / Valkey 8.x 都支持的部分为准；Node 客户端用 ioredis 5（BullMQ 依赖它）；BullMQ 以 5.x 为准，pg-boss 以 10.x 为准，NestJS 以 12 为准（与[《NestJS 后端架构》](../nestjs-backend/)和 hatch-counter 一致）。只在新版本才有的命令会单独标出来。
+**版本约定**：命令以 Redis 7.2 起、Valkey 8 起都支持的部分为准，只在新版本才有的命令会单独标出来；Node 客户端用 ioredis 5；NestJS 以 12 为准（与[《NestJS 后端架构》](../nestjs-backend/)和 hatch-counter 一致）。写作时（2026 年 11 月）各项目的最新情况：
+
+| 项目 | 写作时最新 | 和本书的关系 |
+|---|---|---|
+| Redis | 8.10（8.0 在 2025 年 5 月发布） | 本书命令在 7.2 起都能用；docker 示例用的 `redis:7.4-alpine`，换成 8 系一般也能跑（未逐一实测） |
+| Valkey | 9.1（9.0 在 2025 年 10 月发布，加入了字段级过期） | 同上；第 9 章的选型因此有变化 |
+| BullMQ | 6.x（6.0 在 2026 年 7 月发布） | 正文按 5.x 写，6.0 的破坏性变化见[第 5 章](05-bullmq.md#bullmq-6-改了什么) |
+| pg-boss | 12.x（v11 在 2025 年 9 月、v12 在 2025 年 11 月发布） | 第 6 章按 12.x 的导入方式写，v10 升上来的变化见[第 6 章](06-postgres-queue.md#pg-boss) |
+| `@nestjs/bullmq` | 12.x | 同时支持 BullMQ 5 和 6、NestJS 10–12 |
 
 怎么读：第 1–4 章讲 Redis 本身（数据结构、缓存、限流和锁、持久化与内存）；第 5–8 章讲后台任务（BullMQ、Postgres 队列、定时与延迟、重试与幂等）；第 9 章讲监控、运维，以及 Redis 许可证变化之后该选 Redis 还是 Valkey。
 
@@ -48,7 +56,7 @@ GETDEL otp:13800000000                      # 取出并删除：一次性验证�
 ### Hash：一个对象的多个字段
 
 > [!WARNING]
-> 本节提到的字段级过期命令（`HEXPIRE` 等）按 Redis 7.4 的发布说明整理，Valkey 和各家托管服务的支持版本不同。使用前以你所用产品的官方命令文档为准。
+> 本节提到的字段级过期命令（`HEXPIRE` 等）按 Redis 7.4 的发布说明和 Valkey 9.0 的发布公告（Linux 基金会，2025 年 10 月）整理，各家托管服务的支持版本不同。使用前以你所用产品的官方命令文档为准。
 
 ```bash
 HSET session:7f3a userId 1001 storeId 42 role owner
@@ -59,7 +67,7 @@ HGETALL session:7f3a
 
 和「整个对象 JSON 存进 String」相比，Hash 可以只改一个字段、只取一个字段，`HINCRBY` 也是原子的。代价是值只能是字符串，没有嵌套。
 
-一个常见误会是以为可以给 Hash 的单个字段设 TTL。传统上 TTL 只能设在整个键上；Redis 7.4 起有了字段级过期（`HEXPIRE` 等命令），但写之前要先确认你实际跑的版本支持它。
+一个常见误会是以为可以给 Hash 的单个字段设 TTL。传统上 TTL 只能设在整个键上；Redis 7.4 起、Valkey 9.0 起有了字段级过期（`HEXPIRE`、`HTTL`、`HPERSIST` 等命令，两边命令名基本一致），但写之前要先确认你实际跑的版本支持它，托管服务往往落后开源版本一两个大版本。
 
 ### List：简单队列和最近 N 条
 

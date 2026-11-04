@@ -47,7 +47,7 @@ flowchart TD
 ### packed-refs 与 reftable
 
 > [!WARNING]
-> reftable 的引入版本和 Git 3.0 的默认值计划按写作时（2026 年 11 月）整理，以 git-scm.com 的发布说明为准。
+> reftable 的引入版本和 Git 3.0 的默认值计划按 2026 年 11 月 git-scm.com 的 `BreakingChanges` 文档整理：写作时最新版是 Git 2.56，Git 3.0 **还没有确定的发布日期**。以 git-scm.com 的发布说明为准。
 
 引用多了以后，一个文件一个引用会很慢，`git gc` 会把它们收进 `.git/packed-refs` 这一个文本文件。所以**不要直接读 `.git/refs/` 下的文件来判断分支在哪**，读不到不代表不存在。脚本里一律用管道命令：
 
@@ -56,7 +56,7 @@ git rev-parse refs/heads/main
 git for-each-ref --format='%(refname:short) %(objectname:short) %(committerdate:relative)' refs/heads
 ```
 
-Git 2.45 起还支持一种新的引用存储后端 reftable（`git init --ref-format=reftable`），把引用存成二进制的块文件，解决了大量引用下的性能问题和大小写不敏感文件系统上的冲突。Git 3.0 计划把它设为默认。只要你用的是 `rev-parse`、`for-each-ref` 这些命令，存储格式换了也不受影响。
+Git 2.45 起还支持一种新的引用存储后端 reftable（`git init --ref-format=reftable`），把引用存成二进制的块文件，解决了大量引用下的性能问题和大小写不敏感文件系统上的冲突。Git 3.0 计划把它设为新仓库的默认格式，前提是 JGit、libgit2 这些其他实现也支持它；想提前用的话，可以设置 `init.defaultRefFormat`。只要你用的是 `rev-parse`、`for-each-ref` 这些命令，存储格式换了也不受影响。
 
 ## 分离的 HEAD
 
@@ -65,7 +65,7 @@ Git 2.45 起还支持一种新的引用存储后端 reftable（`git init --ref-f
 ```bash
 git switch --detach v0.1.0
 cat .git/HEAD
-# ffaa72e8d3fa4fbd810ee78e88ffa42881fa9fa8
+# ffaa72e
 ```
 
 在这个状态下照常可以提交，新提交的 parent 是当前位置，`HEAD` 跟着往前走。问题在于**没有任何分支指着这些新提交**。一旦你 `git switch main` 离开，它们就成了无名提交，只能靠 reflog 找回，并在过期后被垃圾回收。

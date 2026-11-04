@@ -218,7 +218,57 @@ new_sqlite_classes = ["UnlockLimiter"]
 | Queues | 异步任务队列，Worker 生产、Worker 消费 | 把慢操作（发邮件、生成缩略图）移出请求路径 |
 | Hyperdrive | 从 Worker 连接已有的 Postgres / MySQL，做连接池和查询缓存 | 主库在 VPS 或托管数据库上，又想在边缘查 |
 | Cron Triggers | 定时执行 Worker 的 `scheduled` | 清理、对账、定时同步 |
+| Workflows | 多步骤、可重试、能睡几天的持久化流程 | 注册后的引导邮件序列、导入任务、等人审批 |
+| Containers | 在 Worker 后面按需起容器 | 依赖原生二进制、超出 isolate 限制的代码 |
 | Workers AI、Vectorize 等 | 推理和向量检索 | 见 AI 系列的书 |
+
+### Workflows：拆成步骤的长任务
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Cloudflare Workflows 官方文档和 changelog 整理：Workflows 于 2025 年 4 月 GA，免费和付费套餐都可用；2026 年 7 月官方宣布计费增加按步骤和存储计费（不早于 2026 年 8 月 10 日开始）。默认重试参数、上限和单价以官方文档为准。
+
+Queue 适合「一件事做一次」；Workflows 适合「一件事分好几步、中间可能等很久」。每一步用 `step.do` 包起来，**成功的步骤结果会被持久化**，后面某一步失败重试时，前面的步骤不会再跑一遍：
+
+```ts
+import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from "cloudflare:workers";
+import { NonRetryableError } from "cloudflare:workflows";
+
+type Params = { userId: string; fileKey: string };
+
+export class ImportFlow extends WorkflowEntrypoint<Env, Params> {
+  async run(event: WorkflowEvent<Params>, step: WorkflowStep) {
+    const rows = await step.do("解析文件", async () => {
+      const obj = await this.env.VAULT.get(event.payload.fileKey);
+      if (!obj) throw new NonRetryableError("文件不存在");   // 不重试，直接失败
+      return parse(await obj.text());
+    });
+    await step.do("写入数据库", { retries: { limit: 3, delay: "30 seconds", backoff: "exponential" } },
+      async () => { await insertRows(this.env.DB, rows); });
+    await step.sleep("等一天再提醒", "1 day");               // 睡眠期间不占 CPU
+    await step.do("发提醒", async () => { await notify(event.payload.userId); });
+  }
+}
+```
+
+- 每一步默认重试 5 次、指数退避、单步超时 10 分钟（官方文档的默认值），可以按步覆盖
+- **步骤要写成幂等的**：一步可能执行了一半就失败重试，「写入数据库」用 upsert 而不是 insert
+- 步骤的返回值会被存下来，所以只返回需要的小数据，别把整个文件内容当返回值
+- `step.waitForEvent` 可以停下来等外部事件（Webhook、人工审批），带超时
+
+一个人做产品时，它替代的是「自己在 VPS 上跑一个任务队列 + 状态表 + 定时扫描」那一套。
+
+### Containers：跑不进 isolate 的代码
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Cloudflare Containers 官方文档和 changelog 整理：Containers 于 2026 年 4 月 GA，仅限 Workers 付费套餐，按实际使用的 CPU 计费。实例规格、并发上限和单价变化较快，以官方文档为准。
+
+第 4 章说过，isolate 跑不了原生二进制、没有完整的文件系统。用到 ffmpeg 转码、headless 浏览器、Python 的某个库，以前只能另开一台 VPS。Containers 让你在 Worker 后面挂一个容器镜像，**由 Worker 代码决定何时启动、请求发给哪个实例**：
+
+- 每个容器实例对应一个 Durable Object，用 `env.MY_CONTAINER.getByName(id)` 取到实例再转发请求；同一个名字总落到同一个实例上，适合「每个用户一个沙箱」
+- 实例按需启动、空闲后休眠，不用时不计 CPU；冷启动是秒级，不是 Worker 的毫秒级
+- 配置里写镜像（Dockerfile 路径或镜像地址）、实例规格和 `max_instances`，`wrangler deploy` 负责构建和推送
+
+它不是「便宜的 VPS」：长期满载的服务按秒计费会比一台包月 VPS 贵，也不适合放数据库。适合的是**偶尔跑、跑一下就停**的重活。常驻的、要磁盘的仍然放 VPS（第 1 章的判断顺序）。
 
 ## 选型
 
@@ -257,6 +307,7 @@ flowchart TD
 - DO 同一个 ID 全球只有一个单线程实例，天然串行；实例怎么切分是设计核心
 - 新代码用 RPC 调 DO，用 SQLite 存储后端，迁移里声明 `new_sqlite_classes`
 - 选存储也看你想让服务端知道多少业务：唱片墙为了保持「哑仓库」，用 R2 + 条件写代替了数据库
+- 分多步、要重试、要等待的流程用 Workflows，步骤写成幂等；跑不进 isolate 的偶发重活用 Containers，常驻服务仍放 VPS
 
 ## 动手练习
 

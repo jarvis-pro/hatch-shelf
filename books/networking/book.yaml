@@ -15,6 +15,7 @@ chapters:
   - 06-cdn.md
   - 07-nat-firewall.md
   - 08-lan-mdns.md
+  - 08-ipv6-dual-stack.md
   - 09-troubleshooting.md
 next:
   - id: nginx-gateway

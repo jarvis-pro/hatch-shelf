@@ -4,6 +4,11 @@
 
 本章的 SQL 基于 **PostgreSQL 16 + pgvector 0.8 系列**。pgvector 的特性按版本逐步加入：HNSW 索引从 0.5.0 开始，`halfvec` / `sparsevec` 和 L1 距离从 0.7.0 开始，迭代索引扫描从 0.8.0 开始。用之前先确认 `SELECT extversion FROM pg_extension WHERE extname = 'vector';` 的结果。
 
+> [!WARNING]
+> 以下版本信息按 2026 年 11 月 pgvector 仓库的 CHANGELOG、Docker Hub 上 `pgvector/pgvector` 的标签列表和 PostgreSQL 官方版本支持表整理：pgvector 最新正式版是 0.8.7（2026 年 10 月），镜像同时提供 `pg13` 到 `pg18` 的标签；PostgreSQL 18 于 2025 年 9 月发布，16 的官方支持到 2028 年 11 月。开发中的 pgvector 0.9.0 计划不再支持 Postgres 13 和 14。升级前以 pgvector 的 CHANGELOG 为准。
+
+本章仍以 PostgreSQL 16 为例，用到的 SQL 都是 pgvector 自己的语法，在 17、18 上一般同样适用（作者未逐条验证）；新项目可以直接用 `pgvector/pgvector:pg18`。生产环境建议钉到带 pgvector 版本号的标签，例如 `0.8.7-pg16`，避免镜像更新时悄悄换了扩展版本。
+
 ## 启动一个带 pgvector 的 Postgres
 
 官方镜像 `postgres` 不带 pgvector，要么自己装扩展，要么直接用 pgvector 团队维护的镜像。hatch-counter 的 `deploy/docker-compose.yml` 用的是 `postgres:16-alpine`，换成下面这样即可，数据卷格式兼容（同一个 Postgres 大版本）：
@@ -12,7 +17,7 @@
 # docker-compose.yml（片段）
 services:
   db:
-    image: pgvector/pgvector:pg16   # 生产环境建议钉到带 pgvector 版本号的标签，以 Docker Hub 上的标签列表为准
+    image: pgvector/pgvector:pg16   # 生产环境钉到带版本号的标签，如 0.8.7-pg16
     environment:
       POSTGRES_USER: shelf
       POSTGRES_PASSWORD: ${DB_PASSWORD}

@@ -120,6 +120,9 @@ const res = await client.messages.create({
 
 ### temperature 去哪了
 
+> [!WARNING]
+> 本小节按 2026 年 10 月 Anthropic 的 API 版本迁移说明（2026-10-21 版本）整理：该版本下 Messages 请求只要带 `temperature`、`top_p`、`top_k` 中任何一个就返回 400，即使传的是默认值；Claude Sonnet 4.6、Opus 4.6、Haiku 4.5 等较老的模型在旧版本 API 上仍接受非默认值。以 Anthropic 官方文档的 API versioning 页面为准。
+
 [《大模型原理科普》第 7 章](../llm-fundamentals/07-inference-sampling.md)讲过 temperature、top-p 这些采样参数。在 Anthropic 这边，它们正在退出舞台：Claude 4.7 之后的模型只接受默认值，而 2026-10-21 版本的 API 对所有模型都不再接受这三个参数，传了直接报 400。控制输出的手段换成了 **effort**（投入多少思考）和**结构化输出**（约束格式）。
 
 其他厂商（包括很多 OpenAI 兼容接口）仍然支持 temperature。比如 hatch-counter 调用视觉模型识别手写进货单时，就把 temperature 设成了 0.1，因为「照着抄」不需要创造力。原则不变：**抄写、提取、分类要稳，创作可以放开**，只是在不同厂商那里旋钮的名字不同。

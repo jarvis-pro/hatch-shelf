@@ -386,7 +386,7 @@ console.log(lintChapter("a.md", "no heading"));
 | TS + `worker_threads` | Node | 能 | 无需处理 | 消息序列化 | CPU 任务不多、不想引入新语言 |
 | WASM（wasm-bindgen） | 浏览器、Node、Workers | 不能（沙箱） | 一份产物 | 字符串要拷贝、编码 | 浏览器或 Workers 里的纯计算 |
 | Node 扩展（napi-rs） | Node、Electron | 能 | 每个平台一份 | 低 | 只在 Node 侧用、计算或 I/O 很重 |
-| 独立 CLI（[第 8 章](08-cli-commands.md)） | 任何地方，作为子进程 | 能 | 每个平台一份 | 进程启动 + 文本解析 | 工具本身就有独立使用的价值 |
+| 独立 CLI（[第 9 章](08-cli-commands.md)） | 任何地方，作为子进程 | 能 | 每个平台一份 | 进程启动 + 文本解析 | 工具本身就有独立使用的价值 |
 | Tauri 命令（第 9 章） | Tauri 应用 | 能 | 随应用打包 | JSON 序列化 | 桌面应用 |
 
 ```mermaid

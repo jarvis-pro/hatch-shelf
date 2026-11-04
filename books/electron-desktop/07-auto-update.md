@@ -14,7 +14,7 @@ flowchart TD
   D --> E[应用内检查并安装]
 ```
 
-没有前一步，后面都无从谈起。Windows 上用 NSIS 安装包时，electron-updater 也会校验新安装包的签名发布者是否和当前一致（配置了签名的前提下）。
+没有前一步，后面都无从谈起。严格说，Electron 的 `autoUpdater` 文档只写了「macOS 上应用必须签名，这是 Squirrel.Mac 的要求」，没有提公证；[第 6 章](06-packaging-signing.md#macos-签名为什么不能不签)图里「开发者证书不公证也能自动更新」是据此推断的，没有实测。实际发给别人时首次安装就绕不开公证，所以按上图的顺序做即可。Windows 上用 NSIS 安装包时，electron-updater 也会校验新安装包的签名发布者是否和当前一致（配置了签名的前提下）。
 
 ## 两条路线
 
@@ -99,6 +99,33 @@ export function setupUpdater(getWindow: () => BrowserWindow | null, markQuitting
   setInterval(() => void autoUpdater.checkForUpdates(), 6 * 60 * 60 * 1000);
 }
 ```
+
+### 事件按什么顺序来
+
+上面挂的几个事件，连同没挂的几个，构成一个小状态机。按 `electron-updater` 6.x 的事件类型（`checking-for-update`、`update-available`、`update-not-available`、`download-progress`、`update-downloaded`、`error` 等）画出来，`autoDownload = true` 时是这样：
+
+```mermaid
+stateDiagram-v2
+  [*] --> 检查中: checkForUpdates()
+  检查中 --> 无更新: update-not-available
+  检查中 --> 有更新: update-available
+  有更新 --> 下载中: 自动开始下载
+  下载中 --> 下载中: download-progress
+  下载中 --> 已下载: update-downloaded
+  已下载 --> 安装重启: quitAndInstall()
+  已下载 --> 退出时安装: 用户选「稍后」
+  检查中 --> 出错: error
+  下载中 --> 出错: error
+  无更新 --> [*]
+  出错 --> [*]
+```
+
+几点对应到代码上：
+
+- `autoDownload = false` 时，停在「有更新」，要你自己调 `autoUpdater.downloadUpdate()` 才进入下载，适合先问用户「要不要下载」
+- `error` 可能出现在检查和下载两个阶段，都只记日志；下一轮定时检查会重新走一遍，所以「出错」不需要专门的恢复逻辑
+- 「退出时安装」靠的是 `autoInstallOnAppQuit = true`，用户下次正常退出时才装
+- Electron 内置的 `autoUpdater` 事件名大体相同，但没有 `download-progress`，多一个 `before-quit-for-update`；用的是哪一套，以对应文档为准
 
 ### 和「关窗只藏起来」的冲突
 

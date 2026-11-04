@@ -232,7 +232,7 @@ timedatectl                 # 当前时间、时区、是否已同步
 sudo timedatectl set-timezone Asia/Shanghai
 ```
 
-`System clock synchronized: yes` 才说明在正常同步。Ubuntu 默认用 systemd-timesyncd 同步时间，云服务器通常配置好了厂商自己的时间服务器。
+`System clock synchronized: yes` 才说明在正常同步。Ubuntu 24.04 及更早默认用 systemd-timesyncd 同步时间，26.04 新装的机器改用 chrony（`chronyc tracking` 看偏差和上游），云服务器通常配置好了厂商自己的时间服务器。
 
 ## 写下来
 

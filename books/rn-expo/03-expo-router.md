@@ -196,9 +196,13 @@ sequenceDiagram
 
 ## SDK 58 的几个变化
 
-- **iOS 26 以上，Stack 的导航栏默认透明**（Liquid Glass），内容延伸到导航栏下方。滚动视图通常会自动处理内边距，但自己用绝对定位或 WebView 的页面要检查一下。想恢复旧外观，在根 `_layout` 顶层调用 `enableLegacyHeaderAppearance()`。阅读页显式设置了 `headerStyle.backgroundColor`，不受透明默认值影响
-- **导航内核重写**：自定义导航器、从 `expo-router/react-navigation` 导入的代码可能失效，新写的导航器要用 `createStandardRouterNavigator` 或 `integrateWithRouter`
-- **Web 默认输出变成 `server`**、Web 路由默认分块。书架 App 不出 Web，无影响
+> [!WARNING]
+> 本节按 2026 年 11 月 Expo 官网的 SDK 58 changelog 和 Router 迁移指南（docs.expo.dev/router/migrate/sdk-57-to-58）整理。`enableLegacyHeaderAppearance()` 已被标为废弃、会在后续版本移除；Router 的 API 变化快，以官方最新文档为准。
+
+- **iOS 26 以上，Stack 的导航栏默认透明**（Liquid Glass），内容延伸到导航栏下方。滚动视图通常会自动处理内边距，但自己用绝对定位或 WebView 的页面要检查一下。想恢复旧外观，在根 `_layout` 顶层调用 `enableLegacyHeaderAppearance()`（已标为废弃，只适合过渡）；更长久的做法是逐页处理：要不透明的页面设 `headerTransparent: false`，或者给根滚动视图加 `contentInsetAdjustmentBehavior="automatic"`。阅读页显式设置了 `headerStyle.backgroundColor`，不受透明默认值影响
+- **导航内核重写**：自定义导航器、从 `expo-router/react-navigation` 导入的代码可能失效，新写的导航器在 App 里用 `createStandardRouterNavigator`，可复用的库用 `integrateWithRouter`（取代被废弃的 `withLayoutContext`）。`expo-router/js-stack` 的 `createStackNavigator` 被移除，`expo-router/native-stack` 的 `createNativeStackNavigator` 还在
+- **`Stack.Protected` 的行为变了**：被保护的路由现在始终注册在导航器里，守卫不通过时渲染一个重定向，而不是把路由移除；想指定跳去哪，用 `redirectTo`（如 `<Stack.Protected guard={isSignedIn} redirectTo="/sign-in">`）
+- **Web 默认输出变成 `server`**（没写 `web.output` 时）、Web 路由默认分块。书架 App 不出 Web，无影响
 
 升级 expo-router 时，先读官方的 Router 迁移指南，再跑一遍类型检查，类型化路由会帮你抓住大部分问题。
 

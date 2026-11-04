@@ -2,9 +2,12 @@
 
 导出一个几百 MB 的数据包、把用户上传的文件转存到对象存储、逐行处理一个大日志——这些任务如果先 `readFile` 整个读进内存再处理，内存占用就和文件大小成正比，一台 1 GB 内存的 VPS 撑不了几个并发。Stream 的意义是**让内存占用和数据总量无关**：一次只在内存里放一小块，处理完再拿下一块。
 
-但 Stream 真正难的地方不是「分块」，而是**背压**（backpressure）：下游处理得比上游慢时，怎么让上游停下来等。处理不好背压，Stream 就退化成「换了个方式把整个文件读进内存」。这一章讲清背压的机制，以及在 Node 22 里写 Stream 代码的推荐姿势：`pipeline` + 异步迭代。
+但 Stream 真正难的地方不是「分块」，而是**背压**（backpressure）：下游处理得比上游慢时，怎么让上游停下来等。处理不好背压，Stream 就退化成「换了个方式把整个文件读进内存」。这一章讲清背压的机制，以及在 Node 22 / 24 里写 Stream 代码的推荐姿势：`pipeline` + 异步迭代。
 
 ## 四种流
+
+> [!WARNING]
+> 下面的默认水位线按 2026 年 11 月的 Node 22 发布公告和 Node 24 的 `stream` 文档（`getDefaultHighWaterMark`）核对，以 Node.js 官方文档为准。
 
 | 类型 | 方向 | 例子 |
 |---|---|---|
@@ -15,7 +18,7 @@
 
 每个流内部都有一个缓冲区，`highWaterMark` 是它的「水位线」：
 
-- 字节流默认 64 KiB（Node 22 起；之前的版本是 16 KiB）
+- 字节流默认 64 KiB（Node 22.0.0 起；之前的版本是 16 KiB。Node 22 的发布公告写明了这一改动，内存敏感的场景可以用 `stream.setDefaultHighWaterMark()` 调回去。Node 24 的文档写得更细：非 Windows 平台 64 KiB，**Windows 上仍是 16 KiB**）
 - 对象模式（`objectMode: true`）默认 16 个对象
 - `fs.createReadStream` 一直是 64 KiB
 
@@ -236,7 +239,7 @@ console.log("saved copy.log");
 
 - Stream 让内存占用和数据总量无关，前提是正确处理背压
 - 背压信号是 `write()` 返回 `false`，此时应等 `'drain'`；无视它不会报错，只会把数据全堆进内存
-- Node 22 字节流的默认 `highWaterMark` 是 64 KiB，对象模式是 16 个
+- Node 22 起字节流的默认 `highWaterMark` 是 64 KiB（Windows 上 16 KiB），对象模式是 16 个
 - 一律用 `node:stream/promises` 的 `pipeline`，它处理背压、错误传播和清理；不要再用 `.pipe()`
 - 异步生成器是写 Transform 最简单的方式，`for await` 和 `yield` 自带背压
 - HTTP 下载要处理客户端中途断开；`fetch` 的 Web Stream 用 `Readable.fromWeb` 转换，Node 项目的 `lib` 不要带 DOM

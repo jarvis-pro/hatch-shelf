@@ -14,6 +14,7 @@ chapters:
   - 05-gdpr-privacy.md
   - 06-cloud-and-domains.md
   - 07-tax-and-remittance.md
+  - 08-overseas-clients.md
 next:
   - id: opc-cases
     reason: 看看国内外的一人公司各自怎么做

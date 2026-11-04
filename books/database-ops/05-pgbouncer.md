@@ -2,7 +2,7 @@
 
 第 1 章说过，Postgres 每个连接对应一个进程。连接数少的时候这不是问题，但服务一旦横向扩展，比如从一个 api 容器变成三个、或者上了按请求起实例的平台，连接数会成倍增长，很快就撞上 `max_connections`，报 `sorry, too many clients already`。本章讲为什么不能靠调大 `max_connections` 解决、PgBouncer 的三种池化模式、事务模式下哪些写法会出问题，然后把 PgBouncer 加进 hatch-counter 的 compose。
 
-命令以 PostgreSQL 16、PgBouncer 1.21 及以上为准。
+命令以 PostgreSQL 18、PgBouncer 1.21 及以上为准。
 
 ## 应用里已经有连接池了，为什么还要一个
 
@@ -235,7 +235,7 @@ SHOW SERVERS;
 
 ```bash
 docker network create pbnet
-docker run -d --name pb-pg --network pbnet -e POSTGRES_HOST_AUTH_METHOD=trust postgres:16-alpine -c max_connections=10
+docker run -d --name pb-pg --network pbnet -e POSTGRES_HOST_AUTH_METHOD=trust postgres:18-alpine -c max_connections=10
 mkdir -p pb && echo '"postgres" ""' > pb/userlist.txt
 cat > pb/pgbouncer.ini <<'EOF'
 [databases]

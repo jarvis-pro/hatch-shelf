@@ -44,12 +44,30 @@ $$
 
 ## 常见硬件
 
+> [!WARNING]
+> 本节新硬件的规格按 2026 年 11 月各厂商官网整理：Apple 支持页面（MacBook Pro M5 Pro / M5 Max 技术规格）、NVIDIA DGX Spark 与 DGX B200 产品页、AMD Ryzen AI Max+ 395 产品页。同一型号不同配置的内存和带宽不同，下单前以官方规格页为准。
+
 | 类别 | 代表型号 | 显存 | 特点 |
 |---|---|---|---|
 | Apple Silicon | M 系列 Pro / Max / Ultra | 统一内存 18–512 GB | 容量大、安静省电；带宽中等，预填充慢；不适合做服务端 |
+| 统一内存小主机 | DGX Spark、Ryzen AI Max+ 395 迷你主机 | 128 GB | 容量接近数据中心卡，带宽只有约 256–273 GB/s；适合本地跑大 MoE 和做实验 |
 | 消费级 | RTX 4090 / 5090 | 24 / 32 GB | 带宽高、性价比高；显存小；数据中心使用受驱动许可限制 |
 | 推理卡 | L4、A10、L40S | 24 / 24 / 48 GB | 云上常见，功耗低，适合中小模型推理 |
 | 数据中心 | A100、H100、H200 | 40–141 GB | 带宽和互联最强，训练和大模型推理的主力 |
+| 数据中心（Blackwell） | B200、B300 | 约 180–288 GB | 带宽约 8 TB/s，原生支持 FP4；租用价格高，按小时租来跑大模型或训练 |
+
+### 2026 年的几类新硬件
+
+**Apple M5 系列**：2026 年的 MacBook Pro 换上了 M5 Pro / M5 Max。按 Apple 的规格页，M5 Pro 带宽 307 GB/s；M5 Max 分两档，32 核 GPU 为 460 GB/s，40 核 GPU 为 614 GB/s，统一内存最高 128 GB（128 GB 只能配 40 核 GPU）。对比上一代 M4 Max 的 546 GB/s，单路解码上限提高一成多，容量没有变化。Apple 还在 M5 的 GPU 里加入了神经网络加速单元，主要改善的是预填充（算力瓶颈）这一侧。
+
+**128 GB 统一内存小主机**：NVIDIA DGX Spark（GB10 芯片，128 GB LPDDR5X，273 GB/s）和基于 AMD Ryzen AI Max+ 395 的各家迷你主机（最高 128 GB LPDDR5X-8000，256 GB/s）是同一类东西：内存容量大、CPU 和 GPU 共用，带宽和 M5 Pro 一个量级。用上面的公式算：
+
+- 稠密 70B、4 位量化，权重约 40 GB，单路上限 $273 / 40 \approx 7$ tok/s，能用但慢
+- `Qwen3-30B-A3B` 这类 MoE，4 位量化后每个 token 只读约 1.7 GB，上限一百多 tok/s
+
+所以这类机器**适合跑激活参数小的大 MoE**（gpt-oss-120b、各家 A3B / A10B 型号），不适合跑大稠密模型。DGX Spark 用的是 CUDA 生态，vLLM、TRL 这类工具基本可以直接用，适合在本地把微调流程跑通再上云；AMD 平台走 ROCm 或 Vulkan，llama.cpp 支持较好，其他框架要先查兼容性。
+
+**数据中心 Blackwell**：B200 每卡约 180–192 GB HBM3e（不同来源和 SKU 有差异，NVIDIA DGX B200 是 8 卡共 1440 GB、总带宽 64 TB/s），B300 最高 288 GB。它们原生支持 FP4（见[第 4 章](04-quant-formats.md)和[《大模型原理进阶》的 FP4 一节](../llm-deep-dive/08-quantization.md#fp4mxfp4-与-nvfp4)），对一人公司来说主要是租用对象：一张卡就能放下 FP8 的 120B 级模型。
 
 几条选型经验：
 
@@ -137,6 +155,7 @@ nohup sh -c 'python train.py > train.log 2>&1; shutdown -h now' &
 - 显存需求 ≈ 权重 + KV Cache + 运行开销；先确保装得下，部分卸载到 CPU 会慢一个数量级
 - 单路解码速度上限 ≈ 带宽 ÷ 每 token 读取的权重字节数；MoE 只读激活部分，所以更快
 - 推理看显存容量和带宽，训练还要看算力和多卡互联
+- 128 GB 统一内存小主机（DGX Spark、Ryzen AI Max+ 395）容量大、带宽约 256–273 GB/s，适合跑激活参数小的大 MoE，不适合大稠密模型
 - 一人公司默认租：按小时的 GPU 实例做训练，Serverless 或托管推理 API 应对波动流量
 - 租卡前在本地用小模型跑通流程；模型放持久卷，检查点定期保存，跑完自动关机
 - 价格和型号变化快，按估算方法选型，以平台实时报价为准

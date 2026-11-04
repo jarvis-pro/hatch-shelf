@@ -53,6 +53,9 @@ kubectl -n counter run dns-test --rm -it --image=busybox:1.36 --restart=Never --
 
 ## Ingress：集群的 HTTP 入口
 
+> [!WARNING]
+> 本节关于 ingress-nginx 的状态按 2026 年 11 月 Kubernetes 官方博客（2025-11-11《Ingress NGINX Retirement: What You Need to Know》）和 github.com/kubernetes/ingress-nginx 的归档说明整理；各控制器的维护状况变化较快，以 Kubernetes 文档的 Ingress 控制器列表为准。
+
 Service 工作在 TCP/UDP 层，不懂域名和路径。按域名、按路径分流、终结 TLS 这些 HTTP 层的事，交给 **Ingress**。
 
 Ingress 分两部分，这一点要先搞清楚：
@@ -65,10 +68,12 @@ Ingress 分两部分，这一点要先搞清楚：
 | 控制器 | 说明 |
 |---|---|
 | Traefik | k3s 默认自带，配置通过 Ingress 注解和它自己的 CRD（Middleware 等） |
-| ingress-nginx | 社区维护多年的 nginx 实现。Kubernetes 社区已宣布该项目退役、停止后续维护，新集群不建议再选它，具体时间以官方公告为准 |
+| ingress-nginx | 社区维护多年的 nginx 实现，**已于 2026 年 3 月退役**：不再发布新版本、不修缺陷也不修安全漏洞，GitHub 仓库已归档为只读。已有部署还能继续跑、镜像和 chart 也还能下载，但新集群不应再选它，在用的要尽快迁走 |
 | 各云厂商的控制器 | 把 Ingress 翻译成云上的负载均衡器 |
 
-另外要知道 **Gateway API**：它是 Ingress 的继任者，用 `Gateway`、`HTTPRoute` 等对象把「基础设施管理员」和「应用开发者」的职责拆开，表达能力也更强（流量切分、请求头匹配等）。Ingress API 本身已冻结、不再加新功能，但仍是稳定 GA 的 API，不会被移除。对单人单机的场景，Ingress 足够简单，本书用它；Traefik 也支持 Gateway API，以后想迁不难。
+另外要知道 **Gateway API**：它是 Ingress 的继任者，用 `Gateway`、`HTTPRoute` 等对象把「基础设施管理员」和「应用开发者」的职责拆开，表达能力也更强（流量切分、请求头匹配等）。Ingress API 本身已冻结、不再加新功能，但仍是稳定 GA 的 API，不会被移除。对单人单机的场景，Ingress 足够简单，本书用它；k3s 自带的 Traefik 也支持 Gateway API，迁过去长什么样见本章后面的[Gateway API 最小示例](#gateway-api最小示例)。
+
+顺带一提 ingress-nginx 的退役原因：Kubernetes 安全响应委员会的公告说得很直接，项目长期只有一两个人业余维护，又背着大量历史包袱（比如允许在注解里写任意 nginx 配置片段），安全问题修不过来。官方给出的建议是迁到 Gateway API，或者换一个仍在维护的 Ingress 控制器。退役的只是这个 Ingress 控制器项目，nginx 本身和[《Nginx 与反向代理》](../nginx-gateway/)里讲的宿主机 nginx 照常维护。
 
 ### hatch-counter 的入口规则
 
@@ -269,12 +274,106 @@ kubectl -n counter run nettest --rm -it --image=busybox:1.36 --restart=Never -- 
   nc -zv -w 3 postgres 5432
 ```
 
+## Gateway API：最小示例
+
+> [!WARNING]
+> 本节按 2026 年 11 月 k3s 官方文档（docs.k3s.io 的 Networking Services 页）和 Traefik 官方文档整理。k3s 自带的 Traefik 版本、chart 的默认值、支持的 Gateway API 版本都在随 k3s 版本变化，动手前以你所用 k3s 版本的文档和 release notes 为准。
+
+本书用 Ingress，因为它对单机足够。但 ingress-nginx 退役之后，Gateway API 成了社区明确推荐的方向，新文档和新教程会越来越多地用它。这里把上面的 `counter` Ingress 翻译成 Gateway API，看看对象怎么拆。
+
+Gateway API 把 Ingress 一个对象干的事拆成三层：
+
+| 对象 | 谁来写 | 相当于 |
+|---|---|---|
+| GatewayClass | 控制器自带 | `ingressClassName: traefik` |
+| Gateway | 管集群入口的人 | 「在哪些端口、用哪张证书收流量」，Ingress 里的 `tls` 部分 |
+| HTTPRoute | 写应用的人 | 「哪个域名的哪个路径转给哪个 Service」，Ingress 里的 `rules` 部分 |
+
+一个人的集群里三层都是你写，拆开的好处不明显；但它的表达能力确实更强：按请求头匹配、按权重切流量做灰度、改写路径，这些在 Ingress 里要靠各控制器自己的注解，在 Gateway API 里是标准字段，换控制器不用重写。
+
+### 第一步：打开 Traefik 的 Gateway 支持
+
+k3s 自带的 Traefik 默认没开 Gateway API。和前面改 `externalTrafficPolicy` 一样，用 `HelmChartConfig` 打开它。注意 **`traefik` 这个 HelmChartConfig 只能有一个**，前面那段 `service` 配置要合在同一份 `valuesContent` 里：
+
+```yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    service:
+      spec:
+        externalTrafficPolicy: Local
+    providers:
+      kubernetesGateway:
+        enabled: true
+```
+
+Traefik 重新部署后，`kubectl get gatewayclass` 应该能看到一个叫 `traefik` 的 GatewayClass，状态为 Accepted。chart 也可能顺手建一个默认的 Gateway，用 `kubectl get gateway -A` 看一眼，下面我们自己写一个。
+
+### 第二步：Gateway 和 HTTPRoute
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: counter
+  namespace: counter
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: websecure
+      protocol: HTTPS
+      port: 8443              # Traefik Pod 里 websecure 入口的端口，不是 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: counter-tls # 还是 cert-manager 写入的那个 Secret
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: counter
+  namespace: counter
+spec:
+  parentRefs:
+    - name: counter           # 挂到上面那个 Gateway
+  hostnames:
+    - app.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - name: counter-api
+          port: 80            # Service 的端口，这里必须写数字
+    - backendRefs:
+        - name: counter-web
+          port: 80
+```
+
+和 Ingress 版对照，有几处要留意：
+
+- **listener 的端口是 Traefik 内部入口的端口**。k3s 的 Traefik Service 把节点的 443 转到 Pod 的 8443、80 转到 8000，Traefik 要求 Gateway 的 listener 端口和它自己的入口端口对上，写成 443 会报找不到对应入口。这是 Traefik 实现的细节，换别的控制器规则可能不同
+- **`PathPrefix` 等价于 Ingress 的 `Prefix`**，也是按路径段匹配；没写 `matches` 的规则匹配所有路径，相当于 `/`
+- **`backendRefs` 的端口只能写数字**，不能像 Ingress 那样写端口名 `http`
+- **HTTP 跳 HTTPS 用标准的 `RequestRedirect` 过滤器**，不再需要 Traefik 的 Middleware：给 80 端口（Traefik 内部 8000）再开一个 HTTP listener，挂一条只有 `filters: [{ type: RequestRedirect, requestRedirect: { scheme: https, statusCode: 301 } }]` 的 HTTPRoute
+- **cert-manager 也支持 Gateway API**，但需要单独打开这个功能，签证书的注解写在 Gateway 上而不是 Ingress 上，以 cert-manager 文档为准
+
+验证方法和 Ingress 一样：`kubectl describe httproute counter` 看 `Accepted` 和 `ResolvedRefs` 两个条件是否为 True，再用 `curl --resolve` 实际请求。条件不为 True 时，`describe` 的消息一般会直接说出原因（找不到 Gateway、找不到 Service、端口不对）。
+
+什么时候值得迁：已经用 Ingress 跑得好好的单机集群，没有必要为了迁而迁；新建集群、需要灰度切流量、或者在用 ingress-nginx 的，可以直接从 Gateway API 开始。Kubernetes 官方提供了 `ingress2gateway` 工具，能把现有的 Ingress 对象翻译成 Gateway API 对象作为起点，翻出来的结果仍然要逐条核对。
+
 ## 本章要点
 
 - K8s 是一张扁平网络，Pod 默认互通，隔离要靠 NetworkPolicy 声明
 - Service 有 ClusterIP、NodePort、LoadBalancer、headless 四种用法；k3s 的 ServiceLB 让 Traefik 直接占用节点的 80/443
 - 集群内用 `<service>` 或 `<service>.<namespace>` 访问服务，Service 叫 `postgres` 就能沿用原连接串
-- Ingress 对象是规则，控制器才是干活的代理；k3s 默认 Traefik，ingress-nginx 已宣布退役，Gateway API 是继任者
+- Ingress 对象是规则，控制器才是干活的代理；k3s 默认 Traefik，ingress-nginx 已于 2026 年 3 月退役，Gateway API 是继任者
+- Gateway API 把入口拆成 GatewayClass / Gateway / HTTPRoute；k3s 的 Traefik 用 HelmChartConfig 打开，listener 端口要对上 Traefik 内部入口
 - 迁移 nginx 时逐项对上请求体上限、长连接、转发头；`externalTrafficPolicy: Local` 才能拿到真实客户端 IP
 - cert-manager 让证书成为声明式对象并自动续期，但过期告警仍需外部监控
 - 用 NetworkPolicy 只放行 api、迁移、备份三类 Pod 访问 Postgres，并实际验证

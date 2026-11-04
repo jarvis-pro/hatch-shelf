@@ -31,7 +31,7 @@ zod 是唯一来源，OpenAPI 是从它导出的**产物**，给文档、第三�
 ## OpenAPI 是什么
 
 > [!WARNING]
-> 本节按 OpenAPI 3.1 规范凭记忆整理；OpenAPI 3.2 已于 2025 年发布，各工具对 3.1 / 3.2 的支持程度不一。以 OpenAPI Initiative 官方规范（spec.openapis.org）和所用工具的文档为准。
+> 本节按 OpenAPI 3.1 规范凭记忆整理；OpenAPI 3.2 已于 2025 年 9 月发布，各工具对 3.1 / 3.2 的支持程度不一，见本章[「OpenAPI 3.2：要不要升」](#openapi-32要不要升)。以 OpenAPI Initiative 官方规范（spec.openapis.org）和所用工具的文档为准。
 
 OpenAPI（前身是 Swagger）是描述 HTTP API 的标准格式，一个 YAML 或 JSON 文件，写清有哪些路径、每个路径接受什么参数和请求体、返回什么。3.1 版本起，其中的数据模型直接使用 JSON Schema（2020-12），这意味着 zod 这类能导出 JSON Schema 的库可以和它很好地对接。
 
@@ -274,6 +274,41 @@ describe("GET /expenses", () => {
 注意这里和客户端的方向相反：**客户端宽容，服务端的测试严格**。服务端多回了一个契约里没有的字段，测试应该失败，提醒你先更新 schema（也就是更新文档），再改实现。否则文档里永远缺着那些「顺手加的」字段。
 
 另一个有用的工具是 mock 服务器：Prism 这类工具读 OpenAPI 文件，按 `examples` 返回假数据。前端在服务端接口还没写好时就能对着它开发，只要 OpenAPI 先定好。
+
+## OpenAPI 3.2：要不要升
+
+> [!WARNING]
+> 本节按 OpenAPI Initiative 2025 年 9 月发布的 [OpenAPI 3.2.0 规范](https://spec.openapis.org/oas/v3.2.0.html)和官方发布公告整理（2026 年 11 月核对）。本章用到的 `@nestjs/swagger`、`zod-openapi`、`openapi-typescript`、`oasdiff`、Prism 各自对 3.2 的支持没有逐一核对，以各工具的文档和 changelog 为准。
+
+OpenAPI 3.2.0 在 2025 年 9 月 19 日发布。它是 3.x 的小版本，以新增为主，3.1 的文档改一行 `openapi: 3.2.0` 基本仍然合法。和本书相关的新东西：
+
+| 新增 | 解决什么 | hatch-counter 用得上吗 |
+|---|---|---|
+| 流式响应：`text/event-stream`（SSE）、`application/jsonl`、`application/json-seq`，用 `itemSchema` 描述**每一条**的结构 | 3.1 只能把流写成一整个字符串，生成的类型没用 | 单据识别如果改成边识别边推结果，就能写进契约 |
+| Tag 加了 `parent`、`kind`、`summary` | 文档导航可以分层，不用靠 tag 名里加前缀 | 接口多了以后有用，见[第 10 章](10-docs-platform.md) |
+| `query` 方法和 `additionalOperations` | 能描述 HTTP 的 QUERY 方法（带请求体的安全读取，IETF 还在草案阶段）和其他非标准方法 | 本书的筛选参数都放在查询串里，暂时用不上 |
+| 参数位置 `in: querystring` | 把整段查询串当成一个对象，用一个 schema 描述 | [第 3 章](03-pagination-filtering.md)那种筛选参数多的列表接口 |
+| OAuth 2.0 设备授权流程、`oauth2MetadataUrl` | 电视、收银机这类不方便输密码的设备登录；自动发现授权服务器 | 门店的收银终端如果要接，会用到 |
+| `$self` | 文档声明自己的 URI，拆成多个文件时引用解析更明确 | 单文件的 `openapi.json` 不需要 |
+
+SSE 写进契约大致是这样：
+
+```yaml
+responses:
+  "200":
+    description: 识别过程中逐条推送结果
+    content:
+      text/event-stream:
+        itemSchema:
+          type: object
+          required: [data]
+          properties:
+            event: { type: string }
+            data: { type: string } # 每条的 JSON 文本
+            id: { type: string }
+```
+
+**升不升**：契约的价值在于整条工具链都认它。生成脚本、类型生成、破坏性变更检查、mock、文档站，只要有一个还不认 3.2，升上去反而会让 CI 失败或文档渲染不全。所以默认**留在 3.1**；等真的需要上面某个功能（最可能是流式响应），先确认这五个工具都支持了，再改 `openapi` 那一行。
 
 ## 本章要点
 

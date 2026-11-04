@@ -181,6 +181,8 @@ docker image history my-api:1.0.0           # 每一层的大小和对应指令
 docker run --rm -it --entrypoint sh my-api:1.0.0 -c "du -sh /repo/node_modules"
 ```
 
+不同存储后端报出的「大小」不完全可比。Docker Engine 29 起新装的机器默认用 containerd 镜像存储（[第 1 章](01-container-internals.md#存储后端overlay2-与-containerd-镜像存储)），它会同时保留压缩的层和解压后的层，`docker system df` 看到的磁盘占用比 overlay2 时代大；拉取过多架构镜像时，列表里的大小也可能包含其他平台的内容。所以比较瘦身效果时，**同一台机器、同一种后端、同一个命令前后对比**，不要拿这本书里的数字或别人博客里的数字和自己机器上的直接比。本书各处给的 MB 数都只是量级。
+
 开源工具 `dive` 可以交互式浏览每一层新增、修改、删除了哪些文件，并指出「被后面层删除但仍占空间」的浪费，非常适合排查。
 
 一般来说，Node 服务镜像的大头是 `node_modules`，其次是基础镜像。优化顺序是：先确认没有装进无关的依赖（monorepo 的 `--filter`），再去掉开发依赖，最后才考虑换基础镜像。换基础镜像省下的空间往往不如去掉一个误装的大依赖。

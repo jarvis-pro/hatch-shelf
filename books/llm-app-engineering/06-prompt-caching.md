@@ -44,6 +44,9 @@ flowchart TD
 
 ### 自动缓存：最简单
 
+> [!WARNING]
+> 顶层 `cache_control`（自动缓存）的写法按 2026 年 10 月 Anthropic 官方 SDK 文档整理，一个请求最多 4 个缓存断点，最短可缓存长度随模型不同（几百到几千 token），太短的前缀会静默不缓存。以 Anthropic 官方文档的 Prompt caching 页面为准。
+
 在请求顶层加一个 `cache_control`，API 会自动把缓存断点放在最后一个可缓存的块上，并随着对话增长往后移：
 
 ```typescript

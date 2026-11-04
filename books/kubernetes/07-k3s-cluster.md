@@ -297,7 +297,7 @@ kubectl top pods -A --sort-by=memory
 kubectl get events -A --field-selector type=Warning --sort-by=.lastTimestamp
 ```
 
-这些是排障时手动看的。持续的指标、日志、告警（Prometheus、Grafana、Loki 等）可以用 Helm 装进集群，但要注意它们本身吃的内存可能比 hatch-counter 还多。单机上更实际的做法是：外部可用性监控 + 证书到期检查 + 磁盘和内存告警，细节见[《可观测性与性能》](../observability-performance/)。
+这些是排障时手动看的，具体某个 Pod 不正常时怎么一步步查，见[下一章](07-troubleshooting.md)。持续的指标、日志、告警（Prometheus、Grafana、Loki 等）可以用 Helm 装进集群，但要注意它们本身吃的内存可能比 hatch-counter 还多。单机上更实际的做法是：外部可用性监控 + 证书到期检查 + 磁盘和内存告警，细节见[《可观测性与性能》](../observability-performance/)。
 
 ## 本章要点
 

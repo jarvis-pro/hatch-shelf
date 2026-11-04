@@ -14,6 +14,9 @@
 
 ## 选哪个调度器
 
+> [!WARNING]
+> 错过后是否补跑的行为按 2026 年 11 月 macOS 自带的 `man launchd.plist`（StartCalendarInterval 一节）和 systemd 的 `systemd.timer` 文档（Persistent= 一节）整理；cron 的实现各发行版不同，有的配有 anacron。以你系统上的 man 手册为准。
+
 | 调度器 | 跑在哪 | 错过的时间点 | 适合 |
 |---|---|---|---|
 | cron | macOS / Linux | 机器关机或休眠时错过的不补跑 | 常开的 Linux 服务器上的简单任务 |
@@ -21,6 +24,12 @@
 | systemd timer | Linux | 设了 `Persistent=true` 时，开机后补跑 | 服务器上的任务，日志进 journald |
 | CI 定时（如 GitHub Actions 的 schedule） | 云端 | 调度可能有延迟 | 只依赖仓库内容的检查 |
 | agent 产品自带的云端定时 | 云端 | 以产品文档为准 | 不想自己维护机器，任务不需要本地文件 |
+
+「错过的时间点」这一列最容易被忽略。设想一台机器从周二早上到周四傍晚一直休眠或关机，每天 7:30 的任务在四种配置下的结果：
+
+![一周时间轴上，每天 7:30 的任务在停机两天半后：cron 和未设 Persistent 的 systemd 直接错过三次，本周只跑 4 次；launchd 和设了 Persistent=true 的 systemd 在恢复后把错过的三次合并补跑一次，本周跑 5 次](assets/missed-runs.svg)
+
+错过三次只补一次，意味着任务本身要按「处理自上次成功以来的全部内容」来写，而不是「只处理今天的」；否则补跑那一次也只会处理当天的数据，中间两天就丢了。
 
 对个人来说，最常用的是两种：**本地 Mac 用 launchd**（能访问你的仓库、知识库和登录状态），**服务器上用 systemd timer**（第 6 章的运维巡检）。
 

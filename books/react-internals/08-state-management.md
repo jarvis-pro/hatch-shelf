@@ -149,6 +149,76 @@ flowchart TD
 - **不要把服务端数据复制进全局 store**。复制意味着要自己维护同步，迟早会出现两份数据对不上。掌柜眼「数据只在服务端一份」的原则在前端的对应就是这条
 - **从最简单的开始，遇到具体痛点再升级**。痛点要具体到「这个组件因为 X 多渲染了」「这里两份数据不一致了」，而不是「大家都在用」
 
+## Zustand 与 TanStack Query 最小对照
+
+> [!WARNING]
+> 本节代码按 2026 年 11 月两个库的当前大版本整理：Zustand 5（npm 上为 5.0.16，对照其 README）、TanStack Query 5（`@tanstack/react-query` 5.105，对照官方 Quick Start）。两者的 API 在大版本之间都有过破坏性变更（如 Query v5 把 `isLoading` 改名为 `isPending`、只接受对象参数），以各自官方文档为准。
+
+判断顺序里最常被混用的两个终点是「外部 store」和「数据请求库」。把它们各写一段最小代码放在一起，差别一眼就能看出来：前者管**浏览器里自己就是真相**的状态，后者管**服务端那份数据的本地副本**。
+
+客户端状态，用 Zustand：
+
+```ts
+import { create } from "zustand";
+import { useShallow } from "zustand/react/shallow";
+
+type ImportDraft = {
+  step: number;
+  rows: Row[];
+  next: () => void;
+  setRows: (rows: Row[]) => void;
+};
+
+export const useImportDraft = create<ImportDraft>()((set) => ({
+  step: 1,
+  rows: [],
+  next: () => set((s) => ({ step: s.step + 1 })), // 返回部分字段，库负责浅合并
+  setRows: (rows) => set({ rows }),
+}));
+
+// 组件里：选原始值，或者用 useShallow 选多个字段
+const step = useImportDraft((s) => s.step);
+const { rows, next } = useImportDraft(useShallow((s) => ({ rows: s.rows, next: s.next })));
+```
+
+服务端缓存，用 TanStack Query：
+
+```tsx
+import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+// 根组件：<QueryClientProvider client={queryClient}><App /></QueryClientProvider>
+
+function StockList({ storeId }: { storeId: string }) {
+  const qc = useQueryClient();
+  const { data, isPending, error } = useQuery({
+    queryKey: ["stock", "list", storeId], // key 以数据域开头，便于按前缀失效
+    queryFn: () => api.stock.list(storeId),
+    staleTime: 30_000,                    // 30 秒内回访直接用缓存，不重取
+  });
+  const adjust = useMutation({
+    mutationFn: api.stock.adjust,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["stock"] }),
+  });
+  if (isPending) return <Skeleton />;
+  if (error) return <ErrorNote error={error} />;
+  return <StockTable rows={data} onAdjust={(x) => adjust.mutate(x)} />;
+}
+```
+
+两段代码放在一起对照：
+
+| | Zustand | TanStack Query |
+|---|---|---|
+| 真相在哪 | store 自己 | 服务端；本地只是带过期时间的副本 |
+| 状态怎么来 | 初始值加 `set` | `queryFn` 去取，库负责缓存和去重 |
+| 怎么变 | 调用 action（`set`） | 调 `mutation`，成功后 `invalidateQueries` 让相关查询重取 |
+| 组件订阅粒度 | 选择器，`Object.is` 比较，多字段用 `useShallow` | 按 `queryKey`；返回结果默认结构共享，没变的部分引用不变 |
+| 加载 / 错误态 | 没有，需要就自己存 | 内建 `isPending`、`error`，可选 `useSuspenseQuery` |
+| 和 React 的接口 | `useSyncExternalStore`（第 4 章） | 同样基于外部订阅，Suspense 版本走第 5 章的 `use` 语义 |
+
+两者不是二选一，而是常常同时出现：TanStack Query 管所有从服务端来的数据，Zustand（或本章的自写 store）只留给导入草稿、当前选中的门店这类纯客户端状态。最常见的错误是反过来，把 `useQuery` 取回的数据再 `set` 进 Zustand，于是有了两份真相，失效时只更新了其中一份。
+
 ## 本章要点
 
 - 先分类再选工具：服务端缓存、URL 状态、表单草稿、界面局部、跨组件客户端状态、外部系统状态
@@ -157,6 +227,7 @@ flowchart TD
 - 掌柜眼的导入草稿 store 是一个十几行的外部 store，适合生命周期跨路由、多处读写的状态
 - 服务端数据用数据请求库管理，要解决去重、过期、缓存、失效、结构共享、离线等问题；推送失效可映射为按 key 前缀 `invalidateQueries`
 - URL 适合可分享、可后退的状态；是否持久化要看用户预期，不只是技术选择
+- Zustand 管浏览器里自己就是真相的客户端状态，TanStack Query 管服务端数据的本地副本；两者常常并用，但不要把查询结果再复制进 store
 - 不要把服务端数据复制进全局 store；从最简单的方案开始，遇到具体痛点再升级
 
 ## 动手练习

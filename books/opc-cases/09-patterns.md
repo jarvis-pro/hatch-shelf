@@ -47,7 +47,7 @@
 **国内行业与门店软件**（6 个）
 
 - [19 洗美小程序](05-china-vertical-b2b.md#案例-19汽车洗美门店小程序v2exnoconfuse)：国内 · 一人 · 线下与熟人 · 放弃
-- [20 宏图电子菜单](05-china-vertical-b2b.md#案例-20宏图电子菜单v2expbk)：国内 · 一人 · 线下与熟人 · 运营中（2024）
+- [20 宏图电子菜单](05-china-vertical-b2b.md#案例-20宏图电子菜单v2expbk)：国内 · 一人 · 线下与熟人 · 2024-07 后无公开更新
 - [21 云店管](05-china-vertical-b2b.md#案例-21云店管v2exeyon)：国内 · 一人 · 线下与熟人 · 后续未知
 - [22 开单宝](05-china-vertical-b2b.md#案例-22开单宝v2exfingal)：国内 · 一人 · 线下与熟人 · 停止
 - [23 智存](05-china-vertical-b2b.md#案例-23智存v2exmiomioos)：国内 · 未公开 · 开发者社区 · 刚推广

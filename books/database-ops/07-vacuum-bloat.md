@@ -2,7 +2,7 @@
 
 用 Postgres 久了，你可能会遇到这样的现象：一张表只有几万行，却占了几个 GB；删了一半数据，磁盘一点没少；某个查询越来越慢，`EXPLAIN` 看计划没变。这些背后是同一个机制：MVCC 留下的死元组，以及负责清理它们的 VACUUM。本章讲清死元组从哪来、autovacuum 什么时候触发、什么会挡住清理、膨胀了怎么修，以及必须了解的事务 ID 回卷。
 
-命令以 PostgreSQL 16 为准。MVCC 的原理在[《数据库原理与实战》](../database-practice/)里有详细讲解，这里只回顾运维需要的部分。
+命令以 PostgreSQL 18 为准。MVCC 的原理在[《数据库原理与实战》](../database-practice/)里有详细讲解，这里只回顾运维需要的部分。
 
 ## 死元组从哪来
 
@@ -36,13 +36,18 @@ stateDiagram-v2
 
 ## autovacuum 什么时候触发
 
-autovacuum 后台进程定期检查每张表，满足条件就对它执行 VACUUM 或 ANALYZE。16 的默认触发条件：
+> [!WARNING]
+> 本节的默认值和触发公式按 2026 年 11 月 PostgreSQL 18 官方文档（Automatic Vacuuming 参数一节）整理；`autovacuum_vacuum_max_threshold`、`autovacuum_worker_slots` 是 18 新增的，16、17 没有。以你所用大版本的官方文档为准。
+
+autovacuum 后台进程定期检查每张表，满足条件就对它执行 VACUUM 或 ANALYZE。默认的触发条件（16 到 18 相同）：
 
 $$
 \text{死元组数} > 50 + 0.2 \times \text{表行数}
 $$
 
 ANALYZE 的条件类似：自上次分析以来变更的行数超过 $50 + 0.1 \times \text{表行数}$。另外从 13 开始，只插入不更新的表也会按插入行数触发 VACUUM（用于更新可见性映射和冻结）。
+
+18 在这个公式上加了一个封顶：阈值最多是 `autovacuum_vacuum_max_threshold`，默认 1 亿个死元组，避免几十亿行的超大表永远等不到触发。对一人公司的库，这个上限基本碰不到，按比例触发的问题仍然在：
 
 按比例触发的问题在大表上很明显：
 
@@ -67,9 +72,9 @@ ALTER TABLE stock_movements SET (
 
 autovacuum 默认很「温和」：做一定量的 I/O 后就暂停一下，避免影响业务。在 SSD 上，这个节奏往往太保守，导致它清理不过来。几个相关参数：
 
-| 参数 | 16 默认值 | 说明 |
+| 参数 | 默认值 | 说明 |
 |---|---|---|
-| `autovacuum_max_workers` | 3 | 同时清理几张表；改它要重启 |
+| `autovacuum_max_workers` | 3 | 同时清理几张表。16、17 改它要重启；18 起在 `autovacuum_worker_slots`（通常是 16）以内调整只需重载 |
 | `autovacuum_vacuum_cost_limit` | -1（沿用 `vacuum_cost_limit` = 200） | 每轮可做的 I/O 量 |
 | `autovacuum_vacuum_cost_delay` | 2ms | 每轮之后暂停多久 |
 | `autovacuum_naptime` | 1min | 多久检查一轮 |
@@ -208,7 +213,7 @@ hatch-counter 这样的业务量，一天可能也就几万到几十万个事务
 在一次性容器里做，做完 `docker rm -f vac` 清理：
 
 ```bash
-docker run -d --name vac -e POSTGRES_PASSWORD=x postgres:16-alpine
+docker run -d --name vac -e POSTGRES_PASSWORD=x postgres:18-alpine
 sleep 5
 docker exec -it vac psql -U postgres
 ```
@@ -225,7 +230,7 @@ docker exec -it vac psql -U postgres
 
    参考答案：A 持有的快照可能还要看到旧版本，全局 xmin horizon 停在 A 开始的时刻，VACUUM 只能跳过。用读已提交级别时语句结束就释放快照，所以这里用可重复读来模拟一个长事务。在 A 的会话里先 `SET idle_in_transaction_session_timeout = '10s';` 重做，A 会在空闲 10 秒后被断开，挡路自动解除。
 
-3. **算一算触发阈值**：一张 300 万行、每天更新 5 万行的表，按 16 的默认参数，autovacuum 大约几天触发一次？把 `autovacuum_vacuum_scale_factor` 设成 0.01 之后呢？
+3. **算一算触发阈值**：一张 300 万行、每天更新 5 万行的表，按默认参数，autovacuum 大约几天触发一次？把 `autovacuum_vacuum_scale_factor` 设成 0.01 之后呢？
 
    验证：用 `SELECT 50 + 0.2 * 3000000, 50 + 0.01 * 3000000;` 算出两个阈值，再除以每天 5 万。
 

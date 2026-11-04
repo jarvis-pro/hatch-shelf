@@ -2,10 +2,10 @@
 
 这本书写给已经天天写 TypeScript 和 Node 的人：语法、`tsconfig` 的常用选项、Express / NestJS 怎么起服务，这些都默认你会。我们要补的是**「为什么」那一层**：类型为什么这样推导、什么时候该停止写类型体操；Node 的事件循环、V8 的编译和 GC 到底在做什么；内存泄漏、背压、CPU 热点怎么查；以及 Node 直接跑 `.ts` 这件事背后的取舍。
 
-全书分两半：前三章是类型系统，后六章是运行时。两半基本独立，可以按需跳读；但第 1 章是前三章的地基，第 4 章（事件循环）是后面几章的地基，建议先读。所有示例都在 TypeScript 6.0 和 Node 22 上实际跑过，类型示例用 `tsc --strict` 验证过。
+全书分两半：前三章是类型系统，后六章是运行时。两半基本独立，可以按需跳读；但第 1 章是前三章的地基，第 4 章（事件循环）是后面几章的地基，建议先读。类型示例都在 TypeScript 6.0 上用 `tsc --strict` 验证过。运行时部分以 **Node 24 LTS** 为基线：书里的实验和实测数字是在 Node 22（22.23）上实际跑出来的，Node 24 与之不同的地方（Maglev 是否默认开启、type stripping 的稳定性等）按官方发布说明在对应小节写明。
 
 > [!WARNING]
-> 全书的实测数字和默认值按 TypeScript 6.0 与 Node 22（22.23）整理，截至 2026-11。Node 24 已是 LTS，TypeScript 7（基于 Go 的 tsgo）也在推进，编译器上限、V8 默认选项、type stripping 的状态都可能随版本变化；以 TypeScript 发布说明（Release Notes）、Node.js 官方 changelog 和发布说明为准。
+> 版本状态按 2026 年 11 月 Node.js 官方发布日程（github.com/nodejs/Release）整理：Node 22 和 Node 24 都处于维护期 LTS（分别于 2027-04-30、2028-04-30 停止支持），Node 26 已于 2026-10-28 进入 Active LTS；从 Node 27 起改为每年一个大版本。全书的实测数字和默认值是在 TypeScript 6.0 与 Node 22.23 上得到的；Node 24 的差异只按其发布说明整理、没有实机重跑。TypeScript 7（基于 Go 的 tsgo）也在推进，编译器上限、V8 默认选项、type stripping 的状态都可能随版本变化；以 TypeScript 发布说明（Release Notes）、Node.js 官方 changelog 和发布说明为准。
 
 本章只做一件事：建立一个心智模型——**类型就是值的集合**。有了它，`never`、`unknown`、联合、交叉、`keyof`、函数参数的变型这些看似零散的规则，都能从同一个原理推出来。
 

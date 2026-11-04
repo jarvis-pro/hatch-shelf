@@ -8,7 +8,12 @@
 
 全书以作者自己的项目 hatch-counter 为主线案例：门店管理服务端，NestJS + PostgreSQL + Drizzle，生产环境是一台云服务器上的 docker compose，里面一个 `postgres:16-alpine` 容器加一个服务端容器，前面是宿主机上的 nginx。书里引用的配置都取自这个项目，去掉了域名、镜像仓库地址和密钥。
 
-**版本约定**：本书命令和配置**以 PostgreSQL 16 为准**（与 hatch-counter 一致），镜像是官方的 `postgres:16-alpine`。17、18 有差异的地方会单独标出来。Docker 命令以 Docker Engine + Compose v2（`docker compose`）为准。参数的默认值和行为请以你所用大版本的官方文档为准，每个大版本都会改一些默认值。
+**版本约定**：本书命令和配置**以 PostgreSQL 18 为基线**，镜像是官方的 `postgres:18-alpine`，与[《数据库原理与实战》](../database-practice/)一致。hatch-counter 线上还是 16，[第 8 章](08-major-upgrade.md)就是它从 16 升到 18 的手册；16、17 和 18 有差异的地方会单独标出来。书里贴出的输出多数是在 16 上实测的，换到 18 上没有逐条重跑。Docker 命令以 Docker Engine + Compose v2（`docker compose`）为准。
+
+> [!WARNING]
+> 版本信息按 2026 年 11 月 postgresql.org 的版本支持页整理：18.0 于 2025 年 9 月 25 日发布（写作时最新小版本 18.6，支持到 2030 年 11 月）；16 支持到 2028 年 11 月；19 在 2026 年 10 月发布了 RC1，尚未正式发布。参数的默认值和行为以你所用大版本的官方文档和 Release Notes 为准，每个大版本都会改一些默认值。
+
+**18 的官方镜像换了数据目录**：`PGDATA` 默认是 `/var/lib/postgresql/18/docker`，卷的挂载点从 `/var/lib/postgresql/data` 改成了 `/var/lib/postgresql`。本书 18 的示例一律写成 `pgdata:/var/lib/postgresql`；照抄网上 16 时代的 `.../data` 挂载，18 的镜像会拒绝启动（第 8 章）。
 
 怎么读：第 1 章打底（进程模型和参数），后面都会用到；第 2–3 章是备份恢复，**最重要，建议动手做一遍**；第 4–5 章讲复制和连接池；第 6–7 章讲性能和维护；第 8 章讲升级；第 9 章回头讨论容器里跑数据库的取舍，也给出 hatch-counter 下一步的选择。
 
@@ -21,11 +26,11 @@ name: counter
 
 services:
   postgres:
-    image: registry.example.com/counter/postgres:16-alpine
+    image: registry.example.com/counter/postgres:16-alpine   # 线上还是 16，第 8 章升到 18
     restart: unless-stopped
     env_file: postgres.env          # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data   # 16 的挂载点；18 起是 /var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U counter -d counter"]
       interval: 10s
@@ -110,7 +115,7 @@ WHERE name IN ('shared_buffers', 'work_mem', 'max_connections', 'log_min_duratio
 ```yaml
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     shm_size: 256mb
     command:
       - postgres
@@ -137,7 +142,7 @@ services:
 ```yaml
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
       - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
 ```
 
@@ -149,7 +154,7 @@ services:
 
 ## 关键参数逐个看
 
-下表的「建议值」以一台 **4GB 内存、SSD 云盘、同时还跑着服务端容器**的机器为例。默认值以 PostgreSQL 16 为准。
+下表的「建议值」以一台 **4GB 内存、SSD 云盘、同时还跑着服务端容器**的机器为例。默认值以 PostgreSQL 18 为准（表里这几项从 16 到 18 没有变化）。
 
 | 参数 | 默认值 | 建议值 | 理由 |
 |---|---|---|---|
@@ -192,7 +197,7 @@ COMMIT;
 log_min_duration_statement = 500ms          # 超过 500ms 的语句记日志（第 6 章）
 log_lock_waits = on                         # 等锁超过 deadlock_timeout（默认 1s）就记一笔
 log_temp_files = 0                          # 所有临时文件都记
-log_autovacuum_min_duration = 10min         # 16 的默认值；想看得更细可以调小
+log_autovacuum_min_duration = 10min         # 默认值；想看得更细可以调小
 idle_in_transaction_session_timeout = 5min  # 开了事务不提交的连接，5 分钟后踢掉
 ```
 
@@ -222,7 +227,7 @@ docker compose exec postgres psql -U counter -d counter \
 
 ## 本章要点
 
-- 本书以 **PostgreSQL 16 + `postgres:16-alpine`** 为准，17 / 18 的差异单独标注
+- 本书以 **PostgreSQL 18 + `postgres:18-alpine`** 为基线，挂载点是 `/var/lib/postgresql`；与 16、17 的差异单独标注（hatch-counter 线上仍是 16）
 - Postgres 每个连接一个进程；读走 `shared_buffers` 和操作系统页缓存两层；写先落 WAL
 - 参数分需要重启、重载即可、可按会话设置三类，改完查 `pg_settings.pending_restart`
 - 在 compose 里用 `command: -c` 或挂配置文件传参数，配置进 Git；`ALTER SYSTEM` 只用于临时救火
@@ -234,7 +239,7 @@ docker compose exec postgres psql -U counter -d counter \
 以下练习都在一次性容器里做，做完 `docker rm -f pgx` 即可清理，不要连自己的真实数据库：
 
 ```bash
-docker run -d --name pgx -e POSTGRES_PASSWORD=x postgres:16-alpine
+docker run -d --name pgx -e POSTGRES_PASSWORD=x postgres:18-alpine
 docker exec -it pgx psql -U postgres
 ```
 
@@ -242,7 +247,7 @@ docker exec -it pgx psql -U postgres
 
    验证：`work_mem` 已经变成 32MB（`setting` 显示 `32768`，单位 kB），`pending_restart` 为 `f`；`shared_buffers` 的 `pending_restart` 为 `t`。`docker restart pgx` 之后再查，两者都生效、`pending_restart` 都是 `f`。
 
-   参考答案：`shared_buffers` 的 `context` 是 `postmaster`，要重启；`work_mem` 是 `user`，重载即生效。这也说明 `ALTER SYSTEM` 改的东西落在数据卷的 `postgresql.auto.conf` 里：`docker exec pgx cat /var/lib/postgresql/data/postgresql.auto.conf` 能看到这两行。
+   参考答案：`shared_buffers` 的 `context` 是 `postmaster`，要重启；`work_mem` 是 `user`，重载即生效。这也说明 `ALTER SYSTEM` 改的东西落在数据卷的 `postgresql.auto.conf` 里：`docker exec pgx sh -c 'cat "$PGDATA/postgresql.auto.conf"'` 能看到这两行（18 的镜像里 `$PGDATA` 是 `/var/lib/postgresql/18/docker`）。
 
 2. **work_mem 不够时的临时文件**：执行 `SET log_temp_files = 0; SET work_mem = '64kB';`，再跑 `SELECT g FROM generate_series(1, 2000000) g ORDER BY g DESC LIMIT 1;`。然后把 `work_mem` 调到 `256MB` 再跑一次，两次都加上 `EXPLAIN (ANALYZE)`。
 

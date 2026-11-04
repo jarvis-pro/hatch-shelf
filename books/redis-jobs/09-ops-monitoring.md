@@ -240,7 +240,7 @@ new Redis(url, { connectionName: "api-cache" });
 ## 许可证变化与 Valkey
 
 > [!WARNING]
-> 本节的许可证和版本时间线按 2026 年下半年能查到的公开信息整理，许可证条款可能再次调整。做决定前以 Redis 官方仓库的 LICENSE 文件、redis.io 的许可证说明页，以及 Valkey 官方网站和 Linux 基金会的公告为准；如果你的产品涉及对外提供数据库服务，请咨询专业法律意见。
+> 本节的许可证和版本时间线按 2026 年 11 月能查到的公开信息整理（版本发布时间按 Redis、Valkey 的 GitHub releases 和 Linux 基金会 2025 年 10 月的 Valkey 9.0 公告），许可证条款可能再次调整。做决定前以 Redis 官方仓库的 LICENSE 文件、redis.io 的许可证说明页，以及 Valkey 官方网站和 Linux 基金会的公告为准；如果你的产品涉及对外提供数据库服务，请咨询专业法律意见。
 
 ### 时间线
 
@@ -249,7 +249,9 @@ new Redis(url, { connectionName: "api-cache" });
 | 2024 年 3 月 | Redis 宣布从 BSD-3 改为双许可证 RSALv2 / SSPLv1，从 7.4 版开始生效 |
 | 2024 年 3–4 月 | Linux 基金会发起 Valkey，从 Redis 7.2.4（最后一个 BSD 版本）分叉，保持 BSD-3 许可证 |
 | 2024 年下半年起 | Valkey 8.x 发布；多家云厂商的托管 Redis 服务开始提供或切换到 Valkey |
-| 2025 年 | Redis 8 在原有两个许可证之外增加 AGPLv3 选项，并把 JSON、搜索等原来的模块并入 Redis 本体 |
+| 2025 年 5 月 | Redis 8 在原有两个许可证之外增加 AGPLv3 选项，并把 JSON、搜索等原来的模块并入 Redis 本体 |
+| 2025 年 10 月 | Valkey 9.0 发布，加入字段级过期（`HEXPIRE` 等）、集群模式下的多数据库、原子化的槽迁移 |
+| 2026 年 10 月 | 写作时的最新版：Redis 8.10、Valkey 9.1 |
 
 ### 对一人公司意味着什么
 
@@ -263,7 +265,7 @@ RSALv2 和 SSPLv1 主要限制的是**把 Redis 本身作为服务提供给别�
 
 选 Redis 的理由：
 
-- 需要 Redis 7.4 以后新增的功能（比如字段级过期），且 Valkey 还没有或实现不同
+- 需要 Redis 7.4 以后新增、Valkey 还没有或实现不同的功能。字段级过期以前是这里最常举的例子，Valkey 9.0 起也有了，这一条已经不成立；选之前按你要用的具体命令，分别查两边的命令文档
 - 用到了 Redis 8 并入本体的 JSON、搜索等功能
 
 ### 兼容性和切换
@@ -272,14 +274,14 @@ Valkey 从 7.2.4 分叉，**到 7.2 为止的命令、协议、RDB 格式都兼�
 
 两边各自新增的功能已经开始分叉，切换前要核对：
 
-- **新版本 Redis 写出的 RDB 文件，Valkey 可能读不了**（反过来也一样）。从 Redis 7.4+ 切到 Valkey，不要指望直接挂上旧的数据卷
+- **新版本 Redis 写出的 RDB 文件，Valkey 可能读不了**（反过来也一样）。两边都在 7.4 / 9.0 之后各自加了字段级过期，数据结构的持久化格式也就各走各的。从 Redis 7.4+ 切到 Valkey，不要指望直接挂上旧的数据卷
 - 缓存实例：直接换镜像，空着启动
 - 队列实例：按上面「升级」的做法，先排空再换
 
 ```yaml
 services:
   redis-queue:
-    image: valkey/valkey:8-alpine
+    image: valkey/valkey:9-alpine
     command: ["valkey-server", "--appendonly", "yes", "--maxmemory", "256mb",
               "--maxmemory-policy", "noeviction", "--requirepass", "${REDIS_PASSWORD}"]
 ```

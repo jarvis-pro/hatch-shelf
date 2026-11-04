@@ -161,7 +161,7 @@ HSTS 让浏览器在有效期内**只用 HTTPS** 访问这个域名。好处是�
 
 ## 自动续期
 
-Let's Encrypt 证书有效期 90 天，certbot 默认在剩余 30 天以内时才真正续期。Let's Encrypt 已经宣布会逐步缩短证书有效期，具体时间表以其官方公告为准，这更说明续期**必须全自动**。
+Let's Encrypt 证书目前默认有效期 90 天。老版本 certbot（比如 Ubuntu 24.04 apt 源里的 2.x）在剩余 30 天以内时才真正续期，4.0 起改为剩余三分之一有效期时续。整个行业正在缩短证书有效期，Let's Encrypt 计划 2027 年降到 64 天、2028 年降到 45 天，时间表见[《计算机网络》有效期在缩短](../networking/05-tls.md#有效期在缩短)，这更说明续期**必须全自动**。
 
 用 apt 装的 certbot 自带一个 systemd 定时器，每天运行两次 `certbot renew`：
 
@@ -200,6 +200,70 @@ echo | openssl s_client -connect api.example.com:443 -servername api.example.com
 
 把它放进你已有的监控（定时任务 + 告警、或者第三方的拨测服务），剩余不足 14 天就报警。可观测性的整体做法见[《可观测性与性能》](../observability-performance/)。
 
+## nginx 原生 ACME 模块
+
+> [!WARNING]
+> 本节按 2026 年 11 月 nginx.org 的 ngx_http_acme_module 文档和 GitHub 上 nginx/nginx-acme 仓库的 README 整理。模块版本号还在 0.x，指令和支持的挑战类型仍在变化，以 nginx.org 文档为准。
+
+上面这一整套（certbot、webroot、定时器、deploy hook）是 nginx 用户十几年来的标准做法，也是很多人转向 Caddy 的理由。2025 年 8 月，nginx 官方发布了自己的 ACME 模块 `ngx_http_acme_module`（用 Rust 写成，最初以预览版发布），让 nginx 自己去签证书、自己续期，不再需要 certbot。
+
+它是一个**动态模块**，不在 nginx 本体里：用 nginx.org 官方软件源装的 nginx，可以再装 `nginx-module-acme` 包；Ubuntu / Debian 自带源里的 nginx 有没有对应的模块包，要用 `apt-cache search nginx | grep -i acme` 自己查一下，没有就换成 nginx.org 的源，或者自己编译。配置大致是这样：
+
+```nginx
+# nginx.conf 顶层
+load_module modules/ngx_http_acme_module.so;
+
+http {
+    resolver 127.0.0.1:53;      # 模块要解析 CA 的地址，必须配 resolver
+
+    acme_issuer letsencrypt {
+        uri         https://acme-v02.api.letsencrypt.org/directory;
+        contact     ops@example.com;
+        state_path  /var/lib/nginx/acme-letsencrypt;   # 账号密钥和证书存这里
+        accept_terms_of_service;
+    }
+
+    acme_shared_zone zone=ngx_acme_shared:1M;
+
+    server {
+        listen 443 ssl;
+        server_name api.example.com;
+
+        acme_certificate letsencrypt;               # 按 server_name 申请证书
+
+        ssl_certificate       $acme_certificate;
+        ssl_certificate_key   $acme_certificate_key;
+        ssl_certificate_cache max=2;                # 别每次握手都重新解析证书
+        # ...
+    }
+
+    server {
+        listen 80;                                  # HTTP-01 挑战需要 80 端口
+        server_name api.example.com;
+        location / {
+            return 404;
+        }
+    }
+}
+```
+
+和 certbot 相比，变化在三处：
+
+- **没有「先有鸡还是先有蛋」**：前面「从零上线的顺序」要先放临时配置签证书、再换正式配置，用模块时一份配置直接 reload，nginx 自己去申请
+- **没有 webroot 和 deploy hook**：挑战由模块在 80 端口上直接应答，签发和续期都在 nginx 进程里完成，证书通过 `$acme_certificate` 变量交给 `ssl_certificate`
+- **证书不在 `/etc/letsencrypt/` 里了**：在 `state_path` 指定的目录，里面有账号密钥和私钥，权限要收紧，迁移机器时要一起搬，这一点和 Caddy 一样
+
+目前的限制也要看清：
+
+| 限制 | 影响 |
+|---|---|
+| 挑战类型只有 HTTP-01 和 TLS-ALPN-01，没有 DNS-01 | **签不了通配符证书**；80 / 443 不能对公网开放的机器用不了 |
+| `server_name` 里的正则和通配符不能作为证书域名 | 用正则匹配多个子域名的 server 块要拆开写 |
+| 官方示例里 80 端口的 server 块只返回 404 | 和「其余请求 301 到 HTTPS」能不能写在同一个 server 块里，文档没有说明，上线前实测一次 |
+| 证书变量化后，nginx 在握手时按变量取证书 | 要配 `ssl_certificate_cache`，否则有额外开销 |
+
+对本书的 hatch-counter 来说，certbot 那套已经稳定运行、换掉它收益不大；新开一台机器、域名不多、不需要通配符的时候，可以直接用模块，省掉本章大半的步骤。不管用哪种方式签证书，下面「防止静默过期」那层**外部监控都不能省**，自动化坏掉的方式只是换了一种。
+
 ## 常见问题
 
 | 现象 | 可能原因 |
@@ -219,6 +283,7 @@ echo | openssl s_client -connect api.example.com:443 -servername api.example.com
 - 80 端口块保留 `/.well-known/acme-challenge/`，其余 301 到 HTTPS
 - 发行版自带的老 nginx 不认 `http2 on;`，统一用 `listen 443 ssl http2` 更稳
 - 续期靠 certbot 定时器，**deploy hook 里 reload nginx** 是必需的一步；再加一层外部到期监控
+- nginx 官方的 ACME 动态模块能让 nginx 自己签证书和续期，省掉 certbot；目前没有 DNS-01，签不了通配符
 
 ## 动手练习
 

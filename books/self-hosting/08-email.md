@@ -87,6 +87,25 @@ hatch-counter 的客户是境内的门店商家，邮箱大多是 QQ 邮箱和�
 | DKIM | 这封信的内容在路上有没有被改过 | 服务商给出的选择器子域名，TXT 或 CNAME |
 | DMARC | SPF 或 DKIM 不通过时，收件方该怎么处理，结果报告发给谁 | `_dmarc.` 加域名的 TXT 记录 |
 
+收件方拿到一封信后，三条记录按这个顺序被查：
+
+```mermaid
+sequenceDiagram
+  participant S as 推送服务
+  participant R as 收件方
+  participant D as DNS
+  S->>R: 投递邮件（带 DKIM 签名）
+  R->>D: 查 SPF：发信 IP 在不在名单里
+  D-->>R: SPF 记录
+  R->>D: 查 DKIM 公钥（按选择器）
+  D-->>R: 公钥，验签名
+  R->>D: 查 _dmarc 策略
+  D-->>R: p=none / quarantine / reject
+  R->>R: 按策略收、进垃圾箱或拒收
+```
+
+DMARC 判通过的条件是：SPF 或 DKIM 至少一个通过，**并且**通过的那个域名和信封上显示的发件人（`From:`）域名对得上（对齐）。所以推送服务替你发信时，DKIM 一定要用你自己的域名签，而不是服务商的域名，否则 DKIM 通过了也不算数。
+
 以 `notify.example.com` 为例，在 DNS 里加的记录大致是：
 
 ```text

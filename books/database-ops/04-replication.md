@@ -2,7 +2,7 @@
 
 前两章的备份解决「数据丢了能找回来」，但恢复要停服务、要时间。**复制**解决的是另一个问题：主库所在的机器挂了，有一台数据几乎同步的从库可以顶上来；或者把报表这类重查询分流到从库，不影响主库。本章讲 Postgres 的流复制原理，用两个 compose 服务把一主一从搭起来，演练手动切换，最后讨论一人公司到底需不需要它。
 
-命令以 PostgreSQL 16、`postgres:16-alpine` 镜像为准。
+命令以 PostgreSQL 18、`postgres:18-alpine` 镜像为准（18 的镜像挂载点是 `/var/lib/postgresql`，数据目录在其下的 `18/docker`，见[第 1 章](01-install-tuning.md#关于这本书)）。
 
 ## 复制不是备份
 
@@ -94,7 +94,7 @@ SELECT type, database, user_name, address, auth_method, error
 FROM pg_hba_file_rules WHERE 'replication' = ANY(database);
 ```
 
-几个主库参数在 16 的默认值已经够用：`wal_level = replica`、`max_wal_senders = 10`、`max_replication_slots = 10`，不用改。
+几个主库参数的默认值（16 到 18 相同）已经够用：`wal_level = replica`、`max_wal_senders = 10`、`max_replication_slots = 10`，不用改。
 
 再加一条保护：
 
@@ -111,10 +111,10 @@ max_slot_wal_keep_size = 10GB
 ```yaml
 services:
   replica:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     volumes:
-      - replica_pgdata:/var/lib/postgresql/data
+      - replica_pgdata:/var/lib/postgresql
     depends_on:
       - postgres
 
@@ -129,7 +129,7 @@ docker compose run --rm --no-deps --user postgres \
   -e PGPASSWORD='复制角色的密码' \
   replica \
   pg_basebackup -h postgres -U replicator \
-    -D /var/lib/postgresql/data \
+    -D /var/lib/postgresql/18/docker \
     -X stream -S replica1 -R -P
 ```
 
@@ -247,15 +247,15 @@ hatch-counter 目前的规模不需要读写分离，一个库加连接池足够
 
 ```bash
 docker network create pgnet
-docker run -d --name pg1 --network pgnet -e POSTGRES_PASSWORD=x postgres:16-alpine -c max_slot_wal_keep_size=64MB
+docker run -d --name pg1 --network pgnet -e POSTGRES_PASSWORD=x postgres:18-alpine -c max_slot_wal_keep_size=64MB
 sleep 5
 docker exec pg1 psql -U postgres -c "CREATE ROLE replicator REPLICATION LOGIN PASSWORD 'rep'" \
   -c "SELECT pg_create_physical_replication_slot('replica1')"
 docker exec pg1 sh -c 'echo "host replication replicator samenet scram-sha-256" >> "$PGDATA/pg_hba.conf"'
 docker exec pg1 psql -U postgres -c "SELECT pg_reload_conf()"
-docker run --rm --network pgnet --user postgres -e PGPASSWORD=rep -v pg2data:/var/lib/postgresql/data \
-  postgres:16-alpine pg_basebackup -h pg1 -U replicator -D /var/lib/postgresql/data -X stream -S replica1 -R
-docker run -d --name pg2 --network pgnet -e POSTGRES_PASSWORD=x -v pg2data:/var/lib/postgresql/data postgres:16-alpine
+docker run --rm --network pgnet --user postgres -e PGPASSWORD=rep -v pg2data:/var/lib/postgresql \
+  postgres:18-alpine pg_basebackup -h pg1 -U replicator -D /var/lib/postgresql/18/docker -X stream -S replica1 -R
+docker run -d --name pg2 --network pgnet -e POSTGRES_PASSWORD=x -v pg2data:/var/lib/postgresql postgres:18-alpine
 ```
 
 1. **复制不是备份**：在 `pg1` 上建表插数据，在 `pg2` 上查到它；再在 `pg1` 上执行 `DELETE FROM` 这张表，回到 `pg2` 查。另外在 `pg2` 上尝试插入一行。

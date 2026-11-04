@@ -175,7 +175,7 @@ ETag: "a3f9c2e1b7d04512"
 ETag 解决的是「两个人改同一个东西」，幂等键解决的是「同一个人的同一次提交被执行了两次」。
 
 > [!WARNING]
-> `Idempotency-Key` 请求头目前是 IETF 的草案（draft-ietf-httpapi-idempotency-key-header），尚未成为正式 RFC，其中状态码等细节可能变化。本节按草案和 Stripe 等平台的公开做法凭记忆整理，以 IETF 最新草案和各平台官方文档为准。
+> 按 2026 年 11 月 IETF datatracker 的记录，`Idempotency-Key` 请求头仍是 httpapi 工作组的草案（最新为 draft-ietf-httpapi-idempotency-key-header-08，2026 年 10 月更新），**尚未成为正式 RFC**，状态码等细节可能变化。-08 里的约定是：要求带 key 的接口缺了 key 回 400、同一个 key 换了请求内容回 422、第一次还在处理回 409，与下表一致；有效期、重放标记等其余条目来自 Stripe 等平台的公开做法。以 IETF 最新草案和各平台官方文档为准。
 
 ### 接口约定
 

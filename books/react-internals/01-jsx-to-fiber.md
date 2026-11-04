@@ -7,7 +7,7 @@
 ## 这本书讲什么、适合谁、怎么读
 
 > [!WARNING]
-> 本书的公开 API 按 React 19.2 整理，内部实现（Fiber 字段、lanes、hooks 链表）以 React 19 前后的源码为参照，截至 2026-11；React 19.3 与 19.2 在本书涉及内容上的差异未逐项核对。以 react.dev 官方文档和 React 仓库的 CHANGELOG / 发布说明为准。
+> 本书的公开 API 按 React 19.2 整理，19.2 与 19.3 的差异按 2026 年 11 月 React 仓库 CHANGELOG 和 npm 发布记录核对（截至 2026-11 最新为 19.3.1）；内部实现（Fiber 字段、lanes、hooks 链表）以 React 19 前后的源码为参照，书中引用的源码常量已对照 v19.3.1 标签核对。这些都会随版本调整，以 react.dev 官方文档和 React 仓库的 CHANGELOG / 发布说明为准。
 
 **适合谁**：已经在用 React 写业务（函数组件、hooks、React Router、Vite 都熟），想知道「为什么」的人。不讲 JSX 语法入门，也不讲 class 组件。
 
@@ -24,7 +24,14 @@
 
 **关于「实现细节」**：本书会讲到 Fiber 节点的字段、lanes 的位运算、hooks 的链表这些 React 源码里的东西。它们**不是公开 API**，每个大版本都可能调整，只用来帮你建立心智模型，不要在业务代码里依赖它们。
 
-案例来自仓库所有者的「掌柜眼」网页端（hatch-counter 的 `apps/web`）：Vite 8 + React 19.2 + React Router 7 + Tailwind 4 的薄客户端，后面会反复引用它的 `useAsync`、推送订阅、懒加载页面等代码。仓库所有者的 hatch-shelf（Expo SDK 58）已经在 React 19.3，[《React Native 与 Expo》](../rn-expo/)按 19.3 写；本书示例按 19.2 写。19.3 是同一大版本内的小版本，书里用到的 API（hooks、Actions 与表单、Suspense 与 `use`、`useEffectEvent`、Compiler）在 19.3 上照常可用，就本书涉及的内容两者没有需要区别对待的地方。
+案例来自仓库所有者的「掌柜眼」网页端（hatch-counter 的 `apps/web`）：Vite 8 + React 19.2 + React Router 7 + Tailwind 4 的薄客户端，后面会反复引用它的 `useAsync`、推送订阅、懒加载页面等代码。仓库所有者的 hatch-shelf（Expo SDK 58）已经在 React 19.3，[《React Native 与 Expo》](../rn-expo/)按 19.3 写；本书示例按 19.2 写。两个小版本各带来了什么：
+
+| 版本 | 发布日期 | 主要新增 |
+|---|---|---|
+| 19.2 | 2025-10-01 | `<Activity>`、`useEffectEvent`、浏览器 Performance 面板里的 React 轨道、服务端渲染的 Suspense 边界批量显示 |
+| 19.3 | 2026-09-09 | `<ViewTransition>` 与 `addTransitionType`、Fragment 上的 ref、多个 transition 各自独立渲染 |
+
+19.3 是同一大版本内的小版本，书里用到的 API（hooks、Actions 与表单、Suspense 与 `use`、`useEffectEvent`、Compiler）在 19.3 上照常可用。和本书内容有关的行为差异只有一处：19.3 起互不相关的 transition 不再合并进同一次渲染，一个慢的 transition 不会拖住另一个，[第 4 章](04-concurrent-rendering.md#lanes-在树上的传播)在相应位置注明。
 
 ## JSX 编译成什么
 

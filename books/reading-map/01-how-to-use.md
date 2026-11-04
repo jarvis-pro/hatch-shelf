@@ -48,7 +48,7 @@ flowchart TD
 
 书里的例子尽量取自三个真实项目，读起来更有体感：
 
-- **hatch-shelf**：你正在用的这个书架，Expo + SQLite + WebView，完全离线
+- **hatch-shelf**：你正在用的这个书架，Expo + SQLite + WebView，书全部存在手机本地
 - **hatch-counter**：门店管理工具，NestJS + Postgres + Docker 部署，用视觉模型识别进货单
 - **hatch-recordwall**：唱片墙播放器，Expo + Electron + Cloudflare Worker + R2
 
@@ -56,4 +56,4 @@ flowchart TD
 
 书由 AI 按写书规范生成，再推送到手机。规划和进度记在仓库的 `books/ROADMAP.md` 里。每写完一本，[写作进度](08-progress.md)一章就会更新，所以这本导读本身也会随着书单一起成长。
 
-接下来五章分别介绍五个系列，之后是[阅读路线](07-reading-paths.md)。
+接下来六章分别介绍技术栈、运维、AI 大模型、Agent、OPC、自媒体与短剧六个部分（自媒体和短剧合在[一章](09-media.md)里讲），之后是[阅读路线](07-reading-paths.md)和[写作进度](08-progress.md)。

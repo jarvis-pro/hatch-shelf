@@ -24,6 +24,7 @@
 | 第六批 | 自媒体与短剧（2026-11-03 追加） | 58–79 一次并行写完 |
 | 第七批 | 工程基本功与第二语言（2026-11-04 追加） | 82–91 一次并行写完 |
 | 第八批 | 一人公司入门（2026-11-04 追加） | 92 → 93 → 94 → 95，可并行写 |
+| 第九批 | 书单补缺（2026-11-04 追加） | 96 → 97 → 98 → 99 → 100 → 101 → 102，可并行写 |
 
 ---
 
@@ -57,7 +58,7 @@
 ### 4. React Native 与 Expo `rn-expo`
 
 - 中级→进阶 · `技术/移动端` · 状态：已完成
-- 章节：RN 新架构（JSI / Fabric / TurboModules） · Hermes · expo-router · dev client 与 prebuild · config plugin · 写一个原生模块 · WebView 与双向桥接 · 本地存储（SQLite / 文件系统） · 性能与动画（Reanimated） · 签名、TestFlight 与上架
+- 章节：RN 新架构：JSI、Fabric 与 TurboModules · Hermes：React Native 的 JS 引擎 · expo-router：文件即路由 · dev client 与 prebuild · config plugin：用代码改原生工程 · 写一个原生模块 · WebView 与双向桥接 · 本地存储：文件系统与 SQLite · 性能与动画：Reanimated · 签名、TestFlight 与上架 · Android 与国内分发
 
 ### 5. Electron 桌面应用 `electron-desktop`
 
@@ -67,7 +68,7 @@
 ### 6. NestJS 后端架构 `nestjs-backend`
 
 - 中级 · `技术/后端` · 状态：已完成
-- 章节：依赖注入与模块 · 请求生命周期 · 守卫、拦截器与管道 · 校验与 DTO · JWT 与权限模型 · 错误处理与错误文案 · 配置与环境变量 · 长连接（SSE / WebSocket） · 测试
+- 章节：依赖注入与模块 · 请求生命周期 · 守卫、拦截器与管道 · 校验与 DTO · JWT 与权限模型 · 错误处理与错误文案 · 配置与环境变量 · 长连接（SSE / WebSocket） · 测试 · 数据访问与事务
 
 ### 7. 数据库原理与实战 `database-practice`
 
@@ -83,7 +84,7 @@
 ### 9. 应用安全 `app-security`
 
 - 中级 · `技术/安全` · 状态：已完成
-- 章节：认证方案对比（Session / JWT / OAuth / Passkey） · 授权模型 · OWASP Top 10 · 密码与密钥管理 · 依赖与供应链 · 移动端安全 · 日志里的敏感信息 · 安全自查清单
+- 章节：认证方案对比 · 授权模型 · OWASP Top 10 · 密码与密钥管理 · 依赖与供应链 · 移动端安全 · 日志里的敏感信息 · 服务器被入侵了怎么办 · 安全自查清单
 
 ### 第七批：工程基本功与第二语言（2026-11-04 追加）
 
@@ -135,7 +136,7 @@
 
 - 中级 · `技术/Rust` · 状态：已完成
 - 写给 TS 开发者
-- 章节：为什么学 Rust · 所有权与借用 · 生命周期 · trait 与泛型 · 错误处理 · 集合与迭代器 · 并发与 async · 写 CLI · Tauri · WASM 与 Node 原生扩展
+- 章节：为什么学 Rust，什么时候不该用 · 所有权与借用 · 生命周期 · 类型、trait 与泛型 · 错误处理：Result、? 与 thiserror / anyhow · 集合、迭代器与闭包 · 并发与 async：线程、Send/Sync 与 tokio · 写一个 CLI（上）：Cargo workspace 与检查库 · 写一个 CLI（下）：clap 命令、测试与发布 · 用 Tauri 做桌面应用 · WASM 与 Node 原生扩展：wasm-bindgen 与 napi-rs
 
 ---
 
@@ -149,7 +150,7 @@
 ### 11. 计算机网络 `networking`
 
 - 入门→中级 · `运维/网络` · 状态：已完成
-- 章节：分层模型 · TCP 与 UDP · DNS 全链路 · HTTP/1.1 → 2 → 3 · TLS 与证书 · CDN · NAT、防火墙与端口 · 局域网与 mDNS · 排障（dig / curl / mtr / tcpdump）
+- 章节：分层模型 · TCP 与 UDP · DNS 全链路 · HTTP/1.1 → 2 → 3 · TLS 与证书 · CDN · NAT、防火墙与端口 · 局域网与 mDNS · IPv6 与双栈 · 排障：dig / curl / mtr / tcpdump
 
 ### 12. 容器技术 `docker-containers`
 
@@ -169,7 +170,7 @@
 ### 15. Kubernetes 入门到实战 `kubernetes`
 
 - 中级→进阶 · `运维/容器` · 状态：已完成
-- 章节：K8s 解决什么问题 · 核心对象（Pod / Deployment / Service） · 配置与密钥 · 网络与 Ingress · 存储 · Helm · 用 k3s 搭单机小集群 · 什么时候不该上 K8s
+- 章节：K8s 解决什么问题 · 核心对象：Pod、Deployment、Service · 配置与密钥 · 网络与 Ingress · 存储 · Helm · 用 k3s 搭单机小集群 · 排障：Pod 为什么不正常 · 什么时候不该上 K8s
 
 ### 16. 基础设施即代码 `iac-gitops`
 
@@ -194,7 +195,7 @@
 ### 20. 一人运维手册 `production-ops`
 
 - 中级→进阶 · `运维/SRE` · 状态：已完成
-- 章节：服务器加固（SSH / 防火墙 / fail2ban） · 备份与容灾演练 · 事故响应流程 · 复盘 · SLO 与错误预算 · 成本控制 · 一个人的值班制度 · 运维检查清单
+- 章节：服务器加固 · 备份与容灾演练 · 事故响应流程 · 复盘 · SLO 与错误预算 · 成本控制 · 一个人的值班制度 · 对象存储与用户文件 · 运维检查清单
 
 ### 91. 自托管工具栈 `self-hosting`（第七批，2026-11-04 追加）
 
@@ -279,7 +280,7 @@
 ### 34. 工具设计与 MCP `tools-and-mcp`
 
 - 中级→进阶 · `人工智能/Agent` · 状态：已完成
-- 章节：好工具的标准 · 工具描述与参数设计 · 错误返回 · MCP 协议 · 写一个 MCP server · 权限与认证 · 工具集的组织
+- 章节：好工具的标准 · 工具描述与参数设计 · 错误返回 · MCP 协议 · 写一个 MCP server · 权限与认证 · 工具集的组织 · Agent 互操作协议
 
 ### 35. 多 Agent 编排 `multi-agent`
 
@@ -329,7 +330,7 @@
 ### 42. 产品思维 `product-thinking`
 
 - 入门→中级 · `一人公司/产品` · 状态：已完成
-- 章节：需求从哪来 · 用户访谈 · 问题与方案分开 · MVP 的边界 · 优先级取舍 · 把需求写下来 · 路线图 · 从反馈到迭代
+- 章节：需求从哪来 · 用户访谈 · 问题与方案分开 · MVP 的边界 · 优先级取舍 · 把需求写下来 · 路线图 · 从反馈到迭代 · 需求验证与 PMF 判断
 
 ### 43. 写给开发者的设计课 `design-for-devs`
 
@@ -344,7 +345,7 @@
 ### 45. 获客与增长 `growth-marketing`
 
 - 中级 · `一人公司/增长` · 状态：已完成
-- 章节：增长模型 · SEO · 社交媒体 · 社区运营 · ASO · 冷启动 · 留存 · 渠道评估
+- 章节：增长模型 · SEO · 社交媒体 · 社区运营 · ASO · 冷启动 · 留存 · 渠道评估 · 激活与小预算付费投放
 
 ### 46. 数据分析与埋点 `product-analytics`
 
@@ -359,7 +360,7 @@
 ### 48. 财务与税务 `opc-finance`
 
 - 入门→中级 · `一人公司/财税合规` · 状态：已完成
-- 章节：记账基础 · 税种与申报 · 发票 · 现金流 · 个人与公司的钱分开 · 记账工具与代账
+- 章节：记账基础 · 税种与申报 · 发票 · 现金流 · 个人与公司的钱分开 · 记账工具与代账 · 年度汇算走查 · 代账报价、验收与交接 · 公司注销的财税收尾
 
 ### 49. 国内合规实务 `opc-compliance-cn`
 
@@ -369,7 +370,7 @@
 ### 50. 出海实务 `going-global`
 
 - 中级 · `一人公司/财税合规` · 状态：已完成
-- 章节：出海全景 · 海外主体 · Stripe 与海外收款 · App Store 海外区 · GDPR 与隐私政策 · 海外云与域名 · 税务与汇款
+- 章节：出海全景：三条路径与先后顺序 · 海外主体 · Stripe 与海外收款 · App Store 海外区 · GDPR 与隐私政策 · 海外云与域名 · 税务与汇款 · 给海外客户接单
 
 ### 51. 用 AI 撑起一人公司 `ai-native-opc`
 
@@ -499,7 +500,7 @@
 
 #### 72. AI 内容生产工具链 `ai-content-pipeline`
 - 中级 · 状态：已完成
-- 章节：文案、图像、视频、配音、数字人工具对比 · 提示词方法 · 自动化流水线 · 矩阵批量 · 平台对 AI 内容的规则
+- 章节：AI 在内容生产里能做什么 · 文案与选题 · 图像：封面、配图与风格一致性 · 视频：生成与剪辑辅助 · 声音：TTS、配音与音色授权 · 数字人：适用场景与平台态度 · 搭一条自动化流水线（上）：架构与骨架 · 搭一条自动化流水线（下）：生成、关卡与交付 · 矩阵与批量 · 成本核算 · 平台对 AI 内容的规则与标识
 
 ### AI 短剧 `短剧/*`
 
@@ -517,7 +518,7 @@
 
 #### 76. AI 短剧后期 `ai-drama-post`
 - 中级 · 状态：已完成
-- 章节：配音与音色克隆合规 · 口型同步 · 音乐音效 · 字幕 · 剪辑节奏 · 成片规格 · 质检清单 · 从 0 到一集成片演练
+- 章节：后期流程总览 · 配音：TTS、真人与音色克隆 · 声音授权：真人配音与音色克隆 · 口型同步 · 音乐、音效与混音 · 字幕 · 剪辑节奏 · 调色与画面统一 · 成片规格与交付 · 质检清单与返工 · 从 0 到一集成片：全流程演练与成本
 
 #### 77. 短剧发行、投流与备案 `drama-distribution`
 - 中级 · 状态：已完成
@@ -559,3 +560,61 @@
 
 - 入门 · `一人公司/入门` · 状态：已完成
 - 章节：没人兜底之后 · 信息不全时怎么拍板 · 风险、概率与下行保护 · 和钱的新关系 · 谈判基本功 · 和专业人士合作 · 说「不」与取舍 · 一个人的支持系统 · 先在工作里练
+
+---
+
+## 书单补缺（第九批）
+
+来自 `AUDIT-2026-11.md` 第六节「书单缺口」，按与读者工作的相关度排序。第六节的 #6「年度财税实操」已由 `opc-finance` 扩写到 9 章覆盖，本批不再单写。
+分类各归各的系列，不新开第一段分组；只有 102 新开二级分类 `自媒体/出海`。
+与已有书的分工：SQLite 与本地存储基础在 `database-practice`、`rn-expo`；服务端为准的一致性在 `system-design`；服务端部署开源模型在 `open-models`；小程序作为私域入口在 `private-domain-cn`，支付后端在 `auth-payments`；Agent 安全与 MCP 在 `agent-safety`、`tools-and-mcp`；React 客户端原理在 `react-internals`；短剧行业与国内发行在 `micro-drama-industry`、`drama-distribution`，B 端出海收款与合规在 `going-global`。本批遇到这些内容只带过并链接。
+共同要求：框架和平台版本变化快，写时按当时官方文档核实，版本敏感处加 WARNING。
+
+### 96. 本地优先与同步引擎 `local-first-sync`
+
+- 中级→进阶 · `技术/架构` · 状态：未写
+- 案例取 hatch-shelf（文件即真相、SQLite 只存可重建索引和不可丢的用户数据）与 hatch-recordwall（多端同步）；Zero 1.0 已 GA 但暂不支持离线写，Electric 1.0 只做 Postgres → 客户端的读路径、写走自己的 API，选型章要讲清这些边界
+- 与已有书的分工：SQLite、索引与迁移基础链接 `database-practice`，expo-sqlite / 文件系统用法链接 `rn-expo`，服务端幂等与重试链接 `system-design`、`api-design`
+- 章节：本地优先是什么、什么时候不需要 · 数据归属：哪些在端上、哪些在服务端 · 离线队列与乐观更新 · 冲突解决：LWW、字段级合并与业务规则 · CRDT 原理 · Yjs 与 Automerge 实战 · 同步引擎版图：Zero、PowerSync、ElectricSQL + TanStack DB · 权限、部分同步与数据迁移 · 案例：hatch-shelf 的进度与笔记同步设计 · 测试、调试与回滚
+
+### 97. 端侧 AI：在手机和 Mac 上跑模型 `on-device-ai`
+
+- 中级→进阶 · `人工智能/应用` · 状态：未写
+- 面向 RN / Expo 和 Swift 开发者；Apple Foundation Models 随 iOS 26 发布（约 3B 参数、需 Apple Intelligence 设备），ExecuTorch 已过 1.0；每章给出能在 dev client 里跑起来的最小示例
+- 与已有书的分工：量化原理链接 `llm-deep-dive`，GGUF 与服务端推理链接 `open-models`，原生模块与 config plugin 链接 `rn-expo`，视觉 / 语音任务本身链接 `multimodal-ai`
+- 章节：为什么放到端上：隐私、离线、成本与延迟 · 端侧硬件与模型尺寸的账 · Apple Foundation Models：会话、引导生成与工具调用 · Core ML 与模型转换 · MLX 与 MLX Swift：在 Mac 上跑和微调 · llama.rn 与 GGUF：在 RN 里跑开源模型 · ExecuTorch 与跨平台部署 · 体积、下载与功耗 · 端云混合与降级 · 案例：给 hatch-shelf 加端侧摘要与问答
+
+### 98. 微信小程序开发 `wechat-miniprogram`
+
+- 中级 · `技术/移动端` · 状态：未写
+- 写给会 React 的开发者；以 hatch-counter 的门店小程序为主案例，短剧小程序作第二案例；平台政策（个人主体虚拟支付、云开发资源与扶持计划、短剧分成）按当时官方公告写并标日期
+- 与已有书的分工：小程序作为私域入口链接 `private-domain-cn`，支付服务端与对账链接 `auth-payments`，主体资质与 ICP 备案链接 `opc-compliance-cn`，短剧备案与分账链接 `drama-distribution`
+- 章节：小程序的运行机制与限制 · 账号主体、类目与资质 · 工程选型：原生、Taro 与 uni-app · 登录与用户体系 · 微信支付与虚拟支付 · 云开发与自建后端 · 审核、版本与灰度 · 分享、订阅消息与增长能力 · 小程序短剧：播放、付费与广告变现 · 案例：hatch-counter 门店小程序
+
+### 99. Computer Use 与浏览器 Agent `computer-use-agents`
+
+- 进阶 · `人工智能/Agent` · 状态：未写
+- 产品形态变化快（如 ChatGPT Atlas 已于 2026-08 停止独立浏览器，Agent 能力并入桌面端和扩展），产品只作例子，正文以机制和工程取舍为主
+- 与已有书的分工：agent loop 基础链接 `agent-principles`，Playwright 用法链接 `testing-engineering`，MCP 链接 `tools-and-mcp`，注入与沙箱的通用方法链接 `agent-safety`
+- 章节：GUI Agent 解决什么问题 · 截图 → 动作循环 · DOM、无障碍树与视觉定位 · 坐标误差与动作可靠性 · 工具栈：Playwright MCP、Stagehand、browser-use 与云浏览器 · 浏览器内置 Agent 与桌面 Computer Use · 网页注入面与权限边界 · 评测、成本与失败恢复 · 案例：用浏览器 Agent 跑 hatch-counter 的回归检查
+
+### 100. React 全栈：RSC 与框架模式 `react-fullstack`
+
+- 中级→进阶 · `技术/前端` · 状态：未写
+- 以 Next.js 16（Cache Components、`use cache`）为主线，对照 React Router 7 框架模式（RSC 仍为 unstable）与 TanStack Start（createServerFn），讲模型不讲 API 大全
+- 与已有书的分工：Fiber、Suspense、Actions 的客户端原理链接 `react-internals`，Vite SPA 工程链接 `frontend-engineering`，部署与边缘运行时链接 `deploy-release`、`cloud-and-edge`
+- 章节：从 SPA 到全栈框架 · Server Components 的心智模型 · 客户端边界与序列化 · Server Actions 与表单 · 流式 SSR 与 Suspense · 缓存与重新验证 · 数据获取与鉴权 · 框架对比：Next.js、React Router、TanStack Start · 部署、成本与什么时候不用 RSC
+
+### 101. 出售与退出 `selling-exit`
+
+- 中级 · `一人公司/经营` · 状态：未写
+- 估值倍数只引公开数据并注明是挂牌价还是成交价（如 Acquire.com 挂牌数据）；国内资产转让的税务与合同问题标 WARNING，建议咨询专业人士
+- 与已有书的分工：合同通用条款链接 `contracts-legal`，公司注销链接 `opc-compliance-cn`、`company-basics`，财务报表整理链接 `opc-finance`，退出案例链接 `opc-cases`
+- 章节：退出的几种方式：出售、托管、关停与开源 · 什么样的小产品卖得掉 · 估值：MRR / 利润倍数与扣分项 · 交易平台与中介 · 准备材料与尽调清单 · 谈判与交易结构 · 资产转让合同与税务 · 交接、竞业与卖后 · 从第一天为退出做准备
+
+### 102. 出海内容与短剧出海 `media-global`
+
+- 中级 · `自媒体/出海` · 状态：未写
+- 海外市场数据只用有来源的（DataEye、Sensor Tower 等），预测值与实际值分开写；平台变现门槛和分成按当时官方帮助中心核实
+- 与已有书的分工：国内短剧行业与发行链接 `micro-drama-industry`、`drama-distribution`，AI 后期与配音合规链接 `ai-drama-post`，海外主体、收款与税务链接 `going-global`，国内投流方法链接 `paid-traffic`
+- 章节：海外内容市场地图 · YouTube 变现机制 · TikTok 与 Instagram Reels · 海外短剧平台模式：ReelShort、DramaBox 与 AI 短剧 · 多语种译制：字幕、配音与本地化 · 海外投流与 ROI 测算 · 版权、肖像与平台规则 · 海外收款与结汇 · 从国内账号到出海的路线

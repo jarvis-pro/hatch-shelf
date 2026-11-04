@@ -27,7 +27,10 @@ Release 包里装的不是 JS 源码，而是已经编译好的字节码。启�
 
 ## SDK 58 的 Hermes：V1 成为默认
 
-Hermes 本身也在换代。Expo SDK 55 开始可以选用新一代的 **Hermes V1**，到 SDK 58，`expo-build-properties` 文档里 `useHermesV1` 的默认值已经是 `true`，描述是能带来更快的启动。
+> [!WARNING]
+> 本节按 2026 年 11 月 `docs.expo.dev/versions/v58.0.0/` 的 `expo-build-properties` 和 app config 文档核对：`useHermesV1` 默认 `true`，文档注明 Hermes V1 从 React Native 0.84 起是默认引擎；改回旧版必须同时开 `buildReactNativeFromSource`；app config 文档里没有 `jsEngine` 字段。以官方最新文档为准。
+
+Hermes 本身也在换代。Expo SDK 55 开始可以选用新一代的 **Hermes V1**，到 SDK 58，`expo-build-properties` 文档里 `useHermesV1` 的默认值已经是 `true`，描述是能带来更快的启动、更好的运行时性能和更低的内存占用。
 
 | 配置 | SDK 58 的情况 |
 |---|---|

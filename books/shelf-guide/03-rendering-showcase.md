@@ -18,11 +18,9 @@ func main() {
 	var wg sync.WaitGroup
 	results := make(chan int, 3)
 	for i := 1; i <= 3; i++ {
-		wg.Add(1)
-		go func(n int) {
-			defer wg.Done()
-			results <- n * n // 计算平方
-		}(i)
+		wg.Go(func() { // Go 1.25 起
+			results <- i * i // 计算平方
+		})
 	}
 	wg.Wait()
 	close(results)
@@ -91,6 +89,12 @@ sequenceDiagram
   CLI->>App: POST /upload (X-Pin)
   App-->>CLI: { ok: true, bookId }
 ```
+
+## SVG 图片
+
+柱状图、坐标图这类图画成 SVG 放进 `assets/`，按[写书规范](02-writing-books.md#用哪种方式画图)的要求带白色圆角底板，暗色主题下也看得清。下面这张画的是上面 Go 程序输出的三个平方数：
+
+![柱状图：n 等于 1、2、3 时，平方分别是 1、4、9，最高的一根用主色标出。](assets/squares.svg)
 
 ## 宽表格
 

@@ -28,9 +28,11 @@
 ### Android 的 16 KB 页
 
 > [!WARNING]
-> 本小节关于 Android 16 KB 页大小的要求按 2025 年 Google Play 的政策整理，具体的生效时间、适用的 targetSdk 和豁免条件可能已调整，以 Android 开发者文档「支持 16 KB 页面大小」和 Google Play 政策的最新说明为准。
+> 本小节按 2026 年 11 月 Android 开发者文档「Support 16 KB page sizes」（developer.android.com/guide/practices/page-sizes）整理。这项要求的截止时间推迟过不止一次，以该页面和 Play 管理中心里的最新提示为准。
 
-页大小不只是内核的细节。Android 从 15 开始支持 16 KB 页的设备，Google Play 要求新上架和更新的应用兼容 16 KB 页：应用里的原生库（`.so`）必须按 16 KB 对齐编译。对 React Native / Expo 应用来说，这意味着 RN 本身、Hermes 以及所有带原生代码的依赖都要升到支持 16 KB 对齐的版本。第 9 章讲可执行文件格式时会再说到「段对齐」。
+页大小不只是内核的细节。Android 从 15 开始支持 16 KB 页的设备，Google Play 要求 targetSdk 为 35（Android 15）及以上的应用在 64 位设备上兼容 16 KB 页；按开发者文档写作时的说法，**从 2027 年 2 月 1 日起，不兼容的应用更新将无法发布**。兼容的关键是应用里的原生库（`.so`）按 16 KB 对齐：NDK r28 起默认按 16 KB 对齐编译，打包要用 AGP 8.5.1 及以上，更老的 NDK 要手动加链接参数 `-Wl,-z,max-page-size=16384`。只有 Java / Kotlin 代码、没有任何 `.so` 的应用天然兼容。
+
+对 React Native / Expo 应用来说，Hermes 和很多依赖都带原生库，所以 RN 本身、Hermes 以及所有带原生代码的依赖都要升到支持 16 KB 对齐的版本。检查方法：在 16 KB 页的模拟器里，`adb shell getconf PAGE_SIZE` 应输出 `16384`；`zipalign -c -P 16 -v 4 app.apk` 校验安装包的对齐。不兼容的旧应用在 16 KB 设备上会进入兼容模式运行并弹出警告，这不能当作长期方案。第 9 章讲可执行文件格式时会再说到「段对齐」。
 
 ## 按需分配：申请不等于占用
 

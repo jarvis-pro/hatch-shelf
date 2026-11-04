@@ -17,6 +17,7 @@ chapters:
   - 08-local-storage.md
   - 09-performance-reanimated.md
   - 10-signing-testflight.md
+  - 11-android-china.md
 next:
   - id: electron-desktop
     reason: 再往桌面端走一步

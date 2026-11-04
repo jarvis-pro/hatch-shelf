@@ -69,6 +69,9 @@ pnpm app ios --device
 
 第一次在真机上运行开发签名的 App，iOS 16 起需要打开**开发者模式**：设置 → 隐私与安全性 → 开发者模式，打开后重启。没打开时，App 图标出现了却点不开。
 
+> [!WARNING]
+> 免费账号描述文件 7 天、付费账号一年的说法，依据是 Apple 开发者论坛里的官方回复，没在 Apple 的会员说明页找到原文；以 Apple 开发者网站的最新说明为准。
+
 用免费的 Apple ID（个人团队）也能签名安装，但开发描述文件只有 7 天有效期，过期后 App 打不开，要重新构建安装；部分能力也不对免费账号开放。付费的 Apple Developer Program 没有这个 7 天限制，也是使用 TestFlight 和上架的前提。
 
 ## 版本号与构建号
@@ -151,6 +154,40 @@ TestFlight 是 Apple 官方的测试分发渠道。上传的构建经过处理�
 
 审核依据是 Apple 的 App Store 审核指南。个人开发者最常遇到的几类问题：功能过于简单、崩溃或明显的 bug、权限说明不清、隐私声明和实际行为不符、引导用户到 App 外付费。条款会更新，提交前过一遍最新版指南。
 
+## 美区外链支付
+
+> [!WARNING]
+> 本节按 2026 年 11 月 Apple《App 审核指南》3.1.1(a)、3.1.3 的现行文本整理。美区外链规则来自法院禁令，Apple 对外链购买能收多少费用还在重审和上诉之中，最新进展见[《定价与商业模式》第 6 章「地区规则」](../pricing-monetization/06-app-store-iap.md#地区规则)（第四轮已按一手来源核对）。规则和费用都可能再变，上线前以 Apple 开发者网站和审核指南的最新版本为准。
+
+审核指南里有一个反复出现的例外：**美国区（United States storefront）的 App 可以放按钮、外部链接或其他号召用户去 App 外购买的入口，不需要申请任何权限**。其他地区仍然禁止，只有欧盟、日本等少数地区可以申请 StoreKit 外链权限（External Purchase Link Entitlement），按当地条款交佣金。中国大陆区没有这类例外。
+
+规则讲完，落到 Expo 工程里是三件事。
+
+**一、按 App Store 店面判断，不按语言或 IP**。审核指南说的是「美国区店面」，也就是用户的 Apple 账号在哪个国家的 App Store。系统语言、时区、IP 都不等于店面：一个在美国读书、账号是中国区的用户，看到外链入口就是违规。StoreKit 2 的 `Storefront.current` 给出店面的三字母国家码（美国是 `USA`），Expo 里没有现成的 API，写一个几行的本地模块即可（写法见[第 6 章](06-native-module.md)）：
+
+```swift
+import ExpoModulesCore
+import StoreKit
+
+public class StorefrontModule: Module {
+  public func definition() -> ModuleDefinition {
+    Name("Storefront")
+    // 返回 "USA"、"CHN" 这样的三字母国家码；取不到时返回 nil
+    AsyncFunction("countryCode") { () async -> String? in
+      await Storefront.current?.countryCode
+    }
+  }
+}
+```
+
+JS 侧只在 `countryCode() === 'USA'` 时渲染外链入口，其余店面照旧只显示内购。如果项目已经用了某个内购库，先看它有没有暴露店面信息，有就不必再写模块。
+
+**二、用系统浏览器打开，身份用一次性代码带过去**。`Linking.openURL(url)` 会跳到 Safari，付款在 App 外完成，和「在 App 外购买」的定义最贴合。URL 里不要放用户的令牌或手机号：App 先向服务端要一个几十秒有效、用一次就作废的代码，网页拿它换会话。服务端怎么配合、为什么要记一条外链跳转记录，在[《账号与支付工程》第 8 章](../auth-payments/08-stripe-iap.md#app-外付款美区外链与-google-play-替代计费)里讲。
+
+**三、回到前台时刷新权益**。用户在网页付完款切回 App，App 不会收到任何回调。和[第 3 章](03-expo-router.md)根布局里的启动引导同一个思路：监听 `AppState` 变成 `active`，向服务端重新拉一次权益，而不是指望网页把结果「推」回 App。
+
+最后说明边界：书架和唱片墙都不卖东西，这一节是给以后要在美区收费的 App 准备的。网页支付要自己处理退款、税和客服，《定价与商业模式》里比较过这笔账；在美区试外链之前，先确认费用的诉讼有没有新结果。
+
 ## 签名问题排查
 
 | 现象 | 常见原因 | 处理 |
@@ -169,6 +206,7 @@ TestFlight 是 Apple 官方的测试分发渠道。上传的构建经过处理�
 - 自动签名的盲区：API key 建不了云端分发证书，第一次要在 Xcode 里手动建
 - 构建号在同一版本下必须递增；出口合规、权限文案、隐私清单在 `app.json` 里提前写好
 - TestFlight 构建 **90 天过期**；内部测试免审核，外部测试首个构建要过 Beta 审核
+- 美区店面可以放外链去网页购买，判断依据是 StoreKit 的**店面国家码**，不是语言或 IP；用系统浏览器打开，回到前台再刷新权益
 
 ## 动手练习
 
@@ -190,4 +228,4 @@ TestFlight 是 Apple 官方的测试分发渠道。上传的构建经过处理�
 
    参考答案：每条说明都要讲清「用来做什么」；用不到的权限通过对应库的插件参数关掉（如 `expo-audio` 的 `microphonePermission: false`），而不是手改 Info.plist。
 
-到这里，一个 Expo App 从运行时原理到装进别人手机的完整链路就走完了。接下来可以读[《Electron 桌面应用》](../electron-desktop/)，它和这本书是同一类问题在桌面端的版本：多进程、桥接、签名和分发；如果对 React 本身的调和与并发机制还想深入，读[《React 19 原理与模式》](../react-internals/)；移动端的密钥存储、传输安全等话题，在[《应用安全》](../app-security/)的移动端安全一章里展开。
+到这里，iOS 这条从运行时原理到装进别人手机的链路就走完了。如果 App 要在国内安卓上分发，[第 11 章](11-android-china.md)接着讲签名与 APK、渠道包、隐私合规弹窗和厂商推送。

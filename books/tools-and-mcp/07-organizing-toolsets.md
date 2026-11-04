@@ -193,8 +193,4 @@ MCP 生态里也有把 Skills 通过 MCP 分发的官方扩展 Skills over MCP�
 
    参考答案：旧工具内部直接调用新工具的实现，结果末尾加一行「check_book 已更名为 lint_book，此名称将在下个主版本移除」；server 主版本号加一时删除，同时发 `notifications/tools/list_changed`。改名属于破坏性变更，`version` 要按语义化版本递增。
 
-## 接下来读什么
-
-这本书讲的是 agent「手」的设计。按书架导读的 AI 纵深路线，接下来可以读[《RAG 与知识系统》](../rag-systems/)，把书库从「按 id 读章节」升级到「按语义检索内容」，它本身就很适合做成一个 MCP 工具；然后读[《评测与质量》](../llm-evals/)，把第 1 章「读记录、改描述、再跑一遍」变成系统化的评测流程。
-
-如果想继续深入 agent 方向：《多 Agent 编排》讲如何给不同角色分配工具和上下文，[《动手构建 Agent》](../build-your-agent/)会从零写一个 agent loop 并接入本书的 MCP server，[《Agent 安全》](../agent-safety/)系统地讲提示注入、沙箱和权限边界。
+下一章跳出「agent 和工具」这条边，看看 agent 和 agent、agent 和用户界面之间的协议：[Agent 互操作协议](08-agent-interop.md)。

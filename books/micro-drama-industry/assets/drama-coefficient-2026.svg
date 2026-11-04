@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="410" viewBox="0 0 360 410" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="409" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" text-anchor="middle" font-size="15" font-weight="600" fill="#1f2328">抖音漫剧分成系数，2026 年两次调整</text>
+<text x="180" y="50" text-anchor="middle" font-size="12" fill="#656d76">系数是分账公式里的相对乘数，单位未公开</text>
+<line x1="20" y1="300" x2="340" y2="300" stroke="#d8dee4"/>
+<line x1="120" y1="70" x2="120" y2="300" stroke="#d8dee4" stroke-dasharray="3 3"/>
+<text x="120" y="342" text-anchor="middle" font-size="12" fill="#656d76">4 月调整前</text>
+<line x1="210" y1="70" x2="210" y2="300" stroke="#d8dee4" stroke-dasharray="3 3"/>
+<text x="210" y="342" text-anchor="middle" font-size="12" fill="#656d76">4 月 30 日后</text>
+<line x1="300" y1="70" x2="300" y2="300" stroke="#d8dee4" stroke-dasharray="3 3"/>
+<text x="300" y="342" text-anchor="middle" font-size="12" fill="#656d76">7 月底后</text>
+<polyline points="120,96.9 210,164.6 300,164.6" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<circle cx="120" cy="96.9" r="3.5" fill="#2f6fdf"/>
+<circle cx="210" cy="164.6" r="3.5" fill="#2f6fdf"/>
+<circle cx="300" cy="164.6" r="3.5" fill="#2f6fdf"/>
+<text x="110" y="100.9" text-anchor="end" font-size="12" fill="#1f2328">仿真人 60</text>
+<polyline points="120,130.8 210,164.6 300,164.6" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<circle cx="120" cy="130.8" r="3.5" fill="#2f6fdf"/>
+<circle cx="210" cy="164.6" r="3.5" fill="#2f6fdf"/>
+<circle cx="300" cy="164.6" r="3.5" fill="#2f6fdf"/>
+<text x="110" y="134.8" text-anchor="end" font-size="12" fill="#1f2328">3D 50</text>
+<polyline points="120,164.6 210,164.6 300,164.6" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<circle cx="120" cy="164.6" r="3.5" fill="#656d76"/>
+<circle cx="210" cy="164.6" r="3.5" fill="#656d76"/>
+<circle cx="300" cy="164.6" r="3.5" fill="#656d76"/>
+<text x="110" y="168.6" text-anchor="end" font-size="12" fill="#1f2328">2D 40</text>
+<polyline points="120,266.2 210,266.2 300,266.2" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<circle cx="120" cy="266.2" r="3.5" fill="#656d76"/>
+<circle cx="210" cy="266.2" r="3.5" fill="#656d76"/>
+<circle cx="300" cy="266.2" r="3.5" fill="#656d76"/>
+<text x="110" y="270.2" text-anchor="end" font-size="12" fill="#1f2328">表情包 10</text>
+<polyline points="120,283.1 210,296.6 300,266.2" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<circle cx="120" cy="283.1" r="3.5" fill="#2f6fdf"/>
+<circle cx="210" cy="296.6" r="3.5" fill="#2f6fdf"/>
+<circle cx="300" cy="266.2" r="3.5" fill="#2f6fdf"/>
+<text x="110" y="287.1" text-anchor="end" font-size="12" fill="#1f2328">解说漫 5</text>
+<text x="255" y="183.6" text-anchor="middle" font-size="12" fill="#1f2328">仿真人、3D、2D 都是 40</text>
+<text x="255" y="257.2" text-anchor="middle" font-size="12" fill="#1f2328">表情包、解说漫 10</text>
+<text x="210" y="313.6" text-anchor="middle" font-size="12" fill="#2f6fdf">解说漫 1</text>
+<text x="180" y="382" text-anchor="middle" font-size="11" fill="#656d76">来源：娱乐独角兽 2026-05-27、澎湃号 2026-05-02、</text>
+<text x="180" y="398" text-anchor="middle" font-size="11" fill="#656d76">腾讯新闻 2026-07-29 转述的抖音集团短剧版权中心通知</text>
+</svg>

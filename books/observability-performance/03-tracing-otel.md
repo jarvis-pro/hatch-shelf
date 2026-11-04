@@ -36,12 +36,25 @@ traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 
 ## 在 NestJS 里接入
 
+> [!WARNING]
+> 本节代码按 OpenTelemetry JS SDK 3.x 写（稳定包 3.0.0、实验包 0.300.0、`@opentelemetry/api` 1.10.0），按 2026 年 11 月 opentelemetry-js 仓库的 CHANGELOG 和 3.x 迁移指南整理，示例在 Node 22 上跑通过。SDK 3.0 于 2026 年 10 月发布，要求 Node.js ≥ 22.15；2.x 按官方说法自 3.0 发布起再支持一年。OTel 的包拆分和 API 变化较快，以官方迁移指南和各包的 CHANGELOG 为准。
+
 ### 安装
 
 ```bash
 pnpm add @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node \
-  @opentelemetry/exporter-trace-otlp-http @opentelemetry/sdk-trace-base
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/sdk-trace
 ```
+
+网上大多数教程还是 SDK 2.x 的写法，照抄时注意三处变化：
+
+| | 2.x | 3.x |
+|---|---|---|
+| 采样器、导出器、span 处理器从哪导入 | `@opentelemetry/sdk-trace-base` 或 `sdk-trace-node` | 合并成 `@opentelemetry/sdk-trace`，前两个包已删除 |
+| 处理器的构造参数 | `new BatchSpanProcessor(exporter, opts)` | `new BatchSpanProcessor({ exporter, ...opts })` |
+| Node.js 最低版本 | 18.19 / 20.6 | 22.15 |
+
+只用 `NodeSDK` 加自动埋点、不直接碰这些类的项目，升级时基本只需要换包名。`sdk-trace` 不再读 `OTEL_TRACES_SAMPLER` 这类环境变量，环境变量配置只在 `NodeSDK` 里生效。
 
 ### 初始化文件
 
@@ -52,7 +65,7 @@ pnpm add @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node \
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { ParentBasedSampler, TraceIdRatioBasedSampler } from "@opentelemetry/sdk-trace-base";
+import { ParentBasedSampler, TraceIdRatioBasedSampler } from "@opentelemetry/sdk-trace";
 
 const sdk = new NodeSDK({
   serviceName: "api",
@@ -199,6 +212,7 @@ flowchart TD
 - 一次请求是一个 trace，每段操作是一个 span；trace id 通过 `traceparent` 头跨服务传播
 - OpenTelemetry 让埋点和后端解耦；Node 里追踪最成熟，指标可以继续用 `prom-client`
 - 初始化必须早于业务代码加载，用 `--require` 预加载；优雅退出时要 `shutdown` 把 span 发完
+- 本书按 OTel JS SDK 3.x 写：采样器等从 `@opentelemetry/sdk-trace` 导入，`sdk-trace-base` 已删除，Node.js 最低 22.15
 - 自动埋点不覆盖所有库，比如 postgres.js；关键步骤用手动 span 补上，属性里不放敏感数据
 - 起步用 Jaeger all-in-one；流量小就 100% 采样
 - 外部调用多、服务多时追踪价值最大；简单单体可以先只靠请求 ID 加日志
@@ -221,16 +235,16 @@ flowchart TD
 
    标志位的最低位表示上游已采样。下游用 `ParentBasedSampler` 时就按这一位决定要不要记录，整条链路的取舍因此一致。
 
-2. **在控制台看父子 span**：在空目录里 `npm init -y && npm i @opentelemetry/sdk-node @opentelemetry/sdk-trace-base @opentelemetry/api`，用 `ConsoleSpanExporter` 代替 OTLP 导出器，建一个 `parent` span，在它里面再建一个 `child` span。
+2. **在控制台看父子 span**：在空目录里 `npm init -y && npm i @opentelemetry/sdk-node @opentelemetry/sdk-trace @opentelemetry/api`，用 `ConsoleSpanExporter` 代替 OTLP 导出器，建一个 `parent` span，在它里面再建一个 `child` span。
 
-   验证：`node trace.mjs` 打印两个 span，`traceId` 相同；`child` 记录的父 span（不同版本字段名叫 `parentId` 或 `parentSpanContext.spanId`）等于 `parent` 的 `id`。
+   验证：`node trace.mjs` 打印两个 span，`traceId` 相同；`child` 的 `parentSpanContext.spanId` 等于 `parent` 的 `id`（SDK 1.x 时这个字段叫 `parentId`）。
 
    参考答案：
 
    ```js
    // trace.mjs
    import { NodeSDK } from "@opentelemetry/sdk-node";
-   import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base";
+   import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace";
    import { trace } from "@opentelemetry/api";
    const sdk = new NodeSDK({ traceExporter: new ConsoleSpanExporter() });
    sdk.start();

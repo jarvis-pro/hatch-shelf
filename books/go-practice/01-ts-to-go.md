@@ -15,7 +15,7 @@
 **怎么读**：第 1–4 章按顺序读；第 5–6 章是 Go 和 Node 差别最大的部分，建议对照[《TS 与 Node 进阶》的事件循环一章](../ts-node-advanced/04-event-loop-libuv.md)一起看；第 7–10 章是两个贯穿的例子，可以边读边敲。
 
 > [!WARNING]
-> 本书以 **Go 1.26** 为基线，代码在 Go 1.26.5（macOS / arm64）上实际编译运行过。Go 每半年发一个版本（2 月、8 月），标准库会持续增加新 API；书中标注了「1.2x 起」的特性在更老的版本上不可用，新版本可能有更好的写法。以 [go.dev/doc/devel/release](https://go.dev/doc/devel/release) 和各版本的 Release Notes 为准。
+> 本书以 **Go 1.26** 为基线，代码在 Go 1.26.5（macOS / arm64）上实际编译运行过。Go 每半年发一个版本（2 月、8 月），标准库会持续增加新 API；书中标注了「1.2x 起」的特性在更老的版本上不可用，新版本可能有更好的写法。写作时最新的是 2026 年 8 月发布的 Go 1.27，和本书相关的变化见本章[「Go 1.27 带来了什么」](#go-127-带来了什么)。以 [go.dev/doc/devel/release](https://go.dev/doc/devel/release) 和各版本的 Release Notes 为准。
 
 ## 心智模型：先校准几个大前提
 
@@ -418,6 +418,40 @@ func main() {
 | JSON 里字段丢了 | 字段首字母小写，未导出 | 字段大写，用 tag 指定 JSON 名（第 3 章） |
 | `len("中文")` 是 6 | 返回字节数 | 字符数用 `utf8.RuneCountInString` |
 | 整数相除结果不对 | `int / int` 截断 | 先转 `float64`，金额用整数分 |
+
+## Go 1.27 带来了什么
+
+> [!WARNING]
+> 本节按 2026 年 11 月 [go.dev/doc/go1.27](https://go.dev/doc/go1.27) 和 [go.dev/doc/devel/release](https://go.dev/doc/devel/release) 整理。书里的代码没有在 Go 1.27 上逐个重跑，下面列出的新写法也没有实际编译过，以官方 Release Notes 和包文档为准。
+
+Go 1.27 在 2026 年 8 月 19 日发布。Go 官方只维护最新的两个大版本，1.27 发布之后 **1.25 不再收安全修复**，本书的基线 1.26 仍在维护期内。go.mod 里写 `go 1.26.5` 的项目在 1.27 上照常编译；想用下面这些新东西，要把 `go` 行改成 `go 1.27`。
+
+和本书内容相关的变化：
+
+| 变化 | 影响本书哪里 |
+|---|---|
+| **方法可以声明自己的类型参数**（泛型方法）。接口里的方法仍然不行，泛型方法也不能用来实现接口 | [第 3 章](03-structs-interfaces-generics.md)泛型限制表里「方法自带类型参数」一行，1.27 起放开了一半 |
+| `encoding/json` 底层换成了 `encoding/json/v2` 的实现，解码明显变快，错误信息文字可能和以前不同；新增 `encoding/json/v2` 和 `encoding/json/jsontext` 两个包，v2 默认拒绝非法 UTF-8 和重复的键 | 第 3、7 章的 `json.Marshal` / `json.NewDecoder` 写法不用改；**别在测试里断言 JSON 错误信息的原文** |
+| 新的标准库包 `uuid`：`uuid.NewV4()`、`uuid.NewV7()`、`uuid.Parse` | 以前要引 `github.com/google/uuid`，现在标准库就有 |
+| `strings.CutLast` / `bytes.CutLast`：按**最后一次**出现的分隔符切开 | 处理文件扩展名、`host:port` 这类「取最后一段」的场景 |
+| `testing/synctest.Sleep`：等于 `time.Sleep` 加 `synctest.Wait`；`httptest.NewTestServer` 用内存网络，能放进 synctest 气泡里 | [第 9 章](09-testing-benchmarks.md)的 synctest 和 httptest 两节 |
+| `go fix` 的现代化改写里，把 `wg.Add(1)` + `defer wg.Done()` 改成 `wg.Go` 的那条改名为 `waitgroupgo` | [第 5 章](05-goroutines-channels.md)的 `wg.Go` |
+| `go.mod` 写 `go 1.27` 及以上时，`go mod tidy` 把 `require` 合并成最多两块：直接依赖一块、间接依赖一块 | [第 2 章](02-modules-toolchain.md)的 go.mod 会出现一次性的格式变化，diff 看起来大，内容没变 |
+| macOS 上要求 macOS 13 Ventura 及以上 | 第 10 章交叉编译出的 darwin 二进制，老 Mac 上跑不了 |
+
+两个新写法的样子，对照 TS：
+
+```go
+// TS: crypto.randomUUID()；Go 1.27 起不用第三方库
+id := uuid.NewV7() // 按时间有序，适合做数据库主键
+fmt.Println(id.String())
+
+// TS: s.slice(s.lastIndexOf(".") + 1)
+name, ext, found := strings.CutLast("notes.final.md", ".")
+// name = "notes.final", ext = "md", found = true
+```
+
+**升不升级**：小工具和 CLI 跟着最新版走成本很低，`go.mod` 改一行、跑一遍测试即可；第 2 章讲的工具链自动切换会替没装 1.27 的机器下载对应版本。只有一件事要留意：如果代码里有人比较过 JSON 错误信息的字符串，1.27 之后可能对不上。
 
 ## 本章要点
 

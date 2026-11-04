@@ -14,6 +14,7 @@ chapters:
   - 05-build-mcp-server.md
   - 06-auth-and-permissions.md
   - 07-organizing-toolsets.md
+  - 08-agent-interop.md
 next:
   - id: rag-systems
     reason: 按需检索是工具最常见的一种用法

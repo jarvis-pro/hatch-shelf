@@ -6,13 +6,14 @@
 
 这本书面向已经在用 Claude Code 这类编码 agent、开始想「让 agent 能碰到我自己的系统」的开发者。你会写 TypeScript，知道 JSON Schema 和 HTTP 是什么，读过[《Agent 原理与设计》](../agent-principles/)或者对 agent loop 有基本概念。
 
-全书七章，分成三段：
+全书八章，分成四段：
 
 | 段落 | 章节 | 解决的问题 |
 |---|---|---|
 | 工具设计 | 1 好工具的标准 · 2 描述与参数 · 3 错误返回 | 和协议无关的设计方法，写函数调用、写 MCP、写 CLI 都适用 |
 | MCP | 4 MCP 协议 · 5 写一个 MCP server · 6 权限与认证 | 把工具做成标准协议的服务，接进任何 agent |
 | 组织 | 7 工具集的组织 | 工具多了以后怎么分组、加载、演进 |
+| 互操作 | 8 Agent 互操作协议 | MCP 之外的几条边：A2A、Agent Client Protocol、AG-UI、A2UI 各管什么，什么时候用 |
 
 全书贯穿一个例子：给 hatch-shelf 的书库写一个 MCP server，让 agent 能列出书、分页读章节、按写书规范校验一本书，最后再加一个「推送到手机」的写操作，用它讲权限。第 5 章给出完整可运行的代码。
 

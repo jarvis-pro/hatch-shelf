@@ -166,6 +166,9 @@ core 的 `tsconfig.json` 里 `lib` 只给 `["ES2022"]`，不给 `DOM`：它是�
 
 ## 依赖版本的一致性
 
+> [!WARNING]
+> catalog 的起始版本按 pnpm 在 GitHub 上的 v9.5.0 发布说明（2024 年 7 月，「Added support for catalogs」）整理；之后的版本还在给 catalog 加能力。具体写法以 pnpm.io 的「Catalogs」文档为准。
+
 monorepo 里同一个依赖在多个包里各写一份版本号，很容易漂移：网页端 `react@19.2.8`、后台 `react@19.1.0`，同一个页面里出现两份 React 就会报 hooks 错误。
 
 | 办法 | 说明 |

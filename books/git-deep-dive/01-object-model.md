@@ -76,9 +76,11 @@ git cat-file -p 'HEAD^{tree}'
 ```
 
 ```text
-100644 blob ce013625030ba8dba906f756967f9e9ca394464a	README.md
-040000 tree ad8eeca4eb250ab34f65d18a672787a97b063e93	src
+100644 blob ce01362	README.md
+040000 tree ad8eeca	src
 ```
+
+> 为了在手机上不折行，本书命令输出里的 40 位对象 ID 大多截成了前 7 位（和 `git log --oneline` 的显示一样），实际输出是完整的 40 位。需要看清全长的地方，比如上面 `hash-object` 和 `shasum` 的对照、`.git/refs` 文件的内容，保留了完整 ID。
 
 tree 的每一行是「模式、类型、对象 ID、名字」。文件名和权限存在这里，而不在 blob 里。子目录是另一个 tree，`src` 指向的 `ad8eec...` 里只有一行 `index.ts`。
 
@@ -94,7 +96,7 @@ git cat-file -p HEAD
 ```
 
 ```text
-tree da4884211e682a885dff63def4e7997e52fa0dde
+tree da48842
 author jarvis <jarvis@example.com> 1793757600 +0800
 committer jarvis <jarvis@example.com> 1793757600 +0800
 
@@ -123,14 +125,14 @@ git cat-file -p 'HEAD^{tree}'
 ```
 
 ```text
-tree 1af70982e5b5290bf954f70a3d313528040f4941
-parent ffaa72e8d3fa4fbd810ee78e88ffa42881fa9fa8
+tree 1af7098
+parent ffaa72e
 author jarvis <jarvis@example.com> 1793757900 +0800
 committer jarvis <jarvis@example.com> 1793757900 +0800
 
 docs: 改 README
-100644 blob 3b18e512dba79e4c8300dd08aeb37f8e728b8dad	README.md
-040000 tree ad8eeca4eb250ab34f65d18a672787a97b063e93	src
+100644 blob 3b18e51	README.md
+040000 tree ad8eeca	src
 ```
 
 注意 `src` 还是 `ad8eec...`：没变的子目录直接复用旧 tree。改一个文件只会新建这个文件的 blob，以及从它到根目录这一路上的 tree，其余全部共享。一个几万文件的仓库，每次提交新增的对象也只有十几个。
@@ -180,7 +182,7 @@ git cat-file -p v0.1.0
 ```
 
 ```text
-object ffaa72e8d3fa4fbd810ee78e88ffa42881fa9fa8
+object ffaa72e
 type commit
 tag v0.1.0
 tagger jarvis <jarvis@example.com> 1793757900 +0800
@@ -199,8 +201,8 @@ git ls-files -s
 ```
 
 ```text
-100644 3b18e512dba79e4c8300dd08aeb37f8e728b8dad 0	README.md
-100644 ad1d380d6cc4dfe69119852d461b7ccd89a19228 0	src/index.ts
+100644 3b18e51 0	README.md
+100644 ad1d380 0	src/index.ts
 ```
 
 于是三个区域的关系很清楚：
@@ -241,7 +243,7 @@ git rev-list --objects --all \
 ## SHA-1 与 SHA-256
 
 > [!WARNING]
-> 本节关于 Git 默认哈希算法和 Git 3.0 计划的描述，按写作时（2026 年 11 月）的情况整理，以 git-scm.com 的发布说明和 `Documentation/BreakingChanges` 为准。
+> 本节关于 Git 默认哈希算法和 Git 3.0 计划的描述，按 2026 年 11 月 git-scm.com 的 `BreakingChanges` 文档整理：写作时最新版是 Git 2.56，Git 3.0 还没有确定的发布日期。以 git-scm.com 的发布说明和 `Documentation/BreakingChanges` 为准。
 
 SHA-1 在 2017 年已经被构造出碰撞。Git 从 2.13 起使用带碰撞检测的 SHA-1 实现（SHA-1DC），能识别已知的碰撞构造手法，所以日常使用仍然安全。同时 Git 早就支持 SHA-256 格式的仓库：
 
@@ -250,7 +252,7 @@ git init --object-format=sha256 repo256
 git -C repo256 rev-parse --show-object-format   # sha256
 ```
 
-社区计划在 Git 3.0 把新仓库的默认算法切到 SHA-256。对你的影响主要在托管平台：两种格式的仓库之间不能直接推拉，平台是否支持 SHA-256 仓库要先确认。现有仓库没有必要迁移。
+社区计划在 Git 3.0 把新仓库的默认算法切到 SHA-256，前提是周边生态（托管平台、其他 Git 实现）已经准备好；SHA-1 格式本身没有弃用计划。同一份计划里还有：新仓库默认分支名改为 `main`、默认引用存储改为 reftable（[第 2 章](02-refs-head.md#packed-refs-与-reftable)）、构建 Git 本身必须有 Rust。对你的影响主要在托管平台：两种格式的仓库之间不能直接推拉，平台是否支持 SHA-256 仓库要先确认。现有仓库没有必要迁移。
 
 ## 用对象模型回答几个常见问题
 

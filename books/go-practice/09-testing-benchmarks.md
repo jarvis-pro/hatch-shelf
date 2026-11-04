@@ -522,19 +522,13 @@ go test -run '^$' -bench . -benchmem -count 8 ./internal/book > new.txt
 go tool benchstat old.txt new.txt
 ```
 
-```text
-               │   old.txt    │               new.txt               │
-               │    sec/op    │    sec/op     vs base               │
-LintChapter-12   1.733m ± 16%   1.145m ± 17%  -33.89% (p=0.000 n=8)
+`benchstat` 的原始输出是一张带框线的宽表，在手机上放不下，这里整理成三行（`LintChapter-12`，各跑 8 次）：
 
-               │   old.txt    │               new.txt               │
-               │     B/op     │     B/op      vs base               │
-LintChapter-12   484.9Ki ± 0%   363.0Ki ± 0%  -25.14% (p=0.000 n=8)
-
-               │   old.txt    │              new.txt               │
-               │  allocs/op   │  allocs/op   vs base               │
-LintChapter-12   10.005k ± 0%   5.001k ± 0%  -50.01% (p=0.000 n=8)
-```
+| 指标 | 改动前 | 改动后 | 变化 |
+|---|---|---|---|
+| 耗时 sec/op | 1.733m ± 16% | 1.145m ± 17% | −33.89%（p=0.000） |
+| 内存 B/op | 484.9Ki ± 0% | 363.0Ki ± 0% | −25.14%（p=0.000） |
+| 分配 allocs/op | 10.005k ± 0% | 5.001k ± 0% | −50.01%（p=0.000） |
 
 时间少了约三分之一，分配次数减半。`p=0.000` 表示差异在统计上显著；`± 16%` 说明这台机器跑基准时并不安静（同时在跑别的东西），绝对数字参考意义有限，但前后对比依然可信。如果 benchstat 显示 `~`，意思是「看不出差别」，那这次优化就不值得留。
 

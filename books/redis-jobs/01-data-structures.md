@@ -2,13 +2,16 @@
 
 ## 关于这本书
 
+> [!WARNING]
+> 下面「版本约定」里的版本按 2026 年前后整理，Redis、Valkey、pg-boss 可能已有更新的大版本（如 Redis 8、Valkey 9、pg-boss 11），命令和 API 可能有变化；以 Redis / Valkey 官方命令文档、docs.bullmq.io、pg-boss 仓库的 releases 和 NestJS 官方迁移指南为准。
+
 [《软件架构与系统设计》](../system-design/)的[缓存策略](../system-design/03-caching.md)和[队列与异步任务](../system-design/04-queues-jobs.md)两章讲的是**要不要**：什么时候值得缓存、缓存放哪一层、队列选光谱上的哪一档。这本书接着讲**怎么写**：决定用 Redis 之后，缓存、限流、锁、队列分别用哪个命令、哪个库、哪几个参数，坑在哪里；决定不用 Redis 的时候，Postgres 上的 pg-boss 和 `SKIP LOCKED` 怎么接住同样的活。原理和取舍那两章已经讲过的，这里不再重复，用到时链接过去。
 
 读者画像：日常写 TypeScript、NestJS 和 Postgres，Redis 用过 `GET` / `SET`，BullMQ 照着 README 跑通过，但没想清楚「Redis 挂了会怎样」「任务执行两遍会怎样」。一个人维护服务，后台任务出问题时没人替你值班。
 
 案例主线还是 hatch-counter：门店管理 SaaS，NestJS + Postgres + Drizzle，生产环境是一台云服务器上的 docker compose。按[《软件架构与系统设计》](../system-design/)里记录的做法，它只有一个实例，缓存在进程内存里，队列是进程内队列加数据库记状态，定时任务靠 `job_runs` 表；本书不假设它已经用上了 Redis。本书的写法是：每一章先看那些已记录的做法，再看「如果开第二个实例、加了 Redis」这件事会怎么写。第 6 章专门回答一个人什么时候根本不需要 Redis。
 
-**版本约定**：命令以 Redis 7.x / Valkey 8.x 都支持的部分为准；Node 客户端用 ioredis 5（BullMQ 依赖它）；BullMQ 以 5.x 为准，pg-boss 以 10.x 为准，NestJS 以 10 / 11 为准。只在新版本才有的命令会单独标出来。
+**版本约定**：命令以 Redis 7.x / Valkey 8.x 都支持的部分为准；Node 客户端用 ioredis 5（BullMQ 依赖它）；BullMQ 以 5.x 为准，pg-boss 以 10.x 为准，NestJS 以 12 为准（与[《NestJS 后端架构》](../nestjs-backend/)和 hatch-counter 一致）。只在新版本才有的命令会单独标出来。
 
 怎么读：第 1–4 章讲 Redis 本身（数据结构、缓存、限流和锁、持久化与内存）；第 5–8 章讲后台任务（BullMQ、Postgres 队列、定时与延迟、重试与幂等）；第 9 章讲监控、运维，以及 Redis 许可证变化之后该选 Redis 还是 Valkey。
 

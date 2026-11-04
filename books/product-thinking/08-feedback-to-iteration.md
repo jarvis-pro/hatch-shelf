@@ -212,7 +212,7 @@ flowchart LR
 
 - [《写给开发者的设计课》](../design-for-devs/)：规格里写的页面，怎么做得不难看、好用
 - [《定价与商业模式》](../pricing-monetization/)：想清楚做什么之后，怎么收钱、收多少
-- [《获客与增长》](../growth-marketing/)[《文案与内容》](../copywriting-content/)：怎么让对的人知道你的产品
-- 《数据分析与埋点》：本书第 8 章「用数据判断成没成」的完整方法
+- [《获客与增长》](../growth-marketing/)、[《文案与内容》](../copywriting-content/)：怎么让对的人知道你的产品
+- [《数据分析与埋点》](../product-analytics/)：本书第 8 章「用数据判断成没成」的完整方法
 
-按书架导读的第四批顺序，下一本建议读《定价与商业模式》。
+按书架导读的第四批顺序，下一本建议读[《定价与商业模式》](../pricing-monetization/)。

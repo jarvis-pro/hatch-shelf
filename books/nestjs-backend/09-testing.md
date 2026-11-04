@@ -72,6 +72,9 @@ it("没登录访问业务接口回 401", () => {
 
 ### 测试框架与装饰器元数据
 
+> [!WARNING]
+> 「NestJS 12 的 ESM 项目默认用 Vitest + SWC / OXC」按 v12 发布时的 CLI 模板整理，模板默认值可能调整；以 NestJS 官方文档的 Testing 页面和 `@nestjs/cli` 发布说明为准。
+
 [第 1 章](01-di-modules.md)讲过，Nest 的依赖注入依赖 `emitDecoratorMetadata`。测试框架用什么转换 TypeScript，直接决定上面的测试能不能跑：
 
 | 测试运行方式 | 装饰器元数据 | 说明 |

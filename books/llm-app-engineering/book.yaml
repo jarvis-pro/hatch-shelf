@@ -5,7 +5,7 @@ category: 人工智能/应用
 tags: [llm, claude-api, typescript, prompt]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-api-basics.md
   - 02-prompt-engineering.md
@@ -21,3 +21,5 @@ next:
     reason: 给模型配上工具和循环，就成了 agent
   - id: rag-systems
     reason: 让模型用上你自己的资料
+  - id: multimodal-ai
+    reason: 让产品处理图片、单据和语音

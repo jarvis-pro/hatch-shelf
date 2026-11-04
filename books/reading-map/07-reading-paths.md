@@ -88,14 +88,14 @@ flowchart LR
 
 读完第二批之后随时可以开始，不必等 AI 和 OPC 系列。
 
-1. 计算机系统基础
-2. Git 深入
-3. 测试工程
-4. 调试与问题排查
-5. API 设计
-6. 账号与支付工程
-7. Redis 与后台任务
-8. 自托管工具栈
+1. [计算机系统基础](../computer-systems/)
+2. [Git 深入](../git-deep-dive/)
+3. [测试工程](../testing-engineering/)
+4. [调试与问题排查](../debugging-methods/)
+5. [API 设计](../api-design/)
+6. [账号与支付工程](../auth-payments/)
+7. [Redis 与后台任务](../redis-jobs/)
+8. [自托管工具栈](../self-hosting/)
 
 第二语言按需选：想写 CLI 和运维小工具读[《Go 语言实战》](../go-practice/)，想做 Tauri 桌面应用或 WASM 读[《Rust 实用入门》](../rust-practice/)。
 
@@ -116,23 +116,23 @@ flowchart LR
 
 | 眼前的目标 | 先读这几本 |
 |---|---|
-| 准备上线第一个付费产品 | 一人运维手册 · 应用安全 · 账号与支付工程 · 国内合规实务 · 定价与商业模式 |
-| 产品里要加 AI 功能 | 大模型应用工程 · 多模态应用 · 评测与质量 · LLM 应用上线 |
-| 想让 agent 多干点活 | 编码 Agent 实战 · 个人 Agent 工作流 · 上下文工程 · 工具设计与 MCP |
-| 自己写一个 agent 产品 | Agent 原理与设计 · 动手构建 Agent · 多 Agent 编排 · Agent 安全 |
-| 想了解 DeepSeek Harness | DeepSeek Harness 入门 · Agent 原理与设计 · 编码 Agent 实战 |
-| 线上服务出了问题 | 调试与问题排查 · 可观测性与性能 · 计算机网络 · PostgreSQL 运维 |
-| 改代码总怕改出问题 | 测试工程 · Git 深入 · API 设计 |
-| 想真正搞懂大模型 | 大模型原理科普 · AI 数学直觉 · 动手学深度学习 · 大模型原理进阶 |
-| 用户太少 | 产品思维 · 文案与内容 · 获客与增长 · 数据分析与埋点 |
-| 不知道下一步该做什么 | 一人公司行动手册 · 一人公司方法论 · 一人公司案例库 |
-| 要开始卖给门店 | 销售与 To B 成交 · 国内私域与内容平台 · 合同与法律文书 |
-| 准备辞职 | 一人公司行动手册 · 过渡期收入与个人保障 · 财务与税务 |
-| 只上过班，想先懂生意和公司 | 商业常识 · 公司常识 · 把职场技能变成生意 · 从员工到老板 |
-| 想做自媒体账号 | 自媒体与短剧行动手册 · 账号定位与对标拆解 · 选题与爆款结构 · 短视频脚本与分镜 |
-| 想做 AI 短剧 / 漫剧 | 微短剧行业全景 · 短剧编剧 · AI 短剧分镜与画面生成 · AI 短剧后期 |
-| 想给创作者做工具 | 给创作者和短剧团队做工具 · 自媒体与短剧一人公司全景 · AI 内容生产工具链 |
-| 考虑做海外市场 | 出海实务 · 云与边缘 · 定价与商业模式 |
+| 准备上线第一个付费产品 | [一人运维手册](../production-ops/) · [应用安全](../app-security/) · [账号与支付工程](../auth-payments/) · [国内合规实务](../opc-compliance-cn/) · [定价与商业模式](../pricing-monetization/) |
+| 产品里要加 AI 功能 | [大模型应用工程](../llm-app-engineering/) · [多模态应用](../multimodal-ai/) · [评测与质量](../llm-evals/) · [LLM 应用上线](../llmops/) |
+| 想让 agent 多干点活 | [编码 Agent 实战](../coding-agents/) · [个人 Agent 工作流](../personal-agent-workflow/) · [上下文工程](../context-engineering/) · [工具设计与 MCP](../tools-and-mcp/) |
+| 自己写一个 agent 产品 | [Agent 原理与设计](../agent-principles/) · [动手构建 Agent](../build-your-agent/) · [多 Agent 编排](../multi-agent/) · [Agent 安全](../agent-safety/) |
+| 想了解 DeepSeek Harness | [DeepSeek Harness 入门](../deepseek-harness/) · [Agent 原理与设计](../agent-principles/) · [编码 Agent 实战](../coding-agents/) |
+| 线上服务出了问题 | [调试与问题排查](../debugging-methods/) · [可观测性与性能](../observability-performance/) · [计算机网络](../networking/) · [PostgreSQL 运维](../database-ops/) |
+| 改代码总怕改出问题 | [测试工程](../testing-engineering/) · [Git 深入](../git-deep-dive/) · [API 设计](../api-design/) |
+| 想真正搞懂大模型 | [大模型原理科普](../llm-fundamentals/) · [AI 数学直觉](../math-for-ai/) · [动手学深度学习](../deep-learning-basics/) · [大模型原理进阶](../llm-deep-dive/) |
+| 用户太少 | [产品思维](../product-thinking/) · [文案与内容](../copywriting-content/) · [获客与增长](../growth-marketing/) · [数据分析与埋点](../product-analytics/) |
+| 不知道下一步该做什么 | [一人公司行动手册](../opc-action-plan/) · [一人公司方法论](../opc-playbook/) · [一人公司案例库](../opc-cases/) |
+| 要开始卖给门店 | [销售与 To B 成交](../b2b-sales/) · [国内私域与内容平台](../private-domain-cn/) · [合同与法律文书](../contracts-legal/) |
+| 准备辞职 | [一人公司行动手册](../opc-action-plan/) · [过渡期收入与个人保障](../opc-transition/) · [财务与税务](../opc-finance/) |
+| 只上过班，想先懂生意和公司 | [商业常识](../business-basics/) · [公司常识](../company-basics/) · [把职场技能变成生意](../skills-to-business/) · [从员工到老板](../employee-to-owner/) |
+| 想做自媒体账号 | [自媒体与短剧行动手册](../media-action-plan/) · [账号定位与对标拆解](../account-positioning/) · [选题与爆款结构](../topic-and-hooks/) · [短视频脚本与分镜](../video-script-storyboard/) |
+| 想做 AI 短剧 / 漫剧 | [微短剧行业全景](../micro-drama-industry/) · [短剧编剧](../drama-scriptwriting/) · [AI 短剧分镜与画面生成](../ai-drama-storyboard/) · [AI 短剧后期](../ai-drama-post/) |
+| 想给创作者做工具 | [给创作者和短剧团队做工具](../creator-tools/) · [自媒体与短剧一人公司全景](../media-opc-overview/) · [AI 内容生产工具链](../ai-content-pipeline/) |
+| 考虑做海外市场 | [出海实务](../going-global/) · [云与边缘](../cloud-and-edge/) · [定价与商业模式](../pricing-monetization/) |
 
 ## 读法建议
 

@@ -226,6 +226,9 @@ for (;;) {
 
 ## 什么时候需要 WebSocket
 
+> [!WARNING]
+> 本节提到的 NestJS 12 网关新能力（`handleDisconnect` 拿到断开原因、请求级作用域、`@MessageBody({ schema })`）按 v12 发布说明整理，以 NestJS 官方文档的 Gateways 页面为准。
+
 真需要双向、低延迟的通信（聊天、协同编辑、实时游戏），就用 WebSocket。Nest 用网关（gateway）来写：
 
 ```bash

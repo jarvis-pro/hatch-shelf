@@ -2,6 +2,9 @@
 
 上一章讲了请求管线的顺序，这一章动手写。守卫、拦截器、管道是 Nest 最常用的三个扩展点，写法都不难，难的是写得「不会漏」：新加一个端点时忘了标装饰器，它会不会裸奔？一次写请求被重复提交，会不会记成两笔？这一章用 hatch-counter 的真实实现来讲每种扩展点的标准写法，以及让它们默认安全的设计。
 
+> [!WARNING]
+> 本章提到的 NestJS 12 变化（CLI 生成装饰器默认用 `Reflector.createDecorator`、新增 `StandardSchemaValidationPipe`、`ArgumentMetadata` 改为泛型）按 v12 发布说明整理，以 NestJS 官方文档和迁移指南为准。
+
 ## 守卫：默认拒绝
 
 ### 最小的守卫

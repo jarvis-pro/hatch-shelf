@@ -78,6 +78,9 @@ export type CreateExpenseInput = z.infer<typeof CreateExpense>;
 
 ### NestJS 12：Standard Schema 原生支持
 
+> [!WARNING]
+> 本节的 `schema` 选项、`StandardSchemaValidationPipe` 及其 `exceptionFactory` / `transform` 默认值、`StandardSchemaSerializerInterceptor` 按 NestJS 12 发布时的说明整理，hatch-counter 本身没有用这套 API；以 NestJS 官方文档的 Validation 页面为准。
+
 Standard Schema 是 zod、Valibot、ArkType 等库共同实现的一个接口规范，框架只要认这个接口，就能接受任何一家的 schema。NestJS 12 在路由参数装饰器上加了 `schema` 选项：
 
 ```ts
@@ -97,7 +100,7 @@ export class ExpensesController {
 }
 ```
 
-`StandardSchemaValidationPipe` 的选项里有 `exceptionFactory`，可以把校验失败换成自己的异常类型和文案格式；`transform` 默认开启，处理函数拿到的是 schema 的输出（经过默认值、转换之后的值）。同一份 schema 还能喂给 OpenAPI 生成和响应序列化（`StandardSchemaSerializerInterceptor`）。具体选项以官方文档为准。
+`StandardSchemaValidationPipe` 的选项里有 `exceptionFactory`，可以把校验失败换成自己的异常类型和文案格式；`transform` 默认开启，处理函数拿到的是 schema 的输出（经过默认值、转换之后的值）。同一份 schema 还能喂给 OpenAPI 生成和响应序列化（`StandardSchemaSerializerInterceptor`）。
 
 ### hatch-counter 的做法：自己的 ZodPipe
 

@@ -6,6 +6,9 @@
 
 ## OWASP Mobile Top 10
 
+> [!WARNING]
+> 本节按 2024 年发布的 OWASP Mobile Top 10:2024 整理，中文名称是本书自译；榜单可能已更新，以 OWASP Mobile Top 10 项目官网的最新版本为准。
+
 OWASP 有一份单独的移动端榜单，当前版本是 **OWASP Mobile Top 10:2024**（上一版是 2016 年的）：
 
 | 编号 | 风险 | 一人公司最该注意的点 |

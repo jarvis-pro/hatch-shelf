@@ -2,6 +2,9 @@
 
 上一章开出了一台只有 `deploy` 用户和 Python 的空机器。这一章用 Ansible 把它配成 hatch-counter 线上那台的样子：装 docker、nginx、certbot，放好 compose 文件和 nginx 配置，装上 systemd 常驻的上线代理，把服务端跑起来。重点是 Ansible 的几个核心概念怎么对应到部署文档里的那些步骤，以及哪些事情该交给 Ansible、哪些该继续留给 `deploy.sh`。
 
+> [!WARNING]
+> 本章的 playbook 按 ansible-core 2.17 写成。2.19 起引入 data tagging，模板和条件表达式有破坏性变更（`when` 等条件必须求值为布尔值、不再接受字符串式的真假，部分隐式模板和过滤器行为调整），书中写法未在 2.19 上逐条验证；以 Ansible 官方的 Porting Guide for ansible-core 2.19 和 ansible-core changelog 为准，升级后先用 `--check --diff` 跑一遍。
+
 ## Ansible 的工作方式
 
 Ansible 是**无代理**的：目标机器上不用装任何常驻程序，只要能 SSH 登录、有 Python。你在本机运行 `ansible-playbook`，它通过 SSH 把一小段 Python 代码（模块）推到目标机器上执行，收回结果，再删掉。

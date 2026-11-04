@@ -222,7 +222,7 @@ sendCode(@Body() dto: SendCodeDto) { /* ... */ }
 ### 也可以用 @nestjs/throttler
 
 > [!WARNING]
-> 本小节按 `@nestjs/throttler` v5 / v6 整理：v5 起配置格式改为多个命名限流器的数组；多实例需要换成 Redis 存储，社区有若干 storage 实现，各自支持的 throttler 版本不同。选用前以 NestJS 官方文档的 Rate Limiting 一节和对应 storage 包的说明为准。
+> 本小节按 `@nestjs/throttler` v5 / v6 整理（与 NestJS 12 配套的版本未逐一核对）：v5 起配置格式改为多个命名限流器的数组；多实例需要换成 Redis 存储，社区有若干 storage 实现，各自支持的 throttler 版本不同。选用前以 NestJS 官方文档的 Rate Limiting 一节和对应 storage 包的说明为准。
 
 NestJS 官方的 `@nestjs/throttler` 提供了现成的守卫和装饰器，按 IP 或自定义键限流。本章自己写守卫，是为了让限流维度（手机号、租户）和 Redis 脚本都看得见；如果你的需求只是「每个 IP 每分钟 N 次」，用它更省事，但那种需求更适合在 nginx 做。
 

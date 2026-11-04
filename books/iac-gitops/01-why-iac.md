@@ -26,9 +26,12 @@ GitOps 那一章需要一点 Kubernetes 的基础概念（Pod、Deployment、Ser
 
 ### 怎么读
 
+> [!WARNING]
+> 本书按 OpenTofu 1.10、ansible-core 2.17、SOPS 3.9 写成，截至 2026-11。ansible-core 2.19 起模板引擎有破坏性变更（data tagging：条件表达式必须得到布尔值、隐式模板和部分过滤器行为调整），在 2.19 及以上运行书中的 playbook 前，以 Ansible 官方的 Porting Guide 和 ansible-core changelog 为准；provider 和 collection 的版本以各自的 registry 和官方文档为准。
+
 建议按顺序读，因为全书是一个连续的练习：第 2 章开出机器，第 3 章把它配好，第 4 章补上密钥，第 6 章把它们串成一次完整的重建演练。第 5 章是一条支线，讲的是如果将来上了 Kubernetes，应用交付这一层怎么换成 GitOps。
 
-本书的命令和配置以 OpenTofu 1.10 及以上、ansible-core 2.17 及以上、SOPS 3.9 及以上为准。provider 和 collection 的版本变化快，书里写的版本约束是示例，动手前以各自的 registry 和官方文档为准。
+本书的命令和配置以 OpenTofu 1.10 及以上、ansible-core 2.17 及以上、SOPS 3.9 及以上为准。provider 和 collection 的版本变化快，书里写的版本约束是示例。
 
 ## 雪花服务器
 

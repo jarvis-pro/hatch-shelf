@@ -2,7 +2,8 @@
 
 第 2 章讲过，父组件一渲染，子组件默认跟着渲染，想跳过就得 `memo` 加稳定的 props，于是代码里堆满了 `useMemo` 和 `useCallback`。掌柜眼的网页端里 `useMemo` 两百多处、`useCallback` 八十多处，每一处都要人判断依赖写没写全、值不值得包。**React Compiler** 是一个构建期插件，自动替你完成这些记忆化，而且粒度比手写更细。本章讲它做了什么、依赖什么前提、怎么接进 Vite、它的 lint 规则抓的是什么，最后给出掌柜眼接入 Compiler 的迁移清单。
 
-> React Compiler 于 2025 年 10 月发布 1.0 稳定版。本章的安装方式以 react.dev 当前文档为准（`@vitejs/plugin-react` 6.x 起配置方式有变化），升级时请再核对一次；编译产物的具体形态属于实现细节。
+> [!WARNING]
+> 本章按 React Compiler 1.0（2025 年 10 月发布稳定版）和 `@vitejs/plugin-react` 6.x 整理，截至 2026-11；接入方式在 `@vitejs/plugin-react` 6.x 起有变化，后续版本可能再调整，编译产物的具体形态属于实现细节。以 react.dev 的 React Compiler 文档和 `@vitejs/plugin-react` 的 changelog 为准。
 
 ## 它做了什么
 
@@ -83,7 +84,10 @@ Compiler 遇到它能识别的违规时，会**跳过这个组件**，不做优�
 
 ## ESLint 规则
 
-`eslint-plugin-react-hooks` 从 v6 起带了一批由 Compiler 驱动的规则，它们用同一套分析器在编辑时就报出违规。较新的版本已经把它们放进推荐配置（具体预设名以插件 README 为准）。掌柜眼用的是 v7 的 `configs.flat.recommended`：
+> [!WARNING]
+> 规则名、起始版本（v6）和预设名（`configs.flat.recommended` 等）按 `eslint-plugin-react-hooks` v7 整理，各版本的预设名和默认开启的规则有过调整；以插件的 README 和 changelog 为准。
+
+`eslint-plugin-react-hooks` 从 v6 起带了一批由 Compiler 驱动的规则，它们用同一套分析器在编辑时就报出违规。较新的版本已经把它们放进推荐配置。掌柜眼用的是 v7 的 `configs.flat.recommended`：
 
 ```js
 // eslint.config.mjs（节选）

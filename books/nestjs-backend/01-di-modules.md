@@ -4,6 +4,9 @@ NestJS 的第一印象往往是「装饰器好多」。但装饰器只是表皮�
 
 ## 这本书讲什么、怎么读
 
+> [!WARNING]
+> 全书按 NestJS 12 写（hatch-counter 用 `@nestjs/core` ^12.0.1，截至 2026-11）。v12 是较新的大版本，书中标注「NestJS 12 新增 / 调整」的 API 和默认值按发布说明整理，后续小版本可能有变化；以 NestJS 官方文档和官方迁移指南（Migration guide）为准。
+
 这本书面向已经用 NestJS 写过接口、但还说不清「它为什么这么设计」的 TypeScript 全栈开发者。不讲 `nest new` 和 CRUD 入门，讲的是一个服务端从「跑起来」到「放心交给真实用户」之间那些决定：
 
 | 章 | 解决的问题 |
@@ -18,7 +21,7 @@ NestJS 的第一印象往往是「装饰器好多」。但装饰器只是表皮�
 | 8 长连接 | SSE 和 WebSocket 怎么选，推送怎么做到不丢 |
 | 9 测试 | 真库、真进程的 e2e，用测试守住约定 |
 
-全书的 API 按 **NestJS 12** 写（2026 年发布的大版本，包改成了 ESM 发布，路由参数原生支持 Standard Schema 校验）。版本差异大的地方会单独标出来，细节以官方文档为准。
+全书的 API 按 **NestJS 12** 写（2026 年发布的大版本，包改成了 ESM 发布，路由参数原生支持 Standard Schema 校验）。版本差异大的地方会单独标出来。
 
 贯穿全书的案例是 hatch-counter 的 `apps/api`：一个给中小餐饮门店用的多租户管理服务端，NestJS 12 + PostgreSQL + Drizzle，十来家店、一个人维护。它的代码注释和文档里记了大量「这里为什么这么写」，正好拿来当教材。读法建议：第 1–3 章按顺序读，它们是骨架；后面几章可以按手上的问题跳着读。
 
@@ -242,6 +245,9 @@ export class LiveHub implements OnModuleInit, OnModuleDestroy {
 **NestJS 12 的变化**：生命周期钩子改为按组件在模块树中的层级依次调用。如果你的代码依赖「A 模块的 `onModuleInit` 一定在 B 之前」，升级时要复查。更稳妥的原则是不依赖跨模块的钩子顺序：真有先后关系，就用依赖注入把它表达出来（B 注入 A，A 自然先初始化）。
 
 ## NestJS 12 与 ESM
+
+> [!WARNING]
+> 本节的 Node.js 版本下限、`nest new` 的选项和各模板的默认测试框架按 NestJS 12 发布时的说明整理，CLI 的默认项可能随小版本调整；以 NestJS 官方迁移指南和 `@nestjs/cli` 的发布说明为准。
 
 NestJS 12 的所有官方包都改成以 ESM 发布，要求 Node.js 20.19+ 或 22.12+。原因是这两个版本的 `require(esm)` 已经稳定，CommonJS 项目可以直接 `require` 这些 ESM 包。
 

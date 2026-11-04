@@ -20,3 +20,5 @@ chapters:
 next:
   - id: production-ops
     reason: 工具机也是线上的一部分：加固、备份演练和值班照那本书来
+  - id: go-practice
+    reason: 想自己写 CLI 和运维小工具，第二语言可以从 Go 开始

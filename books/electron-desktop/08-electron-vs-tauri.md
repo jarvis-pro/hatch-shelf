@@ -25,6 +25,9 @@ flowchart TB
 
 ## 逐项对比
 
+> [!WARNING]
+> 表中对 Tauri 的描述（移动端支持、capability 权限模型、官方插件）按 2026 年前后的 Tauri 2.x 整理，Tauri 移动端仍在快速演进；以 Tauri 官方文档和发布说明为准。
+
 | 维度 | Electron | Tauri（2.x） |
 |---|---|---|
 | 渲染引擎 | 自带 Chromium，各平台一致 | 系统 WebView，各平台不同 |

@@ -6,7 +6,10 @@
 
 ## Node 做了什么
 
-Node 的类型擦除（type stripping）大致经历了这几步（以 Node 官方发布说明为准）：
+> [!WARNING]
+> 下表的版本节点按截至 2026-11 的 Node.js 发布说明整理；type stripping 的稳定性级别（实验 / 稳定）、警告输出和相关参数在 23.x、24.x 及之后的版本里仍有调整，以 Node.js 官方文档的 Modules: TypeScript 页面和 Node.js changelog 为准。
+
+Node 的类型擦除（type stripping）大致经历了这几步：
 
 | 版本 | 状态 |
 |---|---|

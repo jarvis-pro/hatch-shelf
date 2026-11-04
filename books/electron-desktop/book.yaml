@@ -5,7 +5,7 @@ category: 技术/桌面
 tags: [electron, desktop, ipc, security, macos]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-process-model.md
   - 02-ipc.md

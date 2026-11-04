@@ -5,7 +5,7 @@ category: 一人公司/经营
 tags: [opc, indie-hacker, startup, validation]
 level: beginner
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-what-is-opc.md
   - 02-choosing-direction.md
@@ -19,3 +19,5 @@ next:
     reason: 第一批还剩运维的两块地基
   - id: product-thinking
     reason: 方向定了，接着想清楚做什么产品
+  - id: wolf-way
+    reason: 换个角度看流行的「狼性」说法，哪些能用在一个人身上

@@ -98,13 +98,20 @@ flowchart TD
 
 实测：会话 A 在可重复读事务里读一行，会话 B 把它改成 42 并提交，A 再读：
 
-```text
-A: begin isolation level repeatable read;
-A: select n → 0
-B: update v set n = 42 where id = 1;   -- 自动提交，B 看到 42
-A: select n → 0                         -- 仍是快照里的旧版本
-A: commit;
-A: select n → 42                        -- 新事务，新快照
+```mermaid
+sequenceDiagram
+  participant A as 会话 A
+  participant B as 会话 B
+  A->>A: begin isolation level repeatable read
+  A->>A: select n → 0
+  Note over A: 事务第一条语句，在这里拿快照
+  B->>B: update v set n = 42 where id = 1
+  Note over B: 自动提交，B 看到 42
+  A->>A: select n → 0
+  Note over A: 仍是快照里的旧版本
+  A->>A: commit
+  A->>A: select n → 42
+  Note over A: 新事务，新快照
 ```
 
 A 看到的「0」那个版本物理上还躺在页里，这就是 A 能读到它的原因。

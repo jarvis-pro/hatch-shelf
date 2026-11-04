@@ -150,7 +150,7 @@ hatch-counter 服务端有四百多条测试。如果每条有千分之一的概
 ## 主动把不稳定揪出来
 
 > [!WARNING]
-> 本节 Vitest 的 `--sequence.shuffle` 和 `--repeat` 参数名按 Vitest 3 前后的版本整理（`--repeat` 在较早的版本里可能只能在测试代码里通过 `{ repeats }` 选项设置），以 Vitest 官方 CLI 文档为准。
+> 本节 Vitest 的 `--sequence.shuffle` 和 `--repeat` 参数名按 Vitest 3 前后的版本整理（`--repeat` 在较早的版本里可能只能在测试代码里通过 `{ repeats }` 选项设置）；hatch-shelf 当前用的是 Vitest 5，参数名可能又有变化，以 Vitest 官方 CLI 文档为准。
 
 等不稳定测试自己暴露，往往要等很久。可以主动去找：
 

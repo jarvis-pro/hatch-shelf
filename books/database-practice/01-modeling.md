@@ -4,6 +4,9 @@
 
 ## 关于这本书
 
+> [!WARNING]
+> 书中的执行计划、输出和版本差异（如 `uuidv7()`、B 树跳跃扫描）按 PostgreSQL 16 实测、对照 PostgreSQL 18 发布说明整理，截至 2026-11；更新的大版本在优化器和默认值上可能有变化，以 PostgreSQL 官方文档对应版本的 Release Notes 为准。
+
 这本书只讲**开发视角**的数据库：你写的表结构、SQL 和 ORM 代码，在数据库里到底怎么执行，什么写法快、什么写法会在并发下出错。运维那一侧（参数调优、备份恢复、复制、连接池、VACUUM 调参、大版本升级）在[《PostgreSQL 运维》](../database-ops/)里，向量检索在[《RAG 与知识系统》](../rag-systems/)里，这里都不重复。
 
 适合谁：每天在写 NestJS + Drizzle + PostgreSQL 或 Expo + SQLite，能写出能跑的 SQL，但说不清「这个索引为什么没用上」「这两个请求同时来会怎样」的开发者。

@@ -4,6 +4,9 @@
 
 ## Nest 的异常层
 
+> [!WARNING]
+> `HttpExceptionOptions` 的 `errorCode` 选项和它的序列化格式按 NestJS 12 发布说明整理，以 NestJS 官方文档的 Exception filters 页面为准。
+
 Nest 内置一个异常过滤器，处理所有没被接住的异常：
 
 | 抛出的东西 | 默认回包 |

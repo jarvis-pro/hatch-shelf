@@ -4,11 +4,14 @@ Electron 应用写起来像网页，跑起来却是好几个进程。很多「�
 
 ## 这本书讲什么、适合谁、怎么读
 
+> [!WARNING]
+> 本书按 Electron 44（`44.5.1`）、electron-vite 5、electron-builder 26 写成，截至 2026-11。Electron 约每 8 周发一个大版本、官方只维护最新的三个大版本，44 可能已移出支持窗口，API 和安全默认值也会变；以 Electron 官方文档的 Releases 时间表和对应版本的 Breaking Changes 页面为准。
+
 这本书写给已经会写 React + TypeScript、想把桌面应用做「对」的独立开发者：不是从 `npm init` 教起，而是讲清 Electron 每个设计背后的原因，以及一个人维护时该在哪里省事、在哪里不能省。
 
 贯穿全书的案例是 hatch-recordwall 的桌面端 `apps/desktop`：一个只在 macOS 上用的唱片播放器，electron-vite 工程、三个进程分工明确、请求统一在主进程发、用 ad-hoc 签名出一个本机 `.app`。它的代码量不大（主进程约 500 行、preload 约 170 行），但几乎每一行都对应一个踩过的坑，很适合拿来讲道理。
 
-**版本说明**：案例用的是 Electron 44（`44.5.1`）、electron-vite 5、electron-builder 26。Electron 大约每 8 周一个大版本，API 和安全默认值会变。本书讲到具体 API 时以 Electron 44 为准；动手前请对照官方文档里你所用版本的 Breaking Changes 页面。
+**版本说明**：案例用的是 Electron 44（`44.5.1`）、electron-vite 5、electron-builder 26，本书讲到具体 API 时以 Electron 44 为准。
 
 建议顺序读。第 1–3 章是心智模型，第 4–5 章是工程和系统集成，第 6–7 章是发布，第 8 章帮你判断下一个项目要不要还用 Electron。
 

@@ -6,6 +6,9 @@
 
 ## 这本书讲什么、适合谁、怎么读
 
+> [!WARNING]
+> 本书的公开 API 按 React 19.2 整理，内部实现（Fiber 字段、lanes、hooks 链表）以 React 19 前后的源码为参照，截至 2026-11；React 19.3 与 19.2 在本书涉及内容上的差异未逐项核对。以 react.dev 官方文档和 React 仓库的 CHANGELOG / 发布说明为准。
+
 **适合谁**：已经在用 React 写业务（函数组件、hooks、React Router、Vite 都熟），想知道「为什么」的人。不讲 JSX 语法入门，也不讲 class 组件。
 
 **讲什么**：
@@ -19,9 +22,9 @@
 
 **怎么读**：前三章是后面所有章节的基础，建议按顺序读。第 6 章以后可以按需跳读。
 
-**关于「实现细节」**：本书会讲到 Fiber 节点的字段、lanes 的位运算、hooks 的链表这些 React 源码里的东西。它们**不是公开 API**，每个大版本都可能调整，书里的字段名和数值以 React 19 前后的源码为参照，只用来帮你建立心智模型，不要在业务代码里依赖它们。公开 API 部分以 react.dev 官方文档为准。
+**关于「实现细节」**：本书会讲到 Fiber 节点的字段、lanes 的位运算、hooks 的链表这些 React 源码里的东西。它们**不是公开 API**，每个大版本都可能调整，只用来帮你建立心智模型，不要在业务代码里依赖它们。
 
-案例来自仓库所有者的「掌柜眼」网页端（hatch-counter 的 `apps/web`）：Vite 8 + React 19.2 + React Router 7 + Tailwind 4 的薄客户端，后面会反复引用它的 `useAsync`、推送订阅、懒加载页面等代码。
+案例来自仓库所有者的「掌柜眼」网页端（hatch-counter 的 `apps/web`）：Vite 8 + React 19.2 + React Router 7 + Tailwind 4 的薄客户端，后面会反复引用它的 `useAsync`、推送订阅、懒加载页面等代码。仓库所有者的 hatch-shelf（Expo SDK 58）已经在 React 19.3，[《React Native 与 Expo》](../rn-expo/)按 19.3 写；本书示例按 19.2 写。19.3 是同一大版本内的小版本，书里用到的 API（hooks、Actions 与表单、Suspense 与 `use`、`useEffectEvent`、Compiler）在 19.3 上照常可用，就本书涉及的内容两者没有需要区别对待的地方。
 
 ## JSX 编译成什么
 

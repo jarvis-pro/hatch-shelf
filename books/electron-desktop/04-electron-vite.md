@@ -27,7 +27,8 @@ flowchart LR
   E --> W[窗口 loadURL 开发地址]
 ```
 
-本章以 electron-vite 5 为准（唱片墙用的是 `electron-vite@5.0.0` 配 `vite@7`）。electron-vite 的大版本之间配置项有变化，升级前看它的迁移说明。
+> [!WARNING]
+> 本章按 electron-vite 5 整理（唱片墙用的是 `electron-vite@5.0.0` 配 `vite@7`），electron-vite 的大版本之间配置项和默认行为有变化；升级前以 electron-vite 官方文档的迁移说明为准。
 
 ## 目录约定
 
@@ -221,6 +222,9 @@ if (CDP_PORT) app.commandLine.appendSwitch("remote-debugging-port", CDP_PORT);
 这个开关必须在 `app.ready` 之前设置，而且只该在开发时用：调试端口开着时，本机任何程序都能控制你的页面。
 
 ### 安装 Electron 二进制
+
+> [!WARNING]
+> pnpm 是否默认执行安装脚本、放行名单的配置名和位置按截至 2026 年的 pnpm 10 整理（唱片墙仓库仍在 pnpm 9.15，默认会执行安装脚本），以 pnpm 官方文档和发布说明为准。
 
 `electron` 这个 npm 包在 postinstall 阶段下载对应平台的二进制。pnpm 10 起默认不执行依赖的安装脚本，需要显式允许，否则会得到「Electron failed to install correctly」：
 

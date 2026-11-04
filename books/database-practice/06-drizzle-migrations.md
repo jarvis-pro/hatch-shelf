@@ -2,7 +2,10 @@
 
 前五章讲的是数据库本身，这一章回到每天写的代码：用 Drizzle 定义表结构、写查询，用 drizzle-kit 生成迁移。ORM 的用法文档里都有，这里关心的是那些文档不太强调、却会在生产上出事的地方：迁移是怎么被记账和执行的，哪些操作会锁表，哪些东西 Drizzle 根本不知道。
 
-版本以 hatch-counter 当前用的为准：`drizzle-orm` 0.45、`drizzle-kit` 0.31、驱动 `postgres`（postgres.js）3.4。Drizzle 迭代很快，API 细节以对应版本的官方文档为准。
+版本以 hatch-counter 当前用的为准：`drizzle-orm` 0.45、`drizzle-kit` 0.31、驱动 `postgres`（postgres.js）3.4。
+
+> [!WARNING]
+> 本章的 API、drizzle-kit 命令和迁移目录结构按 drizzle-orm 0.45 / drizzle-kit 0.31 整理（截至 2026-11）。Drizzle 迭代很快，正在推进的 v1 对迁移目录和记账方式有较大调整；以 Drizzle 官方文档（orm.drizzle.team）和 drizzle-orm 的 releases 说明为准。
 
 ## schema 即代码
 
@@ -115,6 +118,9 @@ export default defineConfig({
 
 ## 迁移是怎么记账的
 
+> [!WARNING]
+> 本节描述的 `meta/_journal.json` 账本、`__drizzle_migrations` 表结构和「按 `when` 时间戳判断跑没跑过」的逻辑出自 drizzle-orm 0.45 的 PostgreSQL 迁移器。Drizzle v1 可能改用新的迁移目录结构和记账方式，届时本节和下文「基线重置」「不要手工编辑 `_journal.json`」可能整节不再适用；升级前以 Drizzle 官方文档的迁移章节和 v1 升级说明为准。
+
 `drizzle/` 目录下有两样东西：
 
 - `NNNN_名字.sql`：要执行的 SQL，语句之间用 `--> statement-breakpoint` 分隔
@@ -167,7 +173,7 @@ schema.ts 不是库的全部。hatch-counter 的文档专门列了一份「只�
 ```sql
 CREATE TABLE "expense_images" ( ... );
 --> statement-breakpoint
--- ─── 手写：RLS，多租户隔离只靠它 ───
+-- === 手写：RLS，多租户隔离只靠它 ===
 ALTER TABLE "expense_images" ENABLE ROW LEVEL SECURITY;
 --> statement-breakpoint
 CREATE POLICY "expense_images_tenant" ON "expense_images"

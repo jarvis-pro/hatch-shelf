@@ -5,7 +5,7 @@ category: 短剧/制作
 tags: [ai-drama, storyboard, motion-comic, image-generation, video-generation, prompt, character-consistency]
 level: intermediate
 created: 2026-11-03
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-pipeline.md
   - 02-shot-language.md

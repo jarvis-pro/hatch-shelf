@@ -4,6 +4,9 @@
 
 全书分两半：前三章是类型系统，后六章是运行时。两半基本独立，可以按需跳读；但第 1 章是前三章的地基，第 4 章（事件循环）是后面几章的地基，建议先读。所有示例都在 TypeScript 6.0 和 Node 22 上实际跑过，类型示例用 `tsc --strict` 验证过。
 
+> [!WARNING]
+> 全书的实测数字和默认值按 TypeScript 6.0 与 Node 22（22.23）整理，截至 2026-11。Node 24 已是 LTS，TypeScript 7（基于 Go 的 tsgo）也在推进，编译器上限、V8 默认选项、type stripping 的状态都可能随版本变化；以 TypeScript 发布说明（Release Notes）、Node.js 官方 changelog 和发布说明为准。
+
 本章只做一件事：建立一个心智模型——**类型就是值的集合**。有了它，`never`、`unknown`、联合、交叉、`keyof`、函数参数的变型这些看似零散的规则，都能从同一个原理推出来。
 
 ## 类型 = 值的集合

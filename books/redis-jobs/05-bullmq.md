@@ -3,7 +3,7 @@
 [队列与异步任务](../system-design/04-queues-jobs.md#实现方式的光谱)把实现方式排成一条光谱，BullMQ 在 Postgres 表队列的右边：多一个 Redis，换来更高的吞吐和更丰富的调度功能（优先级、限速、进度、父子任务、可视化面板）。这一章讲决定用它之后的落地写法：核心概念、连接配置、在 NestJS 里怎么组织、任务保留多少、卡住的任务怎么回收，以及一个独立的 worker 进程。重试、死信和幂等放到第 8 章，定时任务放到第 7 章。
 
 > [!WARNING]
-> 本章按 BullMQ 5.x 和 `@nestjs/bullmq` 10.x / 11.x 的 API 整理。BullMQ 迭代很快，选项名和默认值在小版本之间也会变化（例如重复任务在 5.16 起改为 Job Scheduler 写法）。写代码前以 docs.bullmq.io 和 NestJS 官方文档的 Queues 一节为准。
+> 本章按 BullMQ 5.x 和 `@nestjs/bullmq` 10.x / 11.x 的 API 整理；本书其余部分以 NestJS 12 为准，与 NestJS 12 配套的 `@nestjs/bullmq` 版本的 API 未逐一核对。BullMQ 迭代很快，选项名和默认值在小版本之间也会变化（例如重复任务在 5.16 起改为 Job Scheduler 写法）。写代码前以 docs.bullmq.io 和 NestJS 官方文档的 Queues 一节为准。
 
 ## 核心概念
 
@@ -307,6 +307,9 @@ services:
 ```
 
 ## 优雅退出
+
+> [!WARNING]
+> NestJS 12 调整了生命周期钩子的调用顺序（见[《NestJS 后端架构》第 1 章](../nestjs-backend/01-di-modules.md#生命周期钩子)），`@nestjs/bullmq` 关闭 Worker 与其他模块关闭 Redis 连接的先后可能和旧版本不同；以 NestJS 官方迁移指南和 `@nestjs/bullmq` 的发布说明为准，上线前实测一次 SIGTERM。
 
 `enableShutdownHooks()` 之后，收到 SIGTERM 时 `@nestjs/bullmq` 会调用 Worker 的 `close()`：停止取新任务，等正在处理的任务做完。`stop_grace_period` 要大于你最长任务的时间，否则 Docker 到时发 SIGKILL，正在跑的任务会被当作卡住、过一会儿重新执行。
 

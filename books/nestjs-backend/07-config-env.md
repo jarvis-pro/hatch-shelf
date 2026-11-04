@@ -183,6 +183,9 @@ hatch-counter 把配置分成三层：
 
 ## 用 @nestjs/config 的写法
 
+> [!WARNING]
+> 本节关于 NestJS 12 版 `@nestjs/config` 改用 Standard Schema 校验、Joi 版本要求和 `validationOptions.libraryOptions` 的说法按 v12 发布说明整理，以 NestJS 官方迁移指南和 `@nestjs/config` 的 changelog 为准。
+
 如果你更喜欢依赖注入风格，`@nestjs/config` 是官方方案。它的 `ConfigModule.forRoot()` 支持一个 `validate` 函数，可以直接接上同一个 zod schema：
 
 ```ts
@@ -213,7 +216,7 @@ export class SomeService {
 }
 ```
 
-NestJS 12 的 `@nestjs/config` 改为通过 Standard Schema 校验，`validationSchema` 可以直接传 zod 等库的 schema；继续用 Joi 的需要 Joi 18 以上，并把 Joi 专有的选项移到 `validationOptions.libraryOptions` 下。具体以官方迁移指南为准。
+NestJS 12 的 `@nestjs/config` 改为通过 Standard Schema 校验，`validationSchema` 可以直接传 zod 等库的 schema；继续用 Joi 的需要 Joi 18 以上，并把 Joi 专有的选项移到 `validationOptions.libraryOptions` 下。
 
 两种方式对比：
 

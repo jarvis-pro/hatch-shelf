@@ -5,7 +5,7 @@ category: 人工智能/Agent
 tags: [agent, context, memory, skills, prompt]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-scarce-window.md
   - 02-system-prompt.md

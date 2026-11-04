@@ -165,6 +165,9 @@ sequenceDiagram
 
 ### 配置
 
+> [!WARNING]
+> 本节的 `notarize` 配置写法和公证、签名用的环境变量名按 electron-builder 26 整理，这些键名在不同版本间有过调整（早期版本的 `notarize` 是对象而非布尔值）；以你所用版本的 electron-builder 官方文档和 changelog 为准。
+
 ```yaml
 # electron-builder.yml（发布版）
 mac:
@@ -185,7 +188,7 @@ mac:
 | App Store Connect API Key（推荐，适合 CI） | `APPLE_API_KEY`（.p8 文件路径）、`APPLE_API_KEY_ID`、`APPLE_API_ISSUER` |
 | Apple ID + App 专用密码 | `APPLE_ID`、`APPLE_APP_SPECIFIC_PASSWORD`、`APPLE_TEAM_ID` |
 
-在 CI 上签名时，证书本身用 `CSC_LINK`（p12 文件的路径或 base64）和 `CSC_KEY_PASSWORD` 提供。变量名在不同版本间有过调整，以你所用 electron-builder 版本的文档为准。
+在 CI 上签名时，证书本身用 `CSC_LINK`（p12 文件的路径或 base64）和 `CSC_KEY_PASSWORD` 提供。
 
 ### entitlements
 

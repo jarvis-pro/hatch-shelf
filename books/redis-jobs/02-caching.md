@@ -327,7 +327,7 @@ Pub/Sub 不保证送达：订阅连接恰好断开的那几秒发出的消息就
 ## 关于 @nestjs/cache-manager
 
 > [!WARNING]
-> `@nestjs/cache-manager` 的底层依赖在 2024 年有过大改：v3 起基于 cache-manager v6 和 Keyv，Redis 存储改为 `@keyv/redis`，TTL 单位是毫秒，旧版的 `cache-manager-redis-store` 写法不再适用。本节按 v3 整理，以 NestJS 官方文档的 Caching 一节为准。
+> `@nestjs/cache-manager` 的底层依赖在 2024 年有过大改：v3 起基于 cache-manager v6 和 Keyv，Redis 存储改为 `@keyv/redis`，TTL 单位是毫秒，旧版的 `cache-manager-redis-store` 写法不再适用。本节按 v3 整理，与 NestJS 12 配套的版本未逐一核对，以 NestJS 官方文档的 Caching 一节为准。
 
 NestJS 官方有一个缓存模块，提供 `CacheInterceptor` 和 `@CacheKey` / `@CacheTTL` 装饰器，挂在 GET 接口上自动缓存响应。
 

@@ -2,7 +2,8 @@
 
 前三章的渲染都是「开始了就一口气做完」。这在大多数时候够用，但碰上大列表过滤、复杂图表切换时，一次渲染占住主线程几十毫秒，用户敲的字要等它算完才出现在输入框里。React 18 引入、19 继续完善的**并发渲染**解决的就是这个问题：渲染可以被打断、可以分优先级、可以在后台准备好再一次性换上。本章讲它的三块核心机制：用位掩码表示优先级的 **lanes**、负责切片和让出主线程的 **Scheduler**、以及在应用层使用它们的 `useTransition` / `useDeferredValue`，最后讲并发带来的副作用「撕裂」和 `useSyncExternalStore`。
 
-> lanes 的具体位布局、Scheduler 的切片时长、各种事件对应哪个 lane，都属于实现细节，本章数字以 React 19 前后源码为参照，会随版本调整。公开 API（transition、deferred value、`useSyncExternalStore`）的行为是稳定的。
+> [!WARNING]
+> lanes 的具体位布局、Scheduler 的切片时长、各种事件对应哪个 lane，都属于实现细节，本章数字以 React 19 前后源码为参照，会随版本调整，以 React 仓库对应版本的源码为准。公开 API（transition、deferred value、`useSyncExternalStore`）的行为是稳定的，以 react.dev 为准。
 
 ## 并发不是多线程
 

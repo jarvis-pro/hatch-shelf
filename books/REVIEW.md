@@ -437,3 +437,60 @@
 - [ ] 第 9 章：门禁插件里 `exec.arguments` 的实际形状（对象还是字符串）未核，示例用 `JSON.stringify` 兜底；`check_book_id` 工具和配置示例没有在真实 DSH 里跑过
 - [ ] 第 10 章：Python SDK 示例按官方指南的参数重写（`with DeepSeekHarness(...) as harness`、`harness.run(...)`、`result.final_response`），没有实际运行；TypeScript SDK 只在架构文档里提到
 - [ ] 第 1 章：DeepSeek 招聘 Harness 团队的时间和地点来自媒体报道
+
+## 十、全库体检第一轮：纠错与补 WARNING（2026-11-04）
+
+见 `AUDIT-2026-11.md`。这一轮把法规、财税、平台规则、版本敏感内容统一改成 `> [!WARNING]`，正文事实基本没动；下面是改的时候发现依据特别弱、或怀疑有错但按规则没改的地方。
+
+### 法规与财税
+
+- [ ] `contracts-legal` 第 5 章：《反不正当竞争法》2025 年修订后，商业秘密定义和条号没有按新版核对
+- [ ] `contracts-legal` 第 8 章：《仲裁法》条号（第十、十一、二十七、二十九、五十二、七十二条）和「2025 年修订、2026-03-01 施行」需按新法原文核对
+- [ ] `contracts-legal` 第 4 章：配图 milestone-payment.svg 是 30/20/40/10 四段，`opc-transition` 第 2 章改成了 30/60/10 三段；两边尾款都是 10%，看是否统一结构
+- [ ] `opc-transition` 第 8 章：财政部、税务总局 2026 年第 10 号公告（按次起征点 1000 元、执行到 2027 年底）
+- [ ] `opc-transition` 第 5 章：北京 2026-08-08 购房社保年限调整、新华社 2026-09 医保户籍限制报道、2026 年度居民医保个人缴费「不低于 400 元」，均来自媒体报道
+- [ ] `opc-transition` 第 6 章：住建部 2026-06《住房公积金管理条例（修订征求意见稿）》和「36 个城市试点」
+- [ ] `opc-finance` 第 5 章：「股东借款年终未还视同分红」没有文号
+- [ ] `opc-compliance-cn` 第 1、6 章：2025 年下半年以来的新规（网安法修正、个人信息保护合规审计管理办法、个人信息出境认证办法、存量公司出资期限过渡）正文没写，WARNING 里只做了提示
+- [ ] `opc-compliance-cn` 第 7、8 章：「2023 年苹果中国区大规模下架接入境外模型的 AI 应用」的时间和表述
+- [ ] `opc-action-plan` 第 2、6 章：劳动合同法条文引用的是转载本，换成国家法律法规数据库
+- [ ] `going-global` 第 2 章：Form 5472 漏报罚款只写了「很重」；第 3 章 Lemon Squeezy 现状、Stripe 是否支持中国大陆商户；第 5 章欧盟—美国数据隐私框架现状
+- [ ] `going-global` 第 4 章、`pricing-monetization` 第 6 章：美区外链支付（2025 年判决后）、欧盟 CTC 与新费用结构、日本《移动软件竞争法》都没具体写；30% / 15% 费率写的是「被广泛报道」
+- [ ] `media-compliance` 第 8 章：2025 年第 16 号公告（平台累计预扣）作者没看到原文；增值税按次起征点 1000 元是转引
+- [ ] `media-compliance` 第 6 章：「十六周岁以下一般不允许开播」的依据
+
+### 微短剧政策
+
+- [ ] `drama-distribution` 第 3 章：80 万 / 30 万分档标准和 2025 年通知文号都是媒体转述，是全书最弱的依据；《微短剧发展管理办法》（总局令第 16 号，2026-09-01 施行）本身也需对照原文
+- [ ] `drama-distribution` 第 4 章：「前 5 秒、不少于 3 秒」的标识做法、清理潮「过审率不足三成」均为媒体转述
+- [ ] `micro-drama-industry` 第 8 章：罚则写「报道称罚款上限为十万元」，与 `drama-distribution` 第 3 章（擅自播出依《广播电视管理条例》第五十条，十万元以下只针对偏离备案等情形）可能不一致；本轮还把「单集不超过 20 分钟」改成了与 drama-distribution 一致的「不足 20 分钟」，需对照办法第二条确认
+- [ ] `micro-drama-industry` 第 5 章：抖音系数「60→40」的单位是推测的百分比；火山引擎 2026-10 激励等活动可能已结束（`media-action-plan` 第 8 章同）
+- [ ] `drama-scriptwriting` 第 8 章：红果剧本评级档位表是 2025-08 的规则
+- [ ] `ai-drama-storyboard` 第 7 章：Seedance「约 1 元 / 秒」只依据一篇 2026-03 报道，不清楚是 API 预告价还是平台内计费
+
+### 平台规则与工具
+
+- [ ] `douyin-kuaishou` 第 6 章、`live-streaming` 第 3 章、`ecommerce-selling` 第 2 章：「200 粉直播带货」等分级门槛只有媒体转述；带货保证金 50 / 500 元说法不一
+- [ ] `ecommerce-selling` 第 2 章：「达人佣金扣 10% 技术服务费」无 2026 年依据；「佣金下限 5%」两家报道生效时间不一致；第 6 章团购「1000 粉」门槛无日期、生活服务佣金 2%–8% 是 2022 年数据
+- [ ] `live-streaming` 第 6 章：示例只算了毛佣金，找到官方结算扣点后补一行到手数字
+- [ ] `paid-traffic` 第 4 章「2025-12-29 标准推广下线」只有一篇第三方文章；第 5、6 章聚光开户预存、腾讯广告首充、微信豆兑换比例（0.1 元与 7 豆 1 元）互相矛盾
+- [ ] `xhs-channels-bilibili` 第 5、7 章：视频号变现门槛（2023）、花火门槛（2020）、B 站创作激励（2024-04）；`brand-deals` 第 2 章蒲公英（2022）、互选（2023）门槛
+- [ ] `knowledge-products` 第 6 章：小报童 15%、小鹅通年费来自 2025 年第三方整理，小鹅通 2026 年有改按交易抽成的报道；抖音、视频号课程类目费率没查到官方原文
+- [ ] `douyin-kuaishou` 第 1 章与 `media-opc-overview` 第 3 章的快手用户数（2025Q3 vs 2026Q2：日活 4.12 亿、月活 7.97 亿）待核实后统一
+- [ ] `ai-content-pipeline` 第 4 章：「Sora 2 网页端 / App 4 月下线、API 9 月下线」只有第三方汇总
+
+### 软件版本
+
+- [ ] `ts-node-advanced` 第 5 章：「Node 22.23 默认 `--no-maglev`」依据很弱，需对照 Node 22 changelog；全书基线建议换到 Node 24 LTS 重跑实验
+- [ ] `nestjs-backend` 多章：v12 新 API 名称未逐个对照发布说明（`StandardSchemaValidationPipe`、`StandardSchemaSerializerInterceptor`、`@Body({ schema })`、`errorCode`、`@nestjs/config` 的 `libraryOptions`、Node 20.19+/22.12+、钩子顺序调整等）
+- [ ] `redis-jobs` 第 2、3、5 章：`@nestjs/bullmq`、`@nestjs/cache-manager`、`@nestjs/throttler` 与 NestJS 12 配套的版本；第 1、5 章 Redis 连接 `quit` 与 Worker 关闭在 v12 钩子顺序下的先后需实测
+- [ ] `electron-desktop` 第 1 章：Electron 44 是否仍在支持窗口；第 6 章 `notarize: true` 和 `APPLE_API_KEY` 等变量名对照 electron-builder 26 文档
+- [ ] `app-security` 第 3 章：OWASP Top 10:2025 是否定稿、A01–A10 最终名称
+- [ ] `database-practice` 第 6 章：Drizzle v1 发布后「迁移是怎么记账的」「基线重置」可能整节失效
+- [ ] `react-internals` 第 1 章：React 19.3 的变更内容未核对
+
+### 其他
+
+- [ ] `pricing-monetization` 第 8 章：hatch-counter 只有一个收费档，第七步仍在讲升级时的新旧套餐日价折算，前后略有张力
+- [ ] `company-basics` 第 5 章有 6 个 WARNING，可合并；第 7 章「王蕾」担保案例用的是 2025 / 2026 年具体年份，建议改成相对时间
+- [ ] `shelf-guide` 第 1 章首句「离线的 Markdown 阅读器」与「文案不提离线」的偏好是否冲突，请仓库所有者确认

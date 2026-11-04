@@ -21,3 +21,5 @@ next:
     reason: 把进程、内存、磁盘这些概念落到服务器上的命令和排障
   - id: ts-node-advanced
     reason: 回到 Node 运行时，看事件循环、GC 和 Stream 怎么用上这些底层
+  - id: git-deep-dive
+    reason: 第七批的下一本：Git 的对象模型、历史改写与救援

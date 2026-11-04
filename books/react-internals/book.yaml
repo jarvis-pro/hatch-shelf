@@ -5,7 +5,7 @@ category: 技术/前端
 tags: [react, fiber, hooks, concurrent, react-compiler]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-jsx-to-fiber.md
   - 02-reconciliation.md

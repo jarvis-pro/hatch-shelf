@@ -142,6 +142,9 @@ it("提醒里的天数向上取整：还剩 2.5 天说 3 天", async () => {
 
 ## 模块 mock：能不用就不用
 
+> [!WARNING]
+> 本节 `clearMocks` 的默认值按 2026 年 11 月 Vitest 5 迁移指南整理（Vitest 5 起默认开启），以 Vitest 官方文档为准。
+
 Vitest 的 `vi.mock` 可以替换整个模块，被测代码完全不用改：
 
 ```typescript
@@ -159,6 +162,8 @@ it("通知店主时发一条短信", async () => {
   expect(sendSms).toHaveBeenCalledOnce();
 });
 ```
+
+工厂里的 `vi.fn()` 是模块级的，同一个文件里的所有测试共用它。Vitest 5 起 `clearMocks` 默认开启，每条测试开始前清空调用记录、保留 `mockResolvedValue` 这类实现，所以第二条测试里的 `toHaveBeenCalledOnce` 不会把前一条的调用算进来。Vitest 4 及更早没有这个默认，要在配置里打开 `clearMocks`，或者在 `beforeEach` 里调 `vi.clearAllMocks()`。
 
 它方便，但有几个代价：
 

@@ -68,9 +68,9 @@ Claude Code 内置的主要工具：
 
 几点值得记住：
 
-- **CLAUDE.md 每一轮都在**。写进去的每一行都在消耗上下文、稀释注意力。所以官方建议单个文件控制在 200 行以内，这是第 2 章的主题
+- **CLAUDE.md 每一轮都在**。写进去的每一行都在消耗上下文、稀释注意力。所以官方建议单个文件控制在 200 行以内（2026 年 11 月的 memory 文档原话是「target under 200 lines」，更长会多占上下文、降低遵守率），这是第 2 章的主题
 - **有些东西是按需进来的**：子目录里的 CLAUDE.md、带 `paths` 的 rules、Skill 的正文，都在 agent 碰到相关文件或任务时才加载。这是第 3 章的主题
-- **自动记忆**（auto memory）是 Claude 自己记的笔记，存在 `~/.claude/projects/<项目>/memory/` 下，每次启动加载索引文件的开头一部分。比如书架作者的记忆里就有一条「提交信息不加 AI 署名」——这是他纠正过一次之后 Claude 自己记下的
+- **自动记忆**（auto memory）是 Claude 自己记的笔记，存在 `~/.claude/projects/<项目>/memory/` 下，每次启动加载索引文件 `MEMORY.md` 的开头一部分（前 200 行或 25KB，以先到者为准）。比如书架作者的记忆里就有一条「提交信息不加 AI 署名」——这是他纠正过一次之后 Claude 自己记下的
 - **对话本身才是大头**。读过的文件、跑过的命令输出全在里面。上下文快满时，Claude Code 会做压缩（compaction），把前面的对话总结成摘要，细节可能丢失
 
 会话里输入 `/context` 可以看到各部分大概占了多少。养成习惯：觉得它开始犯糊涂时，先看一眼上下文是不是已经很满了。
@@ -81,16 +81,25 @@ agent 能跑命令，就意味着它能 `rm -rf`、能 `git push --force`、能�
 
 ### 权限模式
 
+> [!WARNING]
+> 本节的模式名、默认模式和切换方式按 2026 年 11 月 code.claude.com 的「Choose a permission mode」文档整理（对应 Claude Code v2.1.28x），这部分改动频繁，以官方文档和 `claude --help` 为准。
+
 | 模式 | 行为 | 什么时候用 |
 |---|---|---|
-| `default`（Manual） | 编辑、跑命令前问你 | 刚接触一个项目、做有风险的事 |
+| `default`（界面上叫 Manual） | 只有读文件不用问，编辑、跑命令前都问你 | 刚接触一个项目、做有风险的事 |
 | `acceptEdits` | 自动接受工作目录内的文件编辑和 `mkdir`、`mv` 这类常见文件操作，其他命令照样问 | 日常写代码 |
-| `plan` | 只读、只规划，不改源码，计划给你批了才动手 | 大改动之前先对齐方案 |
+| `plan` | 只读、只规划，不改源码，计划给你批了才动手；可用 auto 模式时，分类器认可的命令也能跑 | 大改动之前先对齐方案 |
 | `auto` | 不逐条问你，由后台分类器判断每个动作是否符合你的请求 | 信任度高、任务边界清楚时 |
 | `dontAsk` | 凡是需要询问的一律拒绝，只做预先允许的事 | 无人值守的脚本、CI |
 | `bypassPermissions` | 跳过权限提示 | 只在容器、虚拟机这类隔离环境里用 |
 
-交互会话里按 `Shift+Tab` 在模式之间切换，状态栏会显示当前模式。启动时也可以指定：`claude --permission-mode plan`。
+交互会话里按 `Shift+Tab` 在模式之间切换，状态栏会显示当前模式（`manual mode on`、`accept edits on`、`plan mode on`、`auto mode on` 等）。默认的循环是 `default` → `acceptEdits` → `plan`，`auto` 可用时排在最后；`bypassPermissions` 只有用相应参数启动后才进循环，`dontAsk` 从不出现在循环里，只能用 `--permission-mode dontAsk` 指定。启动时指定模式：`claude --permission-mode plan`，CLI 也接受 `manual` 作为 `default` 的别名。
+
+几个容易想当然的地方：
+
+- **新会话默认从哪个模式开始**。v2.1.283 起，在终端或 VS Code 里新开的会话，内置默认是 `auto`（模型或组织设置不支持 auto 时退回 Manual）；`claude -p` 和 Agent SDK 的运行默认仍是 Manual。想固定成别的，在 settings 里写 `permissions.defaultMode`。注意项目级 `.claude/settings.json` 里写 `auto` 或 `bypassPermissions` 不生效，防止 clone 来的仓库替你打开
+- **`auto` 不是放任**。分类器默认拦下 force push、`curl | bash`、生产部署和迁移、`git reset --hard` 这类动作，被拦多了会退回逐条询问。但往当前仓库的分支推送、开 PR 在 auto 下默认是放行的，想留一道人工关卡就写 `ask` 规则。它降低的是审批疲劳，不是风险本身
+- **有些动作任何模式都不自动放行**：命中显式 `ask` 规则的调用、需要你回答的 `AskUserQuestion`、对关键路径的 `rm`。deny 规则在所有模式下都生效，包括 `bypassPermissions`
 
 ### 权限规则
 
@@ -114,6 +123,10 @@ agent 能跑命令，就意味着它能 `rm -rf`、能 `git push --force`、能�
   }
 }
 ```
+
+模式和规则怎么叠在一起，可以按下图的顺序理解（简化示意，省略了「任何模式都不自动放行」的那几类例外）：
+
+![一次工具调用的权限判定顺序：先看 PreToolUse hook 是否阻断，再依次看 deny、ask、allow 规则，都没命中时交给当前权限模式决定；hook 返回 allow 也绕不过 deny 和 ask 规则](assets/permission-funnel.svg)
 
 Bash 规则里 `*` 是通配，**要放在子命令后面**：`Bash(git log *)` 只放行 `git log`，`Bash(git *)` 就放行了所有 git 命令。`&&`、`;`、`|` 连起来的复合命令，每一段都要被允许才会自动放行。
 
@@ -161,5 +174,5 @@ flowchart LR
 - 编码 agent 的核心是 agent loop：思考 → 调用工具 → 看结果 → 再思考，直到它认为做完了
 - 它看到的世界就是它的上下文：没读过的不知道，没跑过的不确定；每读一个文件都在消耗上下文
 - 启动时加载的东西（CLAUDE.md、常驻 rules、记忆索引、Skill 描述）每轮都在，要精简；子目录 CLAUDE.md、按路径的 rules、Skill 正文按需进入
-- 权限分模式和规则两层，规则按 deny → ask → allow 匹配；`bypassPermissions` 只该在隔离环境里用
+- 权限分模式和规则两层，规则按 deny → ask → allow 匹配；新版终端会话默认从 `auto` 开始，`claude -p` 默认 Manual；`bypassPermissions` 只该在隔离环境里用
 - 你的工作变成写规矩、设闸门、派活与验收；同一个错出现第二次，就该沉淀成规矩或闸门

@@ -12,6 +12,8 @@ SQL 只说「要什么」，不说「怎么拿」。怎么拿由优化器决定�
 | `EXPLAIN ANALYZE` | 真的执行，并记下每一步的实际行数和耗时 | 对比估算和实际，定位慢在哪 |
 | `EXPLAIN (ANALYZE, BUFFERS)` | 再加上每一步读了多少页 | 默认就用这个 |
 
+PostgreSQL 18 起，`EXPLAIN ANALYZE` 会自动带上 `BUFFERS` 的输出，不写也有；16 及更早要显式写 `(ANALYZE, BUFFERS)`。本书照旧写全，两个版本都能用。
+
 `ANALYZE` 会真的执行语句。分析 `UPDATE` / `DELETE` 时包在事务里，看完回滚：
 
 ```sql
@@ -57,6 +59,9 @@ flowchart BT
 | `Buffers: shared hit=1071` | 在共享缓存里命中 1071 页；`read=` 是从磁盘（或系统页缓存）读的页数 |
 | `Index Cond` | 用索引定位的条件 |
 | `Filter` / `Rows Removed by Filter` | 取出行之后再过滤的条件，以及被丢掉的行数 |
+
+> [!NOTE]
+> 上面的输出是在 PostgreSQL 16 上跑的。18 加了异步 I/O 子系统（`io_method`，默认 `worker`，即由后台 I/O 进程预先发起读盘），顺序扫描、位图堆扫描、VACUUM 在**冷缓存**下会更快，`actual time` 和 16 不可比；但 `Buffers` 记的页数含义没变。这也是下文主张「比较页数，而不只是比较毫秒」的又一个理由。按 2026 年 11 月 PostgreSQL 18 文档整理，以官方 Release Notes 为准。
 
 读计划时最该盯的三样东西：
 

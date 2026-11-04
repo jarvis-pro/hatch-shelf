@@ -82,7 +82,7 @@ flowchart TB
 
 工具数量控制不住时（比如必须接很多第三方 server），就要靠按需加载：平时只让模型看到工具的名字和一句话简介，需要时再加载完整定义。
 
-这和[《Agent 原理与设计》第 8 章](../agent-principles/08-mcp-and-skills.md)讲的 Skills 渐进式披露是同一个思路。Claude Code 对 MCP 工具默认启用了**工具搜索**：MCP 工具的完整定义不会一次性全部放进上下文，模型先搜索、再加载需要的工具（可以用 `ENABLE_TOOL_SEARCH=false` 关闭，具体行为以 Claude Code 文档为准）。
+这和[《Agent 原理与设计》第 8 章](../agent-principles/08-mcp-and-skills.md)讲的 Skills 渐进式披露是同一个思路。Claude Code 对 MCP 工具默认启用了**工具搜索**：MCP 工具的完整定义不会一次性全部放进上下文，模型先搜索、再加载需要的工具（按 2026 年 11 月的 Claude Code MCP 文档，工具搜索默认开启，可以用 `ENABLE_TOOL_SEARCH=false` 关闭；具体行为以官方文档为准）。
 
 按需加载对 server 作者提出了新要求：**模型要能搜到你的工具**。这意味着：
 
@@ -112,7 +112,7 @@ flowchart TB
 - **需要「方法」而不只是「能力」时，写 Skill**。Skill 可以调用 MCP 工具或 CLI，告诉模型按什么顺序、遵守什么规范来用它们
 - **MCP 和 Skill 可以组合**：MCP 提供 `check_book`、`push_book`，Skill 描述「改完书后先 check、通过了再 push、push 前告诉用户」的流程
 
-MCP 生态里也有把 Skills 通过 MCP 分发的扩展正在推进，两者的边界会继续变化。
+MCP 生态里也有把 Skills 通过 MCP 分发的官方扩展 Skills over MCP（写作时处于 Beta，见[第 4 章](04-mcp-protocol.md#扩展与-mcp-apps)），两者的边界会继续变化。
 
 ## 原则四：给不同角色不同的工具集
 

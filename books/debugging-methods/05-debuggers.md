@@ -166,7 +166,7 @@ services:
 hatch-shelf 的阅读器跑在 WKWebView 里。WebView 里的页面不能用 Chrome DevTools 调试，要用 Mac 上的 Safari。
 
 > [!WARNING]
-> 本节 Safari 菜单路径、`isInspectable` 的系统版本要求，以及 react-native-webview 的 `webviewDebuggingEnabled` 属性，按 iOS 18 / Safari 18 前后的情况整理。以 developer.apple.com 上 Web Inspector 的说明和 react-native-webview 的仓库文档为准。
+> 本节 Safari 菜单路径、`isInspectable` 的系统版本要求，以及 react-native-webview 的 `webviewDebuggingEnabled` 属性，按 iOS 26–27 / Safari 26–27 时期的情况整理。Apple 从 2025 年起改用年份命名，iOS 18 之后的下一版就是 iOS 26；按 2026 年 11 月 Apple 安全更新页（support.apple.com/100100），当前为 iOS 27.2 / Safari 27.2。以 developer.apple.com 上 Web Inspector 的说明和 react-native-webview 的仓库文档为准。
 
 步骤：
 
@@ -183,7 +183,7 @@ hatch-shelf 的阅读器跑在 WKWebView 里。WebView 里的页面不能用 Chr
 
 用 `__DEV__` 控制，Release 包里不开。
 
-3. 在模拟器里打开 App 进入阅读页；真机则用数据线连上 Mac，并在 iPhone 的「设置 → Safari 浏览器 → 高级」里打开「网页检查器」
+3. 在模拟器里打开 App 进入阅读页；真机则用数据线连上 Mac，并在 iPhone 的「设置 → App → Safari 浏览器 → 高级」里打开「网页检查器」（iOS 18 起系统自带 App 的设置收进了「App」一栏）
 4. Safari 菜单「开发」→ 选择模拟器或设备 → 选择对应的页面
 
 接上之后就是完整的 Web Inspector：DOM、控制台、断点、网络、存储都有。阅读器的排版问题、KaTeX 渲染问题、bridge 消息收发，都在这里看。

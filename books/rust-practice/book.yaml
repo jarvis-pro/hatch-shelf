@@ -15,6 +15,7 @@ chapters:
   - 06-collections-iterators-closures.md
   - 07-concurrency-async.md
   - 08-cli-clap.md
+  - 08-cli-commands.md
   - 09-tauri.md
   - 10-wasm-napi.md
 next:

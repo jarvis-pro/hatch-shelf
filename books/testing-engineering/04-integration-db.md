@@ -35,7 +35,7 @@ hatch-counter 的选择是前一种加最后一种：开发机上用 Docker Comp
 ### Testcontainers + Vitest
 
 > [!WARNING]
-> 本节 `@testcontainers/postgresql` 的 API 和 Vitest 的 `globalSetup` / `provide` / `inject` 按 2025 年前后的版本整理，两者都在快速演进，以 Testcontainers for Node.js 和 Vitest 的官方文档为准。
+> 本节 Vitest 的 `globalSetup` / `project.provide` / `inject` 按 Vitest 5.0 的类型定义核对过（`TestProject` 从 `vitest/node` 导入）；`@testcontainers/postgresql` 的 API 按 2025 年前后的版本整理。两者都在快速演进，以 Testcontainers for Node.js 和 Vitest 的官方文档为准。
 
 思路是：在 Vitest 的全局准备阶段起一个容器、跑一次迁移，把连接串传给所有测试文件；全部跑完后关掉容器。
 
@@ -102,6 +102,8 @@ const sql = postgres(inject("databaseUrl"));
 | 每条测试一个新租户 | 不清理，靠唯一的租户 id 互不可见 | 最快 | 全局查询（统计、后台）会互相看到 |
 
 这几种可以组合。hatch-counter 用的是「每个文件一个库，文件内每条测试前清表」。下面分别说事务回滚和模板库这两种，因为它们的取舍最有意思。
+
+![左边是事务回滚：一个共享测试库，每条测试 BEGIN、读写、ROLLBACK，COMMIT 不会发生，所以提交时才有的行为测不到；右边是模板库拷贝：模板库迁移一次，每个测试文件拷出自己的库，文件内每条测试前清表，提交真实发生。](assets/rollback-vs-template.svg)
 
 ### 事务回滚：快，但有盲区
 

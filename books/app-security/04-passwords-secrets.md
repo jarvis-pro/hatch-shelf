@@ -23,6 +23,9 @@ hatch-counter 的后台员工口令用的是 scrypt，理由写得很实际：No
 
 ### 用 node:crypto 的 scrypt
 
+> [!WARNING]
+> 下面的 scrypt 参数（N=2^17、r=8、p=1）按 OWASP Password Storage Cheat Sheet 的推荐值整理，推荐值会随硬件进步调高，以该文档的最新版本为准；`maxmem` 的默认值以你所用 Node.js 版本的 crypto 文档为准。
+
 ```ts
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';

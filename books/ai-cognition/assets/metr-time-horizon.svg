@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="340" viewBox="0 0 360 340" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="339" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="16" y="28" font-size="15" font-weight="600" fill="#1f2328">模型能独立完成的任务时长</text>
+<line x1="58" y1="262.0" x2="330" y2="262.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="54" y="266.0" font-size="11" fill="#656d76" text-anchor="end">1 分钟</text>
+<line x1="58" y1="192.0" x2="330" y2="192.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="54" y="196.0" font-size="11" fill="#656d76" text-anchor="end">10 分钟</text>
+<line x1="58" y1="137.5" x2="330" y2="137.5" stroke="#d8dee4" stroke-width="1"/>
+<text x="54" y="141.5" font-size="11" fill="#656d76" text-anchor="end">1 小时</text>
+<line x1="58" y1="67.5" x2="330" y2="67.5" stroke="#d8dee4" stroke-width="1"/>
+<text x="54" y="71.5" font-size="11" fill="#656d76" text-anchor="end">10 小时</text>
+<line x1="58.0" y1="262" x2="58.0" y2="266" stroke="#656d76"/>
+<text x="58.0" y="279" font-size="11" fill="#656d76" text-anchor="middle">2023</text>
+<line x1="148.6" y1="262" x2="148.6" y2="266" stroke="#656d76"/>
+<text x="148.6" y="279" font-size="11" fill="#656d76" text-anchor="middle">2024</text>
+<line x1="239.4" y1="262" x2="239.4" y2="266" stroke="#656d76"/>
+<text x="239.4" y="279" font-size="11" fill="#656d76" text-anchor="middle">2025</text>
+<line x1="330.0" y1="262" x2="330.0" y2="266" stroke="#656d76"/>
+<text x="330.0" y="279" font-size="11" fill="#656d76" text-anchor="middle">2026</text>
+<line x1="58" y1="262" x2="330" y2="262" stroke="#656d76"/>
+<line x1="58" y1="260.8" x2="330" y2="84.5" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="5 4"/>
+<circle cx="75.9" cy="223.9" r="4.5" fill="#2f6fdf"/>
+<text x="75.9" y="213.9" font-size="11" fill="#1f2328" text-anchor="middle">GPT-4 0314</text>
+<circle cx="134.7" cy="223.1" r="4.5" fill="#2f6fdf"/>
+<text x="134.7" y="241.1" font-size="11" fill="#1f2328" text-anchor="middle">GPT-4 1106</text>
+<circle cx="181.6" cy="213.1" r="4.5" fill="#2f6fdf"/>
+<text x="188.6" y="217.1" font-size="11" fill="#1f2328" text-anchor="start">GPT-4o</text>
+<circle cx="252.8" cy="137.5" r="4.5" fill="#2f6fdf"/>
+<text x="245.8" y="141.5" font-size="11" fill="#1f2328" text-anchor="end">Sonnet 3.7</text>
+<circle cx="265.5" cy="116.2" r="4.5" fill="#2f6fdf"/>
+<text x="258.5" y="116.2" font-size="11" fill="#1f2328" text-anchor="end">o3</text>
+<circle cx="274.4" cy="121.7" r="4.5" fill="#2f6fdf"/>
+<text x="281.4" y="135.7" font-size="11" fill="#1f2328" text-anchor="start">Opus 4</text>
+<circle cx="293.5" cy="98.9" r="4.5" fill="#2f6fdf"/>
+<text x="286.5" y="100.9" font-size="11" fill="#1f2328" text-anchor="end">GPT-5</text>
+<circle cx="320.6" cy="86.6" r="4.5" fill="#2f6fdf"/>
+<text x="316.6" y="76.6" font-size="11" fill="#1f2328" text-anchor="end">Opus 4.5</text>
+<line x1="20" y1="296" x2="44" y2="296" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="5 4"/><text x="50" y="300" font-size="12" fill="#656d76">按 131 天翻一番的参考线</text>
+<circle cx="32" cy="318" r="4.5" fill="#2f6fdf"/><text x="50" y="322" font-size="12" fill="#656d76">METR TH1.1 的 50% 时间跨度（纵轴对数）</text>
+</svg>

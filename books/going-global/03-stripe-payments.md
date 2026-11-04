@@ -44,7 +44,7 @@ Stripe 直连模式下，卡交易通过 Stripe 处理。
 ## 什么时候用 MoR，什么时候用 Stripe 直连
 
 > [!WARNING]
-> Stripe 是否支持中国大陆商户、各 MoR 平台接受的卖家国家和产品类别按 2025 年前后的情况整理，可能已调整，以 Stripe 和各 MoR 平台官网的当前支持列表和协议为准。
+> Stripe 支持的开户国家按 2026 年 11 月 Stripe 官网「Stripe global availability」页面整理（列表里有中国香港，没有中国大陆）；Stripe Managed Payments 的商户所在地和商品范围按 2026 年 11 月 Stripe 文档「Managed Payments eligibility」页面整理；Lemon Squeezy 的现状按其 2026-01-28 官方博客整理；Polar、Creem 按各自官方文档整理。这些平台变化很快，以 Stripe 和各 MoR 平台官网的当前支持列表和协议为准。
 
 | 情况 | 建议 |
 |---|---|
@@ -54,7 +54,27 @@ Stripe 直连模式下，卡交易通过 Stripe 处理。
 | 计费逻辑复杂（用量计费、分账、多币种定制） | Stripe 直连 |
 | 收入稳定，MoR 费率差额已经超过请会计处理税务的成本 | 考虑迁移到 Stripe 直连 |
 
-常被提到的 MoR 平台有 Paddle、Lemon Squeezy（2024 年被 Stripe 收购）、Gumroad 等。它们的定位有差别：有的偏 SaaS 订阅，有的偏数字商品和创作者。选择时看四件事：
+常被提到的 MoR 平台有 Paddle、Lemon Squeezy、Gumroad，近两年又多了 Stripe Managed Payments、Polar、Creem 等。它们的定位有差别：有的偏 SaaS 订阅，有的偏数字商品和创作者，有的偏开发者工具。下表只写定位和适用场景，费率变化快，不写，以各平台定价页为准：
+
+| 平台 | 定位 | 适合谁 |
+|---|---|---|
+| Paddle | 老牌 MoR，偏 SaaS 和桌面软件 | 订阅制 SaaS、桌面软件 |
+| Lemon Squeezy | 2024 年被 Stripe 收购。2026-01 的官方博客说团队在做 Stripe Managed Payments，目标是给现有用户一条迁过去的路，没有宣布关停 | 已经在用的可以继续用，但要关注迁移安排；新项目先看 Stripe Managed Payments |
+| Stripe Managed Payments | Stripe 自己的 MoR：在 Stripe 账户里给 Checkout / Payment Links 打开这个选项，Stripe 就成为法律上的卖方，负责 80 多个国家的销售税 / 增值税、反欺诈、拒付和交易层面的客服 | **已有 Stripe 支持地区主体**（美国、加拿大、欧洲多国、澳大利亚、中国香港、日本、新加坡等）、卖纯数字商品、想同时保留 Stripe 生态的人 |
+| Polar | 开源（Apache 2.0）的计费平台，托管版是 MoR；订阅、一次性购买、license key、文件下载、GitHub 仓库访问权限都能当「权益」发放 | 卖开发者工具、模板、开源项目赞助 / 付费版的独立开发者 |
+| Creem | 面向 SaaS 和 AI 初创的 MoR，支持订阅、试用、license key、客户门户；开通正式收款前要过店铺审核，要求有自有域名的网站 | 订阅制 SaaS / AI 工具的个人开发者 |
+| Gumroad | 偏创作者和数字商品（电子书、课程、素材） | 卖一次性数字商品，不需要复杂订阅逻辑 |
+
+关于 Stripe Managed Payments 的几个限制（按 Stripe 文档）：
+
+- **商户所在地有白名单**，不含中国大陆；人在中国大陆、没有海外主体的，用不了。它的买家也有限制国家，**中国大陆的买家不能购买**
+- **只卖全自动交付的数字商品**：软件、SaaS、AI 服务、电子书、在线课程等。咨询、设计、开发外包这类专业服务和一对一辅导不在范围内
+- 只支持 Checkout 和 Payment Links，不支持 Connect 平台和嵌入式支付组件；订阅要通过 Checkout 或 Payment Links 创建
+- Stripe 会做资格审核，争议率过高会失去资格
+
+Polar 和 Creem 的文档没有列出接受的卖家国家清单，注册前直接在后台或向客服确认你的身份能不能开通、钱能结算到哪里。
+
+选择时看四件事：
 
 1. **是否接受你的身份和国籍**：注册前看清支持的卖家国家列表
 2. **结算方式**：能否结算到你能合法收款的账户（国内银行账户的外币收款、或你的海外公司账户）
@@ -260,7 +280,8 @@ flowchart TD
 ## 本章要点
 
 - 支付处理商（Stripe）让你当卖方，MoR 平台替你当卖方；**MoR 的高费率买的是各国税务、开票和拒付的责任**
-- 中国大陆个人或没有海外主体时，MoR 是现实选择；Stripe 不支持中国大陆商户直接开户
+- 中国大陆个人或没有海外主体时，MoR 是现实选择；Stripe 不支持中国大陆商户直接开户，Stripe Managed Payments 同样要求商户在支持地区
+- 新一批 MoR：Stripe Managed Payments（Stripe 账户内开启，限支持地区的主体和纯数字商品）、Polar（开源，偏开发者工具）、Creem（偏 SaaS / AI 工具）；Lemon Squeezy 在向 Stripe Managed Payments 过渡
 - Stripe 订阅的三条原则：**原始请求体验签、按事件 ID 幂等、订阅状态只由 webhook 改**；自助管理用客户门户
 - Stripe Tax 负责计算和收取，**注册和申报的责任仍在你**
 - 风控靠如实描述、清晰的条款和及时退款；拒付证据要平时积累

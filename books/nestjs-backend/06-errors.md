@@ -5,7 +5,7 @@
 ## Nest 的异常层
 
 > [!WARNING]
-> `HttpExceptionOptions` 的 `errorCode` 选项和它的序列化格式按 NestJS 12 发布说明整理，以 NestJS 官方文档的 Exception filters 页面为准。
+> `HttpExceptionOptions` 的 `errorCode` 选项和它的序列化格式按 2026 年 11 月的 NestJS 官方文档 Exception filters 页面和 v12.0.0 发布说明整理；hatch-counter 用的是自己的错误类，没有用这个选项。以官方文档为准。
 
 Nest 内置一个异常过滤器，处理所有没被接住的异常：
 
@@ -21,7 +21,14 @@ throw new NotFoundException("这笔开支不存在");
 // → 404 { "statusCode": 404, "message": "这笔开支不存在", "error": "Not Found" }
 ```
 
-NestJS 12 给 `HttpExceptionOptions` 加了 `errorCode` 选项，会序列化进回包，方便客户端按机器码分支处理。这正是下面自定义错误类要解决的问题，新项目可以直接用它。
+NestJS 12 给 `HttpExceptionOptions` 加了 `errorCode` 选项，会序列化进回包，方便客户端按机器码分支处理：
+
+```ts
+throw new BadRequestException("密码太简单了", { errorCode: "WEAK_PASSWORD" });
+// → 400 { "message": "密码太简单了", "error": "Bad Request", "statusCode": 400, "errorCode": "WEAK_PASSWORD" }
+```
+
+它可以和 `cause`、`description` 一起用；区别是 `cause` 永远不进回包，`errorCode` 就是写给客户端读的。这正是下面自定义错误类要解决的问题，新项目可以直接用它，只是字段名和形状跟着 Nest 的默认回包走；想要下文那种只有两个字段的契约，还是得自己的过滤器来定。
 
 ## 先定回包契约
 

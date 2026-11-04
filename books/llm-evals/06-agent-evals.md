@@ -13,7 +13,7 @@
 | 成本 | 一次调用 | 几步到几十步，差异很大 |
 | 不确定性 | 有 | 每一步的不确定会累积 |
 
-最后一条值得多说一句：假设 agent 每一步做对的概率是 95%，一个需要 10 步的任务全部做对的概率大约是 $0.95^{10} \approx 0.60$。步数越多，对每一步可靠性的要求越高。这也是为什么 agent 的评测要特别关注第 5 章讲的 pass^k。
+最后一条值得多说一句：假设 agent 每一步做对的概率是 95%，一个需要 10 步的任务全部做对的概率大约是 $0.95^{10} \approx 0.60$。步数越多，对每一步可靠性的要求越高。这也是为什么 agent 的评测要特别关注第 6 章讲的 pass^k。
 
 ## 评结果，还是评过程
 
@@ -177,7 +177,7 @@ export function scoreRun(c: AgentCase, run: AgentRun, drafts: Draft[]): Score[] 
 
 注意 `steps` 这个指标的值不在 0 到 1 之间，它违反了第 1 章「分数统一成 0–1」的约定。这是有意的：效率类数字放进同一份报告方便对比，但不参与「通过率」的计算。如果你更在意整洁，可以把它们放进 `CaseResult` 的另一个字段。
 
-判断「是否向店主提问」用的是「回复里有问号」，非常粗糙。对这类判断，第 4 章的评判模型更合适：给它看对话记录和一条标准，「没有替店主在两样食材之间做选择，而是列出候选请店主确认」。
+判断「是否向店主提问」用的是「回复里有问号」，非常粗糙。对这类判断，第 5 章的评判模型更合适：给它看对话记录和一条标准，「没有替店主在两样食材之间做选择，而是列出候选请店主确认」。
 
 ## 例二：编码 agent
 
@@ -187,7 +187,21 @@ export function scoreRun(c: AgentCase, run: AgentRun, drafts: Draft[]): Score[] 
 
 ### 用无头模式跑 agent
 
-Claude Code 支持非交互的打印模式：`claude -p "<任务>"` 跑完任务后退出，`--output-format json` 让它把结果、花费、轮数等信息以 JSON 输出。具体有哪些参数、JSON 里有哪些字段，以 `claude --help` 和官方文档为准，下面的代码对字段做了宽容处理。
+> [!WARNING]
+> 本节的参数和 JSON 字段按 2026 年 11 月 Claude Code 官方文档（CLI reference、Run Claude Code programmatically、Agent SDK TypeScript 参考）整理。Claude Code 更新很频繁，以 `claude --help` 和 code.claude.com 上的最新文档为准。
+
+Claude Code 支持非交互的打印模式：`claude -p "<任务>"` 跑完任务后退出，`--output-format json` 让它把结果、花费、轮数等信息以 JSON 输出。评测里用到的几个参数：
+
+| 参数 | 作用 |
+|---|---|
+| `-p` / `--print` | 非交互运行，跑完退出；成功退出码为 0，失败非 0 |
+| `--output-format json` | 最后输出一个 JSON：`result`（最终回复）、`total_cost_usd`（客户端估算的花费，和账单可能有出入）、`num_turns`、`is_error`、`subtype`（`success`，或 `error_max_turns` 这类出错原因）等 |
+| `--max-turns 40` | 最多跑 40 轮 agent 循环，只在打印模式下有效；到上限时 `subtype` 是 `error_max_turns` |
+| `--tools "Read,Write,Edit,Glob,Grep"` | **限制**这次能用哪些内置工具，没列出的工具模型根本看不到 |
+| `--allowedTools "Read,Write,Edit,Glob,Grep"` | 这些工具调用时**免确认**。它不限制工具集合：打印模式下没人点确认，需要确认又没放行的调用会被拒绝 |
+| `--no-session-persistence` | 不把会话存盘，几百次评测运行不会堆满会话列表 |
+
+`--tools` 和 `--allowedTools` 容易混：前者决定「有什么工具」，后者决定「哪些不用问」。只写 `--allowedTools` 时 Bash 仍然在工具列表里，模型会去调、然后被拒，白白浪费轮数。两个一起写最清楚。另外，官方文档推荐脚本和 CI 里加 `--bare`，跳过本机的 hooks、插件、MCP 和 `CLAUDE.md`，保证每台机器跑出来一样；但 `--bare` 不用订阅登录，要设置 `ANTHROPIC_API_KEY`，而且被评测的仓库若靠 `CLAUDE.md` 给规范，就得把它的内容用 `--append-system-prompt-file` 显式传进去。下面的代码对 JSON 字段做了宽容处理，字段缺失时不会崩。
 
 每次运行都在一份**临时副本**里进行：
 
@@ -211,11 +225,18 @@ export async function runBookTask(fixture: string, task: BookTask) {
 
   const res = spawnSync(
     "claude",
-    ["-p", task.prompt, "--output-format", "json", "--max-turns", "40", "--allowedTools", "Read,Write,Edit,Glob,Grep"],
+    [
+      "-p", task.prompt,
+      "--output-format", "json",
+      "--max-turns", "40",
+      "--tools", "Read,Write,Edit,Glob,Grep", // 只给这几样工具
+      "--allowedTools", "Read,Write,Edit,Glob,Grep", // 并且调用时不用确认
+      "--no-session-persistence",
+    ],
     { cwd: work, encoding: "utf8", timeout: 15 * 60_000 },
   );
 
-  let meta: { result?: string; total_cost_usd?: number; num_turns?: number; is_error?: boolean } = {};
+  let meta: { result?: string; subtype?: string; total_cost_usd?: number; num_turns?: number; is_error?: boolean } = {};
   try {
     meta = JSON.parse(res.stdout);
   } catch {
@@ -225,7 +246,7 @@ export async function runBookTask(fixture: string, task: BookTask) {
 }
 ```
 
-`--allowedTools` 只放行读写文件的工具，不给 Bash：被评测的 agent 不需要执行任意命令，权限越小越安全。检查由评测脚本自己来跑。
+工具只给读写文件的几样，不给 Bash：被评测的 agent 不需要执行任意命令，权限越小越安全。检查由评测脚本自己来跑。在 macOS 和 Linux 上，Claude Code 的默认工具集里没有 `Glob` 和 `Grep`（改用 Bash 里的 `find`、`grep`），这里不给 Bash，所以要在 `--tools` 里点名把它们要回来。
 
 ### 评结果
 
@@ -262,7 +283,7 @@ export async function scoreBook(work: string, bookDir: string): Promise<Score[]>
 }
 ```
 
-这些只能检查格式。「这一章有没有讲清楚为什么」这样的内容质量，要交给第 4 章的评判模型，标准可以直接从写作规范里摘：「开头一段说清本章要解决什么」「结尾有本章要点」。
+这些只能检查格式。「这一章有没有讲清楚为什么」这样的内容质量，要交给第 5 章的评判模型，标准可以直接从写作规范里摘：「开头一段说清本章要解决什么」「结尾有本章要点」。
 
 编码 agent 的评测很贵：每个任务要跑几分钟、花的钱比单次调用多得多。所以任务数量要少而精，五到十个有代表性的任务，每个重复两三次，比五十个任务各跑一次更能说明问题。
 

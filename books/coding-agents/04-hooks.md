@@ -46,12 +46,16 @@ hooks 写在 settings 文件的 `hooks` 字段里，三层结构：**事件 → 
 | `.claude/settings.json` | 本项目 | 是，团队共享 |
 | `.claude/settings.local.json` | 本项目，仅本机 | 否 |
 | Skill 或子 agent 的 frontmatter | 那个 Skill / 子 agent 运行期间 | 跟着文件走 |
+| 插件的 `hooks/hooks.json` | 插件启用期间 | 跟着插件走（见[第 3 章](03-rules-by-path.md#插件把整套规矩打包)） |
 
 会话里输入 `/hooks` 可以浏览当前生效的所有 hooks。来自不同层级的 hooks 是**合并**的，匹配到的全部执行。
 
 ### 常用事件
 
-Claude Code 的 hook 事件有三十多个，日常用得上的是这几个：
+> [!WARNING]
+> 事件名单、处理器类型和 `defer` 的规则按 2026 年 11 月 code.claude.com 的 Hooks reference 整理，新事件几乎每个版本都在加，以官方文档为准。
+
+Claude Code 的 hook 事件按 2026 年 11 月的文档共有 34 个，按触发节奏分三类：每个会话一次（`SessionStart`、`SessionEnd`）、每轮一次（`UserPromptSubmit`、`Stop`、`StopFailure`）、每次工具调用（`PreToolUse`、`PostToolUse` 等），其余是压缩、子 agent、worktree、配置变更、MCP 征询这类场景的专用事件。日常用得上的是这几个：
 
 | 事件 | 什么时候触发 | 典型用途 |
 |---|---|---|
@@ -61,6 +65,10 @@ Claude Code 的 hook 事件有三十多个，日常用得上的是这几个：
 | `Notification` | 等你输入或批准时 | 系统通知 |
 | `SessionStart` | 会话开始、恢复、压缩之后 | 注入动态上下文 |
 | `UserPromptSubmit` | 你提交消息之后、模型处理之前 | 给消息附加上下文、拦截 |
+| `PermissionRequest` | 某次调用需要权限决定时 | 按自己的逻辑批准或拒绝，无人值守时代替你点「允许」 |
+| `PreCompact` / `PostCompact` | 上下文压缩前后 | 压缩前存档进度 |
+
+处理器也不只有 shell 命令一种：`type` 可以是 `command`（跑命令）、`http`（把事件 POST 到一个地址）、`mcp_tool`（调用一个 MCP 工具）、`prompt` 和 `agent`（让模型来判断）。本章的例子都用最常见的 `command`。
 
 ### matcher 怎么写
 
@@ -98,7 +106,14 @@ hook 用**退出码**告诉 Claude Code 结果：
 }
 ```
 
-`permissionDecision` 可以是 `allow`、`deny`、`ask`、`defer`。
+`permissionDecision` 有四个值：
+
+- `allow`：跳过权限提示直接执行。但 deny 和 ask 规则照样生效，hook 说 allow 也绕不过 deny 规则
+- `deny`：拦下，`permissionDecisionReason` 给 Claude 看
+- `ask`：弹出确认，原因显示给你
+- `defer`：暂停在这次调用上，结束本轮，等外部程序收集到答案后用 `claude -p --resume` 接着跑。它是给「在 `claude -p` 外面包一层自己的界面」的集成用的（典型是把 `AskUserQuestion` 转到自己的 UI 上），**只在 `-p` 非交互模式下生效**，交互会话里会被忽略；一轮里同时发起多个工具调用时也会被忽略
+
+多个 hook 给出不同决定时，优先级是 `deny` > `defer` > `ask` > `allow`。
 
 另外，`$CLAUDE_PROJECT_DIR` 环境变量指向会话启动时的项目根，引用脚本时用它，别用相对路径。
 
@@ -244,7 +259,7 @@ exit 0
 
 三个细节：
 
-- **`stop_hook_active` 检查不能省**。Stop hook 阻断后 Claude 会继续工作，再想停时 hook 又被触发；不检查这个字段就可能来回拉锯。Claude Code 自己也有上限，连续阻断若干次后会强制放行
+- **`stop_hook_active` 检查不能省**。Stop hook 阻断后 Claude 会继续工作，再想停时 hook 又被触发；不检查这个字段就可能来回拉锯。Claude Code 自己也有上限，按 2026 年 11 月的文档是连续续跑 8 次后强制放行，Claude 调用一次工具就重新计数
 - **只截最后几十行**。类型检查的输出可能很长，全塞回去会浪费上下文
 - **只放快的检查**。Stop hook 每轮结束都会跑，全量测试要几分钟的话，日常会很难受。类型检查放 Stop，全量测试留给提交前
 

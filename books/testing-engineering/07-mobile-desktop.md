@@ -31,6 +31,10 @@ hatch-counter 的手机端也是同样的思路：毛利、库存、工资这些
 | 流程 | 在真 App 里点完一条路径 | Maestro | 需要模拟器 |
 | 发布前检查 | 真机、真网络、系统权限弹窗 | 手动清单 | 需要真机 |
 
+![移动端测试分四层：纯 TS 逻辑交给 Vitest，RN 组件交给 RN Testing Library，WebView 页面交给 Playwright，这三层都不需要设备；只有整机流程交给 Maestro，需要模拟器。](assets/mobile-test-layers.svg)
+
+越往下一层越慢、越接近用户真实看到的样子，能放在上层测的就不要往下放。
+
 ## 组件测试：jest-expo 与 RN Testing Library
 
 > [!WARNING]

@@ -41,6 +41,9 @@ hatch-recordwall 的发版脚本还加了两道闸门：缺只读令牌时拒绝
 
 ## 本地存储：令牌放进钥匙串
 
+> [!WARNING]
+> 本节 `expo-secure-store` 的 API 和常量按 Expo SDK 58 的官方文档和源码核对过（`AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY` 在源码里没有标为废弃；废弃的是 `ALWAYS` 和 `ALWAYS_THIS_DEVICE_ONLY`）。各 SDK 版本可能调整，以 docs.expo.dev 对应版本的 SecureStore 文档为准。
+
 移动端常见的几种存储，安全性差别很大：
 
 | 存储 | 底层 | 加密 | 适合放 |
@@ -72,7 +75,8 @@ export const clearRefreshToken = () => SecureStore.deleteItemAsync(KEY);
 - **访问令牌放内存就行**：它只活十几分钟，App 重启后用刷新令牌换一张新的
 - **`THIS_DEVICE_ONLY`**：防止令牌随备份或钥匙串同步跑到别的设备上。换手机后重新登录一次，对大多数产品是合理的代价
 - **iOS 卸载 App 后 Keychain 里的条目可能保留**：如果你要求「卸载重装等于退出登录」，可以在首次启动时（用一个普通存储里的标记判断）主动清掉旧条目
-- **SecureStore 有容量限制**，只适合放小的凭证，不要往里塞大块数据
+- **SecureStore 只适合放小的凭证**：Expo 自己不限制大小，但部分 iOS 版本曾拒绝超过约 2048 字节的值，写入时要处理原生报错，不要往里塞大块数据
+- **Android 卸载即清空**，而且系统的自动备份要排除 SecureStore 的数据：Keystore 里的密钥卸载时就删了，恢复回来的密文也解不开
 
 下面这张图把网页端和移动端各种存放位置面对的威胁放在一起比较。
 
@@ -81,6 +85,9 @@ export const clearRefreshToken = () => SecureStore.deleteItemAsync(KEY);
 网页端那几种的细节见[《前端工程化与 Web 平台》](../frontend-engineering/)；hatch-counter 的网页端把访问令牌放内存、刷新令牌放路径受限的 httpOnly cookie，移动端则是回包体里给票、请求体里递票，令牌存进系统的安全存储。轮换、重放检测、按设备作废这些服务端机制（第 1 章）不分端，它们管的是票，不管票装在哪。
 
 ## 通信：只走 HTTPS
+
+> [!WARNING]
+> ATS 和 Android 明文流量限制的默认行为按 iOS 26–27、Android 15–16 前后整理，平台规则会随系统版本调整，以 developer.apple.com 和 developer.android.com 的最新文档为准。
 
 iOS 的 App Transport Security（ATS）默认禁止明文 HTTP，Android 9 起也默认禁止。**不要在 `app.json` 里全局关掉它们**，哪怕只是为了开发方便：这类开关很容易被带进生产包。开发时需要访问局域网里的 HTTP 服务，按域名单独放行，并确认生产构建里不包含这条配置。
 
@@ -178,6 +185,9 @@ default-src 'none'; img-src file: data: blob:; style-src 'unsafe-inline'; font-s
 这五层合起来体现的是**纵深防御**：任何一层失效，后面还有一层挡着。
 
 ### Electron 也是同一个问题
+
+> [!WARNING]
+> Electron 各安全选项的默认值随大版本调整过（如 `contextIsolation`、`sandbox`），以 electronjs.org 的 Security 文档和你所用版本的发布说明为准。
 
 Electron 的渲染进程本质上也是一个 WebView，只是权限更大。基本的三个开关：`contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`（新版本 Electron 默认值已经是安全的，不要为了图省事改回去），渲染进程和主进程之间只通过 `contextBridge` 暴露最小的接口，并校验每个 IPC 消息的参数。具体见[《Electron 桌面应用》](../electron-desktop/)。
 

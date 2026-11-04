@@ -26,6 +26,12 @@
 2. 统计训练语料中哪两个相邻单位一起出现得最多，把它们合并成一个新 token
 3. 重复第 2 步，直到词表达到预定大小（通常是几万到二十几万个）
 
+下图用一个只有四个词的玩具语料走一遍：`newest` 和 `widest` 都以 `est` 结尾，出现得多，`e`、`s`、`t` 最先被合并；`low` 和 `lower` 共享 `low`，接着被合并。六步之后，`newest` 只剩两个 token，`lower` 剩三个。
+
+![BPE 在玩具语料上的六步合并：先把 e 和 s 合成 es，再合成 est，然后是 lo、low、ne、new，newest 最终被切成 new 和 est 两个 token，lower 被切成 low、e、r](assets/bpe-merges.svg)
+
+真实的分词器在几 TB 的文本上做同样的事，只是要合并几万到几十万次。
+
 结果是：
 
 - `the`、`ing`、`function` 这种高频片段会变成单独的 token
@@ -37,7 +43,7 @@
 token：  I | love | programming | in | Type | Script
 ```
 
-（实际切分结果取决于具体模型的词表，这里只是示意。）
+（这是 GPT-4o 用的 `o200k_base` 词表的实际切分结果，换一个模型结果会不同，下面的小实验可以自己验证。）
 
 ### token 带来的实际影响
 
@@ -52,6 +58,66 @@ token：  I | love | programming | in | Type | Script
 | 上下文窗口写的是「200K token」 | 窗口大小以 token 计，换算成汉字大约是同一个数量级 |
 
 一个粗略的经验值：英文 1 个 token 约等于 0.75 个单词；中文 1 个 token 约等于 1 到 1.5 个汉字，不同模型差别很大。
+
+### 小实验：自己数 token
+
+> [!WARNING]
+> 本节的工具和结果按 2026 年 11 月的版本整理（tiktoken 0.14.0；Anthropic 的 token 计数接口以 platform.claude.com 文档为准）。分词器会随模型更新，同一段文字换一个模型，token 数可能不同。
+
+上面这些说法，花十分钟就能自己验证。三种方法，从易到难：
+
+**方法一：网页**。OpenAI 官网有一个 Tokenizer 页面（platform.openai.com/tokenizer），把文字粘进去，它会用不同颜色标出每个 token，并显示总数。不用写代码，适合先建立直觉。
+
+**方法二：tiktoken**。tiktoken 是 OpenAI 开源的分词库，里面带着 GPT 系列的词表。装好 Python 之后：
+
+```bash
+pip install tiktoken
+```
+
+把下面的代码存成 `count.py`：
+
+```python
+import tiktoken
+
+# cl100k_base 是 GPT-4 的词表，o200k_base 是 GPT-4o 的词表
+for name in ["cl100k_base", "o200k_base"]:
+    enc = tiktoken.get_encoding(name)
+    for text in ["strawberry", "12345678", "我喜欢用 TypeScript 写程序"]:
+        ids = enc.encode(text)
+        pieces = [enc.decode_single_token_bytes(i).decode("utf-8", "replace") for i in ids]
+        print(name, text, len(ids), pieces)
+```
+
+运行 `python count.py`。第一次运行会下载词表文件，之后就不用联网了。我用 tiktoken 0.14.0 跑出的结果整理成表：
+
+| 文本 | GPT-4 词表 | GPT-4o 词表 |
+|---|---|---|
+| `strawberry` | 3 个：`str` `aw` `berry` | 3 个：`st` `raw` `berry` |
+| `12345678` | 3 个：`123` `456` `78` | 3 个：`123` `456` `78` |
+| `我喜欢用 TypeScript 写程序` | 10 个，「喜欢」「写」被拆成了字节碎片 | 7 个：`我` `喜欢` `用` ` Type` `Script` ` 写` `程序` |
+| `光合作用把二氧化碳和水转化为葡萄糖和氧气。`（第 5 章的例句） | 32 个 | 21 个 |
+
+几个可以从表里直接看到的现象：
+
+- `strawberry` 在两个词表里都是 3 个 token，没有一个 token 是单个字母 `r`。模型数不清里面有几个 `r`，原因就在这里
+- 数字按三位一组切，`12345678` 变成 `123` `456` `78`，模型看到的不是一位一位的数字
+- 同一句中文，新词表比旧词表少用了三分之一的 token。前面说「新模型已大幅改善」，指的就是这种变化
+- 打印出来的 `�` 是被拆开的半个汉字：一个汉字在 UTF-8 里占 3 个字节，旧词表没有把它收成一个 token 时，就会拆成几个字节 token
+
+**方法三：Claude 的 token 计数接口**。Claude 用的是另一套分词器，tiktoken 算不准。Anthropic 提供了一个免费的计数接口（有每分钟请求数限制），需要先在 Claude Console 申请 API key：
+
+```bash
+curl https://api.anthropic.com/v1/messages/count_tokens \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2026-10-21" \
+  -H "content-type: application/json" \
+  -d '{
+    "model": "claude-opus-5-5",
+    "messages": [{"role": "user", "content": "我喜欢用 TypeScript 写程序"}]
+  }'
+```
+
+返回一个 `{"input_tokens": ...}`。这个数包含了把消息包装成对话格式的那几个 token，所以会比纯文字多一点；官方文档也说明它是估算值，和实际计费可能有很小的差别。模型 ID 换成你要用的那个即可。官方文档还提到，Claude Opus 4.7 起换了新的分词器，同样的文字大约多出 30% 的 token：**换模型时，token 数要用新模型重新数**，不能沿用旧的估算。
 
 ## embedding：把 token 变成向量
 
@@ -81,7 +147,13 @@ $$
 \vec{\text{国王}} - \vec{\text{男人}} + \vec{\text{女人}} \approx \vec{\text{女王}}
 $$
 
-「男 → 女」这个概念，在向量空间里变成了一个固定的方向。没有人教模型这些，它是在预测下一个词的过程中自己学到的：经常出现在相似上下文里的词，被推到了相近的位置。
+「男 → 女」这个概念，在向量空间里变成了一个固定的方向。画成两维的示意图，四个词正好围成一个平行四边形：
+
+![示意图：男人到女人、国王到女王的两条箭头方向和长度几乎一样，男人到国王、女人到女王的两条也平行，四个点围成平行四边形](assets/word-vector-analogy.svg)
+
+这个例子最早因 2013 年 Google 的 word2vec 研究而出名。真实的向量有几千维，「国王 − 男人 + 女人」算出来的点并不正好落在「女王」上，只是离它最近，所以公式里用的是约等号。
+
+没有人教模型这些，它是在预测下一个词的过程中自己学到的：经常出现在相似上下文里的词，被推到了相近的位置。
 
 ### 怎么衡量「相近」
 
@@ -120,6 +192,7 @@ flowchart TD
 
 - 模型处理的基本单位是 **token**，主流用 BPE 这类子词算法切分
 - token 决定了计费、上下文长度，也解释了数字母、算长数字这类怪错误
+- 用 tiktoken 或官方的计数接口可以**自己数 token**；不同模型的分词器不同，数出来的结果也不同
 - **embedding** 把每个 token 变成一个向量，意思相近的词向量也相近
 - 向量的方向能编码「性别」「复数」这样的概念
 - 输入模型前还要加上**位置信息**，否则模型分不清词序

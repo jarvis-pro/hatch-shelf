@@ -10,6 +10,7 @@ chapters:
   - 01-why-evals.md
   - 02-datasets.md
   - 03-code-scorers.md
+  - 03-testing-scorers.md
   - 04-llm-judge.md
   - 05-regression.md
   - 06-agent-evals.md

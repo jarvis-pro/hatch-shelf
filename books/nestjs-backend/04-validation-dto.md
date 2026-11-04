@@ -47,7 +47,7 @@ create(@Body() body: CreateExpenseDto) { /* ... */ }
 
 `ValidationPipe` 靠 `design:paramtypes` 知道参数类型是 `CreateExpenseDto`，用 class-transformer 把普通对象变成类实例，再跑 class-validator。
 
-它的问题在于**同一个形状要写好几遍**：类的属性类型写一遍，装饰器又写一遍（`amountCents: number` 加 `@IsInt()`），前端要用同一个形状时还得再写一份。而且 `!` 断言、`@IsOptional()` 与 `?` 必须手动保持一致，写错了编译器不管。NestJS 12 起 class-validator 和 class-transformer 已是可选依赖，不用就不装。
+它的问题在于**同一个形状要写好几遍**：类的属性类型写一遍，装饰器又写一遍（`amountCents: number` 加 `@IsInt()`），前端要用同一个形状时还得再写一份。而且 `!` 断言、`@IsOptional()` 与 `?` 必须手动保持一致，写错了编译器不管。class-validator 和 class-transformer 在 `@nestjs/common` 里一直是可选的对等依赖（v11 就是如此，不是 v12 才改的），不用 `ValidationPipe` 就不必装。v12 的迁移指南也明确说这条装饰器路线继续完整支持、没有移除计划；它给 `ValidationPipe` 新加了 `errorFormat` 选项（`'list'` 或 `'grouped'`），用来选校验失败时的回包形状。
 
 ## 路线二：schema 校验
 
@@ -79,7 +79,7 @@ export type CreateExpenseInput = z.infer<typeof CreateExpense>;
 ### NestJS 12：Standard Schema 原生支持
 
 > [!WARNING]
-> 本节的 `schema` 选项、`StandardSchemaValidationPipe` 及其 `exceptionFactory` / `transform` 默认值、`StandardSchemaSerializerInterceptor` 按 NestJS 12 发布时的说明整理，hatch-counter 本身没有用这套 API；以 NestJS 官方文档的 Validation 页面为准。
+> 本节的 `schema` 选项、`StandardSchemaValidationPipe` 的选项和默认值、`StandardSchemaSerializerInterceptor`，按 2026 年 11 月的 NestJS 官方文档 Validation 页面、v12.0.0 发布说明和迁移指南整理；hatch-counter 本身没有用这套 API，没在真实项目里跑过。以 NestJS 官方文档为准。
 
 Standard Schema 是 zod、Valibot、ArkType 等库共同实现的一个接口规范，框架只要认这个接口，就能接受任何一家的 schema。NestJS 12 在路由参数装饰器上加了 `schema` 选项：
 
@@ -100,7 +100,17 @@ export class ExpensesController {
 }
 ```
 
-`StandardSchemaValidationPipe` 的选项里有 `exceptionFactory`，可以把校验失败换成自己的异常类型和文案格式；`transform` 默认开启，处理函数拿到的是 schema 的输出（经过默认值、转换之后的值）。同一份 schema 还能喂给 OpenAPI 生成和响应序列化（`StandardSchemaSerializerInterceptor`）。
+`schema` 选项支持 `@Body()`、`@Query()`、`@Param()`、`@RawBody()`，网关的 `@MessageBody()` 和微服务的 `@Payload()` 也能用；可以校验整个对象，也可以只校验某个属性（`@Body("email", { schema: z.email() })`）。注意只在装饰器上写 `schema` 不会生效，**必须注册 `StandardSchemaValidationPipe`** 才会真的校验。它的选项：
+
+| 选项 | 默认 | 作用 |
+|---|---|---|
+| `transform` | `true` | 处理函数拿到 schema 的输出（经过默认值、转换之后的值）；关掉则校验通过后给原始输入 |
+| `exceptionFactory` | 无 | 收到问题列表，返回要抛的异常，用来换成自己的异常类型和文案格式 |
+| `errorHttpStatusCode` | `400` | 校验失败的状态码 |
+| `validateCustomDecorators` | `false` | 是否也校验 `createParamDecorator()` 做出来的参数装饰器 |
+| `validateOptions` | 无 | 原样传给 schema 的 `~standard.validate()` |
+
+两个管道可以同时注册：`ValidationPipe` 只管类型是类的参数，`StandardSchemaValidationPipe` 只管声明了 `schema` 的参数，互不干扰，老项目可以逐个接口迁。同一份 schema 还能喂给 OpenAPI 生成；响应方向用 `StandardSchemaSerializerInterceptor` 配合 `@SerializeOptions({ schema })`，按 schema 校验并整形回包，替代 class-transformer 的那套装饰器。
 
 ### hatch-counter 的做法：自己的 ZodPipe
 

@@ -161,6 +161,9 @@ const inputSchema = z.object({
 
 ### 控制体积：截断、分页，并告诉模型
 
+> [!WARNING]
+> 下图的阈值按 2026 年 11 月 code.claude.com 的 MCP 文档整理：超过 1 万 token 给警告（阈值固定），默认上限 2.5 万 token，用 `MAX_MCP_OUTPUT_TOKENS` 环境变量调整；另外，没有声明 `anthropic/maxResultSizeChars` 的工具，纯文本结果超过 5 万字符会被存成文件而不是直接放进上下文。以 Claude Code 最新文档为准。
+
 工具返回的内容会原样进入上下文。一个返回整本书全文的工具，一次就可能吃掉几万 token，挤掉之前的对话。宿主也会设上限：
 
 ![Claude Code 对单次 MCP 工具输出的阈值：超过 1 万 token 给出警告，默认上限 2.5 万 token，可以用环境变量调整。](assets/output-budget.svg)

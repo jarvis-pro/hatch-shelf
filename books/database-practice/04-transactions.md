@@ -93,6 +93,16 @@ if (rows.length === 0) throw new AppError("这张订单已经作废或退过款�
 
 hatch-counter 后台退款就是这么写的：只有仍是 `paid` 的订单才能退。两个人同时点退款，第二个人的 `UPDATE` 等第一个提交后重新检查条件，此时状态已经是 `refunded`，影响 0 行，直接报错。也可以加一个 `version` 列，每次更新 `version = version + 1 where version = 读到的值`，这就是常说的乐观锁。
 
+条件不满足时，「影响 0 行」只告诉你没改成，不告诉你现在是什么状态。要给用户一句准确的话（「已经退过了」还是「已经作废了」），以前得再查一次，而这次查询和刚才的 `UPDATE` 之间又可能有人改。PostgreSQL 18 起 `RETURNING` 可以用 `old` / `new` 两个别名，一条语句同时拿到改前和改后的值：
+
+```sql
+update stock set qty = qty - 3
+where ingredient_id = $1
+returning old.qty as before, new.qty as after;
+```
+
+这对「扣减后要记一条流水、流水里要写扣减前余额」这类写法很顺手，不用先 `SELECT ... FOR UPDATE` 再 `UPDATE`。按 2026 年 11 月的 PostgreSQL 18 Release Notes 整理；16 及更早不支持这个语法，Drizzle 0.45 的 `.returning()` 也还没有对应的写法，要用 `sql` 模板手写，以官方文档为准。
+
 ### 修法三：SELECT ... FOR UPDATE（悲观锁）
 
 当「读」和「写」之间有复杂的计算、甚至要读好几张表时，先把关键行锁住：

@@ -108,7 +108,7 @@ H2 是这次排查的转折点：用手机自带的 Safari 访问同一个地址
 手机上的网络比桌面复杂，几个常见的坑：
 
 > [!WARNING]
-> 本节 iOS 的 App Transport Security、本地网络权限、Android 的明文流量限制等平台规则按 iOS 18 / Android 15 前后整理，以 developer.apple.com 和 developer.android.com 的最新文档为准。
+> 本节 iOS 的 App Transport Security、本地网络权限、Android 的明文流量限制等平台规则按 iOS 26–27（Apple 从 2025 年起改用年份命名，iOS 18 之后是 iOS 26）/ Android 15–16 前后整理，以 developer.apple.com 和 developer.android.com 的最新文档为准。
 
 - **明文 HTTP 被拦**：iOS 的 ATS 默认要求 HTTPS，Android 9 起默认禁止明文流量。开发时连局域网的 `http://` 地址需要在配置里放开，Expo 项目写在 `app.json` 或 config plugin 里
 - **本地网络权限**：iOS 14 起，App 访问局域网设备会弹「允许查找本地网络上的设备」，用户拒绝之后局域网请求静默失败。hatch-shelf 的传书页面在手机上起了一个 HTTP 服务，也受这个权限影响

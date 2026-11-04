@@ -503,3 +503,188 @@
 - [ ] `growth-marketing` 第 1 章：推论按 k 可忽略算出上限 A/c=1000，TS 示例用 referral=0.02，稳态是 A/(c−k)≈1111，两处口径不同（新图注明了 k 取 0）
 - [ ] `git-deep-dive` 第 4 章：为配图补了一个 reset 后用 reflog 找回的场景，沿用正文示例的哈希，`main@{2}` = 2f3de4f 是从正文推出来的
 - [ ] `video-script-storyboard` 第 5 章：书中示例分镜没有远景镜头，火柴人分镜用的是第 7 章镜 17–20（特写、中景、大特写、全景）
+
+## 十二、全库体检第四轮：内容更新（2026-11-04）
+
+第四轮按一手来源核实了 26 本高优先级书和 5 本跨书对齐。`[ ]` 为待复核；`[x]` 或「已核」为本轮已核实、前面章节对应条目可勾掉的。
+
+### coding-agents
+
+- [ ] `01-how-agents-work.md#权限模式`：按 2026-11 code.claude.com「Choose a permission mode」改写。新增事实：终端 / VS Code 新会话内置默认是 `auto`（v2.1.283 起，不可用时退回 Manual），`claude -p` 默认 Manual；`dontAsk` 不进 Shift+Tab 循环；项目级 settings 写 `auto` / `bypassPermissions` 不生效。版本号跟得很紧，建议下次修订再对一次
+- [ ] `01-how-agents-work.md#权限规则` 新图 `assets/permission-funnel.svg`：判定顺序（hook 退出码 2 → deny → ask → allow → 模式）是从 permissions 文档的几处说明拼出来的简化示意，省略了「任何模式都不自动放行」的例外和 auto 模式下宽泛 Bash allow 被丢弃的情况，请人看一眼是否过度简化
+- [ ] `04-hooks.md#常用事件`：「34 个事件」是数 2026-11 Hooks reference 事件表得出的，新版本几乎每次都加事件
+- [ ] `03-rules-by-path.md#插件把整套规矩打包`（新增）和 `07-review-testing.md#无人值守headless-与-github-actions`（新增）：按官方文档写，没在真实环境跑过 `claude plugin install`、`--permission-prompts none`、示例工作流 YAML；`--bare` 官方预告会成为 `-p` 默认
+- [x] REVIEW.md 第二节 hatch-counter「shell 命令看文件不触发路径 rules」：2026-11 memory 文档确认对单个文件 `cat` / `head` 也会触发路径 rules，书里第 3 章写法正确；需要改的是 hatch-counter 项目自己的 CLAUDE.md
+
+### deepseek-harness
+
+- [x] REVIEW.md 第九节「第 3 章 `/compact` 由包名推断」：0.2.1-alpha.3 / 0.2.1-rc.1 release notes 原文「Web 与桌面端可通过 /compact 指令手动压缩上下文」，已在正文注明来源，可划掉
+- [x] REVIEW.md 第九节「TypeScript SDK 只在架构文档里提到」：0.2.1 / 0.2.2 release notes 多处写到 TypeScript 与 Python SDK（resume、插件管理、审批），第 10 章已改写；PyPI 上 `deepseek-harness-sdk` 最新 0.2.1rc2。Python 示例仍未实际运行
+- [ ] `01-what-is-dsh.md` WARNING：基线改为「npm latest = 0.2.1-rc.5，next = 0.2.2-rc.1，GitHub 最新 release 0.2.2-alpha.3」。0.2.2-rc.1 在 npm 上当天发布、GitHub 还没有 release notes，0.2.2 正式发布后需按其 notes 再核一遍
+- [ ] `05-tools-and-modes.md#文件与搜索`：`apply_patch` 书里写「Standard 模式启用」（依据 master 的 `docs/tool-catalog.md`：`dsh-base` 和 Web `standard` 预设启用），但 0.2.2-alpha.3 release notes 写「新增默认关闭的 `apply_patch` 工具」，两处说法不一致，未改正文
+- [ ] `05-tools-and-modes.md#ptc让模型写程序来调工具`：PTC 全称仍未在官方文档找到（查了 glossary、`docs/subsystems/ptc-runtime`、tool-catalog、release notes），维持「推断」的写法
+- [ ] `05-tools-and-modes.md#从-claude-code-迁过来`（新增）：对照表依据 `dsh-agent-instructions`（不解析 `@path` 和 `.claude/rules/`）、`dsh-hooks-claude-code`（只跑 command hook、七个事件、配置读失败只警告）、`dsh-subagent-claude-code`（默认 `dontAsk`）README 和 approval 文档（没找到逐条命令放行规则）。「DSH 没有逐条命令的放行规则」是没找到即推断为没有，未在真实 DSH 里验证
+- [ ] `10-automation-and-next.md#一次性运行headless`：headless 参数表来自仓库 `docs/cli-help.md`；「0.2.1 起 headless 只读环境变量和 .env、不读界面保存的 key」来自 release notes 和 `packages/bundle/headless` README，未实际运行
+
+### tools-and-mcp
+
+- [x] REVIEW.md 第三节「输出 10k token 警告、25k 默认上限、工具搜索默认开启」：2026-11 Claude Code MCP 文档原文确认，第 2、7 章已加来源；`pnpm --silent`：在本仓库（pnpm 9.15）实测 `pnpm --silent <script>` 不再往 stdout 打印 `> pkg@ script` 那行，可划掉
+- [x] REVIEW.md「MCP」节「2026-07-28 无状态」：逐条对照 modelcontextprotocol.io 的 2026-07-28 Key Changes、Versioning、Base Protocol、Streamable HTTP、Deprecated 页，原有说法全部成立（含 `-32602`/400、`-32022`、`server/discover`、`resultType`、`ttlMs`/`cacheScope`、`Mcp-Method`/`Mcp-Name`/`x-mcp-header`、兼容矩阵），并补了 `-32021`、`logLevel`、`notifications/roots/list_changed` 删除、错误码区段、OTel `_meta`、授权变更、弃用期至少 12 个月。可划掉
+- [ ] `04-mcp-protocol.md#扩展与-mcp-apps`（新增）：官方 Extension Support Matrix 的支持标记是图标，抓取不到，正文没写哪些客户端支持 MCP Apps；「宿主不支持时工具结果本身仍要完整可用」是作者建议，规范页面没写成硬性要求
+- [ ] `05-build-mcp-server.md#发布与分发mcp-registry`（新增）：官方 Registry 仍是 preview；`mcp-publisher` 流程和 `server.json` 示例按 Quickstart 改写，没有实际发布过
+- [ ] `06-auth-and-permissions.md#多用户oauth-21`：REVIEW.md 原条目「多用户 OAuth 的具体 API」仍未解决，本轮只补了 `iss` 校验（RFC 9207）和凭证绑定签发方两条规范要求
+
+### llm-fundamentals
+
+- [ ] `02-tokens-embeddings.md#小实验自己数-token`：tiktoken 0.14.0 的切分结果是实际跑出来的；Anthropic `count_tokens` 的 curl（`anthropic-version: 2026-10-21`、`claude-opus-5-5`、新分词器约多 30%）照 2026-11 的 platform.claude.com Token counting 文档写，没有用真实 key 跑过；OpenAI Tokenizer 网页地址 platform.openai.com/tokenizer 凭记忆，未打开核对
+- [ ] `06-sft-rlhf.md#推理模型先想再答`：o1 发布于 2024-09、o1 博客「准确率随训练和推理计算平滑提升」、DeepSeek-R1 于 2025-01 开源且 R1-Zero 回答长度自发变长，均凭记忆写（与公开报道一致，未逐字核对原文）；思考 token 按输出计费已对照 Anthropic extended thinking 文档
+- [ ] `05-pretraining.md#有多大`：「一本书约 10 万英文单词、约 13 万 token」是粗略换算；Qwen3「119 种语言和方言」凭 Qwen3 发布博客记忆
+
+### ai-cognition
+
+- [ ] `01-boundaries-hallucination.md#边界不是一条线是锯齿`：758 人、18 个任务、多完成 12.2%、快 25.1%、质量高 40% 以上、范围外正确率低 19 个百分点，按 HBS 工作论文 24-013 摘要的记忆写；HBS 和 SSRN 页面均 403，只用二手转述交叉核对（二手源有写 25% 而非 25.1%）
+- [ ] `05-trends-and-hype.md#任务时长翻倍metr-的具体数字`：TH1.1 的 196 / 131（107–161）/ 89 天和 Opus 4.5 320 分钟、GPT-5 214 分钟已在 metr.org 原文核对；散点图里各模型的发布日期是凭记忆填的（METR 页面不给日期），GPT-4o 的 5 分钟取自 TH1.1 页面的新旧任务集对比表；「约 12 小时（5–61 小时）」「超过 16 小时测不准」来自 2026-05-19 Frontier Risk Report；「正在试新的任务集」依据 METR 网站搜索摘要提到的 MirrorCode-Early，未打开原文
+- [ ] `05-trends-and-hype.md#什么时候跟进新东西`：贝佐斯单向门 / 双向门写成「2015 年致股东信（2016 年 4 月发布）」，凭记忆，未打开原信
+
+### llm-evals
+
+- [ ] `03-testing-scorers.md`（新章）：单元测试、全测试集性质检查、`rescore.ts` 的代码没有实际跑过；`@hatch/evalkit` 是否导出 `CaseResult` / `Score` 类型按前几章推断
+- [ ] `06-agent-evals.md#用无头模式跑-agent`：参数表已按 2026-11 Claude Code 官方文档（CLI reference、headless、Agent SDK 的 SDKResultMessage）核对；改正了「`--allowedTools` 只放行这些工具」的说法（它只免确认，不限制工具集，限制要用 `--tools`），并补了 `--tools`、`--no-session-persistence`、macOS/Linux 默认无 Glob/Grep 的说明。改后的命令没有实际跑过
+- [ ] 拆章后全书「第 N 章」文字编号顺延（原第 4–7 章变为第 5–8 章），`build-your-agent/06-evals.md`、`ai-native-opc/03-customer-support.md` 里指向本书的链接文字和 ROADMAP 章节列表已同步；文件名未改
+
+### nestjs-backend
+
+- 已核实，可勾掉 REVIEW.md 第 95、485 行的大部分：`@Body({ schema })`（含 `@Query`/`@Param`/`@RawBody`）、`StandardSchemaValidationPipe` 选项与默认值（transform=true、errorHttpStatusCode=400、validateCustomDecorators=false）、`StandardSchemaSerializerInterceptor` + `@SerializeOptions({ schema })`、`HttpExceptionOptions.errorCode` 及回包形状、生命周期钩子按层级调用、ESM 发布与 Node 20.19+/22.12+、`@nestjs/config` 走 Standard Schema + Joi 18 + `validationOptions.libraryOptions`、ESM 模板默认 Vitest（CJS 仍 Jest）、`Reflector.createDecorator` 生成器、`ArgumentMetadata` 泛型。来源：GitHub v12.0.0 release、docs.nestjs.com/migration-guide、Validation / Exception filters 页、npm `@nestjs/schematics@12.0.12` 模板。`process.loadEnvFile()` 20.12 / 21.7 维持原说法（未另查 Node 文档）
+- 01-di-modules.md#nestjs-12-与-esm：原说法「NestJS 12 起 class-validator 和 class-transformer 已是可选依赖」（04-validation-dto.md#路线一class-validator）有误，`@nestjs/common` 11.1.6 起就是可选 peer 依赖，已改正
+- 08-realtime.md#什么时候需要-websocket：`handleDisconnect` 拿到断开原因只出现在 v12.0.0 release notes，Gateways 文档页没写参数类型和适配器支持范围，需看 `@nestjs/websockets` 类型定义复核
+- 01-di-modules.md#nestjs-12-与-esm、09-testing.md#测试框架与装饰器元数据：ESM 模板靠 Vite 8 内置 Oxc 输出装饰器元数据（模板无 SWC 插件，Vite 8 迁移说明确认支持且有类型推断局限）；`import type` 导致元数据退化为 `Object` 是按 Vite 说明推断，未实测
+- 01-di-modules.md#生命周期钩子：v12「按层级调用」的具体排序规则官方未给出
+- 01-di-modules.md#nestjs-12-与-esm：`@Optional()` 继承变化「12.1 起恢复」按迁移指南原文，未实测
+- 10-data-transactions.md（新章）：Drizzle 0.45 事务语义按源码（postgres-js session 的 begin/savepoint、TransactionRollbackError）整理；「连接池调到 1 测出事务内借第二条连接」是建议做法，hatch-counter 未采用；`@nestjs-cls/transactional`（4.0.2）及 Drizzle 适配器（2.0.2）只核实了 npm 上存在，未实际接入
+
+### database-practice
+
+- 已核实（REVIEW.md 第 103 行）：PG18 `uuidv7()`（及别名 `uuidv4()`）、B 树 skip scan（PG18 Release Notes）；PG11 非易变默认值加列只改元数据、PG12 `ALTER TYPE ADD VALUE` 可在事务里（PG12 Release Notes）、预备语句前 5 次 custom plan（PG18 PREPARE 文档）；SQLite 3.34 FTS5 trigram、3.35 DROP COLUMN、3.37 STRICT（sqlite.org release log）
+- 05-mvcc.md#加列不一定重写表：原说法把 `now()` 列为会重写表的易变函数，有误（`now()` 是 stable，PG 文档举例的是 `clock_timestamp()`），已改正
+- 01-modeling.md#关于这本书：基线改为 PG 18，但书中执行计划和输出仍是 16 上的实测，未在 18 上逐条重跑（本机无 Docker 守护进程）；02-indexes.md#联合索引顺序就是一切 里「这条在 18 上可能用上 skip scan」未实测
+- 01-modeling.md#生成列让库替你算：「18 里虚拟生成列不能建索引」只有二手来源，PG 文档页未明说；01-modeling.md#约束把规矩写进库里 的 `WITHOUT OVERLAPS` 需要 `btree_gist` 也只有二手来源
+- 06-drizzle-migrations.md#drizzle-v1-改了什么：按 drizzle-orm / drizzle-kit 1.0.0-rc.5 源码整理（按文件夹名记账、新增 name/applied_at 列、`drizzle-kit up`、去掉 drop、`strict` 弃用改 `--explain`、`--hints`/`--hints-file`）。「做过基线重置的库升 v1 时迁移器会因对不上的旧记录报错」是读源码推断，未在 hatch-counter 上实跑；v1 正式版发布后需复核整节（对应 REVIEW.md 第 489 行）
+- 04-transactions.md#修法二条件更新乐观并发：「Drizzle 0.45 的 `.returning()` 没有 old/new 写法」按 API 推断，未查到官方说明
+- 09-json-fulltext.md#postgresql-全文检索与中文：zhparser / pg_jieba 的托管数据库支持情况仍未核实，维持原说法
+
+### debugging-methods
+
+- [ ] `05-debuggers.md#webview` 附近（Safari Web Inspector 步骤第 3 步）：改成「设置 → App → Safari 浏览器 → 高级 → 网页检查器」，依据是 iOS 18 起系统设置把自带 App 收进「App」一栏，凭记忆，未找到 Apple 一手文档逐字核对
+- [ ] `09-production-only.md#线上取证清单出事时先保存什么`：iOS 崩溃日志路径「设置 → 隐私与安全性 → 分析与改进 → 分析数据」凭记忆，需在 iOS 26/27 真机上核对
+
+### app-security
+
+- [ ] `05-supply-chain.md#近几年的几起真实事件`：Shai-Hulud 第二波（2025-11 下旬）只有 Check Point、Seceon、Cycode 等安全厂商报告，起始日期（11-21 / 11-24）和受影响包数（700+ / 1000+）各家不一致，正文只写了「11 月下旬」「把入口提前到 preinstall」，未写数字
+- [ ] `05-supply-chain.md#近几年的几起真实事件`：2026-08 keyv 蠕虫只有 Wiz、Aikido、JFrog 的分析和 VentureBeat 的报道（受影响包数 400+ 到 868 不等），「用项目自己的 GitHub Actions 发版、带有效 provenance」来自 VentureBeat 转述 Aikido / JFrog / Wiz；正文写「数百个包」，未写具体数字
+- [ ] `05-supply-chain.md#近几年的几起真实事件`：xz-utils「被一位工程师因 SSH 登录变慢追查发现」「化名维护者花了几年时间」按公开报道的通行说法写，NVD 条目本身不含这些细节
+- [ ] `06-mobile-security.md#本地存储令牌放进钥匙串`：docs.expo.dev SDK 58 的 SecureStore 页面把 `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY` 显示为 deprecated，但 expo/expo 源码 `packages/expo-secure-store/src/SecureStore.ts` 里废弃的是 `ALWAYS_THIS_DEVICE_ONLY`（文档渲染疑似错位）；正文按源码保留原写法，WARNING 里写明了。Expo 修正文档后可复核
+- [ ] `04-passwords-secrets.md#用-nodecrypto-的-scrypt`：新加的 WARNING 引用 OWASP Password Storage Cheat Sheet 的 scrypt 推荐值（N=2^17, r=8, p=1），凭记忆，未在本轮重新打开原文核对
+- [ ] `01-authentication.md#oauth-20-与-oidc用别人的账号登录`：WARNING 引用 RFC 9700（2025 年 1 月）和 App Store 审核指南 4.8 节，凭记忆，未逐字核对
+
+### growth-marketing
+
+- `02-seo.md#geo让-ai-搜索引用你`：新增 GEO 一节。Google 说法、Pew 2025-07-22 点击数据（8% vs 15%、引用链接 1%、58% 搜索出现 AI 摘要）、GEO 论文（KDD 2024，最多约 40%）均按一手来源写；国内 AI 助手（豆包、DeepSeek、元宝、Kimi）的引用规则没有公开资料，正文写明只能自己观察，待有官方说明时补
+- `02-seo.md`、`05-aso.md`、`06-cold-start.md`、`08-channel-evaluation.md` 新增的算例数字全部标为示例假设（08 的 99 元 / 15 元沿用 pricing-monetization 第 8 章）
+- REVIEW 第 503 行（第 1 章 A/c 与 A/(c−k) 口径不同）已在推论 1 里补上 A/(c−k)≈1111 的说明，可勾掉
+
+### pricing-monetization
+
+- `06-app-store-iap.md#地区规则`：美区外链费用仍在诉讼中（第九巡回 2025-12-11 发回重审，最高法院 2026-06-30 同意审理藐视法庭部分），Apple 能收多少尚未确定；最高法院和地区法院有结论后需更新。美国部分依据的是 9to5mac / MacRumors / IPWatchdog 等媒体对判决的报道和 Apple 审核指南现行文本，未直接读判决书原文
+- `06-app-store-iap.md#佣金的框架`：标准费率 30% 在 Apple 小型企业计划页面没有直接写出，仍是「被广泛报道」；该页还写「订阅满一年后 10%」，是否全球适用还是仅指欧盟 / 日本，表述不清，正文没有采用
+- REVIEW 第 24、458 行中欧盟 CTC、日本 MSCA 部分已按 Apple 开发者网站一手页面写明（欧盟 2026-10-01 起，日本 2025-12-18 起），可更新状态；韩国规则未核对
+
+### going-global
+
+- `03-stripe-payments.md#什么时候用-mor什么时候用-stripe-直连`：Polar、Creem 的官方文档没有列出接受的卖家国家，中国大陆个人能否开通未核实，正文已提示自行确认。Stripe 开户国家（不含中国大陆）和 Managed Payments 商户地区白名单、商品范围、买家限制国家（含中国）按 Stripe 官方页面核实；Lemon Squeezy 现状按其 2026-01-28 官方博客（未宣布关停、向 Managed Payments 迁移）
+- `02-overseas-entity.md#美国-llc-为什么最常被推荐`：Form 5472 罚款（25,000 美元，IRS 通知后 90 天未改正每 30 天再加 25,000 美元，按关联方分别计）按 IRS《Instructions for Form 5472》（Rev. 12/2024）核实，REVIEW 第 457 行这一条可勾掉；BOI 段落仍是 2025 年的表述，本轮未重新核实
+- `04-app-store-global.md#其他地区`：美国、日本、欧盟 DMA 已按 2026-11 更新并链到 pricing-monetization 第 6 章；韩国未核对
+
+### employee-to-owner
+
+- 无需人工复核的事实项。本轮把 02 / 03 / 05 / 08 / 09 中 text 块里同一行用多个空格隔开的填空字段拆成每行一项；新增两张图的数字取自第 2 章场景一已有算例和第 5 章续约例子
+
+### opc-compliance-cn
+
+- [ ] `06-pipl.md#网络安全法修正罚款不再先警告`：修正后条号（第六十一条、第四十二条、第七十一条、新增第二十条）和罚款档位取自新华社受权发布的修改决定全文（news.cn 2025-10-29），没有逐条对照全国人大或网信办刊载的重新公布文本；条号以重新公布的法律文本为准
+- [ ] `06-pipl.md#数据出境用海外大模型要特别小心`：《个人信息出境认证办法》的适用条件（非关基、10 万–不满 100 万人 / 不满 1 万人敏感信息、不含重要数据、禁止拆分）和证书 3 年有效期取自国家网信办 2025-10-17 答记者问页面，没有打开办法条文本身；认证规则、认证机构名单尚待市场监管总局公布
+- [ ] `01-entity-choice.md#注册资本认缴不等于不用缴`：新《公司法》第四十七条「五年内缴足」、第二百六十六条过渡条款，条号未打开 flk.npc.gov.cn 原文核对（第二十三条第三款已见上市公司公告引用原文）；国务院注册资本登记管理规定已在中国政府网原文核对。原 REVIEW 第一节「凭记忆，未见条文原文」一条可据此部分勾掉
+- [x] `02-registration.md#每年和每月要做的事`：年报 1 月 1 日至 6 月 30 日，已按《企业信息公示暂行条例》第八条（国务院令第 654 号原文转载）核对；未查到该条例 2024 年以后的修订，原 REVIEW 第一节对应条目可勾掉
+- [x] REVIEW 第十节「第 1、6 章 2025 年下半年以来的新规正文没写」：四项均已查到原文并写入正文，可勾掉
+
+### opc-finance
+
+- [ ] `07-annual-filing.md#你自己综合所得汇算`：「2025 年度汇算在 2026 年 3 月初实行预约办理（国家税务总局 2026 年第 1 号通告）」来自媒体转述，没有打开通告原文
+- [ ] `08-bookkeeper-quotes.md`：章首 WARNING 引用财政部《代理记账管理办法》凭记忆，未核对现行版本
+- [ ] `09-closing-down.md#个体户`：个体户简易注销无需公示（《市场主体登记管理条例》第三十三条）凭记忆，未核对原文
+- [ ] `09-closing-down.md#清税税务这一关`：「清算期间单独作为一个纳税期间」凭记忆（《企业所得税法》第五十五条只规定清算所得申报，单独纳税年度的口径在财税文件里），未核对文号
+- [ ] `09-closing-down.md#剩下的钱怎么拿回来`：剩余财产分配「相当于未分配利润和盈余公积的部分按股息处理、超过投资成本的部分可能产生所得」的框架凭记忆，正文已要求让代账算
+- [x] `07-annual-filing.md` 及 `02-taxes.md` 申报日历：企业所得税 5 个月内（江苏省税务局汇算须知）、经营所得次年 3 月 31 日前（江苏省税务局引用《个人所得税法》）、综合所得 3 月 1 日至 6 月 30 日（国家税务总局令第 57 号，中国政府网）已核对，原 REVIEW 第一节「企业所得税汇算一般次年 5 月底前、经营所得个税汇算一般次年 3 月底前」可勾掉
+- [x] `05-separate-money.md#借款`：股东借款年终未还视同分红的依据为财税〔2003〕158 号第二条（国务院公报、国家税务总局法规库收录），已写进 WARNING；REVIEW 第一节和第十节「没有文号」两条可勾掉
+
+### media-cases
+
+- [ ] 第 4 章 `04-ecommerce-live.md#案例-11东方甄选教育公司转型直播电商`：已补 2026 财年公司口径（营收约 57 亿元、GMV 102 亿元、自营 GMV 54 亿元，依据新华财经 2026-08-21 报道）；净利润只有盈利预告区间 5.2 亿—5.5 亿元（澎湃 2026-07-24），港交所年报原文未打开核对
+- [ ] 第 4 章 与辉同行：仍只有 2024 年飞瓜第三方月销数据，未找到公司口径的更新数字
+- 已核（可勾掉第八节对应条目的一部分）：第 2 章张雪峰 2026-03-24 在苏州去世，证券时报（2026-03-25，中华网转载）、界面新闻（2026-03-25）均引述峰学蔚来公司讣告（心源性猝死），澎湃新闻（2026-03-25）转载郑州大学悼念文章，三家一致；正文已改为多源表述
+
+### douyin-kuaishou
+
+- [ ] 第 1、7 章：快手 2025 年第四季度电商 GMV 5218 亿元、全年约 1.6 万亿元依据的是搜索摘录里的公告原文片段和多家媒体，未直接打开 2026-03-25 公告 PDF；日均使用时长 126 分钟（2025Q4）只见媒体报道。2026Q2 公告（已读原文）未披露 GMV 总额与使用时长
+- [ ] 第 1 章：抖音月活 10.29 亿为 QuestMobile《2026 上半年中国移动互联网实力价值榜》媒体转述（凤凰网科技 2026-08-04），未见报告原文；抖音搜索规模截至 2026-11 仍只有 2021 年「5.5 亿」官方数字
+- [ ] 第 6 章 `06-permissions.md#电商带货2025-年的分级门槛`：200 / 500 / 1000 有效粉丝门槛仍只有 2025-04 媒体转述，规则中心原文未找到，也未见之后调整的报道；作者保证金改按 IT 之家 2026-02-05 报道写为基础 500 元 + 浮动 + 风险、补缴 3 天（无规则原文）。`ecommerce-selling` 第 2 章、`live-streaming` 第 3 章的保证金说法需与此对齐
+- [ ] 第 6 章 `06-permissions.md#快手电商`：快手达人 0 元保证金带货分销依据扬子晚报 2025-02-03 对「十条惠商举措」的报道，2026 年无更新
+- 已核：快手 2026Q2（2026-08-19 公告原文）DAU 412.3 百万、MAU 797.3 百万，与 `media-opc-overview` 第 3 章一致，第十节「快手用户数待统一」一条可勾掉
+
+### media-compliance
+
+- 已核（可勾掉第八节第 8 章、第十节对应条目）：国家税务总局 2025 年第 16 号公告原文（法规库，2025-06-26 成文、2025-10-01 施行）——累计预扣法、收入额按 80%、减除费用按「在该平台连续取得劳务报酬的月份数」× 5000、增值税代办申报与小规模优惠、500 万元引导登记；财政部 税务总局 2026 年第 10 号公告（起征点按月 10 万 / 按季 30 万 / 按次 1000 元，3% 减按 1%，执行至 2027-12-31）；国家税务总局 2026 年第 4 号公告（平台代办申报的从业人员适用月 10 万元起征点而非按次 1000 元）。第 8 章「增值税」一节已据此改写（原文按次 1000 元的说法对平台收入不准确）
+- [ ] 第 8 章：16 号公告未写预扣率表本身（引用 2018 年第 61 号公告），正文写 3%–45% 七级为据 61 号推定
+- [ ] `opc-transition` 第 8 章、`brand-deals` 第 2 章：增值税表述可参照本书第 8 章更新后的口径（平台代办 → 月 10 万；品牌直接付款 → 按次 1000 元）
+
+### brand-deals
+
+- 第 2 章第 16 号公告的依据已从律所解读改为原文核对；本轮只加图（rate-card-ladder.svg、mcn-split.svg），第 2 章其余待核条目未动
+- [ ] 第 9 章 mcn-split.svg 的 7 : 3、6 : 4 是演示用假设比例（书中明确没有可靠行业数据），图和正文都已注明，需人确认这种示意是否合适
+
+### topic-and-hooks
+
+- 本轮只加图（structure-timelines.svg、demand-cost-quadrant.svg），第 1、3、4、7、8、9 章的待核条目未动
+
+### ai-content-pipeline
+
+- 04-video.md#截至-2026-年-11-月的格局：Sora 下线已按 OpenAI 开发者文档弃用页核实（2026-03-24 通知，Videos API 与 sora-2 系列 2026-09-24 移除）；网页端 / App 2026-04-26 关闭只有媒体援引帮助中心（help.openai.com 文章 403 未能直接读到）。REVIEW 第 480 行与第 369 节第一条可关闭 API 部分
+- 04-video.md 同节：Kling 4.0、Seedance 2.5、Vidu Q4 Preview、wan2.7、Veo 3.1 Lite 的规格与日期来自财联社、新华网、新京报、中国日报和第三方 API 平台；只有 MiniMax H3（2026-07-31）核到官方发布记录。Kling 4.0 API 是否已开放未查到
+- 03-images.md#工具怎么选：新增版本清单，gpt-image-2（2026-04）、Nano Banana 2（2026-02）、Seedream 5.0 / 5.0 Pro、FLUX.2 依据为媒体报道；Midjourney V8.2 与 V8 编辑模型已核官方更新公告
+- 05-voice.md#tts-选型：MiniMax Speech-2.8 核到官方发布记录；Eleven v4（2026-09-28）只有媒体报道；豆包语音合成 2.0 为 2025-10 发布，2026 年未查到新版本合成模型
+- 06-digital-human.md#工具怎么选（WARNING 所在小节）：数字人工具（剪映数字人、腾讯智影、蝉镜、闪剪、硅基智能、HeyGen）本轮未逐一核官网，仍只写名称
+- 07 拆章：07-pipeline.md（上，架构与骨架）+ 07-pipeline-stages.md（下，生成步骤、关卡、待发布包）；两篇 H1 都标「第 7 章」上 / 下，以免后面章节的「第 8 / 9 / 10 章」文字引用错位。代码仍未在生产跑过
+
+### ai-drama-storyboard
+
+- 07-video-generation.md#工具对比与选型：Seedance「约 1 元 / 秒」矛盾已改写：说明是媒体按 46 元 / 百万 tokens 折算的估算，当时 2.0 未开 API；补 2.0 mini（23 元 / 百万 tokens，约 0.5 元 / 秒 @720P，东方财富 2026-06）和 2.5 API 2026-08 开放（新京报）。火山方舟模型价格页是 JS 渲染，未能直接读到官方单价
+- 07 / 05 同节：Kling 4.0 规格依据界面新闻、财联社 2026-10-16；Vidu Q4 Preview 依据中国日报、新京报 2026-10；价格为首发优惠价
+- 05-character-consistency.md#工具的一致性能力对比：Midjourney 改为 V8.2（官方 2026-07-24）与 V8 编辑模型取代 --oref（官方 2026-08-27）；06-image-prompts.md 中 Midjourney `::` 多段权重在 V8 上是否仍有效未核
+- 08-motion-comic.md：「运动笔刷」是否仍在各工具未核（维持原写法）
+
+### drama-distribution
+
+- 03-filing-review.md#政策演变为什么会有三套说法：35 号文已在 nrta.gov.cn 核到原文（广电办发〔2024〕35 号，落款 2024-02-05，2025-02-05 官网公开，2024-06-01 起未经审核且备案不得上网，重点含「平台招商主推 / 首页首屏推荐」）。REVIEW 第 280–281 行文号部分可关闭；drama-scriptwriting、micro-drama-industry 等书写「2025 年 2 月通知」「35 号文」的地方可按此统一
+- 03-filing-review.md 同节：2026-06-25《管理提示（AI 微短剧分类分层标准）》80 万 / 30 万在 nrta.gov.cn 站内搜索未找到原文，仍只有新华社、澎湃等转述，维持并标注
+- 03-filing-review.md#材料清单：按办法第十九条原文补了一类送审五项材料；办法第二条「少于二十分钟」、第四十六条「可以并处十万元以下罚款」（只针对偏离备案 / 许可、转移送审）、第五十二条第二款「在境内拍摄、用于境外播出」均已核原文，可用于处理 REVIEW 第 466 行 micro-drama-industry 的罚则与时长口径冲突；办法未写废止 35 号文
+- 04-ai-drama-rules.md#2026-年清理潮的教训：补了总局官网可查的 2026-06-01 专项治理（两个月、八类问题，原文未提 AI）；过审率不足三成、7 万部清退、补审仍为媒体数字
+- 08-copyright.md：(2023)京0491民初11279号、2023-11-27 判决已由多家律所和法律媒体交叉确认，判决原文仍未核
+- 05、06 章平台入驻、分账、费率维持结构写法，本轮未找到官方数字
+
+### brand-deals
+
+- 02-platforms.md「星图结算」附近（约第 92 行）：「小规模纳税人开 3% 专票」是星图平台对开票的要求，和 2026–2027 年小规模纳税人减按 1% 计征的优惠不冲突（专票可放弃减免按 3% 开），未改；如需写明两者关系请人工复核星图帮助中心原文。
+
+### live-streaming
+
+- 03-before-going-live.md 开播门槛列表：快手只补了「2025-02 新入驻达人 0 元保证金带货」（媒体报道，链接到 douyin-kuaishou 06#快手电商），快手开播 / 带货的粉丝门槛仍未查到官方说明。
+

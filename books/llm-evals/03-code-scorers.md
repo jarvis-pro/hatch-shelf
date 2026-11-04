@@ -237,7 +237,7 @@ export const consistencyScorer: ReceiptScorer = ({ output }) => {
 };
 ```
 
-一致性高不代表读对了（数量和金额可能一起读错），但一致性低几乎一定有问题。它最大的价值在于**线上每一张单都能算**，不需要等人标注，第 7 章会把它做成线上监控指标。
+一致性高不代表读对了（数量和金额可能一起读错），但一致性低几乎一定有问题。它最大的价值在于**线上每一张单都能算**，不需要等人标注，第 8 章会把它做成线上监控指标。
 
 注意单据本身也可能是错的：写单的人算错了金额。这种样例的标注要照抄纸上的字，一致性评分器在它上面得 0 分是正确的，不用去「修」。
 
@@ -428,7 +428,7 @@ console.log(`逐条结果：${file}`);
 pnpm tsx --env-file=.env evals/receipt/run.ts
 ```
 
-`results/` 目录写进 `.gitignore`，那里有模型的完整输出。哪一份要作为基线保留，第 5 章再说。
+`results/` 目录写进 `.gitignore`，那里有模型的完整输出。哪一份要作为基线保留，第 6 章再说。
 
 ## 跑完之后：先看失败，再看分数
 
@@ -443,31 +443,7 @@ pnpm tsx --env-file=.env evals/receipt/run.ts
 
 这张表决定了下一步改什么，比任何一个汇总数字都有用。分数是用来**确认**改动有效的，失败样例才是用来**指导**改动的。
 
-### 别忘了测评分器
-
-评分器本身是代码，也会有 bug：配对阈值写反了、0/0 返回了 NaN。给它写几个普通的单元测试，用手工构造的输出和期望，断言分数：
-
-```typescript
-// evals/receipt/scorers.test.ts
-import { describe, expect, it } from "vitest";
-import { lineScorer } from "./scorers";
-
-const line = (name: string, quantity: number) => ({ name, unit: "斤", quantity, unitPriceCents: 100, amountCents: quantity * 100 });
-const receipt = (lines: ReturnType<typeof line>[]) => ({ date: null, supplier: null, totalCents: null, lines });
-const input = { image: "x.jpg", sha256: "", layout: null };
-
-describe("lineScorer", () => {
-  it("漏读一行不会让后面的行错位", async () => {
-    const expected = receipt([line("白菜", 6), line("毛豆", 8), line("土豆", 30)]);
-    const output = receipt([line("白菜", 6), line("土豆", 30)]);
-    const scores = await lineScorer({ input, output, expected });
-    expect(scores.find((s) => s.name === "line_recall")?.value).toBeCloseTo(2 / 3);
-    expect(scores.find((s) => s.name === "field_acc")?.value).toBe(1);
-  });
-});
-```
-
-这类测试不调模型，可以放进普通的 `pnpm test` 里，每次都跑。
+评分器本身也是代码，也会出错。在拿这些分数做决定之前，[下一章](03-testing-scorers.md)先检查评分器自己靠不靠谱。
 
 ## 本章要点
 
@@ -477,4 +453,5 @@ describe("lineScorer", () => {
 - **不变量检查不需要标注**，线上每一条都能算
 - 任务出错要计 0 分，不能悄悄跳过；运行器统一加 `ok` 指标
 - 任务直接调用线上那个函数，后处理也在被测范围内
-- 跑完先归类失败样例，分数用来确认，失败用来指导；评分器自己也要有单元测试
+- 跑完先归类失败样例，分数用来确认，失败用来指导
+- 评分器自己也会错，怎么测它见[下一章](03-testing-scorers.md)

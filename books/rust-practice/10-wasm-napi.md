@@ -386,7 +386,7 @@ console.log(lintChapter("a.md", "no heading"));
 | TS + `worker_threads` | Node | 能 | 无需处理 | 消息序列化 | CPU 任务不多、不想引入新语言 |
 | WASM（wasm-bindgen） | 浏览器、Node、Workers | 不能（沙箱） | 一份产物 | 字符串要拷贝、编码 | 浏览器或 Workers 里的纯计算 |
 | Node 扩展（napi-rs） | Node、Electron | 能 | 每个平台一份 | 低 | 只在 Node 侧用、计算或 I/O 很重 |
-| 独立 CLI（第 8 章） | 任何地方，作为子进程 | 能 | 每个平台一份 | 进程启动 + 文本解析 | 工具本身就有独立使用的价值 |
+| 独立 CLI（[第 8 章](08-cli-commands.md)） | 任何地方，作为子进程 | 能 | 每个平台一份 | 进程启动 + 文本解析 | 工具本身就有独立使用的价值 |
 | Tauri 命令（第 9 章） | Tauri 应用 | 能 | 随应用打包 | JSON 序列化 | 桌面应用 |
 
 ```mermaid
@@ -413,7 +413,8 @@ flowchart TD
 | [错误处理](05-error-handling.md) | `Result` + `?`；库用 thiserror，应用用 anyhow |
 | [集合、迭代器与闭包](06-collections-iterators-closures.md) | 迭代器惰性且零成本；闭包按捕获方式分三种 |
 | [并发与 async](07-concurrency-async.md) | 数据竞争是编译错误；Future 惰性、丢弃即取消 |
-| [写一个 CLI](08-cli-clap.md) | 库放逻辑、二进制只做壳；规则要多端共用时不要写两份 |
+| [写一个 CLI（上）](08-cli-clap.md) | 库放逻辑、二进制只做壳；Cargo workspace 统一依赖 |
+| [写一个 CLI（下）](08-cli-commands.md) | clap derive 定义命令，退出码分三种；规则要多端共用时不要写两份 |
 | [Tauri](09-tauri.md) | 命令是 API 边界，capability 是白名单；共享 TS 逻辑时 Electron 更顺 |
 | WASM 与 napi-rs（本章） | 浏览器和 Workers 用 WASM，Node 和 Electron 用 napi-rs，先测量再动手 |
 

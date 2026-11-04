@@ -567,6 +567,87 @@ claude mcp add --scope project shelf-books -- npx tsx tools/shelf-mcp/src/stdio.
 | 工具调用超时 | 处理函数太慢或卡住 | 给处理函数加超时；调大 server 的 `timeout` 配置 |
 | 读不到书 | `SHELF_BOOKS_DIR` 指错了 | 看 stderr 里打印的 books 目录 |
 
+## 发布与分发：MCP Registry
+
+`shelf-books` 只给自己用，放在仓库里、用 `.mcp.json` 接入就够了。如果你写的 server 想让别人也装上，就涉及分发：代码放在哪、别人怎么找到它、怎么确认它真是你发布的。
+
+> [!WARNING]
+> 本节按 2026 年 11 月 modelcontextprotocol.io 的 Registry 文档（About、Quickstart、Package Types、FAQ）整理。官方 Registry 写作时仍是预览版（preview），官方说明在正式发布前可能有破坏性变更或数据重置，以官方文档为准。
+
+### Registry 存的是「元数据」，不是代码
+
+官方 MCP Registry（`registry.modelcontextprotocol.io`）是公开 MCP server 的集中**元数据**仓库，由 Anthropic、GitHub、PulseMCP、Microsoft 等参与维护。它和 npm 这类包仓库是两层：
+
+```mermaid
+flowchart TD
+  A["你的 server 代码"] --> B["包仓库<br/>npm、PyPI 等"]
+  A --> C["server.json<br/>元数据"]
+  C --> D["官方 Registry"]
+  D --> E["下游聚合方<br/>各家市场"]
+  E --> F["宿主应用"]
+  B -. 安装时拉取 .-> F
+```
+
+- **代码和二进制**照旧发到包仓库。支持的类型有 npm、PyPI、NuGet、Cargo、Docker / OCI 镜像，以及 MCPB（发在 GitHub / GitLab Releases 上的预编译包）；也可以登记一个公开可访问的远程 server 地址
+- **Registry 只存一份 `server.json`**：server 的唯一名字、去哪儿装（包名或远程地址）、怎么运行（参数、环境变量）、描述等
+- **宿主一般不直接读官方 Registry**。官方的定位是给下游聚合方（各种 server 市场、目录）定期拉取，由它们做筛选、评分和安全检查，宿主再对接这些市场。Registry 还公开了一份 OpenAPI 规范，企业可以按它自建私有 registry
+- **只收公开的 server**。只在内网能访问、或只发在私有包仓库里的 server，不能登记到官方 Registry
+
+### 名字即身份
+
+Registry 里 server 的名字用反向域名格式，并且要证明你拥有这个命名空间：
+
+| 名字 | 怎么证明 |
+|---|---|
+| `io.github.<用户名>/<server>` | 用 GitHub 账号登录 |
+| `com.example/<server>` | 在 `example.com` 上做 DNS 或 HTTP 验证 |
+
+对 npm 包，还要在 `package.json` 里加一个 `mcpName` 字段，值和 `server.json` 里的 `name` 一致，Registry 用它确认这个 npm 包确实属于这个 server，防止有人拿别人的包冒名登记。
+
+### 发布流程
+
+官方提供命令行工具 `mcp-publisher`（Homebrew 可装，也有预编译二进制）：
+
+```bash
+# 1. 先把包发到 npm（Registry 不托管代码）
+npm publish --access public
+
+# 2. 生成 server.json 模板，按实际情况改
+mcp-publisher init
+
+# 3. 证明命名空间归属，这里用 GitHub 登录
+mcp-publisher login github
+
+# 4. 发布元数据
+mcp-publisher publish
+```
+
+`server.json` 的核心部分大致是这样：
+
+```json
+{
+  "name": "io.github.my-username/shelf-books",
+  "description": "查询和校验 hatch-shelf 书库的 MCP server",
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@my-username/shelf-mcp",
+      "version": "1.0.0",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
+```
+
+需要用户提供密钥时，在 `environmentVariables` 里声明变量名并标上 `isSecret: true`，让客户端在安装时提示用户填写，而不是让人去 README 里找。版本号要和包仓库里的版本对上，每发一个新版本就重新 `publish` 一次，也可以用 GitHub Actions 自动化。
+
+### 安全由谁负责
+
+Registry 负责的只有两件事：命名空间验证和元数据托管。**代码本身的安全扫描交给包仓库和下游聚合方**，维护者只会人工下架垃圾和恶意条目。所以「它在官方 Registry 里」只说明「名字确实属于这个发布者」，不说明「代码可信」。装第三方 server 前该做的检查，第 6 章的「第三方 server 的供应链风险」一节仍然适用。
+
+对书库 server 这样只服务一个仓库的工具，没必要发布：它依赖仓库里的 `@shelf/spec` 和书目录，离开这个仓库就没有意义。值得发布的是那些**与具体仓库无关、别人装上就能用**的 server。
+
 ## 本章要点
 
 - 新项目用 SDK 2.x：`@modelcontextprotocol/server`，`inputSchema` 是完整的 zod schema，`serveStdio` / `createMcpHandler` 接收工厂函数
@@ -575,3 +656,4 @@ claude mcp add --scope project shelf-books -- npx tsx tools/shelf-mcp/src/stdio.
 - `content` 给模型，`structuredContent` + `outputSchema` 给程序；可预期错误返回 `isError`
 - 用进程内的真实客户端测试，覆盖正常路径和错误路径；Inspector 用来手动调试
 - 用 `.mcp.json` 或 `claude mcp add` 接入 Claude Code；stdout 不能有任何非协议输出
+- 想给别人用时：代码发到 npm 等包仓库，元数据用 `mcp-publisher` 登记到官方 Registry；Registry 只验证名字归属，不担保代码安全

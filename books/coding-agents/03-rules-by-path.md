@@ -141,6 +141,47 @@ paths:
 
 用户级 rule 的 `paths` 相对于会话的主工作目录解析。
 
+## 插件：把整套规矩打包
+
+rules、Skills、子 agent、hooks、MCP 配置都是一个个散落的文件。一套顺手的配置想带到第二个项目、分给别人用，挨个复制很快就会走样。插件（plugin）就是把它们打成一个目录、作为一个整体安装和更新的办法。
+
+> [!WARNING]
+> 本节按 2026 年 11 月 code.claude.com 的 Plugins 文档整理（overview、Install and manage plugins、Create a plugin），命令和目录约定以官方文档为准。
+
+一个插件的目录长这样，只放用得到的部分：
+
+```text
+my-plugin/
+├── .claude-plugin/plugin.json   # 清单：插件名、版本、描述
+├── skills/release/SKILL.md      # Skill，装好后是 /my-plugin:release
+├── agents/diff-reviewer.md      # 子 agent 定义
+├── hooks/hooks.json             # 和 settings 里 hooks 字段同样的结构
+└── .mcp.json                    # MCP server 定义
+```
+
+注意清单里能装的是 Skill、子 agent、hooks、MCP server（以及旧式的 `commands/`），**不包括 CLAUDE.md 和 `.claude/rules/`**：项目规矩仍然跟着仓库走，插件装的是可以跨项目复用的能力。
+
+插件从哪儿来：
+
+```mermaid
+flowchart TD
+  A["marketplace<br/>一份插件目录清单"] --> B["插件<br/>一个目录"]
+  B --> C["/plugin install<br/>选作用范围"]
+  C --> D["会话启动时<br/>加载其中组件"]
+```
+
+- **marketplace** 是一个带 `.claude-plugin/marketplace.json` 的仓库或目录，只是目录清单，不是商店。Anthropic 官方的 `claude-plugins-official` 在第一次打开交互会话时自动添加；别的用 `/plugin marketplace add owner/repo` 加
+- **安装**：会话里输入 `/plugin` 浏览，或 `/plugin install <插件>@<marketplace>`；脚本里用 `claude plugin install`
+- **作用范围**和 settings 一样分三层：user（你所有项目）、project（写进入库的 `.claude/settings.json`，队友各自还要装一次）、local（只你、只这个项目）
+- **自己开发**时不用 marketplace：`claude --plugin-dir ./my-plugin` 只在这次会话里加载它
+
+两个代价和 Skill、hooks 本身一样，只是更容易被忽视，因为是一次装进来一整包：
+
+- **上下文**：启用的插件里，每个模型可以自行调用的 Skill、子 agent 的名字和描述每一轮都在上下文里，不管这次用不用。装了不常用的就用 `/plugin` 或 `claude plugin disable` 关掉
+- **权限**：插件里的 hooks 和 MCP server 以你的身份运行。第三方 marketplace 的插件，装之前像看 clone 来的仓库一样看一遍它的 `hooks/hooks.json` 和 `.mcp.json`
+
+对个人项目来说，什么时候值得做成插件？同一套 Skill / 子 agent / hooks 在两个以上的仓库里各复制了一份、而且已经开始不一致时。书架作者三个项目的 CLAUDE.md 和 rules 各不相同，不适合打包；但像第 5 章的 `diff-reviewer` 子 agent、第 4 章的 macOS 通知 hook 这类与项目无关的东西，就可以放进一个自己的插件。
+
 ## 写 rules 的几条经验
 
 - **一份 rule 一个关注点，文件名就是主题**：`server.md`、`build.md`，而不是 `rules1.md`
@@ -158,3 +199,4 @@ paths:
 - 按路径加载靠文件工具触发，`grep`、跑脚本、发版这类操作不会触发；在 CLAUDE.md 里为它们留「做 X 之前先读 Y」的入口
 - 和文件相关的用 rules 或子目录 CLAUDE.md，流程类用 Skill，绝不能错的另加 hook 或测试
 - `~/.claude/rules/` 放个人跨项目习惯；rules 失效是静默的，目录变动后记得同步 paths
+- 跨项目复用的 Skill、子 agent、hooks、MCP 配置可以打包成插件，从 marketplace 安装；它不装 CLAUDE.md 和 rules，启用的插件每轮都占上下文

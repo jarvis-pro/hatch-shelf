@@ -53,7 +53,7 @@ DSH 的工具都由各自的插件提供，下面按用途分组列出常见的�
 
 ## 四种 Agent 模式
 
-DSH 把「这个会话能用哪些能力」打包成**Agent 预设（agent preset）**，界面上叫模式。官方介绍了四种：
+DSH 把「这个会话能用哪些能力」打包成**Agent 预设（agent preset）**，界面上叫模式。官方介绍了四种，中文界面上依次叫标准、PTC、极简、创造：
 
 | 模式 | 给模型什么 | 适合 |
 |---|---|---|
@@ -63,6 +63,8 @@ DSH 把「这个会话能用哪些能力」打包成**Agent 预设（agent prese
 | **Creator** | 能检查 DSH 运行时、在内存里试插件的工具 | 开发插件和预设 |
 
 ### PTC：让模型写程序来调工具
+
+0.2.1 起，内置的默认模式统一成 Standard，已有会话保持原来的模式；0.2.2 预发布版又把 PTC 改成通过配置叠加层启用，旧的 `tools.mode` 配置和 `DSH_TOOLS_MODE` 环境变量需要按升级指南迁移。自己改过配置的话，升级前看一眼 `docs/upgrade-guide/`。
 
 PTC 模式最值得单独说。官方文档没有写出缩写的全称，从行为看对应的是「程序化工具调用（programmatic tool calling）」，产品页上它叫 Code mode。
 
@@ -174,20 +176,43 @@ MCP（Model Context Protocol）是让 agent 接外部工具的通用协议，[�
 
 ### 定时任务
 
-`schedule_create` 等工具或界面里的定时任务功能，可以按日历规则（RFC 5545，和日历软件的重复规则同一个标准）定期触发一个会话，比如每周一早上九点生成周报。子 agent 不能创建定时任务。
+`schedule_create` 等工具或界面里的定时任务功能，可以按日历规则（RFC 5545，和日历软件的重复规则同一个标准）定期触发一个会话，比如每周一早上九点生成周报。0.2.1 起它成了 Web 内置能力（界面上叫「自动化任务」），标准、创造和 PTC 模式可用，极简模式和子 agent 不能创建。
 
 ### 计划模式
 
 让 agent 先只读、只规划，用 `exit_plan_mode` 把计划交给你，你批准后它才开始改东西。大改动前先对齐方案，和 Claude Code 的 plan 模式是同一个思路。
 
-## 和 Claude Code 生态的兼容
+## 从 Claude Code 迁过来
 
-如果你在 Claude Code 里攒了一些东西，DSH 有几座「桥」：
+> [!WARNING]
+> 本节的对照按 2026 年 11 月 4 日官方仓库 master 分支的 `dsh-agent-instructions`、`dsh-hooks-claude-code`、`dsh-subagent-claude-code`、`docs/subsystems/skills` 和 `permission-presets` 文档，以及 0.2.1 / 0.2.2 预发布版的 release notes 整理。桥接插件大多是实验性的，以你实际版本为准。
 
-- `CLAUDE.md` 直接被说明文件加载器读取（上文）
-- `.agents/skills` 是跨工具共享的 Skills 目录
-- 有一个桥接插件能运行 Claude Code 的 settings hooks（`dsh-hooks-claude-code`）
-- 有一个**实验性**的桥接插件能加载 Claude Code 的 mods，但行为有不少差异，而且 mod 在 DSH 里不受沙箱约束，第 7 章会提醒这一点
+如果你在 Claude Code 里攒了一套 CLAUDE.md、Skills、hooks、MCP 配置，搬到 DSH 时可以按下面这张表逐项对照。概念大多一一对应，差别在「放在哪儿」和「怎么开」：
+
+| Claude Code | DSH 里对应的 | 迁移时要做的 |
+|---|---|---|
+| `CLAUDE.md`（项目根到当前目录） | 说明文件加载器直接读 `CLAUDE.md`、`AGENTS.md` 和对应的 `.local.md` | 基本不用动；但 `@路径` 导入不会展开 |
+| `~/.claude/CLAUDE.md` | `~/.dsh/AGENTS.md`、`~/.agents/AGENTS.md` | 个人级说明复制或软链接过去 |
+| `.claude/rules/*.md`（按路径加载） | 没有对应物，不会被读取 | 要紧的条目并进 `CLAUDE.md`，或改写成 Skill |
+| `.claude/skills/` | `.dsh/skills`、`.agents/skills`、`~/.agents/skills` 等 | 挪到 `.agents/skills`，两边都能用；格式同样是 `SKILL.md` |
+| 权限模式和 allow / deny 规则 | 权限预设（沙箱模式 × 审批策略），没有逐条命令的放行规则 | 「绝不能做」的事写成门禁插件（[第 9 章](09-write-a-plugin.md#第四步门禁插件)）或经 hooks 桥接 |
+| `auto` 模式 | 实验性的 `auto` 预设：自动审查员代替你回答审批 | 思路相同，都是用另一个模型做判断，[第 7 章](07-safety.md#权限预设)讲了代价 |
+| plan 模式、`/compact`、`/goal` | 计划模式、`/compact`、`/goal` | 用法几乎一样 |
+| `settings.json` 里的 hooks | 实验性的 `dsh-hooks-claude-code` 桥接插件 | 在配置补丁里挂上它，`configPath` 指向原来的 hooks 文件 |
+| `.mcp.json` | `dsh-mcp-client`，每个 server 一行配置补丁 | 按上文「接入 MCP」逐个改写，密钥改成环境变量引用 |
+| `.claude/agents/` 子 agent 定义 | `subagent` 工具；可按需换模型、换模式 | 定义要重写；想原样用 Claude Code，可启用「Claude Code 子智能体」组合包 |
+| `claude -p` | `dsh --profile headless` | 参数不同，见[第 10 章](10-automation-and-next.md#一次性运行headless) |
+| Claude Agent SDK | DSH 的 Python / TypeScript SDK | 接口不同，要重写调用代码 |
+| 插件和 marketplace | npm 包形式的插件，`dsh plugin --profile web add <包名>` 安装 | 不通用，Claude Code 插件需改写；mods 有一个实验性兼容层 |
+
+几处值得多说一句：
+
+- **hooks 桥接只覆盖一部分**。它只运行 `command` 类型的 hook，支持 `SessionStart`、`UserPromptSubmit`、`PreToolUse`、`PostToolUse`、`Stop`、`SubagentStart`、`SubagentStop` 七个事件，其中 `SubagentStop` 只能观察不能拦截。配置读不出来时它只记一条警告，**不会阻止 DSH 启动**，所以靠 hook 守住的东西，迁过来后要亲手验证一次它真的在拦
+- **规矩的约束力不变**。DSH 读你的 `CLAUDE.md`，但它和 Claude Code 一样只是「建议」。Claude Code 里用 deny 规则和 hook 兜住的事，在 DSH 里要用沙箱、审批或门禁插件重新兜一遍，不能以为说明文件带过来就够了
+- **工具名不一样**。DSH 的工具是小写的 `read`、`bash`、`subagent`，Claude Code 是 `Read`、`Bash`、`Agent`。说明文件里如果写了「用 Read 工具读」这类话，模型通常能对上，但 hook 脚本里按 `tool_name` 判断的逻辑要检查一遍
+- **mods 兼容层只是验证性质的**。release notes 原话是它主要用来验证 Claude Code mods 的 API「大致为 DSH 插件的一个子集」，不打算提供完整兼容；而且 mod 在 DSH 里不受沙箱约束（第 7 章）
+
+比较稳妥的迁移顺序：先让 DSH 读同一份 `CLAUDE.md`、把 Skills 挪到 `.agents/skills`，在一个开了分支的仓库里跑几个只读任务；再接 MCP；最后才处理 hooks 和权限，因为这两样在两边的机制差别最大。
 
 ## 本章要点
 
@@ -196,3 +221,4 @@ MCP（Model Context Protocol）是让 agent 接外部工具的通用协议，[�
 - DSH 读取 `AGENTS.md` 和 `CLAUDE.md`（个人级 + 项目根到当前目录），为 Claude Code 写的说明文件可以直接复用
 - Skills 放在 `.dsh/skills`、`.agents/skills` 或 `~/.dsh/skills` 等目录，平时只露名字，用到才加载
 - 子 agent、Teams、目标、Ralph、定时任务、计划模式让它能接更大的活；目标的自动续做需要人来授权
+- 从 Claude Code 迁过来：`CLAUDE.md` 直接可用，Skills 挪到 `.agents/skills`；rules、`@` 导入不被读取，权限规则和 hooks 要用门禁插件或实验性桥接重新兜底

@@ -184,7 +184,7 @@ hatch-counter 把配置分成三层：
 ## 用 @nestjs/config 的写法
 
 > [!WARNING]
-> 本节关于 NestJS 12 版 `@nestjs/config` 改用 Standard Schema 校验、Joi 版本要求和 `validationOptions.libraryOptions` 的说法按 v12 发布说明整理，以 NestJS 官方迁移指南和 `@nestjs/config` 的 changelog 为准。
+> 本节关于 NestJS 12 版 `@nestjs/config` 改用 Standard Schema 校验、Joi 版本要求和 `validationOptions.libraryOptions` 的说法按 2026 年 11 月的 NestJS v12.0.0 发布说明和官方迁移指南核对过；hatch-counter 用的是自己的 `loadConfig()`，没有用到这部分。以 NestJS 官方迁移指南和 `@nestjs/config` 的 changelog 为准。
 
 如果你更喜欢依赖注入风格，`@nestjs/config` 是官方方案。它的 `ConfigModule.forRoot()` 支持一个 `validate` 函数，可以直接接上同一个 zod schema：
 
@@ -216,7 +216,7 @@ export class SomeService {
 }
 ```
 
-NestJS 12 的 `@nestjs/config` 改为通过 Standard Schema 校验，`validationSchema` 可以直接传 zod 等库的 schema；继续用 Joi 的需要 Joi 18 以上，并把 Joi 专有的选项移到 `validationOptions.libraryOptions` 下。
+NestJS 12 的 `@nestjs/config` 改为通过 Standard Schema 校验，`validationSchema` 可以直接传 zod 等库的 schema；迁移指南推荐新项目用 zod。继续用 Joi 的需要 Joi 18 以上，并把 `allowUnknown`、`abortEarly` 这类 Joi 专有的选项移到 `validationOptions.libraryOptions` 下；Joi 原来的默认值（`allowUnknown: true`、`abortEarly: false`）保留，你写的选项合并在上面。`nest upgrade` 会自动做这一步替换。
 
 两种方式对比：
 

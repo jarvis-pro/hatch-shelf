@@ -227,7 +227,7 @@ for (;;) {
 ## 什么时候需要 WebSocket
 
 > [!WARNING]
-> 本节提到的 NestJS 12 网关新能力（`handleDisconnect` 拿到断开原因、请求级作用域、`@MessageBody({ schema })`）按 v12 发布说明整理，以 NestJS 官方文档的 Gateways 页面为准。
+> 本节提到的 NestJS 12 网关新能力按 2026 年 11 月的官方资料核对：请求级作用域见 Gateways 文档页，`@MessageBody({ schema })` 见 Validation 文档页；`handleDisconnect` 能拿到断开原因只出现在 v12.0.0 发布说明里，文档页还没写参数的具体类型和哪些适配器支持，用之前看一眼 `@nestjs/websockets` 的类型定义。以 NestJS 官方文档为准。
 
 真需要双向、低延迟的通信（聊天、协同编辑、实时游戏），就用 WebSocket。Nest 用网关（gateway）来写：
 
@@ -265,7 +265,7 @@ import { WsAdapter } from "@nestjs/platform-ws";
 app.useWebSocketAdapter(new WsAdapter(app));
 ```
 
-Nest 也提供基于 socket.io 的适配器（`@nestjs/platform-socket.io`），自带房间、自动重连和降级，但客户端也必须用 socket.io 的库。NestJS 12 起 `handleDisconnect` 能拿到断开原因，网关也支持请求级作用域；守卫、管道（包括 `@MessageBody({ schema })` 校验）同样能用在网关上。WebSocket 的鉴权、重连、心跳、断线补偿这些问题，一个都不比 SSE 少，只是要自己多处理一层协议。
+Nest 也提供基于 socket.io 的适配器（`@nestjs/platform-socket.io`），自带房间、自动重连和降级，但客户端也必须用 socket.io 的库。NestJS 12 起 `handleDisconnect` 能拿到断开原因；网关也支持请求级作用域的 provider，每条连上来的 socket 各有一份实例，用 `@Inject(REQUEST)` 注入的就是这条 socket，断开时一起销毁；守卫、管道（包括 `@MessageBody({ schema })` 校验）同样能用在网关上。WebSocket 的鉴权、重连、心跳、断线补偿这些问题，一个都不比 SSE 少，只是要自己多处理一层协议。
 
 ## 本章要点
 

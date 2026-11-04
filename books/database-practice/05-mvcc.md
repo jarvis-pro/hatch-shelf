@@ -216,7 +216,7 @@ alter table sales_records add column channel text not null default 'pos';   -- 1
 alter table sales_records add column rnd double precision default random(); -- 3000 ms
 ```
 
-PostgreSQL 11 起，加一个默认值是常量的列只记在元数据里，老行读的时候补上；默认值是 `random()`、`now()` 这类易变函数时，每行的值不同，只能重写整张表，期间持有排他锁。第 6 章写迁移时会再用到这条。
+PostgreSQL 11 起，加一个默认值是常量（准确说是非易变表达式）的列只记在元数据里，老行读的时候补上；默认值是 `random()`、`clock_timestamp()` 这类易变（volatile）函数时，每行的值不同，只能重写整张表，期间持有排他锁。`now()` 不算：它在一个事务里取同一个值，加列时算一次存进元数据，照样不重写。生成列同理：`STORED` 的要给每一行算出值写进去，会重写整表；PostgreSQL 18 起的虚拟生成列不落盘，加列只改元数据（见[第 1 章](01-modeling.md#生成列让库替你算)）。第 6 章写迁移时会再用到这条。
 
 ## SQLite 怎么做
 

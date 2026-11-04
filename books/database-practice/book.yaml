@@ -1,6 +1,6 @@
 id: database-practice
 title: 数据库原理与实战
-subtitle: 开发者视角的建模、索引、执行计划、事务与 MVCC，以 PostgreSQL 16 + Drizzle 和 SQLite 为例
+subtitle: 开发者视角的建模、索引、执行计划、事务与 MVCC，以 PostgreSQL 18 + Drizzle 和 SQLite 为例
 category: 技术/数据库
 tags: [postgresql, sqlite, drizzle, sql, database]
 level: intermediate

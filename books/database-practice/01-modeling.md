@@ -5,7 +5,7 @@
 ## 关于这本书
 
 > [!WARNING]
-> 书中的执行计划、输出和版本差异（如 `uuidv7()`、B 树跳跃扫描）按 PostgreSQL 16 实测、对照 PostgreSQL 18 发布说明整理，截至 2026-11；更新的大版本在优化器和默认值上可能有变化，以 PostgreSQL 官方文档对应版本的 Release Notes 为准。
+> 全书以 PostgreSQL 18 为基线（18.0 于 2025-09-25 发布），18 的新特性按 2026 年 11 月的 PostgreSQL 18 官方 Release Notes 和对应版本文档整理。贴出的执行计划和输出大多是在 16 上实测的（hatch-counter 线上仍是 16），换到 18 上没有逐条重跑：多数计划形状应当相同，但 18 的优化器改进（如 B 树跳跃扫描、把 `OR` 条件转成数组）可能让个别计划不同，`EXPLAIN ANALYZE` 会自动多出 `Buffers` 行、冷缓存下的耗时可能因异步 I/O 不同。以 PostgreSQL 官方文档对应版本的 Release Notes 为准。
 
 这本书只讲**开发视角**的数据库：你写的表结构、SQL 和 ORM 代码，在数据库里到底怎么执行，什么写法快、什么写法会在并发下出错。运维那一侧（参数调优、备份恢复、复制、连接池、VACUUM 调参、大版本升级）在[《PostgreSQL 运维》](../database-ops/)里，向量检索在[《RAG 与知识系统》](../rag-systems/)里，这里都不重复。
 
@@ -25,12 +25,27 @@
 | 8 SQLite 与本地优先 | 手机上的库怎么设计、怎么迁移 |
 | 9 JSON 与全文检索 | jsonb 什么时候用，中文搜索怎么做 |
 
-前五章是原理，后四章是实战，建议按顺序读。书里的 SQL 大多在 PostgreSQL 16 的容器和 sqlite3 3.54 上实际跑过，贴出的输出是真实结果；时间数字来自一台开发机，只看量级。想跟着跑，起一个一次性的容器就够：
+前五章是原理，后四章是实战，建议按顺序读。书里的 SQL 大多在 PostgreSQL 16 的容器和 sqlite3 3.54 上实际跑过，贴出的输出是真实结果；时间数字来自一台开发机，只看量级。想跟着跑，起一个一次性的容器就够，用 18 或 16 都行：
 
 ```bash
-docker run --rm -d --name pg-lab -e POSTGRES_PASSWORD=lab postgres:16-alpine
+docker run --rm -d --name pg-lab -e POSTGRES_PASSWORD=lab postgres:18-alpine
 docker exec -it pg-lab psql -U postgres
 ```
+
+### PostgreSQL 18 对开发者意味着什么
+
+18 的大部分改动在运维侧（升级保留统计信息、`initdb` 默认开数据校验和、MD5 密码认证被标为弃用），在[《PostgreSQL 运维》](../database-ops/)里。和写表、写 SQL 直接相关的是下面几条，书里在对应位置展开：
+
+| 18 的变化 | 对你的影响 | 在哪讲 |
+|---|---|---|
+| 内置 `uuidv7()`，并新增 `uuidv4()` 作为 `gen_random_uuid()` 的别名 | 有序 UUID 不用再在应用层生成 | 本章「主键」 |
+| 生成列默认改为虚拟（`VIRTUAL`），读的时候才算 | 写 `GENERATED ALWAYS AS (...)` 不写 `STORED` 时语义变了 | 本章「生成列」 |
+| 时间段约束 `WITHOUT OVERLAPS` | 「同一时段不能重叠」可以写成主键 / 唯一约束 | 本章「约束」 |
+| B 树跳跃扫描（skip scan） | 联合索引的前导列没条件时也可能用上 | 第 2 章 |
+| `EXPLAIN ANALYZE` 默认带 `BUFFERS`；异步 I/O 子系统 | 计划里多了页数；顺序扫描、位图扫描、VACUUM 读盘更快 | 第 3 章 |
+| `RETURNING` 里可以用 `old` / `new` | 一条 `UPDATE` 同时拿到改前改后的值 | 第 4 章 |
+| `NOT NULL` 约束可以先 `NOT VALID` 再验证 | 给大表加非空约束不再必须一次扫全表锁着 | 第 6 章 |
+| 全文检索读词典改用集群默认的排序规则提供方 | 从旧版本升上来要重建全文检索和 pg_trgm 的索引 | 第 9 章 |
 
 ## 从需求里找出实体
 
@@ -64,7 +79,7 @@ erDiagram
 | 自然键 | 手机号、书的 id | 有业务含义，不用额外列 | 业务含义会变（换号），变了要级联改所有引用 |
 | 自增整数 | `bigserial` | 小、有序、插入集中在索引尾部 | 暴露数量和顺序；多端离线生成会撞 |
 | UUID v4 | `gen_random_uuid()` | 任何一端都能生成，不撞，不泄露数量 | 16 字节；完全随机，插入落在索引各处 |
-| UUID v7 | 时间戳前缀 + 随机 | 兼顾全局唯一和大致有序 | PostgreSQL 18 起才内置 `uuidv7()`，16 上要应用层生成 |
+| UUID v7 | 时间戳前缀 + 随机 | 兼顾全局唯一和大致有序 | 前缀泄露创建时刻；PostgreSQL 18 起才内置 `uuidv7()`，16 及更早要应用层生成 |
 
 hatch-counter 的规矩是「主键一律 uuid（`gen_random_uuid()`）」，例外只有三种：
 
@@ -141,6 +156,38 @@ create table items (
 
 判断方法：如果「源头变了，这里也该跟着变」，那就是冗余，应该引用；如果「源头变了，这里应该保持原样」，那就是快照，应该复制。
 
+### 生成列：让库替你算
+
+> [!WARNING]
+> 本小节按 2026 年 11 月的 PostgreSQL 18 文档（CREATE TABLE、Generated Columns）和 drizzle-kit 0.31 的行为整理；虚拟生成列的限制在后续版本可能放宽，以 PostgreSQL 官方文档对应版本为准。
+
+第一类缓存列如果只依赖**同一行**的其他列（比如「含税金额 = 金额 × 1.06」、「姓名的小写形式」），可以交给数据库自己维护，这就是生成列：
+
+```sql
+create table invoice_lines (
+  amount_cents integer not null,
+  tax_cents integer generated always as (amount_cents * 6 / 100) stored,
+  total_cents integer generated always as (amount_cents + amount_cents * 6 / 100)  -- 18 起默认 VIRTUAL
+);
+```
+
+生成列不能被直接写入，源列一变它就跟着变，「只有一处代码写它」由数据库保证。PostgreSQL 18 起有两种：
+
+| | `STORED` | `VIRTUAL`（18 起的默认） |
+|---|---|---|
+| 什么时候算 | 写入时算好存盘 | 读的时候现算 |
+| 占空间 | 占 | 不占 |
+| 加到已有大表上 | 要重写整表 | 只改元数据 |
+| 能不能建索引 | 能 | 18 里还不能 |
+| 表达式限制 | 只能用不可变函数，不能引用别的表 | 再加一条：只能用内置函数和类型 |
+
+两个要留意的地方：
+
+- **不写 `STORED` 的语义在 18 变了**。16 及更早只支持 `STORED`，必须显式写出来；18 里省略就是虚拟列。从网上抄来的建表语句，要看清它是给哪个版本写的
+- **Drizzle 的 `generatedAlwaysAs()`**：drizzle-kit 0.31 给 PostgreSQL 生成的迁移总是带 `STORED`，想要虚拟列得在迁移里手写；Drizzle v1 的 drizzle-kit 能区分两种（第 6 章讲 v1 的迁移变化）
+
+生成列只解决「同一行里能算出来」的情况。像 `stock_qty` 这种要汇总流水的缓存，跨了行、跨了表，生成列表达不了，仍然得靠代码或触发器。
+
 ## 约束：把规矩写进库里
 
 代码会有 bug、会有新人、会有你凌晨三点写的脚本，而库里的约束对所有写入者一视同仁。能写成约束的规矩，尽量写成约束：
@@ -164,6 +211,17 @@ create unique index employees_active_phone
 
 ```text
 ERROR:  duplicate key value violates unique constraint "employees_active_phone"
+```
+
+PostgreSQL 18 又多了一种：**时间段不重叠的唯一约束**。排班、会议室预订、价格有效期这类「同一个对象在同一时段只能有一条」的规则，以前要手写 `EXCLUDE USING gist`，18 可以直接写成主键或唯一约束（`WITHOUT OVERLAPS` 作用在最后一列，那一列必须是范围类型，需要 `btree_gist` 扩展来支持等值列）：
+
+```sql
+create extension if not exists btree_gist;
+create table shifts (
+  employee_id uuid not null,
+  during tstzrange not null,
+  primary key (employee_id, during without overlaps)
+);
 ```
 
 ### 外键的删除行为

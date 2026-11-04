@@ -30,9 +30,23 @@ dsh --profile headless "运行 pnpm shelf-pack check books/，把报错按书分
 
 它会新建一个会话（会话照常保存，事后可以在界面里打开查看）、跑完任务、打印最终回答、退出。适合放进脚本或定时任务里。
 
+`dsh --profile headless --help` 列出的常用参数（按 2026 年 11 月仓库里的 `docs/cli-help.md`）：
+
+| 参数 | 作用 |
+|---|---|
+| `-`（任务位置写一个短横线） | 从标准输入读任务，比如 `echo "跑测试" \| dsh --profile headless -` |
+| `--json` | 逐行输出运行事件（JSON），而不是只打印最终回答 |
+| `--session-id <id>` | 接着一个已保存的会话跑，id 不存在会报错 |
+| `--permission-mode <预设>` | 本次任务用哪个权限预设，比如 `workspace-write` |
+| `--approval-policy ask\|never` | 选定预设之后再覆盖审批策略 |
+| `--add-dir <绝对路径>` | 在 `workspace-write` 下额外放开一个目录，可以写多次 |
+
+**API key 从哪儿来**：0.2.1 起，headless 不再读界面里保存的 key，而是依次找启动时的环境变量、当前目录的 `.env`、`$DSH_HOME/.env`。界面里能用、headless 报 `MISSING_CREDENTIAL`，多半是这个原因；如果环境变量导出成了空值，它会遮住 `.env` 里的值，要 `unset` 掉。
+
 无人值守时要多想一步：**没有人在界面前点「允许」**。按第 7 章的失败即关闭原则，没人应答的审批会被拒绝，所以需要审批的动作做不了。这是安全的默认行为。在 CI 里使用前：
 
 - 用 `dsh --profile headless --dump-config` 看清它的沙箱和审批设置
+- 0.2.2 预发布版里 headless 也能用实验性的 Auto 审查（`--permission-mode auto --approval-policy never`）：由模型审查后以完全访问权限执行，**不提供文件沙箱**，比默认预设风险高得多
 - 只给它预先确定、范围明确的任务
 - 在一次性的容器里跑，用只有必要权限的凭据
 
@@ -79,7 +93,7 @@ with DeepSeekHarness(
 - `profile="sdk-minimal"` 只带最小的工具集；需要完整能力用 `sdk`
 - 通知、事件等完整 API 见仓库里 `python/sdk/README.md`
 
-官方架构文档也提到了 TypeScript SDK，原理相同：都是以 `sdk` profile 启动 `dsh` 命令行，再通过 JSON-RPC 和它通信。
+TypeScript SDK 原理相同：都是以 `sdk` profile 启动 `dsh` 命令行，再通过 JSON-RPC 和它通信。0.2.1 起两个 SDK 都支持 `resume` 恢复已保存的会话，0.2.2 预发布版又补上了插件管理、计划审阅、目标续跑和操作审批。写作时 PyPI 上 `deepseek-harness-sdk` 的最新版本是 0.2.1rc2。
 
 ## 接进编辑器：ACP
 

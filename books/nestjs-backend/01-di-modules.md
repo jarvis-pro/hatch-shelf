@@ -5,7 +5,7 @@ NestJS 的第一印象往往是「装饰器好多」。但装饰器只是表皮�
 ## 这本书讲什么、怎么读
 
 > [!WARNING]
-> 全书按 NestJS 12 写（hatch-counter 用 `@nestjs/core` ^12.0.1，截至 2026-11）。v12 是较新的大版本，书中标注「NestJS 12 新增 / 调整」的 API 和默认值按发布说明整理，后续小版本可能有变化；以 NestJS 官方文档和官方迁移指南（Migration guide）为准。
+> 全书按 NestJS 12 写（hatch-counter 用 `@nestjs/core` ^12.0.1；12.0.0 于 2026-08-27 发布到 npm）。书中标注「NestJS 12 新增 / 调整」的 API 和默认值，按 2026 年 11 月的 NestJS v12.0.0 发布说明、官方迁移指南（Migration guide）和对应文档页面逐条核对过；hatch-counter 只用到其中一部分，其余没在真实项目里跑过。后续小版本可能有变化，以 NestJS 官方文档为准。
 
 这本书面向已经用 NestJS 写过接口、但还说不清「它为什么这么设计」的 TypeScript 全栈开发者。不讲 `nest new` 和 CRUD 入门，讲的是一个服务端从「跑起来」到「放心交给真实用户」之间那些决定：
 
@@ -20,8 +20,9 @@ NestJS 的第一印象往往是「装饰器好多」。但装饰器只是表皮�
 | 7 配置与环境变量 | 启动即校验，哪些配置不该放环境变量 |
 | 8 长连接 | SSE 和 WebSocket 怎么选，推送怎么做到不丢 |
 | 9 测试 | 真库、真进程的 e2e，用测试守住约定 |
+| 10 数据访问与事务 | repository 要不要、事务怎么跨 service 传、事务里的错误在哪接 |
 
-全书的 API 按 **NestJS 12** 写（2026 年发布的大版本，包改成了 ESM 发布，路由参数原生支持 Standard Schema 校验）。版本差异大的地方会单独标出来。
+全书的 API 按 **NestJS 12** 写（2026 年 8 月发布的大版本，官方包改成了 ESM 发布，路由参数原生支持 Standard Schema 校验）。版本差异大的地方会单独标出来。
 
 贯穿全书的案例是 hatch-counter 的 `apps/api`：一个给中小餐饮门店用的多租户管理服务端，NestJS 12 + PostgreSQL + Drizzle，十来家店、一个人维护。它的代码注释和文档里记了大量「这里为什么这么写」，正好拿来当教材。读法建议：第 1–3 章按顺序读，它们是骨架；后面几章可以按手上的问题跳着读。
 
@@ -85,7 +86,7 @@ Nest 启动时读 `design:paramtypes`，就知道该按什么顺序注入哪几�
 Nest can't resolve dependencies of the ExpensesService (?, ?).
 ```
 
-所以它的开发命令是 `tsc --watch` 加 `node --watch dist/main.js`，e2e 测试也是起一个真进程跑编译产物（见[第 9 章](09-testing.md)）。tsx 只用来跑迁移、种子这类不碰依赖注入的脚本。如果想要更快的编译，SWC 和 OXC 都能输出装饰器元数据，Nest CLI 支持 `--builder swc`；NestJS 12 的 ESM 项目模板默认用 Vitest，也是靠这类转换器来支持装饰器。
+所以它的开发命令是 `tsc --watch` 加 `node --watch dist/main.js`，e2e 测试也是起一个真进程跑编译产物（见[第 9 章](09-testing.md)）。tsx 只用来跑迁移、种子这类不碰依赖注入的脚本。如果想要更快的编译，SWC 和 Oxc 都能输出装饰器元数据，Nest CLI 支持 `--builder swc`。NestJS 12 的 ESM 项目模板用 Vitest 4 + Vite 8 跑测试，模板里没有另装 SWC 插件：Vite 8 内置的 Oxc 转换看到 tsconfig 里的 `emitDecoratorMetadata` 就会输出元数据。Vite 的迁移说明也提醒了它的局限：Oxc 不做完整的类型推断，构造参数的类型如果只能靠类型推断才知道是什么（比如用 `import type` 引入的类），元数据可能退化成 `Object`，注入就会失败。
 
 ## Provider 的四种写法
 
@@ -244,24 +245,32 @@ export class LiveHub implements OnModuleInit, OnModuleDestroy {
 
 注意 `void this.listen()`：`onModuleInit` 可以返回 Promise，Nest 会等它。但推送是锦上添花，数据库的监听连接暂时连不上时，业务接口应该照常可用，所以这里故意不等。
 
-**NestJS 12 的变化**：生命周期钩子改为按组件在模块树中的层级依次调用。如果你的代码依赖「A 模块的 `onModuleInit` 一定在 B 之前」，升级时要复查。更稳妥的原则是不依赖跨模块的钩子顺序：真有先后关系，就用依赖注入把它表达出来（B 注入 A，A 自然先初始化）。
+**NestJS 12 的变化**：生命周期钩子（`onModuleInit`、`onApplicationBootstrap` 和关闭类钩子）改为按组件在模块树中的层级依次调用，provider 或模块之间有依赖时，顺序可能和 v11 不同（按 v12 发布说明和迁移指南，官方没有给出更细的排序规则）。如果你的代码依赖「A 模块的 `onModuleInit` 一定在 B 之前」，升级时要复查。更稳妥的原则是不依赖跨模块的钩子顺序：真有先后关系，就用依赖注入把它表达出来（B 注入 A，A 自然先初始化）。
 
 ## NestJS 12 与 ESM
 
 > [!WARNING]
-> 本节的 Node.js 版本下限、`nest new` 的选项和各模板的默认测试框架按 NestJS 12 发布时的说明整理，CLI 的默认项可能随小版本调整；以 NestJS 官方迁移指南和 `@nestjs/cli` 的发布说明为准。
+> 本节按 2026 年 11 月的 NestJS v12.0.0 发布说明、官方迁移指南和 `@nestjs/schematics` 12.0.12 的项目模板整理。CLI 的默认项可能随小版本调整，以 NestJS 官方迁移指南和 `@nestjs/cli` 的发布说明为准。
 
-NestJS 12 的所有官方包都改成以 ESM 发布，要求 Node.js 20.19+ 或 22.12+。原因是这两个版本的 `require(esm)` 已经稳定，CommonJS 项目可以直接 `require` 这些 ESM 包。
+NestJS 12 的所有核心包都改成以 ESM 发布。运行应用要求 Node.js 20.19+ 或 22.12+（不支持 21.x），原因是这两个版本的 `require(esm)` 已经稳定，CommonJS 项目可以直接 `require` 这些 ESM 包。跑 `nest new`、`nest generate`、`nest upgrade` 这些 CLI 命令的要求更高：22.22.3+、24.15+ 或 26+。CLI 的 schematics 12 还把 TypeScript 6 列为对等依赖，升级时要一起升。
 
 hatch-counter 的服务端仍是 CommonJS（`"module": "commonjs"`），升到 12 之后照常运行。新项目 `nest new` 会问你选 ESM 还是 CommonJS：
 
 | | CommonJS | ESM |
 |---|---|---|
-| 现有项目迁移成本 | 无 | 要补 `.js` 扩展名、换掉 `__dirname` |
+| 现有项目迁移成本 | 无 | `package.json` 加 `"type": "module"`、tsconfig 改 `nodenext`，相对导入补 `.js` 扩展名，`__dirname` 换成 `import.meta.dirname` |
 | 默认测试框架 | Jest | Vitest |
+| 默认 lint | oxlint | oxlint |
 | 顶层 await | 不支持 | 支持 |
 
-官方提供 `nest upgrade --dry-run` 预览升级改动。它负责把包升到 12 并做机械替换，不会帮你把项目改成 ESM。
+CommonJS 不等于完全无感，迁移指南点名了两处：
+
+- **Jest 加载 ESM 包**：`nest upgrade` 会把 Jest 升到 30，但 Jest 要在 Node.js 24.9+ 上才能加载只有 ESM 的 v12 包，更早的 Node 会报 `ERR_REQUIRE_ASYNC_MODULE`。CommonJS 项目继续用 Jest，就得把跑测试的 Node 升上去，或者换 Vitest（hatch-counter 测试用的是起子进程跑编译产物，见[第 9 章](09-testing.md)，不受影响）
+- **AWS Lambda**：它的 Node 运行时上跑 CommonJS 应用，要设 `NODE_OPTIONS=--experimental-require-module`
+
+官方提供 `nest upgrade --dry-run` 预览升级改动。它把所有 `@nestjs/*` 包一起升到 12、TypeScript 升到 6，并做一些机械替换（webpack 配置、GraphQL 订阅、NATS 包、`@nestjs/config` 的校验选项），**不会**帮你把项目改成 ESM，也不会换测试框架。
+
+还有一条容易漏的破坏性变更：子类自己声明了构造函数时，不再继承父类构造参数上的 `@Optional()`，v11 里注入不到会得到 `undefined`，v12 直接抛 `UnknownDependenciesException`。修法是在子类构造函数里重新标一遍 `@Optional()`。按迁移指南的说法，12.0.x 里连「子类没有自己的构造函数」这种情况也丢了标记，12.1 起恢复成和 v11 一样。
 
 ## 本章要点
 

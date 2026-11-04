@@ -150,7 +150,7 @@ hatch-counter 服务端有四百多条测试。如果每条有千分之一的概
 ## 主动把不稳定揪出来
 
 > [!WARNING]
-> 本节 Vitest 的 `--sequence.shuffle` 和 `--repeat` 参数名按 Vitest 3 前后的版本整理（`--repeat` 在较早的版本里可能只能在测试代码里通过 `{ repeats }` 选项设置）；hatch-shelf 当前用的是 Vitest 5，参数名可能又有变化，以 Vitest 官方 CLI 文档为准。
+> 本节 Vitest 的 `--sequence.shuffle` 和 `--repeats` 参数按 2026 年 11 月 Vitest 5.0 的 `vitest --help` 输出核对过（hatch-shelf 当前用 Vitest 5）。注意是 `--repeats`，写成 `--repeat` 会直接报「Unknown option」。参数名在大版本之间可能调整，以 Vitest 官方 CLI 文档为准。
 
 等不稳定测试自己暴露，往往要等很久。可以主动去找：
 
@@ -159,7 +159,7 @@ hatch-counter 服务端有四百多条测试。如果每条有千分之一的概
 pnpm vitest run --sequence.shuffle
 
 # Vitest：把每条测试重复跑多次
-pnpm vitest run src/server --repeat 20
+pnpm vitest run src/server --repeats 20
 
 # Playwright：每条测试重复跑 10 次
 pnpm exec playwright test --repeat-each=10

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 400" width="360" height="400" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="399" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="28.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">需求 × 成本：6 个候选选题落在哪</text>
+<text x="180.0" y="47.0" font-size="12" fill="#656d76" text-anchor="middle">取自第 2 章打分示例，点旁数字是总分</text>
+<rect x="224.0" y="70.0" width="112.0" height="112.0" fill="#dbe7fb" fill-opacity="0.6"/>
+<rect x="56.0" y="70.0" width="280" height="280" fill="none" stroke="#d8dee4"/>
+<line x1="224.0" y1="70.0" x2="224.0" y2="350.0" stroke="#656d76" stroke-dasharray="4 3"/>
+<line x1="56.0" y1="182.0" x2="336.0" y2="182.0" stroke="#656d76" stroke-dasharray="4 3"/>
+<text x="330.0" y="86.0" font-size="11" fill="#1f2328" text-anchor="end" font-weight="600">需求高 · 好做</text>
+<text x="330.0" y="100.0" font-size="11" fill="#1f2328" text-anchor="end" font-weight="600">→ 先拍</text>
+<text x="62.0" y="86.0" font-size="11" fill="#656d76" text-anchor="start">需求一般 · 好做</text>
+<text x="62.0" y="100.0" font-size="11" fill="#656d76" text-anchor="start">→ 排后面</text>
+<text x="330.0" y="328.0" font-size="11" fill="#656d76" text-anchor="end">需求高 · 费工</text>
+<text x="330.0" y="342.0" font-size="11" fill="#656d76" text-anchor="end">→ 看时效</text>
+<text x="62.0" y="328.0" font-size="11" fill="#656d76" text-anchor="start">需求一般 · 费工</text>
+<text x="62.0" y="342.0" font-size="11" fill="#656d76" text-anchor="start">→ 先放</text>
+<text x="84.0" y="366.0" font-size="11" fill="#656d76" text-anchor="middle">1</text>
+<text x="50.0" y="326.0" font-size="11" fill="#656d76" text-anchor="end">1</text>
+<text x="140.0" y="366.0" font-size="11" fill="#656d76" text-anchor="middle">2</text>
+<text x="50.0" y="270.0" font-size="11" fill="#656d76" text-anchor="end">2</text>
+<text x="196.0" y="366.0" font-size="11" fill="#656d76" text-anchor="middle">3</text>
+<text x="50.0" y="214.0" font-size="11" fill="#656d76" text-anchor="end">3</text>
+<text x="252.0" y="366.0" font-size="11" fill="#656d76" text-anchor="middle">4</text>
+<text x="50.0" y="158.0" font-size="11" fill="#656d76" text-anchor="end">4</text>
+<text x="308.0" y="366.0" font-size="11" fill="#656d76" text-anchor="middle">5</text>
+<text x="50.0" y="102.0" font-size="11" fill="#656d76" text-anchor="end">5</text>
+<text x="196.0" y="384.0" font-size="12" fill="#656d76" text-anchor="middle">需求分（越往右关心的人越多）</text>
+<text x="22" y="210" font-size="12" fill="#656d76" text-anchor="middle" transform="rotate(-90 22 210)">成本分（越往上越好做）</text>
+<circle cx="252.0" cy="154.0" r="6" fill="#2f6fdf"/>
+<text x="252.0" y="174.0" font-size="11" fill="#1f2328" text-anchor="middle">T-037</text>
+<text x="262.0" y="158.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">36</text>
+<circle cx="308.0" cy="154.0" r="6" fill="#2f6fdf"/>
+<text x="308.0" y="174.0" font-size="11" fill="#1f2328" text-anchor="middle">T-038</text>
+<text x="318.0" y="158.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">37</text>
+<circle cx="252.0" cy="266.0" r="6" fill="#2f6fdf"/>
+<text x="252.0" y="286.0" font-size="11" fill="#1f2328" text-anchor="middle">T-039</text>
+<text x="262.0" y="270.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">28</text>
+<circle cx="252.0" cy="98.0" r="5.5" fill="#ffffff" stroke="#656d76" stroke-width="1.5"/>
+<text x="252.0" y="118.0" font-size="11" fill="#1f2328" text-anchor="middle">T-040</text>
+<text x="252.0" y="131.0" font-size="11" fill="#656d76" text-anchor="middle">否决</text>
+<circle cx="196.0" cy="210.0" r="6" fill="#2f6fdf"/>
+<text x="196.0" y="230.0" font-size="11" fill="#1f2328" text-anchor="middle">T-041</text>
+<text x="206.0" y="214.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">24</text>
+<circle cx="196.0" cy="98.0" r="6" fill="#2f6fdf"/>
+<text x="196.0" y="118.0" font-size="11" fill="#1f2328" text-anchor="middle">T-042</text>
+<text x="206.0" y="102.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">32</text>
+</svg>

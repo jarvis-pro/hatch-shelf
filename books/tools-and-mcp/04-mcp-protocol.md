@@ -40,7 +40,7 @@ MCP 的设计参考了 LSP（Language Server Protocol）：LSP 让任何编辑�
 
 区分「由谁控制」很重要。Tools 是模型主动调用的，所以要考虑模型会不会误用；Resources 是被动的数据，由人决定读不读；Prompts 是人主动触发的模板。同一份数据，比如一个章节的正文，既可以做成工具（模型自己决定去读），也可以做成资源（用户在 Claude Code 里用 `@` 引用后附加进上下文）。
 
-客户端也可以向 server 提供能力。2026-07-28 版规范中，核心的客户端能力是 **Elicitation**：server 在执行过程中向用户索要额外信息（比如确认、补充一个参数）。早期版本里的 Roots（告诉 server 可以访问哪些目录）、Sampling（server 借用客户端的模型做生成）和 Logging 在这一版被标记为**弃用**，规范建议的替代方案分别是：通过工具参数或配置传目录、直接对接模型 API、日志写 stderr 或用 OpenTelemetry。新写的 server 不要再依赖它们。
+客户端也可以向 server 提供能力。2026-07-28 版规范中，核心的客户端能力是 **Elicitation**：server 在执行过程中向用户索要额外信息（比如确认、补充一个参数）。早期版本里的 Roots（告诉 server 可以访问哪些目录）、Sampling（server 借用客户端的模型做生成）和 Logging 在这一版被标记为**弃用**（Deprecated），规范建议的替代方案分别是：通过工具参数、资源 URI 或配置传目录，直接对接模型 API，日志写 stderr 或用 OpenTelemetry。按这一版同时引入的功能生命周期政策，「弃用」意味着功能仍然完整可用、但已排期移除，弃用期至少十二个月，规范里有一张专门的弃用功能登记表。新写的 server 不要再依赖它们。
 
 ## 消息格式：JSON-RPC 2.0
 
@@ -55,6 +55,9 @@ MCP 的所有消息都是 JSON-RPC 2.0，分三种：
 MCP 在 JSON-RPC 之上加了两条约束：请求的 `id` 不能是 `null`，同一发送方未完成的请求 `id` 不能重复。
 
 ## 2026-07-28：MCP 变成无状态协议
+
+> [!WARNING]
+> 本节按 2026 年 11 月 modelcontextprotocol.io 上 2026-07-28 版规范的 Key Changes（changelog）、Versioning、Base Protocol 和 Streamable HTTP 页面逐条核对。写作时 2026-07-28 是规范标注的当前（Current）版本，当前版本仍可能接收向后兼容的修订；字段名、错误码以官方规范为准。
 
 这一版是 MCP 发布以来变化最大的一次。理解它需要先看旧版本怎么工作。
 
@@ -99,7 +102,7 @@ sequenceDiagram
 }
 ```
 
-其中 `protocolVersion` 和 `clientCapabilities` 是必填的，缺了 server 必须返回 `-32602`（HTTP 下是 400）；`clientInfo` 建议每次都带。server 在结果的 `_meta` 里报上自己的身份。下面是本书的书库 server（用 SDK 2.4.0 运行）对一个不存在的书 id 的真实响应：
+其中 `protocolVersion` 和 `clientCapabilities` 是必填的，缺了 server 必须返回 `-32602`（HTTP 下是 400）；`clientInfo` 建议每次都带。处理某个请求需要客户端没声明的能力时，server 返回 `MissingRequiredClientCapabilityError`（`-32021`），在 `data.requiredCapabilities` 里列出缺的能力。另有一个可选键 `io.modelcontextprotocol/logLevel`，下文再说。server 在结果的 `_meta` 里报上自己的身份。下面是本书的书库 server（用 SDK 2.4.0 运行）对一个不存在的书 id 的真实响应：
 
 ```json
 {
@@ -171,12 +174,16 @@ publish_draft({ draftId })        → 写入 books/
 |---|---|
 | 多轮请求（MRTR） | server 不再主动向客户端发请求，而是返回 `resultType: "input_required"` 和需要的输入（如 elicitation）；客户端带上 `inputResponses` 重试原请求 |
 | 订阅 | 去掉 HTTP 的 GET 通道和 `resources/subscribe`，统一用 `subscriptions/listen` 打开一条长连接接收变更通知 |
-| 删除 | `ping`、`logging/setLevel`、SSE 断点续传 |
+| 删除 | `ping`、`logging/setLevel`、`notifications/roots/list_changed`、SSE 断点续传（响应流断了，客户端要用新的请求 id 重发） |
+| 日志级别 | 改为每个请求在 `_meta` 里用 `io.modelcontextprotocol/logLevel` 指定；没带这个键的请求，server 不得发 `notifications/message` |
 | 缓存提示 | `tools/list` 等列表结果必须带 `ttlMs` 和 `cacheScope`，客户端据此缓存 |
 | 确定顺序 | `tools/list` 应按确定顺序返回，方便缓存和提高 prompt cache 命中率 |
 | JSON Schema | `inputSchema` / `outputSchema` 默认 2020-12 方言，可用任何关键字；不得自动解引用网络上的 `$ref` |
-| Tasks | 长时间运行的异步任务移出核心协议，成为官方扩展 |
-| 扩展机制 | 能力里新增 `extensions` 字段，Tasks、MCP Apps（在对话里渲染交互界面）等以扩展形式提供 |
+| Tasks | 长时间运行的异步任务移出核心协议，成为官方扩展 `io.modelcontextprotocol/tasks`，改为用 `tasks/get` 轮询 |
+| 扩展机制 | 能力里新增 `extensions` 字段，Tasks、MCP Apps（在对话里渲染交互界面）等以扩展形式提供，见下文「扩展与 MCP Apps」 |
+| 错误码 | `-32020` 到 `-32099` 保留给规范使用；资源不存在的错误码从 `-32002` 改为 `-32602` |
+| 链路追踪 | 约定在 `_meta` 里用 `traceparent`、`tracestate`、`baggage` 传 OpenTelemetry 上下文 |
+| 授权 | 动态客户端注册（DCR）弃用，推荐客户端 ID 元数据文档；客户端要校验授权响应里的 `iss`（RFC 9207）；凭证按签发它的授权服务器分开保存。第 6 章细讲 |
 
 协议还在快速演进。实际开发时以官方规范的 changelog 为准，并依赖 SDK 处理这些细节。
 
@@ -247,6 +254,55 @@ server 暴露一个 HTTP 端点（通常是 `/mcp`），客户端用 POST 发送
 
 规范还规定 `tools/list` 返回的工具集合**不能因连接而异**，但可以因请求所带的授权而异，比如只返回调用者权限范围内的工具。这条规则在第 6 章讲权限时会用到。
 
+## 扩展与 MCP Apps
+
+2026-07-28 版把「核心协议」和「扩展」分开了：核心只放每个实现都要支持的东西，其余做成可选的官方扩展，放在 `modelcontextprotocol` 组织下以 `ext-` 开头的仓库里。双方都声明支持某个扩展时才会用它：客户端在每个请求 `_meta` 的 `clientCapabilities.extensions` 里声明，server 在 `server/discover` 返回的能力里声明。
+
+> [!WARNING]
+> 扩展的名单、阶段和 MCP Apps 的字段按 2026 年 11 月 modelcontextprotocol.io 的 Extensions Overview、MCP Apps 和 Build an MCP App 页面整理。扩展各自独立演进，哪些客户端支持哪个扩展以官方的 Extension Support Matrix 为准。
+
+扩展分三个阶段：Experimental（随时可变）、Beta、Stable（只随核心协议的新版本变化）。写作时的官方扩展：
+
+| 扩展 | 标识 | 阶段 | 做什么 |
+|---|---|---|---|
+| MCP Apps | `io.modelcontextprotocol/ui` | Stable | server 返回可交互的 HTML 界面，在对话里渲染 |
+| Tasks | `io.modelcontextprotocol/tasks` | Beta，计划并入核心 | 长时间运行的异步任务：轮询、中途补充输入 |
+| Skills over MCP | `io.modelcontextprotocol/skills` | Beta | 通过 MCP 资源发现和读取 Agent Skills（第 7 章提到的那个方向） |
+| OAuth Client Credentials | `io.modelcontextprotocol/oauth-client-credentials` | Stable | 机器对机器的授权，不需要人在浏览器里点 |
+| Enterprise-Managed Authorization | `io.modelcontextprotocol/enterprise-managed-authorization` | Stable | 由企业身份提供商集中管控授权 |
+
+### MCP Apps 怎么工作
+
+普通工具返回的是文本、图片或结构化数据，宿主把它们当消息显示。MCP Apps 让工具多带一个**界面**：比如「按地区看销量」返回一张能点击下钻的地图，「配置一次部署」返回一张带校验的表单，而不是在对话里一问一答十几轮。
+
+它没有发明新原语，而是把已有的两样拼在一起：一个工具，加一个 `ui://` 开头的资源。
+
+```mermaid
+sequenceDiagram
+  participant H as 宿主
+  participant A as App（iframe）
+  participant S as MCP server
+  H->>S: tools/list，发现工具带 ui 资源
+  H->>S: resources/read ui://…
+  S-->>H: 一份 HTML
+  H->>S: tools/call
+  S-->>H: 结果
+  H-->>A: 把结果推给界面
+  A->>H: 用户操作后请求调工具
+  H->>S: tools/call（宿主代转）
+```
+
+要点：
+
+- **工具声明界面**：工具定义的 `_meta.ui.resourceUri` 指向一个 `ui://` 资源，宿主可以在工具被调用之前就预加载它
+- **界面是一份 HTML**：通常把 JS、CSS 打包成单个文件；要从外部域名加载资源，必须在资源的 `_meta.ui.csp` 里声明，否则默认拒绝
+- **在沙箱 iframe 里运行**：界面碰不到宿主页面、拿不到 cookie；要麦克风、摄像头这类权限，在 `_meta.ui.permissions` 里申请，由宿主决定给不给
+- **双向通信走宿主**：界面和宿主之间用 postMessage 上的一套 JSON-RPC 方言通信，部分方法和核心协议相同（如 `tools/call`），多数是 `ui/` 前缀的新方法。界面想调工具，要经宿主转发，照样受宿主的权限检查
+
+官方 TypeScript 包是 `@modelcontextprotocol/ext-apps`：服务端用 `registerAppTool`、`registerAppResource` 注册工具和界面资源，界面里用 `App` 类和宿主通信。
+
+对本书的书库 server 来说，「本书各章的图表、代码块数量一览」做成一个 MCP App 是合适的：数据本来就由 `list_books` 给出，界面只是换一种呈现。但要记住两点：**扩展是双方都声明才启用的，宿主不支持时界面不会出现，所以工具结果本身仍要是完整、有意义的文本或结构化数据**；界面是第三方代码在用户眼前运行，第 6 章讲的「工具返回的内容也是攻击面」对它同样成立。
+
 ## 本章要点
 
 - Host 负责模型调用和权限，Client 是连接器，Server 暴露能力；模型从不直接和 server 通信
@@ -256,3 +312,4 @@ server 暴露一个 HTTP 端点（通常是 `/mcp`），客户端用 POST 发送
 - 无状态意味着跨调用的状态要用显式句柄作为工具参数传递
 - 新旧两代通过探测共存；SDK 2.x 的 server 默认双代兼容
 - 传输：stdio 用于本地子进程，**stdout 只写协议消息**；Streamable HTTP 用于远程服务，现在可以无状态横向扩展
+- 核心之外的能力以官方扩展提供，按 `extensions` 字段协商；MCP Apps 用「工具 + `ui://` 资源」在对话里渲染沙箱化的交互界面，宿主不支持时工具结果本身仍要完整可用

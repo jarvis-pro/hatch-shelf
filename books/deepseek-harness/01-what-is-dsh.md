@@ -7,7 +7,7 @@
 **怎么读**：第 1–2 章建立印象并动手跑起来；第 3–4 章讲它内部怎么转（agent loop 和会话日志），这是理解其他一切的基础；第 5–7 章是日常使用时要懂的工具、模型和安全；第 8–9 章进入「一切皆插件」的底层和插件开发；第 10 章讲自动化和接下来学什么。
 
 > [!WARNING]
-> DSH 处于开发者预览阶段（developer preview），官方明确说「未来将出现破坏兼容性的变更」。本书按 2026 年 11 月初的 0.2 系列预览版和官方仓库文档整理，命令、配置字段、默认值和界面文字都可能已经变化。动手前以官方仓库 `github.com/deepseek-ai/deepseek-harness` 的 README、`docs/` 目录和文档站 `deepseek-harness.github.io/deepseek-harness` 为准。本书尽量讲清「为什么这样设计」，这部分不太会过时。
+> DSH 处于开发者预览阶段（developer preview），官方明确说「未来将出现破坏兼容性的变更」。本书按 2026 年 11 月 4 日的状态整理：npm 上 `@deepseek-ai/dsh` 的 `latest` 标签指向 0.2.1-rc.5，`next` 是 0.2.2-rc.1，GitHub Releases 里最新的是 0.2.2-alpha.3，全部标为预发布；正文以 0.2.1 为基线，0.2.2 里已经出现的变化随文注明。命令、配置字段、默认值和界面文字都可能已经变化。动手前以官方仓库 `github.com/deepseek-ai/deepseek-harness` 的 README、`docs/` 目录和文档站 `deepseek-harness.github.io/deepseek-harness` 为准。本书尽量讲清「为什么这样设计」，这部分不太会过时。
 
 ## 一句话定义
 
@@ -92,7 +92,7 @@ $$
 - **代价**：组件多、配置层多、版本还在快速变化，学习曲线比开箱即用的产品陡
 
 > [!NOTE]
-> 第三方文章里流传着「上线一周十几万 star」「能把 Claude Code、Codex 当子 agent 调用」等说法。前者各来源数字不一，不必在意；后者在官方工具目录里确实有一个**实验性**的 `subagent_oar` 工具，可以按配置把任务转给外部的 Codex 或 Claude Code，但默认不开，以你实际看到的为准。
+> 第三方文章里流传着「上线一周十几万 star」「能把 Claude Code、Codex 当子 agent 调用」等说法。前者各来源数字不一，不必在意；后者属实：0.2.1 起插件页里有官方的「Claude Code 子智能体」「Codex 子智能体」组合包，默认不装，启用后多出 `subagent_claude_code` 这类工具，把一个自包含的任务交给一次全新的、无人值守的 Claude Code（或 Codex）会话，只取回最终答案（Claude Code 那一个默认以 `dontAsk` 权限模式运行）。更早的实验性 `subagent_oar` 工具也还在。组合包自带对应的运行时，但不替你登录，账号和凭据仍走 Claude Code 或 Codex 自己的机制；被派出去的 Claude Code 会读你本机常规的 Claude Code 设置。
 
 ## 为什么 DeepSeek 要做 harness
 

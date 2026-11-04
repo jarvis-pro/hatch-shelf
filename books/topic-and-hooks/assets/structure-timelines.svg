@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 390" width="360" height="390" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="389" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="28.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">8 种结构的时间分配（60 秒）</text>
+<line x1="84.0" y1="52" x2="84.0" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="84.0" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">0s</text>
+<line x1="126.7" y1="52" x2="126.7" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="126.7" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">10s</text>
+<line x1="169.3" y1="52" x2="169.3" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="169.3" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">20s</text>
+<line x1="212.0" y1="52" x2="212.0" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="212.0" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">30s</text>
+<line x1="254.7" y1="52" x2="254.7" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="254.7" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">40s</text>
+<line x1="297.3" y1="52" x2="297.3" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="297.3" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">50s</text>
+<line x1="340.0" y1="52" x2="340.0" y2="314.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="340.0" y="48.0" font-size="11" fill="#656d76" text-anchor="middle">60s</text>
+<text x="76.0" y="76.0" font-size="12" fill="#1f2328" text-anchor="end">问题-解决</text>
+<rect x="84.8" y="58.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="58.0" width="19.8" height="26.0" fill="#e6e9ed"/>
+<rect x="127.4" y="58.0" width="19.8" height="26.0" fill="#e6e9ed"/>
+<rect x="148.8" y="58.0" width="126.5" height="26.0" fill="#dbe7fb"/>
+<text x="212.0" y="75.0" font-size="11" fill="#1f2328" text-anchor="middle">方案</text>
+<rect x="276.8" y="58.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="297.3" y="75.0" font-size="11" fill="#1f2328" text-anchor="middle">证据</text>
+<rect x="319.4" y="58.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="76.0" y="108.0" font-size="12" fill="#1f2328" text-anchor="end">教程</text>
+<rect x="84.8" y="90.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="90.0" width="19.8" height="26.0" fill="#e6e9ed"/>
+<rect x="127.4" y="90.0" width="169.2" height="26.0" fill="#dbe7fb"/>
+<text x="212.0" y="107.0" font-size="11" fill="#1f2328" text-anchor="middle">步骤 1、2、3</text>
+<rect x="298.1" y="90.0" width="19.8" height="26.0" fill="#dbe7fb"/>
+<rect x="319.4" y="90.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="76.0" y="140.0" font-size="12" fill="#1f2328" text-anchor="end">清单</text>
+<rect x="84.8" y="122.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="122.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="126.7" y="139.0" font-size="11" fill="#1f2328" text-anchor="middle">第1条</text>
+<rect x="148.8" y="122.0" width="62.5" height="26.0" fill="#dbe7fb"/>
+<text x="180.0" y="139.0" font-size="11" fill="#1f2328" text-anchor="middle">第2条</text>
+<rect x="212.8" y="122.0" width="83.8" height="26.0" fill="#dbe7fb"/>
+<text x="254.7" y="139.0" font-size="11" fill="#1f2328" text-anchor="middle">第3条</text>
+<rect x="298.1" y="122.0" width="41.2" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="318.7" y="139.0" font-size="11" fill="#1f2328" text-anchor="middle">怎么选</text>
+<text x="76.0" y="172.0" font-size="12" fill="#1f2328" text-anchor="end">对比</text>
+<rect x="84.8" y="154.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="154.0" width="19.8" height="26.0" fill="#e6e9ed"/>
+<rect x="127.4" y="154.0" width="147.8" height="26.0" fill="#dbe7fb"/>
+<text x="201.3" y="171.0" font-size="11" fill="#1f2328" text-anchor="middle">逐项比较</text>
+<rect x="276.8" y="154.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="297.3" y="171.0" font-size="11" fill="#1f2328" text-anchor="middle">结论</text>
+<rect x="319.4" y="154.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="76.0" y="204.0" font-size="12" fill="#1f2328" text-anchor="end">测评</text>
+<rect x="84.8" y="186.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="186.0" width="19.8" height="26.0" fill="#e6e9ed"/>
+<rect x="127.4" y="186.0" width="62.5" height="26.0" fill="#dbe7fb"/>
+<text x="158.7" y="203.0" font-size="11" fill="#1f2328" text-anchor="middle">优点</text>
+<rect x="191.4" y="186.0" width="83.8" height="26.0" fill="#dbe7fb"/>
+<text x="233.3" y="203.0" font-size="11" fill="#1f2328" text-anchor="middle">缺点</text>
+<rect x="276.8" y="186.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="297.3" y="203.0" font-size="11" fill="#1f2328" text-anchor="middle">适合谁</text>
+<rect x="319.4" y="186.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="76.0" y="236.0" font-size="12" fill="#1f2328" text-anchor="end">反转</text>
+<rect x="84.8" y="218.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="218.0" width="83.8" height="26.0" fill="#e6e9ed"/>
+<text x="148.0" y="235.0" font-size="11" fill="#1f2328" text-anchor="middle">强化预期</text>
+<rect x="191.4" y="218.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="212.0" y="235.0" font-size="11" fill="#1f2328" text-anchor="middle">反转</text>
+<rect x="234.1" y="218.0" width="83.8" height="26.0" fill="#dbe7fb"/>
+<text x="276.0" y="235.0" font-size="11" fill="#1f2328" text-anchor="middle">解释</text>
+<rect x="319.4" y="218.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="76.0" y="268.0" font-size="12" fill="#1f2328" text-anchor="end">故事</text>
+<rect x="84.8" y="250.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="250.0" width="41.2" height="26.0" fill="#e6e9ed"/>
+<text x="126.7" y="267.0" font-size="11" fill="#1f2328" text-anchor="middle">背景</text>
+<rect x="148.8" y="250.0" width="83.8" height="26.0" fill="#dbe7fb"/>
+<text x="190.7" y="267.0" font-size="11" fill="#1f2328" text-anchor="middle">经过</text>
+<rect x="234.1" y="250.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="254.7" y="267.0" font-size="11" fill="#1f2328" text-anchor="middle">转折</text>
+<rect x="276.8" y="250.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="297.3" y="267.0" font-size="11" fill="#1f2328" text-anchor="middle">结果</text>
+<rect x="319.4" y="250.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<text x="76.0" y="300.0" font-size="12" fill="#1f2328" text-anchor="end">观点</text>
+<rect x="84.8" y="282.0" width="19.8" height="26.0" fill="#2f6fdf"/>
+<rect x="106.1" y="282.0" width="19.8" height="26.0" fill="#e6e9ed"/>
+<rect x="127.4" y="282.0" width="126.5" height="26.0" fill="#dbe7fb"/>
+<text x="190.7" y="299.0" font-size="11" fill="#1f2328" text-anchor="middle">理由 1、2、3</text>
+<rect x="255.4" y="282.0" width="41.2" height="26.0" fill="#dbe7fb"/>
+<text x="276.0" y="299.0" font-size="11" fill="#1f2328" text-anchor="middle">反方</text>
+<rect x="298.1" y="282.0" width="19.8" height="26.0" fill="#dbe7fb"/>
+<rect x="319.4" y="282.0" width="19.8" height="26.0" fill="#2f6fdf" fill-opacity="0.45"/>
+<rect x="20.0" y="323.0" width="12.0" height="12.0" fill="#2f6fdf" rx="2"/>
+<text x="37.0" y="333.0" font-size="12" fill="#656d76" text-anchor="start">开头钩子</text>
+<rect x="102.0" y="323.0" width="12.0" height="12.0" fill="#e6e9ed" rx="2"/>
+<text x="119.0" y="333.0" font-size="12" fill="#656d76" text-anchor="start">铺垫</text>
+<rect x="184.0" y="323.0" width="12.0" height="12.0" fill="#dbe7fb" rx="2"/>
+<text x="201.0" y="333.0" font-size="12" fill="#656d76" text-anchor="start">主体</text>
+<rect x="266.0" y="323.0" width="12.0" height="12.0" fill="#2f6fdf" fill-opacity="0.45" rx="2"/>
+<text x="283.0" y="333.0" font-size="12" fill="#656d76" text-anchor="start">收尾</text>
+<text x="20.0" y="358.0" font-size="11" fill="#656d76" text-anchor="start">时间取自本章各结构的骨架，是 60 秒左右竖屏视频的</text>
+<text x="20.0" y="374.0" font-size="11" fill="#656d76" text-anchor="start">参考分配；5 秒的小段没写字，名称见正文</text>
+</svg>

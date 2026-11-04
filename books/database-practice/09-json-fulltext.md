@@ -192,6 +192,9 @@ select to_tsvector('simple', '红烧牛肉面加辣') @@ to_tsquery('simple', '�
 
 对一人公司的大多数场景（搜菜名、搜客户名、搜笔记标题），第二条路更省心。
 
+> [!NOTE]
+> 从 17 及更早升到 PostgreSQL 18 时留意一条：全文检索读取配置文件和词典改用集群默认的排序规则提供方（以前固定用 libc）。官方 Release Notes 建议升级后重建所有全文检索和 pg_trgm 相关的索引，集群用 libc 以外的提供方（ICU 等）时影响最大。按 2026 年 11 月的 PostgreSQL 18 Release Notes 整理，以官方文档为准。
+
 ## pg_trgm：子串匹配
 
 `pg_trgm` 把字符串切成连续三个字符的片段（trigram），建 GIN 索引后，`LIKE '%xxx%'` 和 `ILIKE` 也能走索引：

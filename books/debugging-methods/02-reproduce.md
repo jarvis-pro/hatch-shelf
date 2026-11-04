@@ -191,7 +191,7 @@ CI 里偶尔失败、重跑就过的测试，常被当成「测试的问题」�
 复现成功后，把步骤写成别人照着做就能复现的形式。一个好的复现步骤长这样：
 
 ```text
-环境：recordwall iOS dev client，iPhone 15 模拟器，iOS 18
+环境：recordwall iOS dev client，iPhone 15 模拟器，iOS 26
 数据：B 站来源的测试曲目 id=bv-xxxx（时长 1:04）
 步骤：
   1. 清空播放队列

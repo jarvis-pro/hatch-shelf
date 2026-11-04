@@ -128,7 +128,7 @@ it("groups by chapter order and keeps locations", () => {
 ### 改不了签名时：假时钟
 
 > [!WARNING]
-> 本节 `vi.useFakeTimers` 的默认行为（哪些全局函数被替换、是否影响 `performance.now` 和 `queueMicrotask`）按 Vitest 3–4 整理，不同大版本有过调整，以 Vitest 官方文档 Mocking / Fake Timers 一节为准。
+> 本节 `vi.useFakeTimers` 的默认行为按 2026 年 11 月 Vitest 5 官方文档（Config / fakeTimers 和迁移指南）整理：默认替换全局可用的计时相关 API（`setTimeout`、`Date`、`performance` 等，Vitest 5 起也包括 `Temporal`），但不替换 `process.nextTick` 和 `queueMicrotask`。不同大版本有过调整，以 Vitest 官方文档为准。
 
 有些代码不方便加参数，比如一个内部用 `setTimeout` 做防抖的模块。这时用 Vitest 的假时钟：
 
@@ -234,7 +234,7 @@ it("解析失败时没有 manifest 字段", () => {
 ## 在 monorepo 里组织 Vitest
 
 > [!WARNING]
-> 本节的 `test.projects` 配置按 Vitest 3.2 之后的写法整理（早期版本叫 workspace，用单独的 `vitest.workspace.ts` 文件）；hatch-shelf 当前用的是 Vitest 5，配置项可能又有变化，以 Vitest 官方文档 Projects 一节为准。
+> 本节的 `test.projects` 配置按 2026 年 11 月 Vitest 5 官方文档和迁移指南整理（hatch-shelf 当前用 Vitest 5.0）。`projects` 从 Vitest 3.2 开始取代早期的 workspace（单独的 `vitest.workspace.ts` 文件）；Vitest 5 又改了几处默认行为，见下方代码后的说明。配置项仍可能调整，以 Vitest 官方文档 Projects 一节为准。
 
 hatch-shelf 的做法最简单：每个包各自有 `"test": "vitest run"`，根目录的 `pnpm test` 就是 `pnpm -r test`，逐个包跑。好处是每个包的测试环境独立：`@shelf/spec` 跑在纯 Node 环境，App 的测试只跑 `src` 下不依赖 React Native 的纯模块。
 
@@ -261,6 +261,12 @@ export default defineConfig({
   },
 });
 ```
+
+Vitest 5 在这里改了三处默认行为，从 4 升级时要留意：
+
+- **内联项目默认继承根配置**（`extends` 默认为 `true`），根配置里的插件、`setupFiles` 等会合并进上面那个 `app` 项目；不想继承就写 `extends: false`。用路径引用的项目（`"packages/*"`）不继承
+- **内联项目默认共用根配置的 Vite 服务**（`sharedViteServer`），配置文件只执行一次。某个插件需要每个项目各实例化一次时，关掉这个选项
+- **不再向上级目录查找配置文件**。在子目录里直接跑 `vitest` 找不到根目录的配置，要用 `--config` 显式指定
 
 日常开发里最常用的是监听模式。`vitest`（不带 `run`）启动后监听文件，改了哪个模块只重跑依赖它的测试；`vitest --changed` 只跑和未提交改动相关的测试，适合提交前快速过一遍。
 

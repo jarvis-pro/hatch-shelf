@@ -98,13 +98,14 @@ flowchart TD
 | 检查项 | 怎么验证 |
 |---|---|
 | 锁文件入库，CI 和 Dockerfile 用 `--frozen-lockfile` | 看 CI 配置和 Dockerfile |
-| 依赖的安装脚本有放行名单（`onlyBuiltDependencies`） | 看 `pnpm-workspace.yaml` 或 `package.json` |
-| （pnpm 10.16+）配置了 `minimumReleaseAge` | 看 `pnpm-workspace.yaml` |
+| 依赖的安装脚本有放行名单（pnpm 11 起 `allowBuilds`，之前 `onlyBuiltDependencies`） | 看 `pnpm-workspace.yaml`（pnpm 9 在 `package.json`） |
+| （pnpm 10.16+）显式配置了 `minimumReleaseAge` | 看 `pnpm-workspace.yaml` |
 | 新增依赖必须人工确认，编码 agent 不能自行添加 | 看 agent 的权限配置；PR 里检查 `package.json` |
 | `pnpm audit --prod` 没有未评估的高危漏洞 | 跑一次 |
 | 有自动依赖更新，且分组、限量 | 看 `dependabot.yml` 或 Renovate 配置 |
 | CI 里第三方 Action 固定到提交哈希，默认只读权限 | 看 workflow 文件 |
 | 没有使用 `pull_request_target` 检出 fork 的代码 | 搜索 workflow 文件 |
+| 发布的 npm 包用 trusted publishing，包设置里禁止令牌发布 | 看 npmjs.com 的包设置和发布工作流 |
 
 ## 移动端（第 6 章）
 

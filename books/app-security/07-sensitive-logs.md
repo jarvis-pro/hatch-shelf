@@ -38,6 +38,9 @@ hatch-counter 的文档在好几处写明了这条规矩，可以看出它是一
 
 ### 请求日志中间件
 
+> [!WARNING]
+> 下面 `nestjs-pino` 的 `pinoHttp` 配置和 pino `redact` 的路径写法按 2025 年前后的版本整理，以 pino、pino-http 和 nestjs-pino 的官方文档为准。
+
 最常见的泄露：为了排障打开了请求日志，顺手把所有请求头和请求体都记下了。`Authorization` 头、`Cookie` 头、登录接口的请求体，全部原样进了日志文件。
 
 在 NestJS 里用 pino（通过 `nestjs-pino`）时，用 `redact` 在序列化时把敏感字段抹掉：

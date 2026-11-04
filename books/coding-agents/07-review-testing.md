@@ -129,6 +129,92 @@ hatch-counter 没有 CI，CLAUDE.md 写的是「提交前在仓库根跑 `pnpm f
 
 一个实用的习惯：**先看 `git diff --stat`**。如果你让它修一个 bug，它改了十五个文件，先别看内容，直接问它为什么。
 
+## 无人值守：headless 与 GitHub Actions
+
+上面那个评审脚本已经是 headless（非交互）用法的雏形。把 agent 放进脚本、定时任务或 CI 时，没有人能点「允许」，几件事要提前想好。
+
+> [!WARNING]
+> 本节的参数和默认值按 2026 年 11 月 code.claude.com 的「Run Claude Code programmatically」「Choose a permission mode」「Claude Code GitHub Actions」文档整理。`--bare` 官方预告会在以后成为 `-p` 的默认行为，以官方文档为准。
+
+### `claude -p` 的几块积木
+
+| 参数 | 作用 |
+|---|---|
+| `-p` | 非交互执行，打印结果后退出；成功退出码 0，失败非 0 |
+| `--bare` | 不自动加载 hooks、Skills、插件、MCP、自动记忆和 CLAUDE.md，每台机器结果一致；只认 `ANTHROPIC_API_KEY`，不用订阅登录 |
+| `--output-format json` | 结果在 `result` 字段，带会话 id 和用量；`stream-json` 逐行输出事件 |
+| `--json-schema '<schema>'` | 要求按给定结构输出，结果在 `structured_output` 字段；模型拒绝时这个字段不存在，用之前先判断 |
+| `--permission-mode` | 整场运行的权限基线，见下 |
+| `--allowedTools` | 预先放行的工具，写法和权限规则一样，如 `"Bash(pnpm test *)"` |
+| `--max-turns` | 限制轮数，防止跑飞 |
+| `--continue` / `--resume <id>` | 接着上一次的会话跑 |
+
+不加 `--bare` 时要记住第 4 章说过的那条：`-p` 不弹信任对话框，**项目 `.claude/settings.json` 里的 hooks 和 `.mcp.json` 里的 server 会直接运行**。在 CI 里处理别人提交的 PR 时，这就是一个注入入口。
+
+### 无人值守时的权限
+
+`claude -p` 默认从 Manual 模式开始，需要审批的调用没人批，就直接被拒绝。三种常见配法：
+
+- **白名单**：`--permission-mode dontAsk --allowedTools "Bash(pnpm test *)" "Read"`。只做列出来的事，其他一律拒绝，最可预测，适合 CI
+- **分类器**：`--permission-mode auto --permission-prompts none`。由 auto 模式的分类器逐个判断，落到「需要问人」的一律拒绝并告诉 Claude 别重试，适合定时跑的维护任务
+- **全放开**：`--dangerously-skip-permissions`。只在一次性的容器、虚拟机里用，并以非 root 用户运行
+
+```bash
+# 每晚跑一次：只允许跑测试和读文件，结果写成 JSON 供后续脚本处理
+claude --bare -p "跑 pnpm test，失败的用例逐条说明原因，不要改代码" \
+  --permission-mode dontAsk \
+  --allowedTools "Bash(pnpm test *)" "Read" \
+  --max-turns 20 \
+  --output-format json | jq -r '.result'
+```
+
+### GitHub Actions
+
+官方的 `anthropics/claude-code-action` 把同样的能力接到 GitHub 上。在仓库里打开 Claude Code，输入 `/install-github-app`，它会安装 Claude GitHub App、把 API key（或用 `claude setup-token` 生成的订阅令牌）存成仓库 secret，再推一个带工作流文件的分支让你开 PR。需要仓库管理员权限，也可以照文档手工配置。
+
+它有两种运行方式：
+
+- **交互模式**：工作流里不写 `prompt`，Claude 等 issue 或 PR 评论里出现 `@claude`，按评论的要求干活，结果回复在同一条讨论里
+- **自动化模式**：写了 `prompt`（可以是一段话，也可以是调用一个 Skill），每次触发就直接跑，比如每个 PR 打开时自动评审
+
+```yaml
+# .github/workflows/claude.yml：评论里 @claude 时响应
+name: Claude Code
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+jobs:
+  claude:
+    if: contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--max-turns 10"
+```
+
+几条要点：
+
+- **谁能触发**：默认只有对仓库有写权限的人能触发，机器人账号也被挡住（防止 bot 互相触发成循环），要放开分别用 `allowed_non_write_users`、`allowed_bots`
+- **规矩照样来自 CLAUDE.md**：Action 里的 Claude 每次运行都读仓库的 CLAUDE.md，前几章写下的规矩在这里同样生效；也因此 CLAUDE.md 越短，每次运行越省
+- **成本是两份**：GitHub Actions 的分钟数加模型的 token。用 `--max-turns`、`timeout-minutes` 和 GitHub 的 `concurrency` 控制住上限
+- **它的提交仍要人审**：Action 能开分支、推提交，合并前照本章前面的清单看 diff
+
+对没有 CI 的个人项目（比如 hatch-counter），没必要为了它专门搭一套 CI；本地的 `claude -p` 评审脚本已经覆盖了大部分价值。仓库开始有协作者、PR 多起来时，再考虑接 Actions。
+
 ## 提交
 
 评审通过后的提交也可以交给 agent，但要把约定写清楚。三个项目的共同约定：
@@ -148,3 +234,4 @@ hatch-counter 没有 CI，CLAUDE.md 写的是「提交前在仓库根跑 `pnpm f
 - 警惕 agent 修改测试让它通过：删用例、加 skip、改断言、放宽断言
 - 让 agent 自己跑起来看：预览、模拟器、自制探针，要它拿出截图等证据
 - 评审用新上下文，给代码不给结论；`claude -p` 能把评审塞进脚本；你读 diff 时盯范围、删除、绕过、依赖、位置、硬编码和文案
+- 无人值守时先定权限基线：CI 用 `dontAsk` + 白名单，定时任务可用 `auto` + `--permission-prompts none`，`--bare` 让结果不受本机配置影响；GitHub Actions 用 `/install-github-app` 接入，`@claude` 触发或按 `prompt` 自动跑

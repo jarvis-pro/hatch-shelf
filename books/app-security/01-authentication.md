@@ -166,6 +166,9 @@ hatch-counter 的短信登录把几道闸门写得很细，可以当模板：
 
 ### OAuth 2.0 与 OIDC：用别人的账号登录
 
+> [!WARNING]
+> 本节的流程建议按 IETF RFC 9700《OAuth 2.0 安全最佳实践》（2025 年 1 月）整理，App Store 关于第三方登录的要求见《App Store 审核指南》4.8 节，两者都会修订，以 IETF 和 Apple 开发者网站的最新文本为准。
+
 「用微信登录」「用 Apple 登录」「用 GitHub 登录」，背后是 OAuth 2.0 加上 OpenID Connect（OIDC）。准确地说，OAuth 2.0 本身是**授权**协议（让第三方应用代你访问某些资源），OIDC 在它之上加了一层 ID Token，才变成**认证**协议。
 
 作为一个接入方（你的 App 是 client），只需要掌握一种流程：**授权码模式 + PKCE**。
@@ -197,6 +200,9 @@ sequenceDiagram
 上架 iOS 时，如果提供第三方社交登录，App Store 审核指南对「是否需要同时提供 Sign in with Apple 或同等隐私保护的登录方式」有专门条款，条款措辞近几年调整过，以提交时的最新版本为准。
 
 ### Passkey：最值得加的那一种
+
+> [!WARNING]
+> 各平台对 passkey 的支持、同步方式，以及 SimpleWebAuthn 和 React Native 端相关库的 API，按 2025–2026 年的情况整理，变化很快，以 W3C WebAuthn 规范、Apple / Google 开发者文档和各库的最新文档为准。
 
 Passkey 基于 WebAuthn / FIDO2：用户设备生成一对公私钥，私钥留在设备的安全硬件里（通常还会通过 iCloud 钥匙串、Google 密码管理器等在用户自己的设备间同步），服务端只存公钥。登录时服务端发一个随机挑战，设备用私钥签名，服务端用公钥验证。
 

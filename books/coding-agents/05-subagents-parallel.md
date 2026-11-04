@@ -7,7 +7,7 @@
 在 Claude Code 里，主会话可以通过 `Agent` 工具派出子 agent。每个子 agent：
 
 - 有**自己全新的上下文**，看不到主会话的对话历史
-- 拿到的输入是：它自己的系统提示词、主会话写给它的任务描述、项目的 CLAUDE.md、一份 git 状态快照
+- 拿到的输入是：它自己的系统提示词、主会话写给它的任务描述、项目的 CLAUDE.md、一份 git 状态快照。内置的 Explore 和 Plan 例外：为了快和省，它们启动时不带 CLAUDE.md 和 git 状态，所以派它们去查时，项目规矩要写进任务描述里
 - 干完活后**只把最终总结**交回主会话，中间读过的文件、跑过的命令都留在它自己的上下文里
 
 ![三项调研串行做时，主会话上下文里堆着全部读过的文件；交给三个子 agent 并行做，主会话只留三段摘要](assets/parallel-subagents.svg)
@@ -108,6 +108,9 @@ model: sonnet
 
 ### 手动开并行会话
 
+> [!WARNING]
+> `--worktree` 的目录、分支和清理规则按 2026 年 11 月 code.claude.com 的 Worktrees 文档整理，以官方文档为准。
+
 ```bash
 # 终端 1
 claude --worktree reader-toc
@@ -115,13 +118,18 @@ claude --worktree reader-toc
 claude --worktree import-zip
 ```
 
-每条命令会在仓库根的 `.claude/worktrees/<名字>/` 下建一个 worktree，分支名是 `worktree-<名字>`，然后在里面启动 Claude。退出时如果 worktree 里没有改动会自动清理；有改动会问你保留还是删除。记得把 `.claude/worktrees/` 加进 `.gitignore`。
+每条命令（简写 `-w`）会在仓库根的 `.claude/worktrees/<名字>/` 下建一个 worktree，分支名是 `worktree-<名字>`，然后在里面启动 Claude。记得把 `.claude/worktrees/` 加进 `.gitignore`。
+
+两个默认行为要知道：
+
+- **从哪儿分出来**：默认从远端默认分支（通常是 `origin/main`）分出，而不是你当前的 `HEAD`，所以本地没推送的提交、正在做的功能分支不会带过去。想从当前进度分出，在 settings 里设 `"worktree": { "baseRef": "head" }`
+- **退出时怎么清理**：worktree 里没有改动、没有新提交时，未命名的会话自动删掉 worktree 和分支，命名过的会话会先问你；有改动就问你保留还是删除，保留的下次用退出时打印的 `claude --worktree <名字> --resume` 回来。`claude -p` 没有退出提示，它建的 worktree 不会自动清理
 
 hatch-counter 的 `.claude/worktrees/` 下就留着一个这样的 worktree，是某次会话结束时选择保留的。
 
 ### 让子 agent 自动隔离
 
-在子 agent 定义里加 `isolation: worktree`，它每次运行都会拿到一个临时 worktree：
+在子 agent 定义里加 `isolation: worktree`，它每次运行都会拿到一个临时 worktree，没改动就在结束时自动删掉，有改动的留在磁盘上，等定期清理：
 
 ```markdown
 ---

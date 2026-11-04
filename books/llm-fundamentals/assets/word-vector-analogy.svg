@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="362" viewBox="0 0 360 362" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="361" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="16" y="28" font-size="15" font-weight="600" fill="#1f2328">词向量里的「方向」</text>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fdf"/></marker>
+<marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#656d76"/></marker></defs>
+<line x1="88.4" y1="233.3" x2="161.6" y2="261.7" stroke="#2f6fdf" stroke-width="2" marker-end="url(#a)" />
+<line x1="178.4" y1="113.3" x2="251.6" y2="141.7" stroke="#2f6fdf" stroke-width="2" marker-end="url(#a)" />
+<line x1="85.4" y1="222.8" x2="164.6" y2="117.2" stroke="#656d76" stroke-width="2" marker-end="url(#g)" stroke-dasharray="5 4"/>
+<line x1="175.4" y1="257.8" x2="254.6" y2="152.2" stroke="#656d76" stroke-width="2" marker-end="url(#g)" stroke-dasharray="5 4"/>
+<circle cx="80" cy="230" r="6" fill="#1f2328"/>
+<text x="68" y="235" font-size="14" fill="#1f2328" text-anchor="end">男人</text>
+<circle cx="170" cy="265" r="6" fill="#1f2328"/>
+<text x="182" y="270" font-size="14" fill="#1f2328" text-anchor="start">女人</text>
+<circle cx="170" cy="110" r="6" fill="#1f2328"/>
+<text x="158" y="115" font-size="14" fill="#1f2328" text-anchor="end">国王</text>
+<circle cx="260" cy="145" r="6" fill="#1f2328"/>
+<text x="272" y="150" font-size="14" fill="#1f2328" text-anchor="start">女王</text>
+<text x="125" y="268" font-size="12" fill="#2f6fdf" text-anchor="middle" transform="rotate(21 125 268)">男 → 女</text>
+<text x="215" y="148" font-size="12" fill="#2f6fdf" text-anchor="middle" transform="rotate(21 215 148)">男 → 女</text>
+<line x1="20" y1="296" x2="44" y2="296" stroke="#2f6fdf" stroke-width="2"/><text x="50" y="300" font-size="12" fill="#656d76">男 → 女：两条方向、长度几乎一样</text>
+<line x1="20" y1="318" x2="44" y2="318" stroke="#656d76" stroke-width="2" stroke-dasharray="5 4"/><text x="50" y="322" font-size="12" fill="#656d76">普通人 → 王室：同样平行</text>
+<text x="16" y="346" font-size="11" fill="#656d76">示意图：真实的向量有几千维，这里压成两维</text>
+</svg>

@@ -73,14 +73,15 @@ it("没登录访问业务接口回 401", () => {
 ### 测试框架与装饰器元数据
 
 > [!WARNING]
-> 「NestJS 12 的 ESM 项目默认用 Vitest + SWC / OXC」按 v12 发布时的 CLI 模板整理，模板默认值可能调整；以 NestJS 官方文档的 Testing 页面和 `@nestjs/cli` 发布说明为准。
+> 本节的模板默认值按 2026 年 11 月的 NestJS 官方迁移指南和 `@nestjs/schematics` 12.0.12 的项目模板整理，Jest 与 Node 版本的关系出自迁移指南；模板默认值可能随小版本调整，以 NestJS 官方文档的 Testing 页面和 `@nestjs/cli` 发布说明为准。
 
 [第 1 章](01-di-modules.md)讲过，Nest 的依赖注入依赖 `emitDecoratorMetadata`。测试框架用什么转换 TypeScript，直接决定上面的测试能不能跑：
 
 | 测试运行方式 | 装饰器元数据 | 说明 |
 |---|---|---|
-| Jest + ts-jest | 有 | CommonJS 项目的传统组合 |
-| Vitest + SWC / OXC 插件 | 有 | NestJS 12 ESM 项目的默认组合 |
+| Jest + ts-jest | 有 | NestJS 12 CommonJS 项目的默认组合；加载只有 ESM 的 v12 包要求 Node.js 24.9+ |
+| Vitest 4 + Vite 8（内置 Oxc 转换） | 有，读 tsconfig 的 `emitDecoratorMetadata` | NestJS 12 ESM 项目的默认组合，模板里不另装 SWC 插件；`import type` 引入的依赖类型可能拿不到 |
+| Vitest + `unplugin-swc` | 有 | v12 之前社区常用的写法，Vite 7 及更早需要它 |
 | node:test + tsx（esbuild） | **没有** | 不能在测试进程里组装 Nest 应用 |
 
 ## hatch-counter 的选择：起真进程打 dist
@@ -254,4 +255,4 @@ it("有人提交就推，推的是换了版的那几块", async () => {
 
 ## 接下来读什么
 
-这本书讲的是 NestJS 这一层。往下一层，hatch-counter 的很多关键设计（行级安全、触发器维护的版本号、迁移、事务与隔离级别）都在数据库里，接着读[《数据库原理与实战》](../database-practice/)。往上一层，幂等、缓存、实时推送、多租户这些跨越整个系统的问题，在[《软件架构与系统设计》](../system-design/)里有完整的讨论。认证和权限只是安全的一部分，[《应用安全》](../app-security/)会补上 OWASP Top 10、密钥管理和供应链安全，并给出一份可以逐项对照的自查清单。
+测试守住的很多规矩落在数据库上，而业务代码碰数据库的方式本身也有一套约定：service 怎么拿连接、事务怎么跨 service 传递、事务里的错误在哪接住。最后一章[数据访问与事务](10-data-transactions.md)讲这些。

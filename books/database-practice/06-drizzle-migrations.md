@@ -2,10 +2,10 @@
 
 前五章讲的是数据库本身，这一章回到每天写的代码：用 Drizzle 定义表结构、写查询，用 drizzle-kit 生成迁移。ORM 的用法文档里都有，这里关心的是那些文档不太强调、却会在生产上出事的地方：迁移是怎么被记账和执行的，哪些操作会锁表，哪些东西 Drizzle 根本不知道。
 
-版本以 hatch-counter 当前用的为准：`drizzle-orm` 0.45、`drizzle-kit` 0.31、驱动 `postgres`（postgres.js）3.4。
+版本以 hatch-counter 当前用的为准：`drizzle-orm` 0.45、`drizzle-kit` 0.31、驱动 `postgres`（postgres.js）3.4。Drizzle v1 还在候选版阶段，和 0.45 不同的地方在[「Drizzle v1 改了什么」](#drizzle-v1-改了什么)一节集中说明。
 
 > [!WARNING]
-> 本章的 API、drizzle-kit 命令和迁移目录结构按 drizzle-orm 0.45 / drizzle-kit 0.31 整理（截至 2026-11）。Drizzle 迭代很快，正在推进的 v1 对迁移目录和记账方式有较大调整；以 Drizzle 官方文档（orm.drizzle.team）和 drizzle-orm 的 releases 说明为准。
+> 本章的 API、drizzle-kit 命令和迁移目录结构按 drizzle-orm 0.45 / drizzle-kit 0.31 整理。截至 2026-11-04，npm 上 `drizzle-orm` 的 `latest` 是 0.45.4、`drizzle-kit` 是 0.31.11，v1 在 `rc` 标签下（1.0.0-rc.5）。v1 的说法按 Drizzle 官方《Upgrading to Drizzle v1》和 1.0.0-rc.5 的迁移器源码整理，正式版可能还会变；以 Drizzle 官方文档（orm.drizzle.team）和 releases 说明为准。
 
 ## schema 即代码
 
@@ -119,7 +119,7 @@ export default defineConfig({
 ## 迁移是怎么记账的
 
 > [!WARNING]
-> 本节描述的 `meta/_journal.json` 账本、`__drizzle_migrations` 表结构和「按 `when` 时间戳判断跑没跑过」的逻辑出自 drizzle-orm 0.45 的 PostgreSQL 迁移器。Drizzle v1 可能改用新的迁移目录结构和记账方式，届时本节和下文「基线重置」「不要手工编辑 `_journal.json`」可能整节不再适用；升级前以 Drizzle 官方文档的迁移章节和 v1 升级说明为准。
+> 本节描述的 `meta/_journal.json` 账本、`__drizzle_migrations` 表结构和「按 `when` 时间戳判断跑没跑过」的逻辑出自 drizzle-orm 0.45 的 PostgreSQL 迁移器源码。Drizzle v1 去掉了账本、改成按迁移名记账，本节和下文「基线重置」「不要手工编辑 `_journal.json`」在 v1 下不再适用，差异见下一节「Drizzle v1 改了什么」；以 Drizzle 官方文档的迁移章节和 v1 升级说明为准。
 
 `drizzle/` 目录下有两样东西：
 
@@ -158,6 +158,41 @@ flowchart TD
 - 但这也意味着**不能在迁移里执行不能放进事务的语句**，比如 `CREATE INDEX CONCURRENTLY`（下文）
 
 hatch-counter 利用这个机制做过一次「基线重置」：把之前四十多份迁移压成两份基线，基线在账本里的 `when` 设成和旧链最后一份相同。于是空库会从基线建起；已经跑完旧链的库，最大 `created_at` 不小于基线的 `when`，基线被当作已经跑过。理解了记账方式，这种操作就不神秘了，但也要清楚它的前提：停在旧链半路的库接不上。
+
+## Drizzle v1 改了什么
+
+> [!WARNING]
+> 本节按 2026 年 11 月的 Drizzle 官方《Upgrading to Drizzle v1》和 npm 上 `drizzle-orm` / `drizzle-kit` 1.0.0-rc.5 的源码整理。v1 尚未正式发布，命令、选项和记账细节在正式版里可能调整；hatch-counter 仍在 0.45，本书正文以 0.45 为准，这一节只作升级前的预习。
+
+v1 动的正是上一节讲的那套记账。并排看：
+
+| | 0.45 / drizzle-kit 0.31 | v1（rc） |
+|---|---|---|
+| 迁移目录 | `drizzle/0003_名字.sql` + `meta/0003_snapshot.json` + `meta/_journal.json` | 每份迁移一个文件夹：`drizzle/<14 位时间戳>_<名字>/migration.sql` 和同目录的 `snapshot.json`，没有账本 |
+| 判断「跑没跑过」 | 库里最大的 `created_at` 和账本里的 `when` 比 | 按文件夹名比：库里没有这个名字的就跑 |
+| `__drizzle_migrations` 表 | `id`、`hash`、`created_at` | 多了 `name`、`applied_at` 两列 |
+| 待跑的迁移 | 同一个事务 | 仍是同一个事务 |
+| 删一份没上线的迁移 | `drizzle-kit drop` | 命令去掉了，直接删那个文件夹 |
+| `push` 前的确认 | 配置里 `strict: true` | `strict` 被弃用，改用 `--explain` 先看要执行的 SQL |
+
+改按名字记账，解决了 0.45 的一个老问题：两个分支各生成一份迁移，合并后时间戳较早的那份会被「最大时间戳」规则永远跳过；v1 下只要名字不在库里就会跑。账本文件没了，合并时也就不会在 `_journal.json` 上起冲突，drizzle-kit 还会检查跨分支的迁移能不能交换先后顺序。
+
+### 从 0.45 升上去
+
+升级分两半：
+
+1. **文件**：`drizzle-kit up` 把旧的 `meta/` 结构改写成新目录。v1 的迁移器读到 `meta/_journal.json` 会直接报错，提示先跑 `drizzle-kit up`
+2. **库里的记录**：第一次用 v1 的迁移器跑迁移时，它发现 `__drizzle_migrations` 只有三列，会自动加上 `name` 和 `applied_at`，再把库里的每一行和本地的迁移对上号（按 `created_at` 精确到秒匹配文件夹名里的时间戳，同一秒有多份时再比哈希），把名字回填进去
+
+第 2 步有一个要提前想到的地方：**库里有、本地找不到对应迁移的行，迁移器会报错停下**，说明「有迁移跑过了，但本地没有」。上一节的基线重置正好会撞上：已经跑完旧链的库里有四十多行记录，本地只剩两份基线，除了 `when` 和旧链最后一份相同的那行，其余都对不上（这是按 rc.5 迁移器源码推断的，没在 hatch-counter 上实际跑过）。所以做过基线重置的项目，升 v1 前要先决定怎么处理旧记录：比如在一个事务里把 `__drizzle_migrations` 清成只剩与基线对应的行，并先在库的副本上演练一遍。
+
+### 对本章其他内容的影响
+
+- 「不要手工编辑 `_journal.json`」在 v1 下没有对象了，但道理不变：快照链仍然靠每个文件夹里的 `snapshot.json` 串起来，不要手改快照
+- `generate --custom` 仍然在，手写迁移的做法照旧
+- 改名还是新建的歧义：v1 的 drizzle-kit 不再停在终端里等你选，而是把它们列成「未决项」，可以用 `--hints` / `--hints-file` 预先给出答案，CI 和 agent 环境里不会卡住
+- 生成列：drizzle-kit 0.31 给 PostgreSQL 一律生成 `STORED`，v1 能区分 `STORED` 和 `VIRTUAL`（PostgreSQL 18 的默认是 `VIRTUAL`，见[第 1 章](01-modeling.md#生成列让库替你算)）
+- 关系查询（`db.query`）在 v1 里换成了新版 API，用到它的代码升级时要按官方的 relations v1 → v2 指南改
 
 ## Drizzle 不知道的东西
 
@@ -222,6 +257,7 @@ flowchart TD
 | 加列，默认值为 `random()` 等易变函数 | 排他锁 | 重写整表（第 5 章实测 100 万行 3 秒） |
 | 改列类型（大多数情况） | 排他锁 | 重写整表和索引 |
 | `SET NOT NULL` | 排他锁 | 扫全表验证 |
+| 加 `NOT NULL` 约束 `NOT VALID`，再 `VALIDATE`（PG 18+） | 先短暂排他锁，验证时不挡读写 | 扫表移到不阻塞写入的第二步 |
 | `CREATE INDEX` | 阻塞写入 | 建索引期间所有写入排队 |
 | `CREATE INDEX CONCURRENTLY` | 不阻塞写入 | 慢一些，但**不能在事务里执行** |
 | 加外键 / CHECK | 默认要扫全表验证 | 可以先 `NOT VALID` 再 `VALIDATE` 分两步 |
@@ -261,14 +297,14 @@ HINT:  New enum values must be committed before they can be used.
 5. 对照上面的锁表格检查：这份迁移在生产数据量下会锁多久？
 6. 迁移和代码一起提交；部署时先迁移，再起新代码（扩展型迁移对旧代码无害）
 
-两个容易踩的坑：一份 diff 里不要同时删一张表又建一张，drizzle-kit 会问「是不是改名」，这个提问要终端，CI 或 agent 环境里会直接卡住；改了一份还没提交但已经灌进开发库的迁移，开发库要重置重来，否则改动永远不会生效。
+两个容易踩的坑：一份 diff 里不要同时删一张表又建一张，drizzle-kit 0.31 会问「是不是改名」，这个提问要终端，CI 或 agent 环境里会直接卡住（v1 改成了列出未决项、用 `--hints` 回答，见上文）；改了一份还没提交但已经灌进开发库的迁移，开发库要重置重来，否则改动永远不会生效。
 
 ## 本章要点
 
 - schema.ts 是类型、迁移依据和文档三合一：公共列用函数展开，口径写在注释里
 - `sql` 模板是参数化的；`sql.raw` 才危险。手写 SQL 的返回类型由驱动决定，`bigint` 是字符串
 - 生产只用 generate + migrate，不用 push；多 schema 要配 `schemaFilter`
-- Drizzle 按账本里的时间戳判断迁移跑没跑过，待跑的迁移在一个事务里执行
+- Drizzle 0.45 按账本里的时间戳判断迁移跑没跑过，待跑的迁移在一个事务里执行；v1 去掉账本、按迁移名记账，做过基线重置的项目升级前要先处理旧记录
 - RLS、触发器、授权、种子数据 Drizzle 不知道，手写在迁移里并用测试守住
 - 不兼容的改动用扩展—回填—切换—收缩；注意哪些 DDL 会锁表、重写表
 - `CREATE INDEX CONCURRENTLY` 进不了迁移事务；新枚举值提交前不能用

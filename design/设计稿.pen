@@ -300,7 +300,7 @@
                   "fill": "#2F6BFF",
                   "content": "书架",
                   "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "600"
                 }
               ]
@@ -311,7 +311,14 @@
               "name": "Tab 笔记",
               "width": "fill_container",
               "height": "fill_container",
+              "fill": "#FFFFFF00",
               "cornerRadius": 26,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              },
               "layout": "vertical",
               "gap": 3,
               "justifyContent": "center",
@@ -334,7 +341,7 @@
                   "fill": "#8C92A0",
                   "content": "笔记",
                   "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "normal"
                 }
               ]
@@ -345,7 +352,14 @@
               "name": "Tab 传书",
               "width": "fill_container",
               "height": "fill_container",
+              "fill": "#FFFFFF00",
               "cornerRadius": 26,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              },
               "layout": "vertical",
               "gap": 3,
               "justifyContent": "center",
@@ -368,7 +382,7 @@
                   "fill": "#8C92A0",
                   "content": "传书",
                   "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "normal"
                 }
               ]
@@ -379,7 +393,14 @@
               "name": "Tab 设置",
               "width": "fill_container",
               "height": "fill_container",
+              "fill": "#FFFFFF00",
               "cornerRadius": 26,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              },
               "layout": "vertical",
               "gap": 3,
               "justifyContent": "center",
@@ -402,7 +423,7 @@
                   "fill": "#8C92A0",
                   "content": "设置",
                   "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "normal"
                 }
               ]
@@ -1834,7 +1855,109 @@
           "name": "Tab Bar",
           "layoutPosition": "absolute",
           "x": 0,
-          "y": 748
+          "y": 748,
+          "descendants": {
+            "gv2C1": {
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26,
+              "fill": "#FFFFFFE6",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#1E2A5A14",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 12
+              }
+            },
+            "FYNKt": {
+              "width": 20,
+              "height": 20,
+              "fill": "#2F6BFF"
+            },
+            "UaZYV": {
+              "fill": "#2F6BFF",
+              "fontSize": 12,
+              "fontWeight": "600"
+            },
+            "hpi7o": {
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26,
+              "fill": "#FFFFFF00",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              }
+            },
+            "Q9R5ua": {
+              "width": 20,
+              "height": 20,
+              "fill": "#8C92A0"
+            },
+            "zmu23": {
+              "fill": "#8C92A0",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            "CizMv": {
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26,
+              "fill": "#FFFFFF00",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              }
+            },
+            "HlgMh": {
+              "width": 20,
+              "height": 20,
+              "fill": "#8C92A0"
+            },
+            "W6o3el": {
+              "fill": "#8C92A0",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            "G0Tj2": {
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26,
+              "fill": "#FFFFFF00",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "enabled": false,
+                "color": "#000000"
+              }
+            },
+            "RqfSB": {
+              "width": 20,
+              "height": 20,
+              "fill": "#8C92A0"
+            },
+            "wzCAY": {
+              "fill": "#8C92A0",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          }
         }
       ]
     },
@@ -9335,14 +9458,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFFE6",
@@ -9355,14 +9486,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFF00",
@@ -9371,14 +9510,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -9387,14 +9534,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         }
@@ -9904,14 +10059,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -9920,14 +10083,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFFE6",
@@ -9940,14 +10111,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -9956,14 +10135,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         }
@@ -10381,8 +10568,8 @@
                           "type": "text",
                           "id": "H46PI8",
                           "name": "t",
-                          "fill": "#B4B9C4",
-                          "content": "每次进入页面重新生成",
+                          "fill": "#A9AEBA",
+                          "content": "每次开启重新生成",
                           "fontFamily": "Noto Sans SC",
                           "fontSize": 11,
                           "fontWeight": "normal"
@@ -10589,7 +10776,7 @@
                   "id": "wVQMH",
                   "name": "t",
                   "fill": "#8C92A0",
-                  "content": "屏幕保持常亮 · 离开页面后服务自动关闭",
+                  "content": "屏幕保持常亮 · 用完记得点右上角停止",
                   "fontFamily": "Noto Sans SC",
                   "fontSize": 11,
                   "fontWeight": "normal"
@@ -10614,14 +10801,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -10630,14 +10825,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFFE6",
@@ -10650,14 +10853,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -10666,14 +10877,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         }
@@ -10859,41 +11078,6 @@
             },
             {
               "type": "frame",
-              "id": "n5b469",
-              "name": "Status",
-              "fill": "#2F6BFF14",
-              "cornerRadius": 16,
-              "gap": 8,
-              "padding": [
-                7,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "IdGQh",
-                  "name": "loader",
-                  "width": 14,
-                  "height": 14,
-                  "icon": "loader-circle",
-                  "library": "lucide",
-                  "fill": "#2F6BFF"
-                },
-                {
-                  "type": "text",
-                  "id": "ADvay",
-                  "name": "t",
-                  "fill": "#1F4FD1",
-                  "content": "正在接收 1 个文件",
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 12,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            {
-              "type": "frame",
               "id": "i24gY",
               "name": "Address Card",
               "width": "fill_container",
@@ -11041,8 +11225,8 @@
                           "type": "text",
                           "id": "UUBw2",
                           "name": "t",
-                          "fill": "#B4B9C4",
-                          "content": "每次进入页面重新生成",
+                          "fill": "#A9AEBA",
+                          "content": "每次开启重新生成",
                           "fontFamily": "Noto Sans SC",
                           "fontSize": 11,
                           "fontWeight": "normal"
@@ -11214,7 +11398,7 @@
               "children": [
                 {
                   "type": "frame",
-                  "id": "BzbF7",
+                  "id": "K3hejo",
                   "name": "Head",
                   "width": "fill_container",
                   "padding": [
@@ -11224,10 +11408,11 @@
                     16
                   ],
                   "justifyContent": "space_between",
+                  "alignItems": "center",
                   "children": [
                     {
                       "type": "text",
-                      "id": "IKwSO",
+                      "id": "PaX42",
                       "name": "t",
                       "fill": "#111318",
                       "content": "本次接收",
@@ -11236,55 +11421,76 @@
                       "fontWeight": "700"
                     },
                     {
-                      "type": "text",
-                      "id": "J9nRy",
-                      "name": "t",
-                      "fill": "#8C92A0",
-                      "content": "4 个文件",
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "QstgX",
+                      "name": "Count",
+                      "height": 18,
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "RvCck",
+                          "name": "loader-circle",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "loader-circle",
+                          "library": "lucide",
+                          "fill": "#8C92A0"
+                        },
+                        {
+                          "type": "text",
+                          "id": "crW27",
+                          "name": "t",
+                          "fill": "#8C92A0",
+                          "content": "已收到 3 个",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "rfMNM",
-                  "name": "Item 出海实务.zip",
+                  "id": "k4czk",
+                  "name": "Item 正在上传 出海实务",
                   "width": "fill_container",
-                  "gap": 12,
+                  "gap": 14,
                   "padding": [
-                    11,
+                    10,
                     16
                   ],
                   "alignItems": "center",
                   "children": [
                     {
                       "type": "frame",
-                      "id": "Fbq2F",
-                      "name": "Icon",
-                      "width": 36,
-                      "height": 36,
-                      "fill": "#2F6BFF14",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "I2aIy",
-                          "name": "arrow-down-to-line",
-                          "width": 17,
-                          "height": 17,
-                          "icon": "arrow-down-to-line",
-                          "library": "lucide",
-                          "fill": "#2F6BFF"
-                        }
-                      ]
+                      "id": "TRJNW",
+                      "name": "Cover",
+                      "width": 40,
+                      "height": 57,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "covers/going-global.png",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 6,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#1E2A5A1F",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 6
+                      }
                     },
                     {
                       "type": "frame",
-                      "id": "NXiuv",
+                      "id": "ZoBr5",
                       "name": "Info",
                       "width": "fill_container",
                       "layout": "vertical",
@@ -11292,55 +11498,52 @@
                       "children": [
                         {
                           "type": "text",
-                          "id": "SjM4Q",
+                          "id": "u5yfTi",
                           "name": "t",
                           "fill": "#111318",
-                          "content": "出海实务.zip",
+                          "content": "出海实务",
                           "fontFamily": "Noto Sans SC",
                           "fontSize": 14,
                           "fontWeight": "600"
                         },
                         {
+                          "type": "text",
+                          "id": "u10BSw",
+                          "name": "t",
+                          "fill": "#8C92A0",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "正在上传",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
                           "type": "frame",
-                          "id": "A8alB",
-                          "name": "P",
+                          "id": "fZuRx",
+                          "name": "Progress",
                           "width": "fill_container",
                           "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "HquCB",
+                              "id": "IonVN",
                               "name": "Track",
                               "width": "fill_container",
                               "height": 4,
                               "fill": "#1E2A5A14",
                               "cornerRadius": 2,
+                              "layout": "none",
                               "children": [
                                 {
                                   "type": "rectangle",
                                   "cornerRadius": 2,
-                                  "id": "M5Y69h",
-                                  "name": "d",
-                                  "fill": {
-                                    "type": "gradient",
-                                    "gradientType": "linear",
-                                    "enabled": true,
-                                    "rotation": -90,
-                                    "size": {
-                                      "height": 1
-                                    },
-                                    "colors": [
-                                      {
-                                        "color": "#2F6BFF",
-                                        "position": 0
-                                      },
-                                      {
-                                        "color": "#8B6BFF",
-                                        "position": 1
-                                      }
-                                    ]
-                                  },
+                                  "id": "shpjx",
+                                  "x": 0,
+                                  "y": 0,
+                                  "name": "Fill",
+                                  "fill": "#2F6BFF",
                                   "width": 150,
                                   "height": 4
                                 }
@@ -11348,7 +11551,7 @@
                             },
                             {
                               "type": "text",
-                              "id": "CV7cB",
+                              "id": "w4nEwX",
                               "name": "t",
                               "fill": "#4B5060",
                               "content": "68%",
@@ -11364,42 +11567,43 @@
                 },
                 {
                   "type": "frame",
-                  "id": "e7VE4",
-                  "name": "Item 上下文工程",
+                  "id": "fha30",
+                  "name": "Item 上下文工程 已更新",
                   "width": "fill_container",
-                  "gap": 12,
+                  "gap": 14,
                   "padding": [
-                    11,
+                    10,
                     16
                   ],
                   "alignItems": "center",
                   "children": [
                     {
                       "type": "frame",
-                      "id": "v6qkr",
-                      "name": "Icon",
-                      "width": 36,
-                      "height": 36,
-                      "fill": "#0E938414",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "pm6AZ",
-                          "name": "refresh-cw",
-                          "width": 17,
-                          "height": 17,
-                          "icon": "refresh-cw",
-                          "library": "lucide",
-                          "fill": "#0E9384"
-                        }
-                      ]
+                      "id": "CsCFk",
+                      "name": "Cover",
+                      "width": 40,
+                      "height": 57,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "covers/context-engineering.png",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 6,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#1E2A5A1F",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 6
+                      }
                     },
                     {
                       "type": "frame",
-                      "id": "G4lCj",
+                      "id": "Xpl5g",
                       "name": "Info",
                       "width": "fill_container",
                       "layout": "vertical",
@@ -11407,7 +11611,7 @@
                       "children": [
                         {
                           "type": "text",
-                          "id": "nqNhk",
+                          "id": "XOCo7",
                           "name": "t",
                           "fill": "#111318",
                           "content": "上下文工程",
@@ -11416,82 +11620,58 @@
                           "fontWeight": "600"
                         },
                         {
-                          "type": "text",
-                          "id": "mWX7V",
-                          "name": "t",
-                          "fill": "#4B5060",
-                          "textGrowth": "fixed-width",
+                          "type": "frame",
+                          "id": "XcsLy",
+                          "name": "Meta",
                           "width": "fill_container",
-                          "content": "已更新 · 阅读进度和高亮都保留了",
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "UHxCn",
-                  "name": "Item 文案与内容",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "padding": [
-                    11,
-                    16
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "fSxVz",
-                      "name": "Icon",
-                      "width": 36,
-                      "height": 36,
-                      "fill": "#0E938414",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "Onxdp",
-                          "name": "plus",
-                          "width": 17,
-                          "height": 17,
-                          "icon": "plus",
-                          "library": "lucide",
-                          "fill": "#0E9384"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "y5NiD3",
-                      "name": "Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 4,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "v6j1RU",
-                          "name": "t",
-                          "fill": "#111318",
-                          "content": "文案与内容",
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 14,
-                          "fontWeight": "600"
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "tSpKf",
+                              "name": "Tag",
+                              "height": 18,
+                              "fill": "#0E93841F",
+                              "cornerRadius": 6,
+                              "padding": [
+                                0,
+                                6
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "U2JiU",
+                                  "name": "t",
+                                  "fill": "#0E9384",
+                                  "content": "已更新",
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 11,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "x3UHN",
+                              "name": "t",
+                              "fill": "#8C92A0",
+                              "content": "8 章 · 人工智能",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
                         },
                         {
                           "type": "text",
-                          "id": "l95sZ6",
+                          "id": "lqrn0",
                           "name": "t",
-                          "fill": "#4B5060",
+                          "fill": "#8C92A0",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "已添加到「一人公司」",
+                          "content": "阅读进度和高亮都保留了",
                           "fontFamily": "Noto Sans SC",
                           "fontSize": 12,
                           "fontWeight": "normal"
@@ -11502,30 +11682,30 @@
                 },
                 {
                   "type": "frame",
-                  "id": "F9j8d",
-                  "name": "Item draft.zip",
+                  "id": "E0Qc88",
+                  "name": "Item draft.zip 失败",
                   "width": "fill_container",
-                  "gap": 12,
+                  "gap": 14,
                   "padding": [
-                    11,
+                    10,
                     16
                   ],
                   "alignItems": "center",
                   "children": [
                     {
                       "type": "frame",
-                      "id": "KMkr8",
+                      "id": "OiujS",
                       "name": "Icon",
-                      "width": 36,
-                      "height": 36,
+                      "width": 40,
+                      "height": 57,
                       "fill": "#E5484D14",
-                      "cornerRadius": 12,
+                      "cornerRadius": 6,
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "icon",
-                          "id": "cnI32",
+                          "id": "HrFvs",
                           "name": "circle-alert",
                           "width": 17,
                           "height": 17,
@@ -11537,7 +11717,7 @@
                     },
                     {
                       "type": "frame",
-                      "id": "U14iJ",
+                      "id": "RJN7G",
                       "name": "Info",
                       "width": "fill_container",
                       "layout": "vertical",
@@ -11545,7 +11725,7 @@
                       "children": [
                         {
                           "type": "text",
-                          "id": "SwVCa",
+                          "id": "TI9w6",
                           "name": "t",
                           "fill": "#111318",
                           "content": "draft.zip",
@@ -11555,7 +11735,7 @@
                         },
                         {
                           "type": "text",
-                          "id": "jdklt",
+                          "id": "UZiyH",
                           "name": "t",
                           "fill": "#C2410C",
                           "textGrowth": "fixed-width",
@@ -11568,6 +11748,144 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ENujm",
+                  "name": "Item 文案与内容 新书",
+                  "width": "fill_container",
+                  "gap": 14,
+                  "padding": [
+                    10,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Ciphx",
+                      "name": "Cover",
+                      "width": 40,
+                      "height": 57,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "covers/copywriting-content.png",
+                        "mode": "cover"
+                      },
+                      "cornerRadius": 6,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#1E2A5A1F",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 6
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Byuuo",
+                      "name": "Info",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "uP7jn",
+                          "name": "t",
+                          "fill": "#111318",
+                          "content": "文案与内容",
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "sAEf6",
+                          "name": "Meta",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "H8PXY",
+                              "name": "Tag",
+                              "height": 18,
+                              "fill": "#2F6BFF14",
+                              "cornerRadius": 6,
+                              "padding": [
+                                0,
+                                6
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "FaWZE",
+                                  "name": "t",
+                                  "fill": "#2F6BFF",
+                                  "content": "新书",
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 11,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "NBHKz",
+                              "name": "t",
+                              "fill": "#8C92A0",
+                              "content": "7 章 · 一人公司",
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iSFeA",
+              "name": "Foot",
+              "width": "fill_container",
+              "gap": 6,
+              "padding": [
+                2,
+                0
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "DkfKg",
+                  "name": "sun",
+                  "width": 12,
+                  "height": 12,
+                  "icon": "sun",
+                  "library": "lucide",
+                  "fill": "#8C92A0"
+                },
+                {
+                  "type": "text",
+                  "id": "HZ9jZ",
+                  "name": "t",
+                  "fill": "#8C92A0",
+                  "content": "屏幕保持常亮 · 用完记得点右上角停止",
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -11589,14 +11907,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -11605,14 +11931,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFFE6",
@@ -11625,14 +11959,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -11641,14 +11983,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         },
@@ -11725,7 +12075,7 @@
                   "id": "mAPFm",
                   "name": "t",
                   "fill": "#8C92A0",
-                  "content": "8 章 · 一人公司",
+                  "content": "7 章 · 一人公司",
                   "fontFamily": "Noto Sans SC",
                   "fontSize": 12,
                   "fontWeight": "normal"
@@ -12141,14 +12491,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -12157,14 +12515,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFFE6",
@@ -12177,14 +12543,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -12193,14 +12567,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         }
@@ -13089,14 +13471,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -13105,14 +13495,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFF00",
@@ -13121,14 +13519,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFFE6",
@@ -13141,14 +13547,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             }
           }
         }
@@ -13456,14 +13870,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -13472,14 +13894,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFF00",
@@ -13488,14 +13918,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -13504,14 +13942,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         }
@@ -15251,7 +15697,7 @@
                       "fill": "#4B5060",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "首屏卡片 opacity 0→1、y +12→0，自上而下错开 50ms；下拉刷新、返回时不重播。",
+                      "content": "首屏卡片 opacity 0→1、y +12→0，自上而下错开 50ms；返回时不重播。",
                       "lineHeight": 1.6,
                       "fontFamily": "Noto Sans SC",
                       "fontSize": 12,
@@ -17663,14 +18109,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -17679,14 +18133,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -17699,14 +18161,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -17715,14 +18185,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -18432,14 +18910,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -18448,14 +18934,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -18468,14 +18962,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -18484,14 +18986,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -19120,8 +19630,8 @@
                                                   "type": "text",
                                                   "id": "ePUzS",
                                                   "name": "t",
-                                                  "fill": "#B4B9C4",
-                                                  "content": "每次进入页面重新生成",
+                                                  "fill": "#A9AEBA",
+                                                  "content": "每次开启重新生成",
                                                   "fontFamily": "Noto Sans SC",
                                                   "fontSize": 11,
                                                   "fontWeight": "normal"
@@ -19330,7 +19840,7 @@
                                           "id": "sh5xA",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "屏幕保持常亮 · 离开页面后服务自动关闭",
+                                          "content": "屏幕保持常亮 · 用完记得点右上角停止",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 11,
                                           "fontWeight": "normal"
@@ -19355,14 +19865,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -19371,14 +19889,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -19391,14 +19917,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -19407,14 +19941,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -20067,8 +20609,8 @@
                                                   "type": "text",
                                                   "id": "yrxPl",
                                                   "name": "t",
-                                                  "fill": "#B4B9C4",
-                                                  "content": "每次进入页面重新生成",
+                                                  "fill": "#A9AEBA",
+                                                  "content": "每次开启重新生成",
                                                   "fontFamily": "Noto Sans SC",
                                                   "fontSize": 11,
                                                   "fontWeight": "normal"
@@ -20279,7 +20821,7 @@
                                           "id": "ai0rj",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "屏幕保持常亮 · 离开页面后服务自动关闭",
+                                          "content": "屏幕保持常亮 · 用完记得点右上角停止",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 11,
                                           "fontWeight": "normal"
@@ -20304,14 +20846,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -20320,14 +20870,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -20340,14 +20898,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -20356,14 +20922,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -22035,8 +22609,8 @@
                                                   "type": "text",
                                                   "id": "inuny",
                                                   "name": "t",
-                                                  "fill": "#B4B9C4",
-                                                  "content": "每次进入页面重新生成",
+                                                  "fill": "#A9AEBA",
+                                                  "content": "每次开启重新生成",
                                                   "fontFamily": "Noto Sans SC",
                                                   "fontSize": 11,
                                                   "fontWeight": "normal"
@@ -22243,7 +22817,7 @@
                                           "id": "FiALE",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "屏幕保持常亮 · 离开页面后服务自动关闭",
+                                          "content": "屏幕保持常亮 · 用完记得点右上角停止",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 11,
                                           "fontWeight": "normal"
@@ -22268,14 +22842,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -22284,14 +22866,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -22304,14 +22894,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -22320,14 +22918,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -22906,8 +23512,8 @@
                                                   "type": "text",
                                                   "id": "MlMh5",
                                                   "name": "t",
-                                                  "fill": "#B4B9C4",
-                                                  "content": "每次进入页面重新生成",
+                                                  "fill": "#A9AEBA",
+                                                  "content": "每次开启重新生成",
                                                   "fontFamily": "Noto Sans SC",
                                                   "fontSize": 11,
                                                   "fontWeight": "normal"
@@ -23116,7 +23722,7 @@
                                           "id": "P7kMoa",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "屏幕保持常亮 · 离开页面后服务自动关闭",
+                                          "content": "屏幕保持常亮 · 用完记得点右上角停止",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 11,
                                           "fontWeight": "normal"
@@ -23141,14 +23747,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -23157,14 +23771,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -23177,14 +23799,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -23193,14 +23823,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -23911,14 +24549,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -23927,14 +24573,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -23947,14 +24601,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -23963,14 +24625,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -24679,14 +25349,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "FYNKt": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "UaZYV": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "hpi7o": {
                                       "fill": "#FFFFFF00",
@@ -24695,14 +25373,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "Q9R5ua": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "zmu23": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     },
                                     "CizMv": {
                                       "fill": "#FFFFFFE6",
@@ -24715,14 +25401,22 @@
                                           "y": 4
                                         },
                                         "blur": 12
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "HlgMh": {
-                                      "fill": "#2F6BFF"
+                                      "fill": "#2F6BFF",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "W6o3el": {
                                       "fill": "#2F6BFF",
-                                      "fontWeight": "600"
+                                      "fontWeight": "600",
+                                      "fontSize": 12
                                     },
                                     "G0Tj2": {
                                       "fill": "#FFFFFF00",
@@ -24731,14 +25425,22 @@
                                         "shadowType": "outer",
                                         "enabled": false,
                                         "color": "#000000"
-                                      }
+                                      },
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "padding": 0,
+                                      "cornerRadius": 26
                                     },
                                     "RqfSB": {
-                                      "fill": "#8C92A0"
+                                      "fill": "#8C92A0",
+                                      "width": 20,
+                                      "height": 20
                                     },
                                     "wzCAY": {
                                       "fill": "#8C92A0",
-                                      "fontWeight": "normal"
+                                      "fontWeight": "normal",
+                                      "fontSize": 12
                                     }
                                   }
                                 }
@@ -44500,14 +45202,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFFE6",
@@ -44520,14 +45230,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFF00",
@@ -44536,14 +45254,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFF00",
@@ -44552,14 +45278,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             }
           }
         }
@@ -56992,44 +57726,109 @@
                       "name": "Tab Bar",
                       "layoutPosition": "absolute",
                       "x": 0,
-                      "y": 748
-                    },
-                    {
-                      "type": "ellipse",
-                      "id": "sibD9",
-                      "layoutPosition": "absolute",
-                      "x": 210,
-                      "y": 456,
-                      "name": "Touch",
-                      "fill": "#2F6BFF33",
-                      "width": 44,
-                      "height": 44,
-                      "stroke": "#FFFFFF",
-                      "strokeWidth": 2,
-                      "effect": {
-                        "type": "shadow",
-                        "shadowType": "outer",
-                        "color": "#1E2A5A33",
-                        "offset": {
-                          "x": 0,
-                          "y": 2
+                      "y": 748,
+                      "descendants": {
+                        "gv2C1": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFFE6",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#1E2A5A14",
+                            "offset": {
+                              "x": 0,
+                              "y": 4
+                            },
+                            "blur": 12
+                          }
                         },
-                        "blur": 8
+                        "FYNKt": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#2F6BFF"
+                        },
+                        "UaZYV": {
+                          "fill": "#2F6BFF",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        "hpi7o": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFF00",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "enabled": false,
+                            "color": "#000000"
+                          }
+                        },
+                        "Q9R5ua": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#8C92A0"
+                        },
+                        "zmu23": {
+                          "fill": "#8C92A0",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "CizMv": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFF00",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "enabled": false,
+                            "color": "#000000"
+                          }
+                        },
+                        "HlgMh": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#8C92A0"
+                        },
+                        "W6o3el": {
+                          "fill": "#8C92A0",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "G0Tj2": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFF00",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "enabled": false,
+                            "color": "#000000"
+                          }
+                        },
+                        "RqfSB": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#8C92A0"
+                        },
+                        "wzCAY": {
+                          "fill": "#8C92A0",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
                       }
-                    },
-                    {
-                      "type": "ellipse",
-                      "id": "VLDAO",
-                      "layoutPosition": "absolute",
-                      "x": 204,
-                      "y": 450,
-                      "name": "Hold Ring",
-                      "innerRadius": 0.92,
-                      "startAngle": 90,
-                      "sweepAngle": -220,
-                      "fill": "#2F6BFF",
-                      "width": 56,
-                      "height": 56
                     }
                   ]
                 },
@@ -57088,7 +57887,7 @@
                       "fill": "#4B5060",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "封面缩到 0.96 并略压暗，触点外一圈进度环。移动超过 10pt 或提前松手即取消，按点按进入阅读页。",
+                      "content": "封面缩到 0.96 并略压暗，没有其他提示。300ms 内松手按点按进入阅读页；按住时滑动则取消。",
                       "lineHeight": 1.6,
                       "textAlign": "center",
                       "fontFamily": "Noto Sans SC",
@@ -58274,7 +59073,109 @@
                       "name": "Tab Bar",
                       "layoutPosition": "absolute",
                       "x": 0,
-                      "y": 748
+                      "y": 748,
+                      "descendants": {
+                        "gv2C1": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFFE6",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#1E2A5A14",
+                            "offset": {
+                              "x": 0,
+                              "y": 4
+                            },
+                            "blur": 12
+                          }
+                        },
+                        "FYNKt": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#2F6BFF"
+                        },
+                        "UaZYV": {
+                          "fill": "#2F6BFF",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        "hpi7o": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFF00",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "enabled": false,
+                            "color": "#000000"
+                          }
+                        },
+                        "Q9R5ua": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#8C92A0"
+                        },
+                        "zmu23": {
+                          "fill": "#8C92A0",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "CizMv": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFF00",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "enabled": false,
+                            "color": "#000000"
+                          }
+                        },
+                        "HlgMh": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#8C92A0"
+                        },
+                        "W6o3el": {
+                          "fill": "#8C92A0",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        "G0Tj2": {
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "padding": 0,
+                          "cornerRadius": 26,
+                          "fill": "#FFFFFF00",
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "enabled": false,
+                            "color": "#000000"
+                          }
+                        },
+                        "RqfSB": {
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#8C92A0"
+                        },
+                        "wzCAY": {
+                          "fill": "#8C92A0",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      }
                     },
                     {
                       "type": "rectangle",
@@ -58332,30 +59233,6 @@
                           "blur": 10
                         }
                       ]
-                    },
-                    {
-                      "type": "ellipse",
-                      "id": "cwvjK",
-                      "layoutPosition": "absolute",
-                      "x": 210,
-                      "y": 456,
-                      "name": "Touch",
-                      "opacity": 0.7,
-                      "fill": "#2F6BFF33",
-                      "width": 44,
-                      "height": 44,
-                      "stroke": "#FFFFFF",
-                      "strokeWidth": 2,
-                      "effect": {
-                        "type": "shadow",
-                        "shadowType": "outer",
-                        "color": "#1E2A5A33",
-                        "offset": {
-                          "x": 0,
-                          "y": 2
-                        },
-                        "blur": 8
-                      }
                     },
                     {
                       "type": "frame",
@@ -59655,7 +60532,109 @@
                           "name": "Tab Bar",
                           "layoutPosition": "absolute",
                           "x": 0,
-                          "y": 748
+                          "y": 748,
+                          "descendants": {
+                            "gv2C1": {
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "padding": 0,
+                              "cornerRadius": 26,
+                              "fill": "#FFFFFFE6",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#1E2A5A14",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 4
+                                },
+                                "blur": 12
+                              }
+                            },
+                            "FYNKt": {
+                              "width": 20,
+                              "height": 20,
+                              "fill": "#2F6BFF"
+                            },
+                            "UaZYV": {
+                              "fill": "#2F6BFF",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            "hpi7o": {
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "padding": 0,
+                              "cornerRadius": 26,
+                              "fill": "#FFFFFF00",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              }
+                            },
+                            "Q9R5ua": {
+                              "width": 20,
+                              "height": 20,
+                              "fill": "#8C92A0"
+                            },
+                            "zmu23": {
+                              "fill": "#8C92A0",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "CizMv": {
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "padding": 0,
+                              "cornerRadius": 26,
+                              "fill": "#FFFFFF00",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              }
+                            },
+                            "HlgMh": {
+                              "width": 20,
+                              "height": 20,
+                              "fill": "#8C92A0"
+                            },
+                            "W6o3el": {
+                              "fill": "#8C92A0",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            "G0Tj2": {
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "padding": 0,
+                              "cornerRadius": 26,
+                              "fill": "#FFFFFF00",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              }
+                            },
+                            "RqfSB": {
+                              "width": 20,
+                              "height": 20,
+                              "fill": "#8C92A0"
+                            },
+                            "wzCAY": {
+                              "fill": "#8C92A0",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          }
                         }
                       ]
                     },
@@ -61632,7 +62611,7 @@
                 {
                   "type": "frame",
                   "id": "UcvBG",
-                  "name": "按下 · 300 ms · 进度环",
+                  "name": "按下 · 300 ms",
                   "width": 847,
                   "height": "fill_container",
                   "fill": "#D9DDE7",
@@ -61648,7 +62627,7 @@
                       "id": "Y1NAXy",
                       "name": "t",
                       "fill": "#4B5060",
-                      "content": "按下 · 300 ms · 进度环",
+                      "content": "按下 · 300 ms",
                       "fontFamily": "Noto Sans SC",
                       "fontSize": 12,
                       "fontWeight": "600"
@@ -63876,14 +64855,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "FYNKt": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "UaZYV": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "hpi7o": {
               "fill": "#FFFFFF00",
@@ -63892,14 +64879,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "Q9R5ua": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "zmu23": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "CizMv": {
               "fill": "#FFFFFF00",
@@ -63908,14 +64903,22 @@
                 "shadowType": "outer",
                 "enabled": false,
                 "color": "#000000"
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "HlgMh": {
-              "fill": "#8C92A0"
+              "fill": "#8C92A0",
+              "width": 20,
+              "height": 20
             },
             "W6o3el": {
               "fill": "#8C92A0",
-              "fontWeight": "normal"
+              "fontWeight": "normal",
+              "fontSize": 12
             },
             "G0Tj2": {
               "fill": "#FFFFFFE6",
@@ -63928,14 +64931,22 @@
                   "y": 4
                 },
                 "blur": 12
-              }
+              },
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 0,
+              "cornerRadius": 26
             },
             "RqfSB": {
-              "fill": "#2F6BFF"
+              "fill": "#2F6BFF",
+              "width": 20,
+              "height": 20
             },
             "wzCAY": {
               "fill": "#2F6BFF",
-              "fontWeight": "600"
+              "fontWeight": "600",
+              "fontSize": 12
             }
           }
         }

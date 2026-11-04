@@ -4,6 +4,7 @@ import { useCoverHidden } from '@/ui/CoverFlight';
 import { PressScale } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
 import { useBookPress } from './actions';
+import { AudioBadge } from './AudioBadge';
 import { BookCover } from './BookCover';
 import { bookMeta, ProgressBadge } from './progress';
 
@@ -14,9 +15,12 @@ export function ShelfBook({
   width,
   animateProgress,
   index,
+  audio = false,
 }: {
   book: BookRow;
   progress?: BookProgress;
+  /** 有原声时封面右上角显示「原声」 */
+  audio?: boolean;
   width: number;
   animateProgress?: boolean;
   index?: number;
@@ -29,6 +33,7 @@ export function ShelfBook({
     <PressScale style={{ width, gap: 10 }} {...press}>
       <BookCover ref={cover} book={book} width={width} style={hidden && styles.hidden}>
         <ProgressBadge progress={progress} animate={animateProgress} index={index} />
+        {audio && <AudioBadge />}
       </BookCover>
       <View style={{ gap: 4 }}>
         <Text style={[styles.bookTitle, { color: t.fg }]} numberOfLines={1}>

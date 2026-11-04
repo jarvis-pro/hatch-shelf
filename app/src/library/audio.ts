@@ -28,6 +28,16 @@ export async function loadAudioManifest(bookId: string): Promise<AudioManifest |
   }
 }
 
+/** 本书有没有原声：只看清单在不在，不读内容，书架上每本书都要查一次 */
+export function hasAudio(bookId: string): boolean {
+  return new File(audioDir(bookId), AUDIO_MANIFEST).exists;
+}
+
+/** 有原声的书（书架封面右上角的「原声」角标） */
+export function booksWithAudio(bookIds: string[]): Set<string> {
+  return new Set(bookIds.filter(hasAudio));
+}
+
 /** 本书录音占用的空间；没有原声为 0 */
 export function audioBytes(bookId: string): number {
   const dir = audioDir(bookId);

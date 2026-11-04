@@ -27,7 +27,7 @@ interface Props {
   /** 投影强度：0 不投影 */
   elevation?: 0 | 1 | 2;
   style?: StyleProp<ViewStyle>;
-  /** 叠在封面左下角的徽标（进度） */
+  /** 叠在封面上的徽标（左下角进度、右上角原声），自行绝对定位 */
   children?: ReactNode;
   /** 用于测量封面在屏幕上的位置（共享元素转场） */
   ref?: Ref<HostInstance>;

@@ -6,7 +6,9 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getChapters, listBookProgress, listBooks, type BookProgress, type BookRow } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
+import { booksWithAudio } from '@/library/audio';
 import { useLibraryChanged } from '@/library/events';
+import { AudioBadge } from '@/shelf/AudioBadge';
 import { BookCover } from '@/shelf/BookCover';
 import { seriesOf, sortSeries } from '@/shelf/categories';
 import { EmptyShelf } from '@/shelf/EmptyShelf';
@@ -35,12 +37,15 @@ export default function ShelfScreen() {
   const [books, setBooks] = useState<BookRow[] | null>(null);
   const [progress, setProgress] = useState<Map<string, BookProgress>>(new Map());
   const [recent, setRecent] = useState<ContinueInfo | null>(null);
+  /** 有原声的书 */
+  const [audio, setAudio] = useState<Set<string>>(new Set());
   const playProgress = useFirstEntry('shelf-progress');
 
   const load = useCallback(async () => {
     const [all, prog] = await Promise.all([listBooks(), listBookProgress()]);
     setBooks(all);
     setProgress(prog);
+    setAudio(booksWithAudio(all.map((b) => b.id)));
     // 继续阅读：最近读过、还没读完的一本
     const last = all
       .filter((b) => b.lastReadAt && prog.has(b.id) && !prog.get(b.id)!.finished)
@@ -93,7 +98,7 @@ export default function ShelfScreen() {
         {books?.length === 0 && <EmptyShelf />}
         {recent && (
           <FadeInUp index={0}>
-            <ContinueCard info={recent} animate={playProgress} />
+            <ContinueCard info={recent} animate={playProgress} audio={audio.has(recent.book.id)} />
           </FadeInUp>
         )}
         {sections.map(([series, list], i) => {
@@ -132,6 +137,7 @@ export default function ShelfScreen() {
                     width={BOOK_WIDTH}
                     animateProgress={playProgress}
                     index={first + j + 1}
+                    audio={audio.has(b.id)}
                   />
                 ))}
               </ScrollView>
@@ -143,7 +149,7 @@ export default function ShelfScreen() {
   );
 }
 
-function ContinueCard({ info, animate }: { info: ContinueInfo; animate: boolean }) {
+function ContinueCard({ info, animate, audio }: { info: ContinueInfo; animate: boolean; audio: boolean }) {
   const t = useTheme();
   const { book, progress, chapterTitle } = info;
   const { cover, press } = useBookPress(book);
@@ -151,7 +157,9 @@ function ContinueCard({ info, animate }: { info: ContinueInfo; animate: boolean 
   return (
     <PressScale {...press}>
       <Glass radius={26} style={styles.continue}>
-        <BookCover ref={cover} book={book} width={108} radius={10} elevation={2} style={hidden && { opacity: 0 }} />
+        <BookCover ref={cover} book={book} width={108} radius={10} elevation={2} style={hidden && { opacity: 0 }}>
+          {audio && <AudioBadge inset={7} />}
+        </BookCover>
         <View style={styles.continueInfo}>
           <View style={{ gap: 6 }}>
             <View style={styles.label}>

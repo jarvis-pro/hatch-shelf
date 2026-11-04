@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listBookProgress, listBooks, type BookProgress, type BookRow } from '@/db/queries';
+import { booksWithAudio } from '@/library/audio';
 import { seriesOf } from '@/shelf/categories';
 import { ShelfBook } from '@/shelf/ShelfBook';
 import { Backdrop } from '@/ui/Backdrop';
@@ -22,12 +23,15 @@ export default function CategoryScreen() {
   const { width } = useWindowDimensions();
   const [books, setBooks] = useState<BookRow[]>([]);
   const [progress, setProgress] = useState<Map<string, BookProgress>>(new Map());
+  const [audio, setAudio] = useState<Set<string>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
       void Promise.all([listBooks(), listBookProgress()]).then(([all, p]) => {
-        setBooks(all.filter((b) => seriesOf(b.category) === name));
+        const list = all.filter((b) => seriesOf(b.category) === name);
+        setBooks(list);
         setProgress(p);
+        setAudio(booksWithAudio(list.map((b) => b.id)));
       });
     }, [name]),
   );
@@ -46,7 +50,7 @@ export default function CategoryScreen() {
         <View style={styles.grid}>
           {books.map((b, i) => (
             <FadeInUp key={b.id} index={i}>
-              <ShelfBook book={b} progress={progress.get(b.id)} width={bookWidth} />
+              <ShelfBook book={b} progress={progress.get(b.id)} width={bookWidth} audio={audio.has(b.id)} />
             </FadeInUp>
           ))}
         </View>

@@ -18,6 +18,7 @@ import {
 import { audioBytes, deleteAudio } from '@/library/audio';
 import { formatBytes } from '@/library/size-format';
 import { exportNotes, openBook, openNotes } from '@/shelf/actions';
+import { AudioBadge } from '@/shelf/AudioBadge';
 import { BookCover, useCoverUri } from '@/shelf/BookCover';
 import { DeleteDialog } from '@/shelf/DeleteDialog';
 import { UpdatedTag } from '@/shelf/UpdatedTag';
@@ -125,7 +126,9 @@ export default function BookDetailScreen() {
         radius={DETAIL_COVER_RADIUS}
         elevation={2}
         style={[styles.cover, { left: rect.x, top: rect.y }, coverHidden && { opacity: 0 }]}
-      />
+      >
+        {audio > 0 && <AudioBadge scale={1.4} inset={14} />}
+      </BookCover>
 
       <View style={[styles.bottom, { bottom: detailBottomInset(insets) }]}>
         <FadeInUp index={1} delay={80}>

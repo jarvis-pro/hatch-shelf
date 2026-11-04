@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 320" width="360" height="320" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="319" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">二分查找最多要测几次</text>
+<text x="180.0" y="50" font-size="12" fill="#656d76" text-anchor="middle">次数 = ⌈log₂ 提交数⌉</text>
+<line x1="44" y1="236.0" x2="340" y2="236.0" stroke="#d8dee4"/>
+<text x="38" y="240.0" font-size="11" fill="#656d76" text-anchor="end">0</text>
+<line x1="44" y1="194.5" x2="340" y2="194.5" stroke="#d8dee4"/>
+<text x="38" y="198.5" font-size="11" fill="#656d76" text-anchor="end">5</text>
+<line x1="44" y1="153.0" x2="340" y2="153.0" stroke="#d8dee4"/>
+<text x="38" y="157.0" font-size="11" fill="#656d76" text-anchor="end">10</text>
+<line x1="44" y1="111.5" x2="340" y2="111.5" stroke="#d8dee4"/>
+<text x="38" y="115.5" font-size="11" fill="#656d76" text-anchor="end">15</text>
+<line x1="44" y1="70.0" x2="340" y2="70.0" stroke="#d8dee4"/>
+<text x="38" y="74.0" font-size="11" fill="#656d76" text-anchor="end">20</text>
+<rect x="56.6" y="202.8" width="34" height="33.2" fill="#2f6fdf"/>
+<text x="73.6" y="196.8" font-size="13" font-weight="600" fill="#1f2328" text-anchor="middle">4 次</text>
+<text x="73.6" y="254" font-size="12" fill="#656d76" text-anchor="middle">10</text>
+<rect x="115.8" y="177.9" width="34" height="58.1" fill="#2f6fdf"/>
+<text x="132.8" y="171.9" font-size="13" font-weight="600" fill="#1f2328" text-anchor="middle">7 次</text>
+<text x="132.8" y="254" font-size="12" fill="#656d76" text-anchor="middle">100</text>
+<rect x="175.0" y="153.0" width="34" height="83.0" fill="#2f6fdf"/>
+<text x="192.0" y="147.0" font-size="13" font-weight="600" fill="#1f2328" text-anchor="middle">10 次</text>
+<text x="192.0" y="254" font-size="12" fill="#656d76" text-anchor="middle">1千</text>
+<rect x="234.2" y="119.8" width="34" height="116.2" fill="#2f6fdf"/>
+<text x="251.2" y="113.8" font-size="13" font-weight="600" fill="#1f2328" text-anchor="middle">14 次</text>
+<text x="251.2" y="254" font-size="12" fill="#656d76" text-anchor="middle">1万</text>
+<rect x="293.4" y="94.9" width="34" height="141.1" fill="#2f6fdf"/>
+<text x="310.4" y="88.9" font-size="13" font-weight="600" fill="#1f2328" text-anchor="middle">17 次</text>
+<text x="310.4" y="254" font-size="12" fill="#656d76" text-anchor="middle">10万</text>
+<text x="192.0" y="274" font-size="12" fill="#656d76" text-anchor="middle">区间内的提交数</text>
+<text x="180.0" y="304" font-size="12" fill="#1f2328" text-anchor="middle">提交数每多 10 倍，只多测 3～4 次</text>
+</svg>

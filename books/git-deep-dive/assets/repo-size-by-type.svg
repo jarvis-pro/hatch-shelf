@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 356" width="360" height="356" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="355" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">hatch-shelf 历史里各类文件的体积</text>
+<text x="180.0" y="50" font-size="12" fill="#656d76" text-anchor="middle">全部历史版本合计，单位 MiB</text>
+<text x="100" y="92" font-size="13" fill="#1f2328" text-anchor="end">PNG</text>
+<text x="100" y="108" font-size="11" fill="#656d76" text-anchor="end">205 个 blob</text>
+<rect x="106" y="80" width="184.8" height="14" rx="2" fill="#dbe7fb"/>
+<text x="296.8" y="91" font-size="11" fill="#656d76">136.2</text>
+<rect x="106" y="98" width="184.2" height="14" rx="2" fill="#2f6fdf"/>
+<text x="296.2" y="109" font-size="12" font-weight="600" fill="#1f2328">135.7</text>
+<text x="100" y="144" font-size="13" fill="#1f2328" text-anchor="end">Markdown</text>
+<text x="100" y="160" font-size="11" fill="#656d76" text-anchor="end">1358 个 blob</text>
+<rect x="106" y="132" width="22.1" height="14" rx="2" fill="#dbe7fb"/>
+<text x="134.1" y="143" font-size="11" fill="#656d76">16.3</text>
+<rect x="106" y="150" width="6.1" height="14" rx="2" fill="#2f6fdf"/>
+<text x="118.1" y="161" font-size="12" font-weight="600" fill="#1f2328">4.5</text>
+<text x="100" y="196" font-size="13" fill="#1f2328" text-anchor="end">.pen 设计稿</text>
+<text x="100" y="212" font-size="11" fill="#656d76" text-anchor="end">21 个 blob</text>
+<rect x="106" y="184" width="50.2" height="14" rx="2" fill="#dbe7fb"/>
+<text x="162.2" y="195" font-size="11" fill="#656d76">37.0</text>
+<rect x="106" y="202" width="2.9" height="14" rx="2" fill="#2f6fdf"/>
+<text x="114.8" y="213" font-size="12" font-weight="600" fill="#1f2328">2.1</text>
+<text x="100" y="248" font-size="13" fill="#1f2328" text-anchor="end">JPG</text>
+<text x="100" y="264" font-size="11" fill="#656d76" text-anchor="end">5 个 blob</text>
+<rect x="106" y="236" width="2.2" height="14" rx="2" fill="#dbe7fb"/>
+<text x="114.2" y="247" font-size="11" fill="#656d76">1.6</text>
+<rect x="106" y="254" width="2.2" height="14" rx="2" fill="#2f6fdf"/>
+<text x="114.2" y="265" font-size="12" font-weight="600" fill="#1f2328">1.6</text>
+<rect x="70" y="294" width="14" height="12" rx="2" fill="#dbe7fb"/>
+<text x="90" y="305" font-size="12" fill="#656d76">原始大小</text>
+<rect x="190" y="294" width="14" height="12" rx="2" fill="#2f6fdf"/>
+<text x="210" y="305" font-size="12" fill="#656d76">打包压缩后</text>
+<text x="180.0" y="338" font-size="12" fill="#1f2328" text-anchor="middle">文本能压到几分之一，PNG 几乎压不动</text>
+</svg>

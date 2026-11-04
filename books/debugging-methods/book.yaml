@@ -1,0 +1,22 @@
+id: debugging-methods
+title: 调试与问题排查
+subtitle: 从复现到根因：一套不依赖运气的排查方法
+category: 技术/工程
+tags: [debugging, troubleshooting, devtools, profiling, git-bisect]
+level: intermediate
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-scientific-method.md
+  - 02-reproduce.md
+  - 03-bisect.md
+  - 04-logs-stacks.md
+  - 05-debuggers.md
+  - 06-performance-flamegraph.md
+  - 07-memory-leaks.md
+  - 08-network-cross-platform.md
+  - 09-production-only.md
+  - 10-records-and-agents.md
+next:
+  - id: observability-performance
+    reason: 把排查时临时加的观测变成常备的日志、指标和告警，问题来之前就有线索

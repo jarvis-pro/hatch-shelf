@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 316" width="360" height="316" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="315" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">切到设置页时 JS 线程的火焰图</text>
+<rect x="20.5" y="181" width="319.0" height="24" rx="2" fill="#dbe7fb" stroke="#ffffff"/>
+<text x="26.0" y="198.0" font-size="12" fill="#1f2328">JS 线程（全部样本）</text>
+<rect x="20.5" y="155" width="280.6" height="24" rx="2" fill="#dbe7fb" stroke="#ffffff"/>
+<text x="26.0" y="172.0" font-size="12" fill="#1f2328">设置页聚焦回调</text>
+<rect x="302.1" y="155" width="15.0" height="24" rx="2" fill="#e6e9ed" stroke="#ffffff"/>
+<rect x="318.1" y="155" width="21.4" height="24" rx="2" fill="#e6e9ed" stroke="#ffffff"/>
+<rect x="20.5" y="129" width="8.6" height="24" rx="2" fill="#e6e9ed" stroke="#ffffff"/>
+<rect x="30.1" y="129" width="271.0" height="24" rx="2" fill="#dbe7fb" stroke="#ffffff"/>
+<text x="35.6" y="146.0" font-size="12" fill="#1f2328">listBooks().then 回调</text>
+<rect x="30.1" y="103" width="267.8" height="24" rx="2" fill="#dbe7fb" stroke="#ffffff"/>
+<text x="35.6" y="120.0" font-size="12" fill="#1f2328">dirSize(books/)</text>
+<rect x="298.9" y="103" width="2.2" height="24" rx="2" fill="#e6e9ed" stroke="#ffffff"/>
+<rect x="30.1" y="77" width="18.2" height="24" rx="2" fill="#e6e9ed" stroke="#ffffff"/>
+<rect x="49.3" y="77" width="248.6" height="24" rx="2" fill="#dbe7fb" stroke="#ffffff"/>
+<text x="54.8" y="94.0" font-size="12" fill="#1f2328">dirSize（每本书）</text>
+<rect x="49.3" y="51" width="88.6" height="24" rx="2" fill="#2f6fdf" stroke="#ffffff"/>
+<text x="54.8" y="68.0" font-size="12" fill="#ffffff">Directory.list</text>
+<rect x="138.9" y="51" width="159.0" height="24" rx="2" fill="#2f6fdf" stroke="#ffffff"/>
+<text x="144.4" y="68.0" font-size="12" fill="#ffffff">File.size</text>
+<text x="20" y="228" font-size="12" fill="#656d76">调用栈从下往上加深；方块宽度 = 样本占比</text>
+<text x="20" y="248" font-size="12" fill="#656d76">深蓝是平顶：时间花在函数自身，是优化目标</text>
+<text x="20" y="268" font-size="12" fill="#656d76">左侧未标注的窄块：listBooks 查询、Tab 动画等</text>
+<text x="180.0" y="302" font-size="11" fill="#656d76" text-anchor="middle">示意图，宽度比例为示意，不是实测样本数</text>
+</svg>

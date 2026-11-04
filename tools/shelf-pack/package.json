@@ -12,9 +12,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@shelf/reader-web": "workspace:*",
     "@shelf/spec": "workspace:*",
     "commander": "^15.0.0",
-    "fflate": "^0.8.3"
+    "fflate": "^0.8.3",
+    "happy-dom": "^21.0.4"
   },
   "devDependencies": {
     "@types/node": "^22",

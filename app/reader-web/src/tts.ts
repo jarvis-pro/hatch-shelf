@@ -1,28 +1,8 @@
 /**
- * 听书：把渲染好的正文切成可朗读的段落，并标出正在读的一段（README 第 8 节「听书」）。
+ * 听书：收集当前章节的段落（切法见 segment.ts），并标出正在读的一段（README 第 8 节「听书」）。
  * 段落顺序由 DOM 决定，同一章重渲染（换主题、字号）后编号不变，标记可以原样恢复。
  */
-
-/** 代码块、表格、图示不朗读，念一句提示；行内公式过长时也只念「公式」 */
-const SKIPPED: [selector: string, hint: string][] = [
-  ['.code-block', '此处有代码，略过。'],
-  ['.table-wrap', '此处有表格，略过。'],
-  ['.mermaid-wrap', '此处有图示，略过。'],
-];
-
-/** 不朗读、也不念提示的元素 */
-const SILENT = '.chapter-kicker, hr, img, .img-blocked';
-
-/** 行内公式的 TeX 足够短且不含命令时直接念，如 x^2、n+1 */
-const SHORT_TEX = /^[\w\s+\-=<>().,^']{1,12}$/;
-
-/** 含有这些子元素的列表项、引用要继续往里拆，否则整体作为一段 */
-const CONTAINER_CHILD = 'p, ul, ol, blockquote, div, pre, h1, h2, h3, h4, h5, h6';
-
-interface Block {
-  el: Element;
-  text: string;
-}
+import { walk, type Block } from './segment';
 
 let blocks: Block[] = [];
 let active = -1;
@@ -62,39 +42,6 @@ export function watchAway(topInset: number, report: (away: boolean) => void) {
   );
 }
 
-function spokenText(el: Element): string {
-  const clone = el.cloneNode(true) as Element;
-  for (const k of clone.querySelectorAll('.katex')) {
-    const tex = k.querySelector('annotation')?.textContent?.trim() ?? '';
-    k.replaceWith(SHORT_TEX.test(tex) ? ` ${tex} ` : '公式');
-  }
-  // 脚注编号之类的上标单独念出来没有意义
-  for (const s of clone.querySelectorAll('sup')) s.remove();
-  return (clone.textContent ?? '').replace(/\s+/g, ' ').trim();
-}
-
-function walk(parent: ParentNode, out: Block[]) {
-  for (const el of parent.children) {
-    if (el.matches(SILENT)) continue;
-    const skipped = SKIPPED.find(([sel]) => el.matches(sel));
-    if (skipped) {
-      out.push({ el, text: skipped[1] });
-      continue;
-    }
-    // 块级公式单独成段（markdown-it-katex 渲染成 p.katex-block）
-    if (el.matches('.katex-block')) {
-      out.push({ el, text: '此处有公式，略过。' });
-      continue;
-    }
-    if (el.matches('ul, ol, blockquote, div') || (el.matches('li') && el.querySelector(`:scope > :is(${CONTAINER_CHILD})`))) {
-      walk(el, out);
-      continue;
-    }
-    const text = spokenText(el);
-    if (text) out.push({ el, text });
-  }
-}
-
 /** 收集本章段落；start 是视口顶部第一段可见的段落，从这里开始读 */
 export function collectBlocks(content: Element, topInset: number): { texts: string[]; start: number } {
   const next: Block[] = [];
@@ -103,18 +50,6 @@ export function collectBlocks(content: Element, topInset: number): { texts: stri
   setAway(false);
   const start = blocks.findIndex((b) => b.el.getBoundingClientRect().bottom > topInset);
   return { texts: blocks.map((b) => b.text), start: Math.max(0, start) };
-}
-
-/**
- * 切还没显示的章节：渲染进 template（里面的图片不会加载），按同样的规则只取文本。
- * 编号与这一章显示出来后 collectBlocks 的结果一致，自动换章后标记可以直接用
- */
-export function segmentHtml(html: string): string[] {
-  const template = document.createElement('template');
-  template.innerHTML = html;
-  const out: Block[] = [];
-  walk(template.content, out);
-  return out.map((b) => b.text);
 }
 
 /** 标出正在读的段落；null 表示结束朗读。jump 为用户主动跳段，总是滚过去 */

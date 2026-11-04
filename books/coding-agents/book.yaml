@@ -5,7 +5,7 @@ category: 人工智能/Agent
 tags: [agent, claude-code, ai-coding, workflow]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-how-agents-work.md
   - 02-claude-md.md
@@ -18,3 +18,5 @@ chapters:
 next:
   - id: personal-agent-workflow
     reason: 跳出写代码，看 agent 还能接哪些活
+  - id: deepseek-harness
+    reason: 换一个能拆开的开源 harness，看循环、日志和权限是怎么实现的

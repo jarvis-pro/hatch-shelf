@@ -425,3 +425,15 @@
 - [ ] 第 8 章：税务总局 2025 第 16 号公告未抓原文（依据律所解读）；测算中收入额按 80% 计为假设；2022 三部门规范网络直播营利行为意见未核
 - [ ] 第 9 章：经营所得速算扣除数（主会话核对：0 / 1500 / 10500 / 40500 / 65500 与现行表一致）；无综合所得者减除 6 万凭记忆；小规模能否自开专票未核；劳务报酬转经营所得的认定为风险提示
 - [ ] 第 10 章：平台协议账号归平台、账号财产性利益司法认可凭记忆
+
+## 九、DeepSeek Harness 入门（2026-11-04）
+
+依据是 2026-11-04 抓取的官方仓库 `deepseek-ai/deepseek-harness`（README、SAFETY、`docs/` 下架构、术语、Cordis 教程、子系统、cookbook、用户指南）和 DataCamp 两篇介绍。DSH 是开发者预览版，以下几处没在真实环境里跑过或依据较弱：
+
+- [ ] 第 2 章：「设置 → 通用 → 在使用官方模型 API 时上传 Session Log」的开关文字取自包 README；匿名统计报告可关闭的说法来自 DataCamp，未在官方文档里找到具体位置
+- [ ] 第 3 章：手动压缩命令写的是 `/compact`（由 `dsh-command-compact` 包推断，未核命令名）
+- [ ] 第 5 章：PTC 的全称（程序化工具调用）是推断，官方文档未写；PTC 示例程序里的函数名和参数形状是示意
+- [ ] 第 5 章：Ralph、目标、Teams、定时任务的描述来自工具目录和术语表，未实际使用
+- [ ] 第 9 章：门禁插件里 `exec.arguments` 的实际形状（对象还是字符串）未核，示例用 `JSON.stringify` 兜底；`check_book_id` 工具和配置示例没有在真实 DSH 里跑过
+- [ ] 第 10 章：Python SDK 示例按官方指南的参数重写（`with DeepSeekHarness(...) as harness`、`harness.run(...)`、`result.final_response`），没有实际运行；TypeScript SDK 只在架构文档里提到
+- [ ] 第 1 章：DeepSeek 招聘 Harness 团队的时间和地点来自媒体报道

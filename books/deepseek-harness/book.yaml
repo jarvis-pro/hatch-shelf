@@ -1,0 +1,24 @@
+id: deepseek-harness
+title: DeepSeek Harness 入门
+subtitle: 从零看懂 DeepSeek 的开源 Agent 运行时：上手、原理、安全与插件
+category: 人工智能/Agent
+tags: [agent, deepseek, dsh, harness, cordis, plugin]
+level: beginner
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-what-is-dsh.md
+  - 02-first-run.md
+  - 03-agent-loop.md
+  - 04-session-log.md
+  - 05-tools-and-modes.md
+  - 06-models.md
+  - 07-safety.md
+  - 08-cordis.md
+  - 09-write-a-plugin.md
+  - 10-automation-and-next.md
+next:
+  - id: build-your-agent
+    reason: 自己从零写一个 agent loop，再回头看 DSH 的每个插件在替你做什么
+  - id: agent-safety
+    reason: 把第 7 章的沙箱和审批放进完整的威胁模型里看

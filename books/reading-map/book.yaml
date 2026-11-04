@@ -1,11 +1,11 @@
 id: reading-map
 title: 书架导读
-subtitle: 通往一人公司的 81 本书
+subtitle: 通往一人公司的 82 本书
 category: 使用指南
 tags: [roadmap, opc]
 level: beginner
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-how-to-use.md
   - 02-stack.md

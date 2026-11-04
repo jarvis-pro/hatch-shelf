@@ -8,7 +8,7 @@
 |---|---|---|
 | 原理 | Agent 原理与设计、上下文工程、工具设计与 MCP、多 Agent 编排 | 理解 agent 为什么有时聪明、有时犯傻 |
 | 构建 | 动手构建 Agent、Agent 安全 | 能自己写出可靠、安全的 agent |
-| 使用 | 编码 Agent 实战、个人 Agent 工作流、AI 认知进阶 | 让 agent 每天替你干活，并保持清醒的判断 |
+| 使用 | 编码 Agent 实战、个人 Agent 工作流、AI 认知进阶、DeepSeek Harness 入门 | 让 agent 每天替你干活，并保持清醒的判断 |
 
 ## 原理
 
@@ -43,6 +43,10 @@ Agent 能动手，就可能闯祸。这本书讲威胁模型、Prompt 注入、�
 ### [编码 Agent 实战](../coding-agents/) · `coding-agents`
 
 讲你每天在用的编码 agent：CLAUDE.md / AGENTS.md 怎么写、rules 按路径加载、hooks、子 agent、怎么用它管理 monorepo，以及常见的坑。这套书本身就是这样写出来的。
+
+### [DeepSeek Harness 入门](../deepseek-harness/) · `deepseek-harness`
+
+DeepSeek 开源的 agent 运行时（`dsh`），从零讲起：装好跑起来，看懂 agent 循环和只追加的会话日志，配模型、管权限，再进入「一切皆插件」的 Cordis 底座，写出第一个插件。也是对照着理解 Claude Code 这类 harness 内部结构的一本书。
 
 ### [个人 Agent 工作流](../personal-agent-workflow/) · `personal-agent-workflow`
 

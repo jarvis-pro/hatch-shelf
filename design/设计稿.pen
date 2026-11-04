@@ -72893,6 +72893,1175 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "ELKzQ",
+      "x": 360,
+      "y": 17206,
+      "name": "封面 / 计算机系统基础",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "zhr1F",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "KA4gc",
+              "name": "t",
+              "fill": "#374B8A",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "FuXhD",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "计算机系统基础",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "XT6ZE",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "从比特到进程",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "iP61c",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-computer-systems.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "llkij",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#374B8A",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "pRcvF",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "tMDQk",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ao7ul",
+      "x": 700,
+      "y": 17206,
+      "name": "封面 / Git 深入",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "P0FOo",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "ZOCP7",
+              "name": "t",
+              "fill": "#5A4A7A",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "edyKq",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Git 深入",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "xKPGK",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "对象、历史与救援",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xAbcQ",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-git-deep-dive.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "O7kVd",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#5A4A7A",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "JD9uH",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "tMSJn",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "xeB8U",
+      "x": 1040,
+      "y": 17206,
+      "name": "封面 / 测试工程",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "q8NLP",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "B3w1zP",
+              "name": "t",
+              "fill": "#2E6B4A",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "SYW5q",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "测试工程",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "weKaX",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "一个人守住质量",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ivt8M",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-testing-engineering.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Itznw",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#2E6B4A",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Z2eYA",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "BPH14",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "eJqB0",
+      "x": 1380,
+      "y": 17206,
+      "name": "封面 / 调试与问题排查",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "r0Sp9",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "lToHD",
+              "name": "t",
+              "fill": "#6B4A2E",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "Z8nvE",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "调试与问题排查",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "gyNoX",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "从复现到根因",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "eMuLz",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-debugging-methods.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "E7jJIs",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#6B4A2E",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "qkfji",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "ZFCwm",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "MOL1l",
+      "x": 1720,
+      "y": 17206,
+      "name": "封面 / API 设计",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "gHNoG",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "N1bHA",
+              "name": "t",
+              "fill": "#2A5F6E",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "PDREa",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "API 设计",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "F30tki",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "资源、错误与演进",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "L6Ik8L",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-api-design.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Z0H2QE",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#2A5F6E",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "zlPLg",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "YSD5M",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "jJM6b",
+      "x": 2060,
+      "y": 17206,
+      "name": "封面 / 账号与支付工程",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "kBk5o",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "bKwu9",
+              "name": "t",
+              "fill": "#7A3050",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "xfVVs",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "账号与支付工程",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "CafJk",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "登录、订阅与回调",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "iu92d",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-auth-payments.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "uwVPd",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#7A3050",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "U2z9oN",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "gz07E",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "wXWfJ",
+      "x": 2400,
+      "y": 17206,
+      "name": "封面 / Redis 与后台任务",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "xbaWt",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "WheRP",
+              "name": "t",
+              "fill": "#9A3A2E",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "nONPD",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Redis 与后台任务",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "zEQ5e",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "缓存、锁与队列",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hp88R",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-redis-jobs.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "IbQIK",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#9A3A2E",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Q6NvX8",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "KOcp3",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "WviAA",
+      "x": 2740,
+      "y": 17206,
+      "name": "封面 / Go 语言实战",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "lxdzR",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "PfMvD",
+              "name": "t",
+              "fill": "#1F6F8B",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "QID2I",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Go 语言实战",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "aVIum",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "写给 TS 开发者",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Vz8db",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-go-practice.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "t5qTP3",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#1F6F8B",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "FNqV2",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "Z9njp1",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "JahbT",
+      "x": 3080,
+      "y": 17206,
+      "name": "封面 / Rust 实用入门",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "ycyNH",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "NXi7Z",
+              "name": "t",
+              "fill": "#8A4A1E",
+              "content": "书架文库 · 技术",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "SPb4k",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Rust 实用入门",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "b74DN",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "所有权、Tauri 与 WASM",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Gzted",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-rust-practice.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "M0V4Wp",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#8A4A1E",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "qDqtO",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "fKBHR",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "V3qDKP",
+      "x": 3420,
+      "y": 17206,
+      "name": "封面 / 自托管工具栈",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#7A5A2A",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "ySxaB",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "uiWik",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "运维",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "tMBQ6",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "m1LDj",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-self-hosting.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "JjS9l",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "dxvGN",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "自托管工具栈",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 34,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "b01kLA",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "一台机器撑起基础设施",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IQQEA",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "vVpba",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "e8qaG9",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {

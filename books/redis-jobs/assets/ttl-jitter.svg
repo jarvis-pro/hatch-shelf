@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 384" width="360" height="384" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="383" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">1000 个键的过期时间分布</text>
+<text x="180" y="48" font-size="12" fill="#656d76" text-anchor="middle">同时写入，TTL 300 秒，每 10 秒一格</text>
+<text x="16" y="88" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">不加抖动</text>
+<line x1="56" y1="196.0" x2="340" y2="196.0" stroke="#d8dee4"/>
+<text x="50" y="200.0" font-size="11" fill="#656d76" text-anchor="end">0</text>
+<line x1="56" y1="146.0" x2="340" y2="146.0" stroke="#d8dee4"/>
+<text x="50" y="150.0" font-size="11" fill="#656d76" text-anchor="end">500</text>
+<line x1="56" y1="96.0" x2="340" y2="96.0" stroke="#d8dee4"/>
+<text x="50" y="100.0" font-size="11" fill="#656d76" text-anchor="end">1000</text>
+<rect x="202.0" y="96.0" width="27.5" height="100.0" fill="#2f6fdf"/>
+<text x="215.75" y="91.0" font-size="11" fill="#1f2328" text-anchor="middle">1000</text>
+<text x="340" y="88" font-size="12" fill="#656d76" text-anchor="end">一秒内全部过期</text>
+<text x="16" y="228" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">加 ±10% 抖动</text>
+<line x1="56" y1="336.0" x2="340" y2="336.0" stroke="#d8dee4"/>
+<text x="50" y="340.0" font-size="11" fill="#656d76" text-anchor="end">0</text>
+<line x1="56" y1="286.0" x2="340" y2="286.0" stroke="#d8dee4"/>
+<text x="50" y="290.0" font-size="11" fill="#656d76" text-anchor="end">500</text>
+<line x1="56" y1="236.0" x2="340" y2="236.0" stroke="#d8dee4"/>
+<text x="50" y="240.0" font-size="11" fill="#656d76" text-anchor="end">1000</text>
+<rect x="95.5" y="319.3" width="27.5" height="16.7" fill="#2f6fdf"/>
+<text x="109.25" y="314.3" font-size="11" fill="#1f2328" text-anchor="middle">167</text>
+<rect x="131.0" y="319.3" width="27.5" height="16.7" fill="#2f6fdf"/>
+<text x="144.75" y="314.3" font-size="11" fill="#1f2328" text-anchor="middle">167</text>
+<rect x="166.5" y="319.3" width="27.5" height="16.7" fill="#2f6fdf"/>
+<text x="180.25" y="314.3" font-size="11" fill="#1f2328" text-anchor="middle">167</text>
+<rect x="202.0" y="319.3" width="27.5" height="16.7" fill="#2f6fdf"/>
+<text x="215.75" y="314.3" font-size="11" fill="#1f2328" text-anchor="middle">167</text>
+<rect x="237.5" y="319.4" width="27.5" height="16.6" fill="#2f6fdf"/>
+<text x="251.25" y="314.4" font-size="11" fill="#1f2328" text-anchor="middle">166</text>
+<rect x="273.0" y="319.4" width="27.5" height="16.6" fill="#2f6fdf"/>
+<text x="286.75" y="314.4" font-size="11" fill="#1f2328" text-anchor="middle">166</text>
+<text x="340" y="228" font-size="12" fill="#656d76" text-anchor="end">每秒约 17 个</text>
+<text x="56.0" y="352" font-size="11" fill="#656d76" text-anchor="middle">260s</text>
+<text x="91.5" y="352" font-size="11" fill="#656d76" text-anchor="middle">270s</text>
+<text x="127.0" y="352" font-size="11" fill="#656d76" text-anchor="middle">280s</text>
+<text x="162.5" y="352" font-size="11" fill="#656d76" text-anchor="middle">290s</text>
+<text x="198.0" y="352" font-size="11" fill="#656d76" text-anchor="middle">300s</text>
+<text x="233.5" y="352" font-size="11" fill="#656d76" text-anchor="middle">310s</text>
+<text x="269.0" y="352" font-size="11" fill="#656d76" text-anchor="middle">320s</text>
+<text x="304.5" y="352" font-size="11" fill="#656d76" text-anchor="middle">330s</text>
+<text x="340.0" y="352" font-size="11" fill="#656d76" text-anchor="middle">340s</text>
+<text x="180" y="376" font-size="11" fill="#656d76" text-anchor="middle">横轴：写入后多少秒过期；纵轴：这 10 秒内过期的键数</text>
+</svg>

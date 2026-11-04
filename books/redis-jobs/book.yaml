@@ -1,0 +1,21 @@
+id: redis-jobs
+title: Redis 与后台任务
+subtitle: 缓存、限流、锁和队列的落地写法
+category: 技术/后端
+tags: [redis, valkey, bullmq, pg-boss, queue, cache, nestjs]
+level: intermediate
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-data-structures.md
+  - 02-caching.md
+  - 03-rate-limit-locks.md
+  - 04-persistence-memory.md
+  - 05-bullmq.md
+  - 06-postgres-queue.md
+  - 07-scheduled-delayed.md
+  - 08-retry-dlq-idempotency.md
+  - 09-ops-monitoring.md
+next:
+  - id: database-ops
+    reason: 队列和缓存都落在数据库旁边，接着看 Postgres 本身怎么备份、调优和升级

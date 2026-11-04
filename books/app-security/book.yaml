@@ -5,7 +5,7 @@ category: 技术/安全
 tags: [security, auth, owasp, supply-chain, mobile]
 level: intermediate
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-authentication.md
   - 02-authorization.md
@@ -20,3 +20,5 @@ next:
     reason: 同样的问题放到会动手的 agent 身上
   - id: production-ops
     reason: 把安全自查放进日常运维
+  - id: auth-payments
+    reason: 认证方案选定之后，看登录和支付具体怎么实现

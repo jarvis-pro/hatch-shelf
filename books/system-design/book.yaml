@@ -5,7 +5,7 @@ category: 技术/架构
 tags: [architecture, system-design, postgres, nestjs]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-modular-monolith.md
   - 02-layers-boundaries.md
@@ -19,3 +19,5 @@ chapters:
 next:
   - id: app-security
     reason: 边界画清了，再看哪里会被攻破
+  - id: redis-jobs
+    reason: 缓存和队列的取舍落到 Redis、BullMQ 和 pg-boss 上

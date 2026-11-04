@@ -47,3 +47,47 @@ RN 新架构、expo-router、config plugin、原生模块、WebView 桥接，一
 ### [应用安全](../app-security/) · `app-security`
 
 一人公司没有安全团队，出事就是你一个人的事。这本书讲认证方案对比、OWASP Top 10、密钥管理和供应链安全，最后给一份可以直接对照的自查清单。
+
+## 工程基本功
+
+这一组是每个项目都用得上、却很少有人系统学过的几块。
+
+### [计算机系统基础](../computer-systems/) · `computer-systems`
+
+数据怎么表示、CPU 和内存怎么配合、进程与线程、I/O 模型、fsync 和页缓存。它是其他技术书的地基：Number 精度、事件循环、数据库为什么要刷盘，答案都在这一层。
+
+### [Git 深入](../git-deep-dive/) · `git-deep-dive`
+
+从对象模型讲起，讲合并与变基、用 reflog 救回丢掉的提交、用 bisect 找出引入 bug 的那次改动，最后讲 hooks、大仓库和签名。
+
+### [测试工程](../testing-engineering/) · `testing-engineering`
+
+一个人没有 QA，测试就是你的安全网。这本书讲测什么、不测什么，从 Vitest 单元测试、真实数据库的集成测试一直讲到 Playwright 端到端和移动端测试，最后给出一个人能长期坚持的测试策略。
+
+### [调试与问题排查](../debugging-methods/) · `debugging-methods`
+
+把排查当成科学实验来做：稳定复现、二分定位、读堆栈、用调试器和火焰图，再到线上无法复现的问题。每章都有一个完整的排查故事。
+
+## 后端进阶
+
+### [API 设计](../api-design/) · `api-design`
+
+资源建模、错误格式、分页、版本演进、幂等和 Webhook。App 老版本还在用的时候，接口怎么改才不出事，这本书给出具体规则。
+
+### [账号与支付工程](../auth-payments/) · `auth-payments`
+
+《应用安全》讲认证方案怎么选，《定价与商业模式》讲怎么收钱，这本讲怎么实现：账号数据模型、验证码和第三方登录、Passkey、微信支付与支付宝、内购校验、订阅状态机和对账。
+
+### [Redis 与后台任务](../redis-jobs/) · `redis-jobs`
+
+《软件架构与系统设计》讲缓存和队列的取舍，这本讲落地：Redis 的缓存、限流和锁，BullMQ 和用 Postgres 做队列，以及定时任务、重试和死信。
+
+## 第二语言
+
+### [Go 语言实战](../go-practice/) · `go-practice`
+
+写给 TS 开发者。用 Go 写 CLI、小服务和运维工具，最后编译成一个二进制文件，放进最小镜像。
+
+### [Rust 实用入门](../rust-practice/) · `rust-practice`
+
+写给 TS 开发者。所有权和生命周期讲透之后，用 Rust 写 CLI、做 Tauri 桌面应用、编译 WASM 和 Node 原生扩展。

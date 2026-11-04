@@ -72285,6 +72285,614 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "KWzpV",
+      "x": 2740,
+      "y": 15328,
+      "name": "封面 / 商业常识",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#1F5A73",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "FcC4x",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "pdrQ3",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "jCluu",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "og23Z",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-business-basics.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "rkCoV",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "YbjU6",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "商业常识",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 34,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "M44NYI",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "从员工视角看懂一门生意",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wTP9f",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "DoCI8",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "ABO7v",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "upsN9",
+      "x": 3080,
+      "y": 15328,
+      "name": "封面 / 公司常识",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#283E66",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "psGSf",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "eoQki",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "wyXNm",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EHeGV",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-company-basics.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "umZsv",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "qJfZy",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "公司常识",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 34,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "HpR97",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "责任、股权与退出",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "y7r31",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "iUfBX",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "xzNAJ",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "lFinY",
+      "x": 3420,
+      "y": 15328,
+      "name": "封面 / 把职场技能变成生意",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#A8452F",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "F1tts",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "or5v0",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "b0tRXU",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "oynee",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-skills-to-business.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "rZKdB",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "ZCaBk",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "把职场技能变成生意",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 26,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "gxjvS",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "不写代码的一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UVSdr",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Rivjt",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "NsWeX",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "bynJM",
+      "x": 3760,
+      "y": 15328,
+      "name": "封面 / 从员工到老板",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#5A4636",
+      "layout": "vertical",
+      "padding": [
+        24,
+        24,
+        22,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "DQhSA",
+          "name": "Top",
+          "width": "fill_container",
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "j4C1kP",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "一人公司",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "ARPuF",
+              "name": "t",
+              "fill": "#F3EEE4B3",
+              "content": "书架文库",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "normal",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "CnVYs",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": 208,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-employee-to-owner.png",
+            "mode": "cover"
+          },
+          "stroke": "#F3EEE4",
+          "strokeWidth": 4,
+          "strokeAlignment": "inner"
+        },
+        {
+          "type": "frame",
+          "id": "B5vbp",
+          "name": "Text",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            20,
+            0,
+            0,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "e5upl",
+              "name": "t",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "从员工到老板",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 34,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "KquLa",
+              "name": "t",
+              "fill": "#F3EEE4CC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "没人兜底之后怎么做决定",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mm2te",
+          "name": "Imprint",
+          "width": "fill_container",
+          "stroke": "#F3EEE466",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            10,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "G3O09g",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "nwBp4",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {

@@ -81,7 +81,7 @@ export async function rebuildIndex() {
 
 /**
  * 冷启动后在后台做的轻量对账：只比对书目录的增删和 .content-hash，有出入的书单独重建。
- * 不读章节正文，书多了也不拖慢启动；书内文件被外部改动（没有更新指纹）要靠下拉刷新。
+ * 不读章节正文，书多了也不拖慢启动；书内文件被外部改动（没有更新指纹）要到设置页「重建索引」。
  * 返回是否有书的索引被改动。
  */
 export async function syncIndex(): Promise<boolean> {

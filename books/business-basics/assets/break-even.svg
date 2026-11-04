@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 404" width="360" height="404" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="403" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">小面馆的盈亏平衡点</text>
+<text x="50.0" y="46.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">元/月</text>
+<line x1="56" y1="276.0" x2="336" y2="276.0" stroke="#d8dee4" />
+<text x="50.0" y="280.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">0</text>
+<line x1="56" y1="232.0" x2="336" y2="232.0" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="50.0" y="236.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">2万</text>
+<line x1="56" y1="188.0" x2="336" y2="188.0" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="50.0" y="192.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">4万</text>
+<line x1="56" y1="144.0" x2="336" y2="144.0" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="50.0" y="148.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">6万</text>
+<line x1="56" y1="100.0" x2="336" y2="100.0" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="50.0" y="104.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">8万</text>
+<line x1="56" y1="56.0" x2="336" y2="56.0" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="50.0" y="60.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">10万</text>
+<text x="56.0" y="292.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<text x="126.0" y="292.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">1000</text>
+<text x="196.0" y="292.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">2000</text>
+<text x="266.0" y="292.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">3000</text>
+<text x="336.0" y="292.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">4000</text>
+<text x="196.0" y="310.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">每月卖出的碗数</text>
+<polygon points="56.0,276.0 196.0,166.0 56.0,210.0" fill="#e6e9ed" opacity="0.8"/>
+<polygon points="196.0,166.0 336.0,56.0 336.0,122.0" fill="#dbe7fb"/>
+<line x1="56.0" y1="210.0" x2="336.0" y2="210.0" stroke="#656d76" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="56.0" y1="210.0" x2="336.0" y2="122.0" stroke="#656d76" stroke-width="2.5"/>
+<line x1="56.0" y1="276.0" x2="336.0" y2="56.0" stroke="#2f6fdf" stroke-width="2.5"/>
+<line x1="196.0" y1="166.0" x2="196.0" y2="276" stroke="#1f2328" stroke-dasharray="3 3"/>
+<circle cx="196.0" cy="166.0" r="4.5" fill="#1f2328"/>
+<text x="188.0" y="156.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">2000 碗，营收 5 万</text>
+<text x="287.0" y="104.4" font-size="12" fill="#2f6fdf" text-anchor="middle" font-weight="normal">盈利区</text>
+<text x="85.4" y="227.6" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">亏损区</text>
+<line x1="24" y1="328" x2="46" y2="328" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="52.0" y="332.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">营收 = 25 元 × 碗数</text>
+<line x1="24" y1="348" x2="46" y2="348" stroke="#656d76" stroke-width="2.5"/>
+<text x="52.0" y="352.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">总成本 = 3 万 + 10 元 × 碗数</text>
+<line x1="24" y1="368" x2="46" y2="368" stroke="#656d76" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="52.0" y="372.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">固定成本 3 万元/月</text>
+<text x="180.0" y="394.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">假设数据，按第 3 章公式计算</text>
+</svg>

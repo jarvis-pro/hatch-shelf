@@ -284,7 +284,7 @@ export default function TransferScreen() {
 
             <FadeInUp index={1} leaving={leaving} {...exit}>
               {received.length > 0 || batch ? (
-                <ReceivedList items={received} batch={batch} receiving={[...receiving.values()]} />
+                <ReceivedList items={received} batch={batch} receiving={[...receiving]} />
               ) : (
                 <View style={styles.cli}>
                   <Text style={{ color: t.fg3, fontSize: 12 }}>或在终端推送</Text>
@@ -557,10 +557,13 @@ function ReceivedItem({ r }: { r: Received }) {
  * 本次接收列表。一批接收期间顶部固定一行，显示正在上传或导入的书和上传进度；
  * 文件之间的空档显示为等待下一个文件。整批结束后才收起，列表只会逐本变长，不会来回伸缩。
  */
-function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: boolean; receiving: ReceivingUpload[] }) {
+function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: boolean; receiving: [number, ReceivingUpload][] }) {
   const t = useTheme();
   // 同时有多个时显示最慢的那个
-  const current = receiving.length > 0 ? receiving.reduce((a, b) => (b.ratio < a.ratio ? b : a)) : null;
+  const [currentKey, current] = receiving.length > 0 ? receiving.reduce((a, b) => (b[1].ratio < a[1].ratio ? b : a)) : [null, null];
+  // 换成另一个文件时进度条重新挂载：先无过渡地回到 0%，再过渡到实际进度；文件间的空档沿用上一个，不回放
+  const [barKey, setBarKey] = useState(0);
+  if (currentKey !== null && currentKey !== barKey) setBarKey(currentKey);
   const ratio = current?.ratio ?? 1;
   const book = useUploadingBook(current?.name);
   const stage = !current ? '等待下一个文件' : ratio >= 1 ? '正在导入' : '正在上传';
@@ -594,7 +597,7 @@ function ReceivedList({ items, batch, receiving }: { items: Received[]; batch: b
               </Text>
             )}
             <View style={styles.itemProgress}>
-              <ProgressBar value={ratio} track={t.track} fill={t.accent} style={{ flex: 1 }} />
+              <ProgressBar key={barKey} value={ratio} track={t.track} fill={t.accent} style={{ flex: 1 }} />
               <Text style={{ color: t.fg2, fontSize: 11, fontVariant: ['tabular-nums'] }}>{Math.round(ratio * 100)}%</Text>
             </View>
           </View>
@@ -629,6 +632,8 @@ function Toast({ item, onHide }: { item: Received; onHide(): void }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const v = useState(() => new Animated.Value(0))[0];
+  // onHide 每次渲染都是新函数，不能放进依赖，否则上传进度一刷新提示就从头再弹一次
+  const hide = useEffectEvent(onHide);
   useEffect(() => {
     v.setValue(0);
     const anim = Animated.sequence([
@@ -636,9 +641,9 @@ function Toast({ item, onHide }: { item: Received; onHide(): void }) {
       Animated.delay(3000),
       Animated.timing(v, { toValue: 0, duration: 250, useNativeDriver: true }),
     ]);
-    anim.start(({ finished }) => finished && onHide());
+    anim.start(({ finished }) => finished && hide());
     return () => anim.stop();
-  }, [item, v, onHide]);
+  }, [item, v]);
   if (!item.ok) return null;
   const meta = [item.book && `${item.book.chapterCount} 章`, item.book && categoryLabel(item.book.category)].filter(Boolean).join(' · ');
   return (

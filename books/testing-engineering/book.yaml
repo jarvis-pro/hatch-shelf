@@ -1,0 +1,24 @@
+id: testing-engineering
+title: 测试工程
+subtitle: 一个人也能守住质量：从单元测试到端到端
+category: 技术/工程
+tags: [testing, vitest, playwright, testcontainers, maestro, ci]
+level: intermediate
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-what-to-test.md
+  - 02-unit-vitest.md
+  - 03-test-doubles.md
+  - 04-integration-db.md
+  - 05-api-contract.md
+  - 06-playwright-e2e.md
+  - 07-mobile-desktop.md
+  - 08-test-data.md
+  - 09-ci-flaky.md
+  - 10-solo-strategy.md
+next:
+  - id: deploy-release
+    reason: 测试守住了改动，接着看怎么把通过检查的版本稳稳送上线
+  - id: debugging-methods
+    reason: 测试红了之后，用系统的方法定位到底是哪里坏了

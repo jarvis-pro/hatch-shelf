@@ -44,7 +44,7 @@ function f(x: number): number {
 重复几百次，$w$ 会接近 2，$b$ 会接近 1，这条线就「学会」了数据里的规律。这个过程叫**训练**，第 3 步用的方法叫**梯度下降**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[输入 x] --> B[用当前参数预测]
   B --> C[和正确答案比较，算损失]
   C --> D[按梯度微调参数]
@@ -85,7 +85,7 @@ $$
 把很多神经元排成一层，再把很多层叠起来，就是神经网络：
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph 输入层
     x1((x1))
     x2((x2))

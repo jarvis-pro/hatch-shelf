@@ -101,7 +101,7 @@ flowchart TD
 ## 编剧在产业链上的位置
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["编剧<br/>剧本"] --> B["制片 / 平台<br/>评级、立项、投资"]
   B --> C["制作<br/>实拍或 AI 生成"]
   C --> D["后期<br/>配音、剪辑、字幕"]

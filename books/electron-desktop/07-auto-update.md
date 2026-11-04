@@ -7,7 +7,7 @@
 在 macOS 上，Electron 的更新机制（底层是 Squirrel.Mac）要求应用**用开发者证书签过名**，并且会校验新版本和旧版本的签名身份一致。ad-hoc 签名的应用做不了自动更新。所以顺序是：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[开发者证书签名] --> B[公证]
   B --> C[产出 zip + 更新清单]
   C --> D[上传到更新服务器]

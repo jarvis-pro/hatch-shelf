@@ -20,7 +20,7 @@
 整体流程：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["照片目录"] --> B{"缓存里有？"}
   B -->|有| D["PurchaseSlip"]
   B -->|没有| C["视觉模型<br/>messages.parse"]

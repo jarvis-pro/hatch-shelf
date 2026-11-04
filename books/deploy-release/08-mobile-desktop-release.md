@@ -114,7 +114,7 @@ iOS 的分发路径按「谁装得上」排：
 `pnpm ship` 在本机跑完整条链：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["preflight：凭证、令牌、开发地址闸门"] --> B["expo prebuild"]
   B --> C["xcodebuild archive"]
   C --> D["xcodebuild -exportArchive 出 ipa"]

@@ -70,6 +70,8 @@ tauri-build = { version = "2", features = [] }
 
 命令就是一个普通的 Rust 函数，加上 `#[tauri::command]`。参数从前端传来的 JSON 反序列化，返回值序列化成 JSON 交给前端。
 
+`src-tauri/src/lib.rs` 完整文件分 4 段给出，从上到下拼起来就是整个文件。第一段是导入，以及返回给前端的报告、进度事件和应用状态三个类型：
+
 ```rust
 use rayon::prelude::*;
 use serde::Serialize;
@@ -101,7 +103,11 @@ struct Progress {
 struct AppState {
     last_dir: Mutex<Option<PathBuf>>,
 }
+```
 
+第二段是两个普通函数：`report` 检查一本书并整理成报告，`book_dirs` 找出要检查的书目录：
+
+```rust
 fn report(dir: &Path) -> BookReport {
     let dir_str = dir.display().to_string();
     match check_book(dir) {
@@ -139,7 +145,11 @@ fn book_dirs(root: &Path) -> Result<Vec<PathBuf>, String> {
     dirs.sort();
     Ok(dirs)
 }
+```
 
+第三段是主命令 `check_books`：记下本次目录，把检查挪到阻塞线程池里用 rayon 并行跑，每完成一本就向前端发一次进度事件：
+
+```rust
 #[tauri::command]
 async fn check_books(
     path: String,
@@ -168,7 +178,11 @@ async fn check_books(
     .await
     .map_err(|e| e.to_string())?
 }
+```
 
+第四段是读取上次目录的小命令 `last_dir`，以及注册插件、状态和命令的入口 `run`：
+
+```rust
 #[tauri::command]
 fn last_dir(state: State<'_, AppState>) -> Option<String> {
     state.last_dir.lock().unwrap().as_ref().map(|p| p.display().to_string())

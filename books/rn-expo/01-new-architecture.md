@@ -40,14 +40,16 @@ React Native 最早的设计里，JS 和原生是两个世界，中间隔着一�
 
 ```mermaid
 flowchart TD
-  JS["你的 JS / React 代码"] --> JSI["JSI（C++ 接口）"]
+  JS["你的 JS /<br/>React 代码"] --> JSI["JSI（C++ 接口）"]
   JSI --> F["Fabric 渲染器"]
-  JSI --> T["TurboModules"]
-  JSI --> E["Expo Modules"]
-  JSI --> R["Reanimated / Worklets"]
-  F --> V["UIView / Android View"]
-  T --> N["原生能力：文件、网络、传感器…"]
-  E --> N
+  JSI --> MODS
+  JSI --> R["Reanimated /<br/>Worklets"]
+  subgraph MODS["原生模块"]
+    direction TB
+    T["TurboModules"] ~~~ E["Expo Modules"]
+  end
+  F --> V["UIView /<br/>Android View"]
+  MODS --> N["原生能力：文件、<br/>网络、传感器…"]
 ```
 
 ## Fabric：新的渲染器

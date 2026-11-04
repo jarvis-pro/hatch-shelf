@@ -138,7 +138,7 @@ flowchart TD
 很多开发者最终会走一条组合路线：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["自己做几部 AI 漫剧<br/>理解真实工作流"] --> B["把自己的流水线<br/>沉淀成内部工具"]
   B --> C["接 AI 承制单<br/>工具在真实项目里打磨"]
   C --> D["把工具产品化<br/>卖给其他团队"]

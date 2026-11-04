@@ -24,10 +24,10 @@
 落到实现上：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["queries/*.sql<br/>固定的查询"] --> B["脚本执行<br/>输出 JSON"]
   B --> C["agent 读 JSON<br/>写解读"]
-  C --> D["校验脚本<br/>报告里的数字都在 JSON 里"]
+  C --> D["校验脚本<br/>报告里的数字<br/>都在 JSON 里"]
   D -->|"通过"| E["logs/ops/daily/"]
   D -->|"不通过"| F["标记异常，通知你"]
 ```
@@ -137,10 +137,12 @@ hatch-counter 把文档目录页和断链检查放进了 `pnpm test`，和代码
 
 ```mermaid
 flowchart TB
-  KB["kb/<br/>唯一的源头"] --> DOCS["文档站"]
-  KB --> HELP["应用内帮助"]
-  KB --> FAQ["官网 FAQ"]
-  KB --> CS["客服 L1 / L2 的依据"]
+  KB["kb/<br/>唯一的源头"] --> PUB
+  KB --> CS["客服 L1 / L2<br/>的依据"]
+  subgraph PUB["对外呈现"]
+    direction TB
+    DOCS["文档站"] ~~~ HELP["应用内帮助"] ~~~ FAQ["官网 FAQ"]
+  end
   CS -.->|"新问题沉淀"| KB
   REL["发版改动"] -.->|"触发文档检查"| KB
 ```

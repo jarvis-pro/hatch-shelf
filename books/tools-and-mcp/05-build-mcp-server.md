@@ -101,6 +101,8 @@ tools/shelf-mcp/
 
 ## 书库访问层
 
+`src/library.ts` 完整文件分 3 段给出，从上到下拼起来就是整个文件。第一段是根目录配置和路径校验 `bookDir`：
+
 ```typescript
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -134,7 +136,11 @@ export async function bookDir(bookId: string): Promise<string> {
   }
   return real;
 }
+```
 
+第二段读出一本书的全部文件交给 `@shelf/spec` 校验，后面两个函数都建立在它之上：
+
+```typescript
 /** 读出一本书的全部文件，交给 @shelf/spec 校验，与 shelf-pack check 同一套规则 */
 export async function lintLocalBook(bookId: string): Promise<LintResult> {
   const dir = await bookDir(bookId);
@@ -152,7 +158,11 @@ export async function lintLocalBook(bookId: string): Promise<LintResult> {
   await walk('');
   return lintBook(bookId, files);
 }
+```
 
+第三段是对外暴露的两个读取函数：列出所有书的摘要，以及读取清单里的某一章：
+
+```typescript
 export interface BookSummary {
   id: string;
   title: string;
@@ -195,6 +205,8 @@ export async function readChapter(bookId: string, file: string): Promise<string>
 
 ## 注册工具、资源和提示模板
 
+`src/server.ts` 完整文件分 6 段给出，从上到下拼起来就是整个文件。第一段是导入、错误转换函数 `toolError`，以及 `createServer` 的开头和书目摘要的 schema：
+
 ```typescript
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
@@ -222,7 +234,11 @@ export function createServer(): McpServer {
     level: z.string().optional(),
     chapters: z.number().int(),
   });
+```
 
+第二段注册第一个工具 `list_books`，用上一段定义的 `bookSummary` 声明结构化输出：
+
+```typescript
   server.registerTool(
     'list_books',
     {
@@ -248,7 +264,11 @@ export function createServer(): McpServer {
       return { content: [{ type: 'text', text }], structuredContent: { books } };
     },
   );
+```
 
+第三段注册 `read_chapter`，按行分页返回章节正文，输入错误交给 `toolError` 处理：
+
+```typescript
   server.registerTool(
     'read_chapter',
     {
@@ -276,7 +296,11 @@ export function createServer(): McpServer {
       }
     },
   );
+```
 
+第四段注册 `check_book`，复用 `lintLocalBook` 返回错误和提示：
+
+```typescript
   server.registerTool(
     'check_book',
     {
@@ -306,7 +330,11 @@ export function createServer(): McpServer {
       }
     },
   );
+```
 
+第五段离开工具，注册一个资源模板，把每本书的 `book.yaml` 暴露成可引用的资源：
+
+```typescript
   // 资源：由用户或宿主选择附加到上下文，例如在 Claude Code 里用 @ 引用
   server.registerResource(
     'book-manifest',
@@ -325,7 +353,11 @@ export function createServer(): McpServer {
       return { contents: [{ uri: uri.href, text: await readFile(path.join(dir, 'book.yaml'), 'utf8') }] };
     },
   );
+```
 
+最后一段注册提示模板 `review-book`，并返回组装好的 server：
+
+```typescript
   // 提示模板：用户主动选择的工作流，在 Claude Code 里表现为斜杠命令
   server.registerPrompt(
     'review-book',

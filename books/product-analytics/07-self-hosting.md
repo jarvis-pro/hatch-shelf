@@ -19,13 +19,15 @@
 对一人公司，一个现实的组合是：
 
 ```mermaid
-flowchart LR
-    S["官网 / 文档站"] --> U["Umami（自托管，小 VPS）"]
-    W["Web 应用"] --> P["PostHog"]
-    M["Expo App"] --> P
-    API["NestJS 服务端事件"] --> P
+flowchart TD
+    S["官网 / 文档站"] --> U["Umami<br/>（自托管，小 VPS）"]
+    subgraph SRC["产品内事件"]
+      direction TB
+      W["Web 应用"] ~~~ M["Expo App"] ~~~ API["NestJS<br/>服务端事件"]
+    end
+    SRC --> P["PostHog"]
     P --> D{"放哪"}
-    D --> D1["自托管：单独一台 16GB 机器"]
+    D --> D1["自托管：<br/>单独一台<br/>16GB 机器"]
     D --> D2["PostHog Cloud"]
 ```
 
@@ -241,12 +243,12 @@ bash deploy-hobby          # 会询问版本标签和域名
 
 ```mermaid
 flowchart TD
-    A["询问版本标签和域名"] --> B["克隆 PostHog 仓库并检出该版本"]
-    B --> C["生成 .env（密钥、域名、版本标签）"]
-    C --> D["安装 Docker 与 docker-compose"]
-    D --> E["复制 docker-compose.base.yml 与 hobby 版 docker-compose.yml"]
+    A["询问版本标签和域名"] --> B["克隆 PostHog 仓库<br/>并检出该版本"]
+    B --> C["生成 .env<br/>（密钥、域名、<br/>版本标签）"]
+    C --> D["安装 Docker 与<br/>docker-compose"]
+    D --> E["复制<br/>docker-compose.base.yml<br/>与 hobby 版<br/>docker-compose.yml"]
     E --> F["docker-compose up -d"]
-    F --> G["轮询健康检查，等待迁移完成"]
+    F --> G["轮询健康检查，<br/>等待迁移完成"]
 ```
 
 值得知道的两点：

@@ -7,7 +7,7 @@
 ## 从外面看到的才是真相
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["用户"] --> DNS["DNS"] --> CDN["CDN / 防火墙"] --> NG["nginx<br/>TLS"] --> API["NestJS"] --> DB["Postgres"]
   EXT["外部探测"] -.->|"走完全一样的路径"| DNS
   IN["机器内的 Prometheus"] -.->|"只看得到这一段"| API

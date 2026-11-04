@@ -24,12 +24,12 @@
 这是研发岗最主要的一条工作流。它的形状是：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["一句话想法"] --> B["agent 展开成需求卡"]
   B --> C{"你审需求卡"}
   C -->|"改"| B
-  C -->|"通过"| D["agent 在独立工作区实现"]
-  D --> E["检查器<br/>typecheck · test · lint"]
+  C -->|"通过"| D["agent 在<br/>独立工作区实现"]
+  D --> E["检查器<br/>typecheck ·<br/>test · lint"]
   E -->|"红"| D
   E -->|"绿"| F["评审 agent 只读复查"]
   F --> G{"你审 PR"}
@@ -126,11 +126,11 @@ sequenceDiagram
   participant Y as 你
   participant W as 修复工作区
   M->>A: 新的报错事件
-  A->>A: 只读诊断：日志、指标、最近的发版
-  A->>Y: 定位结论 + 影响范围 + 建议
-  Y->>W: 确认是 bug，开修复分支
-  W->>W: 先写复现测试，再修
-  W->>Y: PR（走工作流一的后半段）
+  A->>A: 只读诊断：日志、<br/>指标、最近的发版
+  A->>Y: 定位结论 + 影响范围<br/>+ 建议
+  Y->>W: 确认是 bug，<br/>开修复分支
+  W->>W: 先写复现测试，<br/>再修
+  W->>Y: PR（走工作流一<br/>的后半段）
 ```
 
 关键在于把「定位」和「修复」拆开：

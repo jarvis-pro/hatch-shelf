@@ -55,14 +55,14 @@ sequenceDiagram
   participant C as 客户端
   participant S as 服务端
   participant D as 数据库
-  C->>S: GET /v1/events（带令牌、门店）
-  S->>S: 先订阅这家店的变化
-  S-->>C: snapshot：八块各是第几版
+  C->>S: GET /v1/events<br/>（带令牌、门店）
+  S->>S: 先订阅<br/>这家店的变化
+  S-->>C: snapshot：<br/>八块各是第几版
   D-->>S: NOTIFY：开支 +1
   S-->>C: changed：开支
-  C->>C: 作废读过开支的缓存
+  C->>C: 作废读过<br/>开支的缓存
   Note over C,S: 每 25 秒一行心跳
-  Note over C,S: 断线后重连，拿新快照对比，不补发
+  Note over C,S: 断线后重连，<br/>拿新快照对比，不补发
 ```
 
 hatch-counter 的文档把「断了不补发」列为推版本号的**主要原因**：合盖睡一晚、断网半小时、服务端重启，都走同一条路，不需要事件序号，不需要「从第几条接着推」。

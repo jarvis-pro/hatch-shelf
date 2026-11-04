@@ -21,12 +21,12 @@ hatch-counter 的架构文档里画了一条完整的请求链，从界面一直
 
 ```mermaid
 flowchart TD
-  UI["界面：window.api.xxx()"] --> H["host/handlers：request('/v1/...')"]
-  H --> C["host/api/client：缓存、带令牌、401 续期重发"]
-  C -->|HTTPS 同源| G["全局守卫：版本 → 鉴权 → 权限"]
-  G --> CT["controller：@StoreId() 定门店，查询参数过 zod"]
-  CT --> S["service：DbService.withStore() 开事务"]
-  S --> DB[("Postgres（受 RLS 管）")]
+  UI["界面：<br/>window.api.xxx()"] --> H["host/handlers：<br/>request('/v1/...')"]
+  H --> C["host/api/client：<br/>缓存、带令牌、<br/>401 续期重发"]
+  C -->|HTTPS 同源| G["全局守卫：版本 →<br/>鉴权 → 权限"]
+  G --> CT["controller：<br/>@StoreId() 定门店，<br/>查询参数过 zod"]
+  CT --> S["service：<br/>DbService.withStore()<br/>开事务"]
+  S --> DB[("Postgres<br/>（受 RLS 管）")]
 ```
 
 每一层各挡一种变化：
@@ -46,7 +46,7 @@ hatch-shelf 里有个类似的规矩：RN 和 WebView 之间通信的消息类�
 这个模式常被叫作「函数式核心，命令式外壳」：
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph Shell["外壳：有副作用"]
     R[读文件 / 查库] --> Core
     Core --> W[写盘 / 落库 / 回包]

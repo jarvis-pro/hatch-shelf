@@ -37,7 +37,7 @@
 一个 RAG 系统由两条流水线组成：离线建索引，在线答问题。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph offline["离线：建索引"]
     D[原始文档] --> C[分块]
     C --> E1[embedding]

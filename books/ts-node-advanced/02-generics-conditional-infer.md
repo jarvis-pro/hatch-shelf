@@ -148,11 +148,11 @@ type S = OnlyStrings<Book>;  // { id: string; title: string }
 映射类型 + `as` + 条件类型，基本覆盖了「从一个类型派生另一个类型」的所有需求。`Partial`、`Pick`、`Omit`、`Record` 都是它的特例。
 
 ```mermaid
-flowchart LR
-  A["源类型 T"] --> B["keyof T：拿到键的集合"]
-  B --> C["as：重命名或用 never 过滤"]
+flowchart TD
+  A["源类型 T"] --> B["keyof T：<br/>拿到键的集合"]
+  B --> C["as：<br/>重命名或用 never 过滤"]
   C --> D["T[K]：取值类型"]
-  D --> E["条件类型 / infer：变换值类型"]
+  D --> E["条件类型 /<br/>infer：变换值类型"]
   E --> F["新类型"]
 ```
 

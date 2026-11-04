@@ -108,6 +108,8 @@ export interface ServiceConfig {
 
 ### 执行任务
 
+下面仍是 `src/server.ts`，接在上一段后面，分 3 段给出 `createAgentService` 的前半部分。第一段准备模型、工作区、工具、任务表和队列，再定义所有事件的统一出口 `emit`：
+
 ```typescript
 export function createAgentService(cfg: ServiceConfig) {
   const model = cfg.model ?? anthropicModel();
@@ -124,7 +126,11 @@ export function createAgentService(cfg: ServiceConfig) {
     for (const l of t.listeners) l(e);
     void appendFile(path.join(cfg.stateDir, "traces", `${t.id}.jsonl`), JSON.stringify({ at: new Date().toISOString(), ...e }) + "\n");
   };
+```
 
+第二段是执行单个任务的 `work`：设好超时，调用 `runAgent`，把审批挂起成一个等人回复的 Promise，并在每轮结束时累计 token：
+
+```typescript
   async function work(t: Task) {
     emit(t, { type: "status", status: "running" });
     const timer = setTimeout(() => t.abort.abort(), cfg.taskTimeoutMs ?? 15 * 60_000);
@@ -168,7 +174,11 @@ export function createAgentService(cfg: ServiceConfig) {
       clearTimeout(timer);
     }
   }
+```
 
+第三段是调度：`pump` 每次从队列取一个任务交给 `work`，跑完再取下一个：
+
+```typescript
   /** 一次只跑一个任务：同一个工作区上并发改文件只会互相踩 */
   function pump() {
     if (running || closing) return;
@@ -194,6 +204,8 @@ export function createAgentService(cfg: ServiceConfig) {
 `emit` 做三件事：更新内存里的状态、推给正在监听的 SSE 连接、追加到这个任务的运行记录文件。运行记录是事后排查的依据：agent 做了一件奇怪的事，打开 `traces/<id>.jsonl` 就能看到它每一步调用了什么、拿到了什么。
 
 ### HTTP 层
+
+HTTP 层接着写在 `createAgentService` 里（所以缩进两格），完整代码分 4 段给出。第一段是几个小工具：回 JSON、读请求体、校验令牌、把任务转成对外视图：
 
 ```typescript
   const json = (res: ServerResponse, code: number, body: unknown) => {
@@ -222,7 +234,11 @@ export function createAgentService(cfg: ServiceConfig) {
     stop: t.stop,
     tokens: t.tokens,
   });
+```
 
+第二段创建 HTTP server：健康检查不需要令牌，其余接口先鉴权；`POST /tasks` 创建任务、放进队列并触发 `pump`：
+
+```typescript
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
     if (url.pathname === "/healthz") return json(res, 200, { ok: true, queued: queue.length, busy: !!running });
@@ -248,7 +264,11 @@ export function createAgentService(cfg: ServiceConfig) {
         pump();
         return json(res, 202, { id: t.id });
       }
+```
 
+第三段处理针对单个任务的接口：查看状态、SSE 订阅事件、回复审批、取消：
+
+```typescript
       const m = url.pathname.match(/^\/tasks\/([0-9a-f-]{36})(\/events|\/approval|\/cancel)?$/);
       const t = m && tasks.get(m[1]);
       if (!t) return json(res, 404, { error: "没有这个任务" });
@@ -288,7 +308,11 @@ export function createAgentService(cfg: ServiceConfig) {
       return json(res, 400, { error: e instanceof Error ? e.message : String(e) });
     }
   });
+```
 
+最后一段把 server 连同初始化和优雅退出一起返回，`createAgentService` 到此结束：
+
+```typescript
   return {
     server,
     async init() {

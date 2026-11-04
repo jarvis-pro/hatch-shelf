@@ -16,7 +16,7 @@ GitOps 这个词被用得很宽泛。OpenGitOps 项目（CNCF 下的一个工作
 前两条，OpenTofu 和 Ansible 都满足。区别在后两条：`tofu apply` 和 `ansible-playbook` 都是**人在本机触发、推向目标**的；GitOps 则是**目标环境里的代理主动拉取、并且一直在运行**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph Push["推模式（前几章）"]
     D1[开发者 / CI] -->|apply、playbook、deploy.sh| T1[目标环境]
   end

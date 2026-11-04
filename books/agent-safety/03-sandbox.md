@@ -87,7 +87,7 @@ macOS 上的 `sandbox-exec` 已被苹果标为弃用，命令行接口和配置�
 ### 网络结构
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph S["sandbox 网络（internal，没有出口）"]
     A["agent 容器"]
   end

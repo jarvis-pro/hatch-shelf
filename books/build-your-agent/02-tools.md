@@ -118,7 +118,9 @@ export class Workspace {
 
 ## 文件工具
 
-四个文件工具，三个只读一个写入：
+四个文件工具，三个只读一个写入。
+
+`fileTools` 完整代码分 3 段给出，从上到下拼起来是一个函数。第一段是开头和两个只读工具 `list_files`、`read_file`：
 
 ```typescript
 const READ_LIMIT = 300;
@@ -160,6 +162,11 @@ export function fileTools(ws: Workspace): AgentTool[] {
         return `[${rel} 共 ${lines.length} 行，本次 ${offset + 1}-${end}${more}]\n${body}`;
       },
     }),
+```
+
+第二段是第三个只读工具 `search_text`，递归遍历目录，命中条数到上限就停：
+
+```typescript
     defineTool({
       name: "search_text",
       description:
@@ -193,6 +200,11 @@ export function fileTools(ws: Workspace): AgentTool[] {
         return hits.length ? hits.join("\n") : `没有找到 "${query}"`;
       },
     }),
+```
+
+第三段是唯一的写入工具 `write_file`，风险等级为 `write`，并用 `describe` 生成给人审批时看的摘要；函数到这里结束：
+
+```typescript
     defineTool({
       name: "write_file",
       description:
@@ -263,6 +275,8 @@ export function checkTool(opts: { shelfRepo: string; booksDir: string }): AgentT
 
 工具有了风险等级，循环要跟着改。完整的 `loop.ts` 如下，和第一版相比变化集中在三处：选项里多了取消信号、审批函数和事件回调；新增 `aborted` 停止原因；工具执行抽成了 `executeTools`。
 
+代码分 3 段给出，从上到下拼起来就是 `src/loop.ts` 除类型以外的部分。第一段是事件类型、运行选项和停止原因：
+
 ```typescript
 // src/loop.ts（类型部分见上文）
 export type AgentEvent =
@@ -287,7 +301,11 @@ export interface RunOptions {
 export type StopKind = "done" | "max_turns" | "max_tokens" | "refusal" | "aborted";
 
 const MAX_RESULT_CHARS = 20_000;
+```
 
+第二段是 `runAgent` 的开头和每一轮的前半部分：检查取消、调用模型、累计用量，再把整条回复放回历史：
+
+```typescript
 export async function runAgent(opts: RunOptions): Promise<RunResult> {
   const { model, system, tools, maxTurns = 30, onEvent = () => {} } = opts;
   const signal = opts.signal ?? new AbortController().signal;
@@ -316,7 +334,11 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
     text = res.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
     if (text) onEvent({ type: "text", text });
     onEvent({ type: "turn_end", turn, usage: res.usage });
+```
 
+第三段是每一轮的后半部分：按 `stop_reason` 决定继续还是返回，需要调用工具时交给 `executeTools`，结果作为下一条 user 消息回填：
+
+```typescript
     switch (res.stop_reason) {
       case "tool_use":
         break; // 往下执行工具
@@ -390,7 +412,7 @@ async function executeTools(
 一轮里模型可能同时发起好几个调用，比如「读三个章节」。逐个执行白白浪费时间，全部并行又可能出问题：两个写操作改同一个文件，谁后完成谁赢；审批窗口同时弹出好几个，人也没法判断。折中的规则是：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["一轮里的全部工具调用"] --> B{"风险等级"}
   B -->|"read"| C["并行执行"]
   B -->|"write"| D["按顺序：审批 → 执行 → 下一个"]

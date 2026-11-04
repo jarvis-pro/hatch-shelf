@@ -7,7 +7,7 @@
 ## 三层权限
 
 ```mermaid
-flowchart LR
+flowchart TD
   M["模型<br/>想调用 push_book"] --> H{"宿主权限<br/>allow / ask / deny"}
   H -->|"放行"| S{"server 能力<br/>有没有这个工具<br/>参数是否合法"}
   S -->|"执行"| K{"凭证<br/>PIN / 令牌<br/>能访问什么"}

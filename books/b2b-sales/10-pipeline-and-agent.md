@@ -150,7 +150,7 @@ for (const file of readdirSync("stores")) {
 一个人做销售，时间主要花在三类事上：**见面**（只能你自己）、**记录和整理**、**写跟进消息**。后两类可以交给 agent。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["你：地推、演示后录一段语音"] --> B["agent：整理成发现记录，写进店的文件"]
   C["管道文件 + 后台导出的健康度"] --> D["agent：生成今日待办和消息草稿"]
   D --> E["你：逐条看、改、自己在微信里发"]

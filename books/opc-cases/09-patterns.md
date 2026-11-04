@@ -1,6 +1,6 @@
 # 横向对比与规律
 
-前面七章一个一个地看案例，这一章把 44 个放在一起看。先给出全表和分类口径，再看分布，最后归纳规律。
+前面七章一个一个地看案例，这一章把 44 个放在一起看。先给出全部案例一览和分类口径，再看分布，最后归纳规律。
 
 需要先强调：44 个案例不是随机样本，它们是「公开过可查证信息」的案例，经过了第 1 章说的两次筛选。所以下面的统计只描述这本书的样本，不能推广成「一人公司里有百分之多少靠个人影响力」。它的用处是对比：在同一批有记录的案例里，国内和海外、成功和失败，差别落在哪里。
 
@@ -12,52 +12,66 @@
 - **主要获客**按卡片里当事人说的「第一批用户和主要用户从哪来」归类，一个案例只取最主要的一种；卡片里写「未公开」或说法不足以判断的，归为「未说明」
 - **状态**是截至 2026 年 11 月能查到的最近状态
 
-| # | 案例 | 地区 | 规模 | 模式 | 主要获客 | 状态 |
-|---|---|---|---|---|---|---|
-| 1 | Pieter Levels | 海外 | 一人 | Web | 个人影响力 | 运营中 |
-| 2 | Plausible | 海外 | 小团队 | Web | 内容与搜索 | 运营中 |
-| 3 | Bannerbear | 海外 | 一人 | Web | 内容与搜索 | 运营中 |
-| 4 | Carrd | 海外 | 一人（存疑） | Web | 产品自传播 | 运营中 |
-| 5 | Tally | 海外 | 小团队 | Web | 产品自传播 | 运营中 |
-| 6 | Small Bets | 海外 | 一人 | 内容 | 个人影响力 | 已出售 |
-| 7 | Justin Welsh | 海外 | 一人 + 外包 | 内容 | 个人影响力 | 运营中 |
-| 8 | Marc Lou | 海外 | 一人 | 内容 | 个人影响力 | 运营中 |
-| 9 | Josh Comeau | 海外 | 一人 + 外包 | 内容 | 内容与搜索 | 运营中 |
-| 10 | Refactoring UI | 海外 | 两人 | 内容 | 个人影响力 | 已发展为公司 |
-| 11 | Nathan Barry | 海外 | 一人 | 内容 | 内容与搜索 | 已转做 SaaS |
-| 12 | Bob | 国内 | 一人 | App | 开发者社区 | 运营中 |
-| 13 | flomo | 国内 | 小团队 | Web | 个人影响力 | 运营中 |
-| 14 | 小报童 | 国内 | 小团队 | 内容平台 | 产品自传播 | 运营中 |
-| 15 | Mole | 国内 | 一人 | App | 开发者社区 | 运营中 |
-| 16 | 极简时钟 | 国内 | 一人 | App | 应用商店与平台 | 运营中 |
-| 17 | 打工人小组件 | 国内 | 小团队（三人） | App | 应用商店与平台 | 停止全职 |
-| 18 | 貔貅记账 | 国内 | 一人 | App | 未说明 | 2022 年后未知 |
-| 19 | 洗美小程序 | 国内 | 一人 | 门店软件 | 线下与熟人 | 放弃 |
-| 20 | 宏图电子菜单 | 国内 | 一人 | 门店软件 | 线下与熟人 | 运营中（2024） |
-| 21 | 云店管 | 国内 | 一人 | 门店软件 | 线下与熟人 | 后续未知 |
-| 22 | 开单宝 | 国内 | 一人 | 门店软件 | 线下与熟人 | 停止 |
-| 23 | 智存 | 国内 | 未公开 | 门店软件 | 开发者社区 | 刚推广 |
-| 24 | DesignJoy | 海外 | 一人 | 服务 | 个人影响力 | 运营中 |
-| 25 | patio11 | 海外 | 一人 + 外包 | 服务 | 内容与搜索 | 软件已出售 |
-| 26 | Jonathan Stark | 海外 | 未公开 | 服务 | 内容与搜索 | 运营中 |
-| 27 | Brennan Dunn | 海外 | 小团队 | 服务 | 内容与搜索 | 已转型 |
-| 28 | huiwang520 课程 | 国内 | 一人，后两人 | 内容 | 开发者社区 | 收入衰减 |
-| 29 | vikingmute | 国内 | 一人 | 内容 | 应用商店与平台 | 2022 年后未知 |
-| 30 | Yunior | 国内 | 一人 | 服务 | 未说明 | 2020 年后未知 |
-| 31 | TypingMind | 海外 | 一人 + 外包（存疑） | Web | 个人影响力 | 运营中 |
-| 32 | HeadshotPro | 海外 | 一人 | Web | 内容与搜索 | 运营中 |
-| 33 | Chatbase | 海外 | 小团队 | Web | 个人影响力 | 运营中 |
-| 34 | PDF.ai | 海外 | 未公开 | Web | 内容与搜索 | 未知 |
-| 35 | 沉浸式翻译 | 国内 | 小团队 | Web | 开发者社区 | 已被收购 |
-| 36 | 刘小排 | 国内 | 小团队 | Web | 未说明 | 运营中 |
-| 37 | 木鱼 AI 助手 | 国内 | 一人 | App（小程序） | 线下与熟人 | 运营中（2025） |
-| 38 | Apollo | 海外 | 一人 | App | 未说明 | 关停 |
-| 39 | searchcode | 海外 | 一人 | Web | 未说明 | 关闭后重启 |
-| 40 | Placemark | 海外 | 一人 | Web | 未说明 | 关停，开源 |
-| 41 | 落地页平台 | 国内 | 一人 | 行业软件 | 未说明 | 放弃 |
-| 42 | 扫描带师 | 国内 | 一人 | App | 应用商店与平台 | 账号被终止 |
-| 43 | Server酱 | 国内 | 未公开 | Web | 开发者社区 | 被迫改版 |
-| 44 | 冰箱 IceBox | 国内 | 一人 | App | 应用商店与平台 | 被下架，后续未知 |
+按模式分成五组，每条依次是：地区 · 规模 · 主要获客 · 状态。点案例名跳到对应的案例卡片。
+
+**Web 产品与在线服务**（15 个）
+
+- [1 Pieter Levels](02-overseas-saas.md#案例-1pieter-levels-的产品组合)：海外 · 一人 · 个人影响力 · 运营中
+- [2 Plausible](02-overseas-saas.md#案例-2plausible-analytics小团队对照)：海外 · 小团队 · 内容与搜索 · 运营中
+- [3 Bannerbear](02-overseas-saas.md#案例-3bannerbearjon-yongfook)：海外 · 一人 · 内容与搜索 · 运营中
+- [4 Carrd](02-overseas-saas.md#案例-4carrdaj)：海外 · 一人（存疑） · 产品自传播 · 运营中
+- [5 Tally](02-overseas-saas.md#案例-5tally两人起步的对照)：海外 · 小团队 · 产品自传播 · 运营中
+- [13 flomo](04-china-indie.md#案例-13flomo-浮墨笔记)：国内 · 小团队 · 个人影响力 · 运营中
+- [31 TypingMind](07-ai-native.md#案例-31typingmindtony-dinh)：海外 · 一人 + 外包（存疑） · 个人影响力 · 运营中
+- [32 HeadshotPro](07-ai-native.md#案例-32headshotprodanny-postma)：海外 · 一人 · 内容与搜索 · 运营中
+- [33 Chatbase](07-ai-native.md#案例-33chatbaseyasser-elsaid)：海外 · 小团队 · 个人影响力 · 运营中
+- [34 PDF.ai](07-ai-native.md#案例-34pdfaidamon-chen)：海外 · 未公开 · 内容与搜索 · 未知
+- [35 沉浸式翻译](07-ai-native.md#案例-35沉浸式翻译owen-young-起步)：国内 · 小团队 · 开发者社区 · 已被收购
+- [36 刘小排](07-ai-native.md#案例-36刘小排)：国内 · 小团队 · 未说明 · 运营中
+- [39 searchcode](08-failures.md#案例-39searchcodeben-boyter)：海外 · 一人 · 未说明 · 关闭后重启
+- [40 Placemark](08-failures.md#案例-40placemarktom-macwright)：海外 · 一人 · 未说明 · 关停，开源
+- [43 Server酱](08-failures.md#案例-43server酱方糖easychen)：国内 · 未公开 · 开发者社区 · 被迫改版
+
+**客户端 App 与小程序**（9 个）
+
+- [12 Bob](04-china-indie.md#案例-12bobripperhe)：国内 · 一人 · 开发者社区 · 运营中
+- [15 Mole](04-china-indie.md#案例-15moletw93)：国内 · 一人 · 开发者社区 · 运营中
+- [16 极简时钟](04-china-indie.md#案例-16极简时钟vulgur)：国内 · 一人 · 应用商店与平台 · 运营中
+- [17 打工人小组件](04-china-indie.md#案例-17打工人小组件三人对照)：国内 · 小团队（三人） · 应用商店与平台 · 停止全职
+- [18 貔貅记账](04-china-indie.md#案例-18貔貅记账王维东)：国内 · 一人 · 未说明 · 2022 年后未知
+- [37 木鱼 AI 助手](07-ai-native.md#案例-37木鱼-ai-助手v2exstephen7zz)（App（小程序））：国内 · 一人 · 线下与熟人 · 运营中（2025）
+- [38 Apollo](08-failures.md#案例-38apollochristian-selig)：海外 · 一人 · 未说明 · 关停
+- [42 扫描带师](08-failures.md#案例-42扫描带师-prov2extarek911)：国内 · 一人 · 应用商店与平台 · 账号被终止
+- [44 冰箱 IceBox](08-failures.md#案例-44冰箱-iceboxv2exlittlecup)：国内 · 一人 · 应用商店与平台 · 被下架，后续未知
+
+**国内行业与门店软件**（6 个）
+
+- [19 洗美小程序](05-china-vertical-b2b.md#案例-19汽车洗美门店小程序v2exnoconfuse)：国内 · 一人 · 线下与熟人 · 放弃
+- [20 宏图电子菜单](05-china-vertical-b2b.md#案例-20宏图电子菜单v2expbk)：国内 · 一人 · 线下与熟人 · 运营中（2024）
+- [21 云店管](05-china-vertical-b2b.md#案例-21云店管v2exeyon)：国内 · 一人 · 线下与熟人 · 后续未知
+- [22 开单宝](05-china-vertical-b2b.md#案例-22开单宝v2exfingal)：国内 · 一人 · 线下与熟人 · 停止
+- [23 智存](05-china-vertical-b2b.md#案例-23智存v2exmiomioos)：国内 · 未公开 · 开发者社区 · 刚推广
+- [41 落地页平台](08-failures.md#案例-41落地页搭建平台v2ex-用户未写产品名)（行业软件）：国内 · 一人 · 未说明 · 放弃
+
+**内容、课程与社群**（9 个）
+
+- [6 Small Bets](03-overseas-content.md#案例-6daniel-vassallo-与-small-bets)：海外 · 一人 · 个人影响力 · 已出售
+- [7 Justin Welsh](03-overseas-content.md#案例-7justin-welsh)：海外 · 一人 + 外包 · 个人影响力 · 运营中
+- [8 Marc Lou](03-overseas-content.md#案例-8marc-lou-与-shipfast)：海外 · 一人 · 个人影响力 · 运营中
+- [9 Josh Comeau](03-overseas-content.md#案例-9josh-w-comeau-与-css-for-javascript-developers)：海外 · 一人 + 外包 · 内容与搜索 · 运营中
+- [10 Refactoring UI](03-overseas-content.md#案例-10refactoring-ui两人)：海外 · 两人 · 个人影响力 · 已发展为公司
+- [11 Nathan Barry](03-overseas-content.md#案例-11nathan-barry-的电子书阶段)：海外 · 一人 · 内容与搜索 · 已转做 SaaS
+- [14 小报童](04-china-indie.md#案例-14小报童)（内容平台）：国内 · 小团队 · 产品自传播 · 运营中
+- [28 huiwang520 课程](06-service-opc.md#案例-28自建渠道卖技术课v2exhuiwang520)：国内 · 一人，后两人 · 开发者社区 · 收入衰减
+- [29 vikingmute](06-service-opc.md#案例-29慕课网讲师与简历工具v2exvikingmute)：国内 · 一人 · 应用商店与平台 · 2022 年后未知
+
+**服务**（5 个）
+
+- [24 DesignJoy](06-service-opc.md#案例-24designjoybrett-williams)：海外 · 一人 · 个人影响力 · 运营中
+- [25 patio11](06-service-opc.md#案例-25patrick-mckenziepatio11)：海外 · 一人 + 外包 · 内容与搜索 · 软件已出售
+- [26 Jonathan Stark](06-service-opc.md#案例-26jonathan-stark)：海外 · 未公开 · 内容与搜索 · 运营中
+- [27 Brennan Dunn](06-service-opc.md#案例-27brennan-dunn小团队对照)：海外 · 小团队 · 内容与搜索 · 已转型
+- [30 Yunior](06-service-opc.md#案例-30自由职业开发的第一年v2exyunior)：国内 · 一人 · 未说明 · 2020 年后未知
 
 小报童在模式图里归入「内容、课程与社群」，落地页平台归入「国内行业与门店软件」（它是面向企业的工具），木鱼 AI 助手归入「客户端 App 与小程序」。
 

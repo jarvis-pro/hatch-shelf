@@ -26,12 +26,12 @@
 V8 的 GC 基于一个经验事实——**分代假说**：大多数对象朝生夕死（一个请求里的临时对象），活下来的对象往往会活很久（缓存、连接池、模块级状态）。所以堆被分成两代，用不同算法回收：
 
 ```mermaid
-flowchart LR
-  N["新对象"] --> Y["新生代 new space：小，分成两个半区"]
-  Y -->|"Scavenge：只复制活对象，非常快"| Y
-  Y -->|"经历两次 Scavenge 仍存活：晋升"| O["老生代 old space：大"]
-  O -->|"Mark-Compact：标记、清除、整理"| O
-  L["大对象"] --> LO["大对象空间 large object space"]
+flowchart TD
+  N["新对象"] --> Y["新生代 new space：<br/>小，分成两个半区"]
+  Y -->|"Scavenge：只复制<br/>活对象，非常快"| Y
+  Y -->|"经历两次 Scavenge<br/>仍存活：晋升"| O["老生代 old space：<br/>大"]
+  O -->|"Mark-Compact：<br/>标记、清除、整理"| O
+  L["大对象"] --> LO["大对象空间<br/>large object space"]
 ```
 
 | 代 | 算法 | 特点 |
@@ -59,7 +59,7 @@ node --trace-gc app.js
 GC 回收的是**不可达**的对象：从根（全局对象、当前调用栈、活跃的闭包和句柄）出发顺着引用找不到的对象。所以 JS 里的泄漏从来不是「忘了 free」，而是**某个长寿对象意外地引用了本该死掉的东西**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   R["根：模块作用域"] --> C["const cache = new Map()"]
   C --> Q1["请求 1 的数据"]
   C --> Q2["请求 2 的数据"]
@@ -183,13 +183,13 @@ console.log("size", cache.size, "heapUsed", Math.round(process.memoryUsage().hea
 
 ```mermaid
 flowchart TD
-  A["发现：容器重启、OOM、rss 持续涨"] --> B{"heapUsed 也在涨吗？"}
-  B -->|"否"| C["查堆外：Buffer、原生模块、线程数"]
-  B -->|"是"| D["稳定复现：压测或回放流量"]
-  D --> E["三次堆快照：预热后 / 压一轮后 / 再压一轮后"]
-  E --> F["DevTools 对比视图：按构造函数看增量"]
-  F --> G["看 Retainers：谁在引用它"]
-  G --> H["定位代码，修复，用同样的流程验证"]
+  A["发现：容器重启、<br/>OOM、rss 持续涨"] --> B{"heapUsed 也在涨吗？"}
+  B -->|"否"| C["查堆外：Buffer、<br/>原生模块、线程数"]
+  B -->|"是"| D["稳定复现：<br/>压测或回放流量"]
+  D --> E["三次堆快照：<br/>预热后 /<br/>压一轮后 /<br/>再压一轮后"]
+  E --> F["DevTools 对比视图：<br/>按构造函数看增量"]
+  F --> G["看 Retainers：<br/>谁在引用它"]
+  G --> H["定位代码，修复，<br/>用同样的流程验证"]
 ```
 
 ### 第一步：确认是泄漏

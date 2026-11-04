@@ -24,7 +24,7 @@
 **Anycast**：所有边缘节点宣告同一个 IP，互联网路由会自然把包送到「路由意义上最近」的节点。Cloudflare 是典型。好处是不依赖 DNS 判断位置；你接入时通常要把整个域名的 NS 交给它。
 
 ```mermaid
-flowchart LR
+flowchart TD
   U[用户] -->|"1. 解析 static.example.com"| D[CDN 的 DNS]
   D -->|"2. 返回最近边缘节点"| U
   U -->|"3. HTTPS 请求"| E[边缘节点]

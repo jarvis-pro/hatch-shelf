@@ -208,7 +208,9 @@ func TestRunUsage(t *testing.T) {
 
 ## 测试 HTTP handler：httptest
 
-第 7 章的 handler 依赖 `Store` 接口。测试时写一个内存实现，用 `httptest.NewServer` 起一个真实的 HTTP 服务器（监听本机随机端口）：
+第 7 章的 handler 依赖 `Store` 接口。测试时写一个内存实现，用 `httptest.NewServer` 起一个真实的 HTTP 服务器（监听本机随机端口）。
+
+完整的测试文件分 4 段给出，从上到下拼起来就是一个 `_test.go` 文件。第一段是导入、内存版 `memStore` 和它的 `List` 方法：
 
 ```go
 package entry
@@ -243,7 +245,11 @@ func (s *memStore) List(_ context.Context, storeID int64, limit int) ([]Entry, e
 	}
 	return out, nil
 }
+```
 
+第二段是 `memStore` 的 `Create`（只认 1 号店，其他门店返回 `ErrStoreNotFound`），以及起测试服务器的辅助函数 `newTestServer`：
+
+```go
 func (s *memStore) Create(_ context.Context, storeID int64, n NewEntry) (Entry, error) {
 	if storeID != 1 {
 		return Entry{}, ErrStoreNotFound
@@ -266,7 +272,11 @@ func newTestServer(t *testing.T) *httptest.Server {
 	t.Cleanup(srv.Close)
 	return srv
 }
+```
 
+第三段是第一个测试：先 POST 创建一条记录，再 GET 列表，检查读回来的内容：
+
+```go
 func TestCreateAndList(t *testing.T) {
 	srv := newTestServer(t)
 
@@ -294,7 +304,11 @@ func TestCreateAndList(t *testing.T) {
 		t.Errorf("list = %+v", got)
 	}
 }
+```
 
+第四段用表格驱动测试覆盖各种错误输入，每种情况检查返回的状态码：
+
+```go
 func TestCreateErrors(t *testing.T) {
 	srv := newTestServer(t)
 	tests := []struct {

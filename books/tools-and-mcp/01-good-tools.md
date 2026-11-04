@@ -42,7 +42,7 @@ Anthropic 的工程团队把这件事叫作 ACI（agent-computer interface）：
 从模型的视角看，一次成功的工具调用要连续过五道关，每一关对应工具设计的一个方面：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["1 发现<br/>知道有这个工具"] --> B["2 选择<br/>判断现在该用它"]
   B --> C["3 填参<br/>参数填对"]
   C --> D["4 理解结果<br/>读懂返回"]

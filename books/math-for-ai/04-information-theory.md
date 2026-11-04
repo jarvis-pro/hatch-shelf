@@ -61,7 +61,10 @@ $$
 设有四种消息，概率分别是 $\frac{1}{2}, \frac{1}{4}, \frac{1}{8}, \frac{1}{8}$。它的熵：
 
 $$
-H = \frac{1}{2} \times 1 + \frac{1}{4} \times 2 + \frac{1}{8} \times 3 + \frac{1}{8} \times 3 = 1.75 \text{ 比特}
+\begin{aligned}
+H &= \frac{1}{2} \times 1 + \frac{1}{4} \times 2 + \frac{1}{8} \times 3 + \frac{1}{8} \times 3 \\
+&= 1.75 \text{ 比特}
+\end{aligned}
 $$
 
 - 每一项是「概率 × 信息量」，比如 $\frac{1}{8}$ 的消息信息量是 3 比特
@@ -83,7 +86,10 @@ $$
 接着上面的例子：真实分布 $P = (\frac{1}{2}, \frac{1}{4}, \frac{1}{8}, \frac{1}{8})$，但我们以为是均匀的 $Q = (\frac{1}{4}, \frac{1}{4}, \frac{1}{4}, \frac{1}{4})$，每种消息都分配 2 比特：
 
 $$
-H(P, Q) = \left(\tfrac{1}{2} + \tfrac{1}{4} + \tfrac{1}{8} + \tfrac{1}{8}\right) \times 2 = 2 \text{ 比特}
+\begin{aligned}
+H(P, Q) &= \left(\tfrac{1}{2} + \tfrac{1}{4} + \tfrac{1}{8} + \tfrac{1}{8}\right) \times 2 \\
+&= 2 \text{ 比特}
+\end{aligned}
 $$
 
 比最优的 1.75 比特多了 0.25 比特。一个关键事实：**交叉熵永远不小于熵**，$H(P, Q) \ge H(P)$，只有 $Q = P$ 时才相等。也就是说，猜得越准，交叉熵越小，最小值就是真实分布自己的熵。
@@ -93,7 +99,10 @@ $$
 交叉熵减去熵，就是「因为猜错而多付出的代价」，叫 **KL 散度**：
 
 $$
-D_{\mathrm{KL}}(P \,\|\, Q) = H(P, Q) - H(P) = \sum_{x} P(x) \log_2 \frac{P(x)}{Q(x)}
+\begin{aligned}
+D_{\mathrm{KL}}(P \,\|\, Q) &= H(P, Q) - H(P) \\
+&= \sum_{x} P(x) \log_2 \frac{P(x)}{Q(x)}
+\end{aligned}
 $$
 
 - $H(P, Q) - H(P)$：多花的平均码长

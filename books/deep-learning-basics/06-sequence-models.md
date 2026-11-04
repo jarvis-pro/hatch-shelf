@@ -106,7 +106,7 @@ h_t = \tanh(W_x x_t + W_h h_{t-1} + b)
 $$
 
 ```mermaid
-flowchart LR
+flowchart TD
   X1["x₁ 深"] --> R1["RNN 单元"]
   R1 -- "h₁" --> R2["RNN 单元"]
   X2["x₂ 度"] --> R2

@@ -148,7 +148,7 @@ ads-data/
 }
 ```
 
-`report.ts`：
+`report.ts` 完整文件分 4 段给出，从上到下拼起来就是整个脚本。第一段是数据类型定义，以及读取 `mapping.json` 和 `units.json`：
 
 ```ts
 import { readFileSync, readdirSync } from "node:fs";
@@ -165,7 +165,11 @@ type Mapping = Record<string, { platform: string; tool: string; columns: Record<
 const dir = process.argv[2] ?? "ads-data";
 const mapping: Mapping = JSON.parse(readFileSync(join(dir, "mapping.json"), "utf8"));
 const units: Record<string, Unit> = JSON.parse(readFileSync(join(dir, "units.json"), "utf8"));
+```
 
+第二段是三个小工具：最简 CSV 解析、把带千分位和货币符号的文本转成数字、按单位经济算每单贡献利润：
+
+```ts
 // 最简 CSV 解析：支持双引号包裹和引号内逗号
 function parseCsv(text: string): Record<string, string>[] {
   const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim() !== "");
@@ -193,7 +197,11 @@ function contribution(u: Unit) {
   const kept = u.price * (1 - u.feeRate) - u.cost - u.shipping;
   return (1 - u.refundRate) * kept - u.refundRate * u.refundLoss;
 }
+```
 
+第三段读 `raw/` 下的每个 CSV，按 `mapping.json` 映射成统一字段，并按「工具 + 单元 + 日期」去重：
+
+```ts
 const rows: Row[] = [];
 const seen = new Set<string>();
 for (const file of readdirSync(join(dir, "raw")).filter((f) => f.endsWith(".csv"))) {
@@ -215,7 +223,11 @@ for (const file of readdirSync(join(dir, "raw")).filter((f) => f.endsWith(".csv"
     rows.push(row);
   }
 }
+```
 
+第四段按「ISO 周 + 平台 + 工具 + SKU」汇总，算出各项指标后逐行打印：
+
+```ts
 // ISO 周
 function week(d: string) {
   const t = new Date(d + "T00:00:00Z");
@@ -286,7 +298,7 @@ node ads-data/report.ts ads-data
 ## 每周 15 分钟的流程
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[下载 / 抄录<br/>上周各平台数据] --> B[放进 raw/<br/>回填过去 30 天退款]
   B --> C[跑脚本或刷新透视表]
   C --> D[看三个数<br/>每个工具的贡献利润<br/>过线的计划<br/>没过线的计划]

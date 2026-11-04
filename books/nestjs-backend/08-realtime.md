@@ -99,13 +99,13 @@ sequenceDiagram
   participant DB as PostgreSQL
   participant H as LiveHub
   participant C as 客户端
-  W->>DB: 事务里写 stock_movements
-  Note over DB: 触发器记下「这个事务动了 stock」
+  W->>DB: 事务里写<br/>stock_movements
+  Note over DB: 触发器记下「这个<br/>事务动了 stock」
   W->>DB: COMMIT
-  DB->>DB: 提交时版本号 +1，NOTIFY store_versions
+  DB->>DB: 提交时版本号 +1，<br/>NOTIFY store_versions
   DB-->>H: 通知 {门店, stock: 42}
-  H-->>C: event: changed {stock: 42}
-  C->>W: GET /v1/stock（带权限的普通接口）
+  H-->>C: event: changed<br/>{stock: 42}
+  C->>W: GET /v1/stock<br/>（带权限的普通接口）
   W-->>C: 最新数据
 ```
 

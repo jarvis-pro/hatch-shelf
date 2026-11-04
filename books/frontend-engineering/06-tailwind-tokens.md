@@ -24,7 +24,7 @@ hatch-counter 的 `components.json`（shadcn 的配置）里 `"tailwind": { "con
 ## Tailwind 怎么生成 CSS
 
 ```mermaid
-flowchart LR
+flowchart TD
   S["扫描源文件<br/>.tsx .ts .html"] --> C["提取候选类名<br/>p-4 / bg-primary / hover:bg-accent"]
   C --> M{"能对上主题<br/>或内置规则吗"}
   M -- 能 --> G["生成对应的 CSS<br/>放进 utilities 层"]

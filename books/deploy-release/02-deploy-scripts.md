@@ -18,7 +18,7 @@
 拆开之后，日常发版就是 ssh 上去跑一条 `./deploy.sh 1.4.0`，不用担心顺手把哪份配置也覆盖了。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph 本机
     R["仓库 deploy/"] --> P["push.sh：只传白名单"]
   end

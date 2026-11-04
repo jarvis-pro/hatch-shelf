@@ -28,7 +28,7 @@
 一个 config plugin 就是一个函数：**输入 Expo 配置对象，返回修改后的配置对象**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["app.json"] --> B["插件 1"]
   B --> C["插件 2"]
   C --> D["插件 n"]

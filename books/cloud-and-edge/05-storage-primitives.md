@@ -237,7 +237,7 @@ new_sqlite_classes = ["UnlockLimiter"]
 ### 一个典型组合
 
 ```mermaid
-flowchart LR
+flowchart TD
   APP["App"] --> W["Worker：鉴权、路由"]
   W --> KV["KV：开关、最低版本"]
   W --> D1["D1：用户、元数据"]

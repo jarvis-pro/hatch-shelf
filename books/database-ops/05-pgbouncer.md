@@ -21,7 +21,7 @@ hatch-counter 的服务端用 postgres.js 驱动，配置了 `max: 10`，也就�
 所以思路是反过来：让数据库只维持少量真实连接，在前面放一个轻量的代理，把大量客户端连接**复用**到这些真实连接上。PgBouncer 就是这个代理，单进程、事件驱动，一个客户端连接只占几 KB 内存。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A1["api 实例 1<br/>池 10"] --> PB["PgBouncer<br/>客户端连接可达数百"]
   A2["api 实例 2<br/>池 10"] --> PB
   A3["api 实例 3<br/>池 10"] --> PB

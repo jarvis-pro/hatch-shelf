@@ -15,11 +15,12 @@
 ## 样例从哪来
 
 ```mermaid
-flowchart LR
-  P[线上真实输入] --> D[测试集]
-  F[出过错的样例] --> D
-  H[自己构造的难例] --> D
-  S[合成与变换] --> D
+flowchart TD
+  subgraph SRC["四个来源"]
+    direction TB
+    P[线上真实输入] ~~~ F[出过错的样例] ~~~ H[自己构造的难例] ~~~ S[合成与变换]
+  end
+  SRC --> D[测试集]
 ```
 
 ### 线上真实输入

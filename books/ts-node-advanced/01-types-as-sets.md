@@ -152,8 +152,8 @@ function handle(msg: FromReader): string {
 `default` 分支里的 `const exhaustive: never = msg` 是穷尽检查：每个 `case` 都从集合里减掉一员，最后剩下的应该是空集。将来协议里加了新消息类型而这里忘了处理，`msg` 在 `default` 里就不再是 `never`，编译直接报错。**协议改动由编译器帮你找出所有要改的地方**，这在 RN 和 WebView 两端共用一份类型时特别值钱。
 
 ```mermaid
-flowchart LR
-  A["FromReader：5 种消息"] -->|"case ready"| B["剩 4 种"]
+flowchart TD
+  A["FromReader：<br/>5 种消息"] -->|"case ready"| B["剩 4 种"]
   B -->|"case toc"| C["剩 3 种"]
   C -->|"…"| D["剩 0 种"]
   D --> E["default：never"]

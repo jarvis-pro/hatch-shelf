@@ -29,7 +29,7 @@ Electron 沿用了这套结构，并给每种进程分配了角色：
 | utility 进程 | 按需 | Node.js | 把 CPU 重活或不可信的原生模块从主进程挪出去 |
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph M["主进程（Node + Electron API）"]
     APP[app 生命周期]
     WIN[BrowserWindow]

@@ -54,28 +54,21 @@
 [《LLM 应用上线》第 7 章](../llmops/07-prompt-injection.md)把注入来源分成直接、间接和存储型。agent 的入口要多得多，因为它会主动去读：
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph T["可信"]
-    SP["system prompt<br/>项目规则"]
-    U["你本人的指令"]
-  end
-  subgraph N["不可信"]
-    W["网页、搜索结果"]
-    I["issue、PR、邮件"]
-    D["依赖包、clone 的仓库"]
-    R["检索到的文档"]
-    TD["第三方工具的描述"]
-    TR["工具返回值"]
+    T1["system prompt<br/>项目规则<br/>你本人的指令"]
   end
   subgraph G["灰色地带"]
-    M["长期记忆"]
-    SA["子 agent 的输出"]
-    F["工作区里的文件"]
+    G1["长期记忆<br/>子 agent 的输出<br/>工作区里的文件"]
   end
+  subgraph N["不可信"]
+    N1["网页、搜索结果<br/>issue、PR、邮件<br/>依赖包、<br/>clone 的仓库<br/>检索到的文档<br/>第三方工具的描述<br/>工具返回值"]
+  end
+  T ~~~ G
   T --> C(("上下文"))
-  N --> C
   G --> C
-  C --> A["模型决定下一步动作"]
+  N --> C
+  C --> A["模型决定<br/>下一步动作"]
 ```
 
 「灰色地带」需要单独说明：

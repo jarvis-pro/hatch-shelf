@@ -48,7 +48,11 @@ $$
 把实数 $w$ 映射到 $b$ 位有符号整数。取缩放因子 $s$，让绝对值最大的数恰好映射到整数范围边缘：
 
 $$
-s = \frac{\max \lvert w \rvert}{2^{b-1} - 1},\qquad q = \mathrm{clamp}\Big(\mathrm{round}\big(\tfrac{w}{s}\big),\ -2^{b-1},\ 2^{b-1}-1\Big),\qquad \hat w = s \cdot q
+\begin{gathered}
+s = \frac{\max \lvert w \rvert}{2^{b-1} - 1} \\
+q = \mathrm{clamp}\Big(\mathrm{round}\big(\tfrac{w}{s}\big),\ -2^{b-1},\ 2^{b-1}-1\Big) \\
+\hat w = s \cdot q
+\end{gathered}
 $$
 
 存储时只保留整数 $q$ 和缩放因子 $s$。
@@ -58,7 +62,11 @@ $$
 数据不以 0 为中心时（比如 ReLU 之后的激活全是正数），对称量化浪费了一半的网格。加一个零点 $z$：
 
 $$
-s = \frac{\max w - \min w}{2^b - 1},\qquad z = \mathrm{round}\Big(-\frac{\min w}{s}\Big),\qquad q = \mathrm{clamp}\big(\mathrm{round}(\tfrac{w}{s}) + z,\ 0,\ 2^b - 1\big)
+\begin{gathered}
+s = \frac{\max w - \min w}{2^b - 1} \\
+z = \mathrm{round}\Big(-\frac{\min w}{s}\Big) \\
+q = \mathrm{clamp}\big(\mathrm{round}(\tfrac{w}{s}) + z,\ 0,\ 2^b - 1\big)
+\end{gathered}
 $$
 
 反量化为 $\hat w = s(q - z)$。

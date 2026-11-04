@@ -52,7 +52,7 @@ hatch-counter 选 VPS 的理由很典型：服务端要连 Postgres、要 SSE �
 ## 拿到机器之后的头半小时
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["root 首次登录"] --> B["建部署用户、放公钥"]
   B --> C["关密码登录"]
   C --> D["防火墙只放 22/80/443"]

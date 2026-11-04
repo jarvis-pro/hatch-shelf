@@ -17,7 +17,7 @@
 对应的处理流水线：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[原图] --> B{HEIC？}
   B -->|是| X[提示用户转格式]
   B -->|否| C[按 EXIF 摆正]

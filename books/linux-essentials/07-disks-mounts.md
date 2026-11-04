@@ -7,7 +7,7 @@
 在 Windows 上，一块硬盘就是一个盘符。Linux 上要经过四层：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["块设备：/dev/vda"] --> B["分区：/dev/vda1"]
   B --> C["文件系统：ext4"]
   C --> D["挂载点：/"]

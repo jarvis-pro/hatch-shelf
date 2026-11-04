@@ -6,19 +6,20 @@
 
 ```mermaid
 flowchart TD
-  A[请求进来] --> B["中间件（express 层）"]
-  B --> C[守卫 Guards]
+  B["请求进来：<br/>中间件<br/>（express 层）"] --> C[守卫 Guards]
   C --> D["拦截器：前半段"]
-  D --> E["管道 Pipes（含参数装饰器）"]
+  D --> E["管道 Pipes<br/>（含参数装饰器）"]
   E --> F[处理函数 Handler]
   F --> G["拦截器：后半段"]
   G --> H[回包]
-  C -. 抛异常 .-> X[异常过滤器]
-  D -. 抛异常 .-> X
-  E -. 抛异常 .-> X
-  F -. 抛异常 .-> X
-  G -. 抛异常 .-> X
-  X --> H
+```
+
+中间件之后的任何一站抛异常，都会转到第七站异常过滤器，由它回包：
+
+```mermaid
+flowchart TD
+  S["守卫、拦截器<br/>（前后半段）、<br/>管道、处理函数"] -. 抛异常 .-> X[异常过滤器]
+  X --> H[回包]
 ```
 
 | 站 | 能拿到什么 | 适合做什么 | 不适合做什么 |
@@ -103,19 +104,19 @@ providers: [
 ```mermaid
 sequenceDiagram
   participant R as 请求
-  participant A as ActorInterceptor
-  participant V as StoreVersionsInterceptor
-  participant I as IdempotencyInterceptor
-  participant H as 处理函数
+  participant A as Actor
+  participant V as StoreVersions
+  participant I as Idempotency
   R->>A: 装入「谁在改」
   A->>V: 读改动前的版本号
-  V->>I: 查这个幂等键有没有回执
-  I->>H: 真正执行
-  H-->>I: 回包，记回执
+  V->>I: 查这个幂等键<br/>有没有回执
+  I->>I: 真正执行处理函数，<br/>回包后记回执
   I-->>V: 贴上版本号响应头
   V-->>A: 
   A-->>R: 
 ```
+
+图中三个参与者依次是 `ActorInterceptor`、`StoreVersionsInterceptor`、`IdempotencyInterceptor`；处理函数在最里层，由 `IdempotencyInterceptor` 包着。
 
 hatch-counter 的三个全局拦截器分别注册在三个模块里，它们的套叠顺序由**模块在 `AppModule.imports` 里的排列**决定：
 

@@ -14,7 +14,7 @@
 ## apt 的结构
 
 ```mermaid
-flowchart LR
+flowchart TD
   R["软件源（远程仓库）"] -->|apt update 下载索引| I["本地包索引 /var/lib/apt/lists"]
   I -->|apt install 解析依赖| D[下载 .deb 到缓存]
   D --> P["dpkg 解包、执行安装脚本"]

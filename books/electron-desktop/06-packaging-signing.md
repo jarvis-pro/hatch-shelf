@@ -14,7 +14,7 @@ electron-builder 拿到你的构建产物后：
 6. 按 target 产出 `dir`（只是 `.app` 目录）、`dmg`、`zip`、`pkg` 等
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["out/（三份产物）"] --> B[复制 Electron.app 并改名]
   B --> C[打 app.asar]
   C --> D[改 Info.plist、图标]

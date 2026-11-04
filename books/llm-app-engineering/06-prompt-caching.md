@@ -9,7 +9,7 @@
 由于注意力是因果的，每个 token 的计算结果只取决于它**前面**的内容，所以缓存只能按**前缀**复用：
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph R1[请求一]
     A1[工具定义] --> B1[system 与文档] --> C1[问题 A]
   end

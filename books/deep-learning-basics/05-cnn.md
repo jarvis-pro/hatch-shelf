@@ -80,7 +80,7 @@ $$
 结构是经典的「卷积块 ×2 + 全连接头」：
 
 ```mermaid
-flowchart LR
+flowchart TD
   I["输入<br/>1×28×28"] --> C1["Conv 3×3, 32<br/>BN + ReLU"]
   C1 --> P1["MaxPool<br/>32×14×14"]
   P1 --> C2["Conv 3×3, 64<br/>BN + ReLU"]

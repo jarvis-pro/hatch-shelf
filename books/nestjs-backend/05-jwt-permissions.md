@@ -86,13 +86,13 @@ hatch-counter 有两类用户：门店的店主和店员（租户），以及内
 如果不校验 `aud` 会怎样？后台员工的令牌能通过租户守卫，而它的 `sub` 是后台员工表的 id，被当成账号 id 去查，轻则读到一堆空，重则撞上某个同 id 的账号。
 
 ```mermaid
-flowchart LR
+flowchart TD
   T["租户令牌 aud=tenant"] --> AG[AuthGuard 只收 tenant]
   A["后台令牌 aud=admin"] --> AD[AdminGuard 只收 admin]
   A -. 验签失败 .-> AG
   T -. 验签失败 .-> AD
   AG --> Biz[业务接口]
-  AD --> Adm["后台接口（标了 @AdminRoute）"]
+  AD --> Adm["后台接口<br/>（标了 @AdminRoute）"]
 ```
 
 两个全局守卫靠控制器类上的 `@AdminRoute()` 分工：`AuthGuard` 见到它就让开，`AdminGuard` 只管它。文档里专门强调：**这条得一开始就隔死**，等两边都有一堆端点了再补 `aud` 校验，必定漏一个，而漏掉的那个就是越权本身。更稳妥的做法是两边用不同的密钥，hatch-counter 选择了 `aud` 加测试守护（`admin.e2e.test.ts` 验证两种令牌互不相认）。

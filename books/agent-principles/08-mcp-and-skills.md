@@ -13,13 +13,13 @@
 MCP（Model Context Protocol，模型上下文协议）是 Anthropic 在 2024 年底开源的协议，后来被多家 AI 工具采纳。它规定了 agent 和外部能力提供方之间怎么对话，于是问题变成 M+N：每个 agent 实现一次 MCP 客户端，每个系统实现一次 MCP 服务端。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph Host["宿主应用（如 Claude Code）"]
     C1["MCP 客户端"]
     C2["MCP 客户端"]
   end
-  C1 <-->|"stdio"| S1["MCP server：本地数据库"]
-  C2 <-->|"HTTP"| S2["MCP server：远程 SaaS"]
+  C1 <-->|"stdio"| S1["MCP server：<br/>本地数据库"]
+  C2 <-->|"HTTP"| S2["MCP server：<br/>远程 SaaS"]
   S1 --> D1[("Postgres")]
   S2 --> D2["第三方 API"]
 ```
@@ -166,9 +166,9 @@ Skills 最关键的设计是**分层加载**：
 
 ```mermaid
 flowchart TB
-  L1["第一层：name + description<br/>启动时加载，每个 Skill 只占几十 token"]
-  L2["第二层：SKILL.md 正文<br/>模型判断任务匹配时才读取"]
-  L3["第三层：模板、参考文档、脚本<br/>执行中需要时才读取或运行"]
+  L1["第一层：<br/>name + description<br/>启动时加载，<br/>每个 Skill<br/>只占几十 token"]
+  L2["第二层：<br/>SKILL.md 正文<br/>模型判断任务<br/>匹配时才读取"]
+  L3["第三层：模板、<br/>参考文档、脚本<br/>执行中需要时<br/>才读取或运行"]
   L1 -->|"任务匹配"| L2 -->|"按需"| L3
 ```
 

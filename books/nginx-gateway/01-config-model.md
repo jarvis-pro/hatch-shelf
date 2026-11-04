@@ -24,7 +24,7 @@
 ## nginx 在架构里的位置
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["浏览器 / App"] -->|"HTTPS 443"| N["nginx（宿主机）"]
   N -->|"api.example.com"| A["NestJS 容器 127.0.0.1:3000"]
   N -->|"app.example.com /v1/"| A

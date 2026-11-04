@@ -5,7 +5,7 @@
 ## 先看全局
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph IAP["付费 IAP"]
     U1["观众充值解锁"] --> P1["小程序 / 平台"]
   end

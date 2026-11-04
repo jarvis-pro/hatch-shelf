@@ -56,7 +56,9 @@ USER node
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:3000/health') \
+    .then(r=>process.exit(r.ok?0:1)) \
+    .catch(()=>process.exit(1))"
 
 CMD ["node", "dist/main.js"]
 ```
@@ -234,7 +236,9 @@ hatch-counter 的写法值得逐句看：
 # 用 node 自己发请求是因为 alpine 里没有 curl，为这一句装一个不值。
 # start-period 给 20 秒：Nest 起来要建连接、装模块，这段时间失败不算数
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD \
-  node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/v1/health') \
+    .then(r=>process.exit(r.ok?0:1)) \
+    .catch(()=>process.exit(1))"
 ```
 
 三个设计点：

@@ -39,7 +39,7 @@
 可以看出，**绝大多数风险来自自动化攻击和你自己的疏忽**，而不是黑客专门盯上你。所以一个人的加固策略很朴素：缩小攻击面、堵住批量攻击、防住自己手滑，再保证出事后能从备份里爬起来（第 2 章）。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["公网"] --> B["云安全组"]
   B --> C["主机防火墙 ufw"]
   C --> D["sshd：只认密钥"]
@@ -127,7 +127,7 @@ sudo cat /home/deploy/.ssh/authorized_keys | awk '{print $1, $NF}'
 fail2ban 的原理很简单：盯着日志，同一个 IP 在一段时间内失败太多次，就调用防火墙把它封一阵子。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["日志 / journald"] --> B["filter：用正则找失败记录"]
   B --> C{"findtime 内失败次数 ≥ maxretry？"}
   C -- "是" --> D["action：防火墙封禁 bantime"]

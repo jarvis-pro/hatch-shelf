@@ -17,7 +17,7 @@ vLLM 主要面向 Linux + NVIDIA GPU（也支持 AMD 等其他加速器），Mac
 结果是：单条请求的速度和 llama.cpp 差别不大，但并发上来之后，总吞吐可以高出数倍。
 
 ```mermaid
-flowchart LR
+flowchart TD
   R1[请求 A] --> Q[调度器]
   R2[请求 B] --> Q
   R3[请求 C] --> Q

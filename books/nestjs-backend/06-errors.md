@@ -89,16 +89,21 @@ export class RateLimitError extends AppError {
 
 ```mermaid
 flowchart TD
-  E[异常] --> A{HttpException?}
-  A -- 是 --> R1["按它的状态码，回 error + code"]
-  A -- 否 --> B{ZodError?}
-  B -- 是 --> R2["400 invalid_input，回第一条校验错误"]
-  B -- 否 --> C{"PG 格式类错误？22P02 / 22007 / 22008"}
-  C -- 是 --> R3["400 invalid_input + 记 warn"]
-  C -- 否 --> D[生成一个短引用号]
-  D --> L["完整原因进日志（带引用号）"]
-  D --> R4["500：服务端出了点问题，稍后再试"]
+  E[异常] --> A{"HttpException?"}
+  A -- 是 --> R1["按它的状态码，<br/>回 error + code"]
+  A -- 否 --> B{"ZodError?"}
+  B -- 是 --> R2["400 invalid_input，<br/>回第一条校验错误"]
+  B -- 否 --> C{"PG 格式类<br/>错误？"}
+  C -- 是 --> R3["400 invalid_input<br/>+ 记 warn"]
+  C -- 否 --> D["生成一个<br/>短引用号"]
+  D --> L["完整原因进日志<br/>（带引用号）"]
+  D --> R4["500：服务端<br/>出了点问题，<br/>稍后再试"]
+  R1 ~~~ B
+  R2 ~~~ C
+  R3 ~~~ D
 ```
+
+PG 格式类错误指 SQLSTATE 为 22P02、22007、22008 的这几类。
 
 核心代码：
 

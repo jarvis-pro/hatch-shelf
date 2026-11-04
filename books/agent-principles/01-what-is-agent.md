@@ -54,7 +54,7 @@
 ## 三种形态：调用、workflow、agent
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph A["单次调用"]
     a1["输入"] --> a2["LLM"] --> a3["输出"]
   end
@@ -69,6 +69,7 @@ flowchart LR
     c3 -->|"结果"| c2
     c2 -->|"完成"| c4["交付"]
   end
+  A ~~~ B ~~~ C
 ```
 
 | 形态 | 控制流由谁决定 | 可预测性 | 适合 |
@@ -107,10 +108,10 @@ agent 的自主性是有代价的：
 flowchart TB
   U["用户 / 触发器"] --> L
   subgraph Agent
-    L["agent loop（第 2 章）"]
+    L["agent loop<br/>（第 2 章）"]
     M["模型"]
-    P["规划与反思（第 4 章）"]
-    CX["上下文组装（第 6 章）"]
+    P["规划与反思<br/>（第 4 章）"]
+    CX["上下文组装<br/>（第 6 章）"]
     MEM["记忆（第 5 章）"]
     L <--> M
     M --- P
@@ -118,9 +119,9 @@ flowchart TB
     MEM --> CX
   end
   L --> T["工具（第 3 章）"]
-  T --> SB["沙箱与权限（第 9 章）"]
-  SB --> ENV["文件系统 / 命令 / 网络 / API"]
-  T -.-> MCP["MCP 与 Skills（第 8 章）"]
+  T --> SB["沙箱与权限<br/>（第 9 章）"]
+  SB --> ENV["文件系统 / 命令 /<br/>网络 / API"]
+  T -.-> MCP["MCP 与 Skills<br/>（第 8 章）"]
   L -.-> SUB["子 agent（第 7 章）"]
 ```
 

@@ -38,7 +38,7 @@ Compose 会为每个项目自动建一个名为 `<项目名>_default` 的自定�
 ### 常见误区：容器里连 localhost
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph API["api 容器"]
     A["NestJS"] -->|"localhost:5432 ✗"| A2["api 自己的 loopback"]
   end

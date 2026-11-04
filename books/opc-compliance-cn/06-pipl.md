@@ -178,7 +178,7 @@ hatch-counter 是 B 端 SaaS，个人信息保护上的角色比 To C App 复杂
 然后看角色：
 
 ```mermaid
-flowchart LR
+flowchart TD
   E["门店员工"] -- "人事信息" --> S["门店（处理者）"]
   S -- "委托处理<br/>服务协议" --> H["hatch-counter 运营方<br/>（受托人）"]
   H -- "转委托：需门店同意" --> O["视觉模型服务商"]

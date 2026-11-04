@@ -37,7 +37,7 @@
 它们不是三选一，而是配合使用：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["告警：错误率升高<br/>（指标）"] --> B["看面板：哪个接口、从几点开始<br/>（指标）"]
   B --> C["找一条慢请求的追踪<br/>看哪一段慢"]
   C --> D["按 trace id / 请求 ID 查日志<br/>看具体报错"]
@@ -226,7 +226,7 @@ docker compose logs --since 1h --no-log-prefix api \
 采集端用 **Grafana Alloy**。早年的配套采集器 Promtail 已被官方标记为弃用，新部署直接用 Alloy。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["api 容器<br/>stdout JSON"] --> D["Docker 日志"]
   P["postgres 容器"] --> D
   D --> Y["Alloy<br/>读 Docker socket"]

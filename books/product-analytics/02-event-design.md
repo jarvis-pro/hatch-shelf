@@ -23,11 +23,11 @@
 几乎所有分析工具（PostHog、Mixpanel、Amplitude、Umami 的自定义事件）都用同一个模型：
 
 ```mermaid
-flowchart LR
+flowchart TD
     U["谁 distinct_id"] --> E["做了什么 event"]
     E --> P["带什么 properties"]
     E --> T["什么时候 timestamp"]
-    U --> UP["用户属性 person properties"]
+    U --> UP["用户属性<br/>person properties"]
 ```
 
 | 部分 | 说明 | 例子 |
@@ -124,13 +124,13 @@ export type EventName = keyof AnalyticsEvents;
 sequenceDiagram
     participant B as 浏览器
     participant A as 分析服务
-    B->>A: pageview（匿名 ID anon_1）
+    B->>A: pageview<br/>（匿名 ID anon_1）
     B->>A: pricing_viewed（anon_1）
-    Note over B: 用户注册成功，拿到 usr_42
-    B->>A: identify(usr_42)，关联 anon_1
+    Note over B: 用户注册成功，<br/>拿到 usr_42
+    B->>A: identify(usr_42)，<br/>关联 anon_1
     B->>A: report_imported（usr_42）
     Note over B: 退出登录
-    B->>A: reset()，生成新匿名 ID anon_2
+    B->>A: reset()，生成<br/>新匿名 ID anon_2
 ```
 
 规则：

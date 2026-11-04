@@ -206,7 +206,7 @@ jq -r 'select(.event.type == "taint" or (.event.type == "decision" and .event.de
 **回放**的思路是：把当时会话里所有**外部输入**（用户消息、工具结果）录下来，然后在新的配置下重新驱动 agent loop，工具调用不真正执行，而是返回录下来的结果。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph R["录制"]
     U1["用户消息"] --> L1["agent loop"]
     L1 --> T1["真实工具"]
@@ -265,11 +265,11 @@ export function replayTools(recording: Recorded[]) {
 
 ```mermaid
 flowchart TD
-  A["1. 止损：停止 agent，吊销它的凭证"] --> B["2. 保全：备份日志、转录、出站代理记录"]
-  B --> C["3. 评估：从 side_effect 和出站记录列出所有对外影响"]
-  C --> D["4. 修复影响：撤回推送、删除外发内容、轮换可能泄露的机密"]
-  D --> E["5. 定位原因：从污染事件和决策记录找到入口和失效的防线"]
-  E --> F["6. 加固：修补防线，把录像加入回归集，更新威胁模型"]
+  A["1. 止损：<br/>停止 agent，<br/>吊销它的凭证"] --> B["2. 保全：<br/>备份日志、转录、<br/>出站代理记录"]
+  B --> C["3. 评估：<br/>从 side_effect<br/>和出站记录<br/>列出所有对外影响"]
+  C --> D["4. 修复影响：<br/>撤回推送、<br/>删除外发内容、<br/>轮换可能泄露的机密"]
+  D --> E["5. 定位原因：<br/>从污染事件和<br/>决策记录找到<br/>入口和失效的防线"]
+  E --> F["6. 加固：<br/>修补防线，<br/>把录像加入回归集，<br/>更新威胁模型"]
 ```
 
 几点经验：

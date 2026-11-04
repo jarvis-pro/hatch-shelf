@@ -41,7 +41,7 @@ MVP 是 Minimum Viable Product 的缩写，通常译作「最小可行产品」�
 以 hatch-counter 的「拍单补仓」为例，核心路径是：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["选供货商或直接拍"] --> B["拍送货单"]
   B --> C["识别出每一行"]
   C --> D["核对、改错"]

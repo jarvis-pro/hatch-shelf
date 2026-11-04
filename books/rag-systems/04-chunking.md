@@ -58,6 +58,8 @@ flowchart TD
 
 ### 分块器
 
+`src/chunk/markdown.ts` 完整文件分 4 段给出，对应上图的三个步骤。第一段是类型、版本号、块大小上限和粗略的 token 估算：
+
 ```typescript
 // src/chunk/markdown.ts
 export type RawChunk = { headingPath: string; content: string; tokenCount: number };
@@ -75,7 +77,11 @@ export function estimateTokens(s: string): number {
 const FENCE = /^\s*(```|~~~)/;
 
 type Section = { path: string[]; lines: string[] };
+```
 
+第二段是第一步：按 H1–H3 把文档切成小节，并维护一个标题栈，记下每个小节的标题路径：
+
+```typescript
 // 第一步：按 H1–H3 切成小节，代码块里的 # 不算标题
 function toSections(md: string): Section[] {
   const out: Section[] = [];
@@ -98,7 +104,11 @@ function toSections(md: string): Section[] {
   if (cur.lines.join("").trim()) out.push(cur);
   return out;
 }
+```
 
+第三段是第二步：把一个小节的正文按空行切成段落，代码块内部的空行不算分段：
+
+```typescript
 // 第二步：把小节正文切成段落，空行分段，代码块整体算一段
 function toParagraphs(lines: string[]): string[] {
   const paras: string[] = [];
@@ -117,7 +127,11 @@ function toParagraphs(lines: string[]): string[] {
   flush();
   return paras;
 }
+```
 
+第四段是第三步，也是对外的入口 `chunkMarkdown`：依次调用前两步，再把段落装进不超过上限的块里：
+
+```typescript
 // 第三步：段落装箱，超长时开新块，并把上一块的最后一段（若不太长）带过来作为重叠
 export function chunkMarkdown(md: string): RawChunk[] {
   const chunks: RawChunk[] = [];

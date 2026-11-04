@@ -11,9 +11,9 @@
 ```mermaid
 flowchart TB
   subgraph 相对稳定的前缀
-    A["system prompt：角色、规则、风格"]
+    A["system prompt：<br/>角色、规则、风格"]
     B["工具定义"]
-    C["项目记忆：CLAUDE.md、规则"]
+    C["项目记忆：<br/>CLAUDE.md、规则"]
     D["用户记忆索引"]
   end
   subgraph 随会话增长
@@ -21,7 +21,7 @@ flowchart TB
     F["压缩后的摘要"]
   end
   subgraph 本轮新增
-    G["最新的用户输入或工具结果"]
+    G["最新的用户输入<br/>或工具结果"]
   end
   A --> B --> C --> D --> E --> F --> G
 ```
@@ -47,7 +47,7 @@ flowchart TB
 围绕这个目标，常用的手法可以归成四类：
 
 ```mermaid
-flowchart LR
+flowchart TD
   W["写入<br/>把信息存到窗口外"] --- S["选择<br/>只取相关部分进来"]
   S --- C["压缩<br/>把已有内容变短"]
   C --- I["隔离<br/>拆给不同的上下文"]
@@ -95,10 +95,10 @@ sequenceDiagram
   participant A as Agent
   participant F as 进度文件
   participant C as 上下文窗口
-  A->>F: 开始时写下目标和计划
+  A->>F: 开始时写下<br/>目标和计划
   loop 每完成一个子任务
     A->>C: 执行、验证
-    A->>F: 更新进度与关键决定
+    A->>F: 更新进度<br/>与关键决定
   end
   C-->>A: 窗口快满
   A->>C: 压缩历史为摘要

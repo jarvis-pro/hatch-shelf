@@ -62,7 +62,7 @@
 ## agent 在知识库里干的三种活
 
 ```mermaid
-flowchart LR
+flowchart TD
   I[inbox：随手丢] -->|归档| T[topics / projects]
   T -->|检索问答| Q[带出处的回答]
   T -->|维护| M[断链、重复、过期]

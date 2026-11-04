@@ -154,13 +154,15 @@ DMARC 可以先从 `p=none` 开始观察报告，确认所有合法发信源都�
 把它推广到假设场景的云同步服务：
 
 ```mermaid
-flowchart LR
-  A["iOS App / 网页"] --> W["Worker：鉴权、按地区路由"]
-  W --> R1["R2 默认存储桶"]
-  W --> R2["R2 欧盟存储桶"]
-  W --> D["D1：账号和订阅状态"]
+flowchart TD
+  A["iOS App / 网页"] --> W["Worker：鉴权、<br/>按地区路由"]
   S["Stripe webhook"] --> W
+  W --> STORE
   W --> E["事务邮件服务"]
+  subgraph STORE["存储"]
+    direction TB
+    R1["R2 默认存储桶"] ~~~ R2["R2 欧盟存储桶"] ~~~ D["D1：账号和<br/>订阅状态"]
+  end
 ```
 
 ## 本章要点

@@ -85,7 +85,7 @@ if (status.processing_status === "ended") {
 ## 延迟由哪几段组成
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[网络往返] --> B[排队]
   B --> C[预填充输入]
   C --> D[思考]

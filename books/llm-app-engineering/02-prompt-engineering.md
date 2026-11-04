@@ -182,7 +182,7 @@ export function receiptSystemPrompt(layout?: string): string {
 改 prompt 最忌讳「拿一个例子试，看着好了就上线」。正确的做法：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[收集 20–50 个真实输入] --> B[跑当前 prompt]
   B --> C[逐条看输出，标出失败]
   C --> D[归纳失败模式]

@@ -7,7 +7,7 @@
 全书用 TypeScript 从零写一个 agent，叫 `shelf-agent`：hatch-shelf 书库的维护助手。它能读书、搜索、改文件、跑 `shelf-pack check` 校验，最后作为常驻服务跑在服务器上，每晚自动检查书库，也能随时接任务。选这个案例是因为它小而完整：有只读操作也有写操作，有现成的「编译器」（校验工具）当反馈信号，还能接上[《工具设计与 MCP》](../tools-and-mcp/)里写好的 `shelf-books` MCP server。
 
 ```mermaid
-flowchart LR
+flowchart TD
   C1["第 1 章<br/>循环 + 模型抽象"] --> C2["第 2 章<br/>工具与审批"]
   C2 --> C3["第 3 章<br/>会话与记忆"]
   C3 --> C4["第 4 章<br/>Agent SDK 重写"]

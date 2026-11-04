@@ -13,14 +13,14 @@ sequenceDiagram
   participant U as 用户
   participant M as 模型
   participant T as 工具
-  U->>M: 帮我看看这个 issue 能不能修
+  U->>M: 帮我看看这个 issue<br/>能不能修
   M->>T: read_issue(42)
-  T-->>M: issue 正文（其中夹带一段伪装成维护者说明的指令）
-  Note over M: 上下文从这里开始被污染
+  T-->>M: issue 正文（其中夹带<br/>一段伪装成维护者<br/>说明的指令）
+  Note over M: 上下文从这里<br/>开始被污染
   M->>T: read_file(".env")
   T-->>M: 文件内容
   M->>T: post_comment(42, ...)
-  Note over T: 机密随评论离开边界
+  Note over T: 机密随评论<br/>离开边界
 ```
 
 这张时序图里有三个值得注意的点：
@@ -248,11 +248,11 @@ for (const call of response.toolCalls) {
 - **隔离模型**：负责阅读不可信内容，但**没有任何工具**，输出被严格的 schema 限定
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["用户请求"] --> P["特权模型<br/>能调用工具"]
   P -->|"处理 doc_1"| Q["隔离模型<br/>没有工具"]
   W["不可信内容"] --> Q
-  Q -->|"符合 schema 的结构化结果"| V{"代码校验"}
+  Q -->|"符合 schema 的<br/>结构化结果"| V{"代码校验"}
   V --> P
   P --> T["工具调用"]
 ```

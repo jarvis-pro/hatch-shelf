@@ -35,7 +35,7 @@ sequenceDiagram
   participant D as 下游（磁盘 / 网络）
   P->>W: write(chunk) → true
   P->>W: write(chunk) → true
-  P->>W: write(chunk) → false（到水位线）
+  P->>W: write(chunk) → false<br/>（到水位线）
   Note over P: 暂停生产
   W->>D: 逐块写出
   D-->>W: 写完，缓冲清空
@@ -160,12 +160,12 @@ console.log("done →", output);
 用一个 20 万行、约 8.7 MB 的日志测试，输出 4000 行 ERROR，内存占用和日志大小无关——换成 8.7 GB 的日志，内存也一样。`readline` 负责把字节流切成行，`onlyErrors` 过滤，`createGzip` 压缩，每一环都只持有一小块数据。
 
 ```mermaid
-flowchart LR
-  A["createReadStream：64 KiB 一块"] --> B["readline：切成行"]
-  B --> C["onlyErrors：异步生成器过滤"]
+flowchart TD
+  A["createReadStream：<br/>64 KiB 一块"] --> B["readline：切成行"]
+  B --> C["onlyErrors：<br/>异步生成器过滤"]
   C --> D["createGzip：压缩"]
-  D --> E["createWriteStream：写盘"]
-  E -.->|"背压：写不动就逐级暂停"| A
+  D --> E["createWriteStream：<br/>写盘"]
+  E -.->|"背压：<br/>写不动就逐级暂停"| A
 ```
 
 对比用 `class extends Transform` 重写 `_transform` 的老写法，异步生成器更短、更好测试（它就是一个普通函数，可以喂数组进去单测），推荐优先使用。

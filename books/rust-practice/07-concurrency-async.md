@@ -283,6 +283,8 @@ flowchart TD
   G --> H[JoinSet 汇总结果]
 ```
 
+完整程序分 4 段给出，从上到下拼起来就是整个程序。第一段是导入和曲库客户端 `Vault`，它的 `download` 流式下载一首歌，先写 `.part` 文件，写完才改名：
+
 ```rust
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
@@ -324,7 +326,11 @@ impl Vault {
         Ok(written)
     }
 }
+```
 
+第二段是 `download_all` 的前半部分：为每首歌 spawn 一个任务，任务先拿信号量许可，再带超时调用上一段的 `download`：
+
+```rust
 async fn download_all(vault: Vault, keys: Vec<String>, out: PathBuf) -> Result<()> {
     tokio::fs::create_dir_all(&out).await?;
     let limit = Arc::new(Semaphore::new(4));
@@ -348,7 +354,11 @@ async fn download_all(vault: Vault, keys: Vec<String>, out: PathBuf) -> Result<(
             }
         });                                                // _permit 在任务结束时被丢弃，许可归还
     }
+```
 
+第三段是 `download_all` 的后半部分：用 `join_next()` 按完成顺序收集结果，边收边打印，最后汇总：
+
+```rust
     let (mut ok, mut failed) = (0, 0);
     while let Some(joined) = set.join_next().await {
         match joined {
@@ -366,7 +376,11 @@ async fn download_all(vault: Vault, keys: Vec<String>, out: PathBuf) -> Result<(
     println!("完成 {ok} 首，失败 {failed} 首");
     Ok(())
 }
+```
 
+第四段是 `main`：从环境变量读配置，用 `tokio::select!` 让下载和 Ctrl-C 赛跑，谁先完成就以谁为准：
+
+```rust
 #[tokio::main]
 async fn main() -> Result<()> {
     let vault = Vault {

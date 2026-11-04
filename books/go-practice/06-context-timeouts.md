@@ -264,6 +264,8 @@ func main() {
 
 把前面的东西组合起来：一个常驻 worker 定时从数据库取任务（这里用一个函数模拟），每个任务有自己的超时；收到 SIGTERM 后不再取新任务，等手上的任务做完再退出，但最多等一个宽限期。这和[《软件架构与系统设计》队列一章](../system-design/04-queues-jobs.md)里 NestJS 版的 worker 做的是同一件事。
 
+完整程序分 4 段给出，从上到下拼起来就是一个可以直接运行的程序。第一段是导入、任务类型和模拟的任务队列：
+
 ```go
 package main
 
@@ -284,7 +286,11 @@ type Job struct {
 }
 
 var queue = []Job{{1, 30 * time.Millisecond}, {2, 300 * time.Millisecond}, {3, 20 * time.Millisecond}}
+```
 
+第二段是两个基础操作：`claimNext` 从队列取一个任务，取之前先看 context 是否已取消；`runJob` 给单个任务套上自己的超时：
+
+```go
 // claimNext 模拟 SELECT ... FOR UPDATE SKIP LOCKED 取一个任务
 func claimNext(ctx context.Context) (*Job, error) {
 	if err := ctx.Err(); err != nil {
@@ -308,7 +314,11 @@ func runJob(ctx context.Context, j *Job) error {
 		return fmt.Errorf("job %d: %w", j.ID, ctx.Err())
 	}
 }
+```
 
+第三段是 worker 主循环 `work`：定时取任务，收到停止信号就不再取新任务；手上的任务用一个脱离 `stopCtx` 的 context 运行，宽限期过后才取消：
+
+```go
 // work 一直取任务、做任务，直到 stopCtx 被取消。
 // 正在做的任务用 jobCtx，它在 stopCtx 取消后还能再活一个宽限期。
 func work(stopCtx context.Context, log *slog.Logger) {
@@ -346,7 +356,11 @@ func work(stopCtx context.Context, log *slog.Logger) {
 		}
 	}
 }
+```
 
+第四段是 `main`：配置日志，监听 SIGTERM，并用一个超时模拟收到退出信号：
+
+```go
 func main() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {

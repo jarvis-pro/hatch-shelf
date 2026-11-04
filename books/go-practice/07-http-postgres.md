@@ -207,6 +207,8 @@ TS 里你用 Drizzle 获得类型安全的查询。Go 里对应的思路是反�
 > [!WARNING]
 > 在 `ServeMux` 的模式里写 HTTP 方法（`"GET /path"`）和路径参数（`{storeID}`、`r.PathValue`）是 **Go 1.22** 加入的。更老的版本只能匹配路径前缀，方法和参数要自己解析，或者用 chi、gorilla/mux 之类的路由库。以 `net/http` 包文档中 ServeMux 的 Patterns 一节为准。
 
+handler 文件完整代码分 4 段给出，从上到下拼起来就是 `entry` 包里的一个文件。第一段是导入、`Handler` 结构体和构造函数，以及把两个路由挂到 mux 上的 `Register`：
+
 ```go
 package entry
 
@@ -232,7 +234,11 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /stores/{storeID}/entries", h.list)
 	mux.HandleFunc("POST /stores/{storeID}/entries", h.create)
 }
+```
 
+第二段是 `GET` 路由对应的 `list`：解析路径参数和 `limit` 查询参数，再从 `Store` 取列表：
+
+```go
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	storeID, err := strconv.ParseInt(r.PathValue("storeID"), 10, 64)
 	if err != nil {
@@ -259,7 +265,11 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, list)
 }
+```
 
+第三段是 `POST` 路由对应的 `create`：限制请求体大小、严格解码 JSON、校验，再写入，门店不存在时返回 404：
+
+```go
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	storeID, err := strconv.ParseInt(r.PathValue("storeID"), 10, 64)
 	if err != nil {
@@ -289,7 +299,11 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusCreated, e)
 }
+```
 
+第四段是前两个 handler 共用的小工具：意外错误统一写日志并返回 500，以及写 JSON 和写错误响应：
+
+```go
 // fail 处理意料之外的错误：细节写日志，客户端只看到 500。
 func (h *Handler) fail(w http.ResponseWriter, r *http.Request, err error) {
 	h.log.ErrorContext(r.Context(), "request failed",
@@ -397,6 +411,8 @@ log.Info("http", "method", "GET", "path", "/stores/1/entries", "status", 200, "d
 
 ## 入口：配置、连接池与优雅退出
 
+入口文件 `main` 包完整代码分 4 段给出，从上到下拼起来就是整个文件（上一节的中间件除外）。第一段是导入和只负责调用 `run` 的 `main`：
+
 ```go
 package main
 
@@ -423,7 +439,11 @@ func main() {
 		os.Exit(1)
 	}
 }
+```
 
+第二段是 `run` 的开头：监听退出信号，读环境变量，建连接池并在启动时 `Ping` 一次：
+
+```go
 func run(log *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -445,7 +465,11 @@ func run(log *slog.Logger) error {
 	if err := pool.Ping(pingCtx); err != nil {
 		return fmt.Errorf("连不上数据库: %w", err)
 	}
+```
 
+第三段注册健康检查和业务路由，再创建设好各项超时的 `http.Server`：
+
+```go
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		if err := pool.Ping(r.Context()); err != nil {
@@ -464,7 +488,11 @@ func run(log *slog.Logger) error {
 		WriteTimeout:      20 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
+```
 
+第四段在后台启动服务，等待启动失败或退出信号，收到信号后优雅关闭；最后是读环境变量的小工具 `envOr`：
+
+```go
 	errCh := make(chan error, 1)
 	go func() {
 		log.Info("listening", "addr", addr)

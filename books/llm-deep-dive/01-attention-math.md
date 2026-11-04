@@ -33,13 +33,19 @@
 对一个头，先把输入投影成三份：
 
 $$
-Q = XW_Q,\quad K = XW_K,\quad V = XW_V,\qquad W_Q, W_K, W_V \in \mathbb{R}^{d \times d_k}
+\begin{gathered}
+Q = XW_Q,\quad K = XW_K,\quad V = XW_V \\
+W_Q, W_K, W_V \in \mathbb{R}^{d \times d_k}
+\end{gathered}
 $$
 
 然后：
 
 $$
-S = \frac{QK^\top}{\sqrt{d_k}} + M,\qquad A = \mathrm{softmax}_{\text{row}}(S),\qquad O = AV
+\begin{gathered}
+S = \frac{QK^\top}{\sqrt{d_k}} + M \\
+A = \mathrm{softmax}_{\text{row}}(S),\qquad O = AV
+\end{gathered}
 $$
 
 - $S \in \mathbb{R}^{n \times n}$：第 $i$ 行第 $j$ 列是 token $i$ 的 query 和 token $j$ 的 key 的相似度
@@ -53,7 +59,11 @@ $$
 **平移不变**：对任意常数 $c$，
 
 $$
-\mathrm{softmax}(z + c)_i = \frac{e^{z_i + c}}{\sum_j e^{z_j + c}} = \frac{e^{c} e^{z_i}}{e^{c}\sum_j e^{z_j}} = \mathrm{softmax}(z)_i
+\begin{aligned}
+\mathrm{softmax}(z + c)_i &= \frac{e^{z_i + c}}{\sum_j e^{z_j + c}} \\
+&= \frac{e^{c} e^{z_i}}{e^{c}\sum_j e^{z_j}} \\
+&= \mathrm{softmax}(z)_i
+\end{aligned}
 $$
 
 所以实现时总是先减去每行最大值再取指数，防止 $e^{z}$ 溢出。第 5 章的 FlashAttention 正是靠这条性质，才能把一行拆成多块分别计算。
@@ -118,9 +128,10 @@ $$
 把 $W_O$ 按行切成 $h$ 块，$W_O^{(i)} \in \mathbb{R}^{d_k \times d}$，拼接再相乘就等于分块相乘再求和：
 
 $$
-\mathrm{MHA}(X) = \sum_{i=1}^{h} A^{(i)}\, X\, \underbrace{W_V^{(i)} W_O^{(i)}}_{W_{OV}^{(i)}\,\in\,\mathbb{R}^{d\times d}},
-\qquad
+\begin{gathered}
+\mathrm{MHA}(X) = \sum_{i=1}^{h} A^{(i)}\, X\, \underbrace{W_V^{(i)} W_O^{(i)}}_{W_{OV}^{(i)}\,\in\,\mathbb{R}^{d\times d}}, \\
 A^{(i)} = \mathrm{softmax}\Big(\frac{X \overbrace{W_Q^{(i)} W_K^{(i)\top}}^{W_{QK}^{(i)}} X^\top}{\sqrt{d_k}} + M\Big)
+\end{gathered}
 $$
 
 这个改写揭示了两件事：
@@ -148,7 +159,11 @@ $$
 $$
 
 $$
-\mathrm{FFN}_{\text{SwiGLU}}(x) = \big(\mathrm{SiLU}(xW_1) \odot xW_3\big) W_2,\qquad \mathrm{SiLU}(u) = u \cdot \sigma(u)
+\begin{aligned}
+&\mathrm{FFN}_{\text{SwiGLU}}(x) \\
+&= \big(\mathrm{SiLU}(xW_1) \odot xW_3\big) W_2 \\[0.5em]
+&\mathrm{SiLU}(u) = u \cdot \sigma(u)
+\end{aligned}
 $$
 
 SwiGLU 有三个矩阵，为了和「两层、隐层 $4d$」的传统 FFN 参数量持平，隐层通常取 $\frac{2}{3} \cdot 4d = \frac{8}{3}d$ 左右，再取整到硬件友好的倍数。
@@ -156,7 +171,10 @@ SwiGLU 有三个矩阵，为了和「两层、隐层 $4d$」的传统 FFN 参数
 一个 Pre-LN 块写成公式：
 
 $$
-X' = X + \mathrm{MHA}(\mathrm{Norm}(X)),\qquad Y = X' + \mathrm{FFN}(\mathrm{Norm}(X'))
+\begin{gathered}
+X' = X + \mathrm{MHA}(\mathrm{Norm}(X)) \\
+Y = X' + \mathrm{FFN}(\mathrm{Norm}(X'))
+\end{gathered}
 $$
 
 ## 算一笔账：参数和 FLOPs

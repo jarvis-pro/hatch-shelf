@@ -17,7 +17,7 @@ Anthropic 2021 年的《A Mathematical Framework for Transformer Circuits》以�
 - 组件之间通过总线上的**子空间**通信：前面某个头写入某个方向，后面某个头的 $W_Q$ 或 $W_K$ 读取同一个方向，就形成了一条通路
 
 ```mermaid
-flowchart LR
+flowchart TD
   E[embedding] --> R1((+))
   R1 --> R2((+))
   R2 --> R3((+))
@@ -116,7 +116,10 @@ for d in [16, 128, 1024]:
 如果残差流是许多稀疏特征方向的叠加，就可以训练一个**稀疏自编码器**（sparse autoencoder，SAE）把它们分解出来。对残差流向量 $x \in \mathbb{R}^d$：
 
 $$
-f = \mathrm{ReLU}\big(W_e (x - b_d) + b_e\big) \in \mathbb{R}^{m},\qquad \hat x = W_d f + b_d
+\begin{gathered}
+f = \mathrm{ReLU}\big(W_e (x - b_d) + b_e\big) \in \mathbb{R}^{m} \\
+\hat x = W_d f + b_d
+\end{gathered}
 $$
 
 $$

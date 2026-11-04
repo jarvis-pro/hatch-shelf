@@ -18,7 +18,7 @@
 ## 评结果，还是评过程
 
 ```mermaid
-flowchart LR
+flowchart TD
   T[任务] --> A[Agent 运行]
   A --> S[最终状态<br/>数据库 / 文件 / 回复]
   A --> R[过程记录<br/>每一步的工具调用]

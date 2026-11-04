@@ -147,7 +147,7 @@ ICP 备案是**按域名**的，一个备案主体下可以有多个网站，每
 hatch-counter 的部署结构是：一台境内云服务器，Docker Compose 跑 API、Postgres，nginx 统一反代，按子域名分出官网、网页端、管理后台和 API。
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["门店电脑 / 手机"] --> N["nginx（境内云服务器）"]
   N --> S["官网（静态页）"]
   N --> W["网页端"]

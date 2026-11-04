@@ -59,13 +59,13 @@ Reanimated（SDK 58 配套版本 4.7）的核心思想：**动画的每一帧在
 sequenceDiagram
   participant JS as JS 线程
   participant UI as UI 线程
-  JS->>UI: progress.value = withTiming(1)
+  JS->>UI: progress.value =<br/>withTiming(1)
   loop 每一帧
-    UI->>UI: 计算 progress 当前值
-    UI->>UI: 执行 useAnimatedStyle 的 worklet
+    UI->>UI: 计算 progress<br/>当前值
+    UI->>UI: 执行 useAnimatedStyle<br/>的 worklet
     UI->>UI: 更新原生视图属性
   end
-  UI-->>JS: 动画结束回调（scheduleOnRN）
+  UI-->>JS: 动画结束回调<br/>（scheduleOnRN）
 ```
 
 三个基本概念：

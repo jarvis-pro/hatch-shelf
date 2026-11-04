@@ -5,17 +5,14 @@
 ## 原生壳与 JS bundle
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph N["原生壳（改了要重新构建）"]
-    A["Info.plist / 权限 / 文档类型"]
-    B["原生依赖：expo-sqlite、tcp-socket、webview…"]
-    C["Hermes、React Native 本体"]
-    D["图标、开屏、Bundle ID"]
+    direction TB
+    A["Info.plist /<br/>权限 / 文档类型"] ~~~ B["原生依赖：<br/>expo-sqlite、<br/>tcp-socket、<br/>webview…"] ~~~ C["Hermes、<br/>React Native 本体"] ~~~ D["图标、开屏、<br/>Bundle ID"]
   end
   subgraph J["JS bundle（热重载即可）"]
-    E["页面、组件、业务逻辑"]
-    F["纯 JS 依赖：fflate、zod"]
-    G["图片等资源"]
+    direction TB
+    E["页面、组件、<br/>业务逻辑"] ~~~ F["纯 JS 依赖：<br/>fflate、zod"] ~~~ G["图片等资源"]
   end
   N --- J
 ```
@@ -80,9 +77,9 @@ pnpm app ios --device     # 选一台连着的真机
 书架 App 的 `ios` 脚本是 `pnpm build:assets && expo run:ios`。`expo run:ios` 做了这些事：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["ios/ 不存在？"] -->|是| B["prebuild"]
-  A -->|否| C["pod install（如有需要）"]
+  A -->|否| C["pod install<br/>（如有需要）"]
   B --> C
   C --> D["xcodebuild 编译"]
   D --> E["安装到设备"]

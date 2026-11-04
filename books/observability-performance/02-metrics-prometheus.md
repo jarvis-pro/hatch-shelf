@@ -54,7 +54,7 @@ Counter 重启归零不是问题：`rate()` 会自动识别计数器回落并修
 Prometheus 是**拉模型**：被监控的程序暴露一个 HTTP 端点（通常是 `/metrics`），Prometheus 定期（比如每 15 秒）去抓一次，存进自己的时序库。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["NestJS<br/>/metrics"] --> P["Prometheus<br/>定时抓取、存储、算规则"]
   N["node_exporter<br/>主机指标"] --> P
   D["postgres_exporter<br/>数据库指标"] --> P

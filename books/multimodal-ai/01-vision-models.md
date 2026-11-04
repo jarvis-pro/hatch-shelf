@@ -11,7 +11,7 @@
 大语言模型只会处理 token 序列。要让它看图，就得先把图也变成一串 token，和文字 token 排在一起送进同一个 Transformer。今天主流的视觉语言模型（Vision Language Model，VLM）基本都是这个结构：
 
 ```mermaid
-flowchart LR
+flowchart TD
   I[图片] --> P[切成小块 patch]
   P --> E[视觉编码器]
   E --> J[投影层：对齐到文字向量空间]

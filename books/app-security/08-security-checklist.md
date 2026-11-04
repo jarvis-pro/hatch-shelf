@@ -7,7 +7,7 @@
 ## 怎么用这份清单
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["设计新功能<br/>威胁三问"] --> B["写代码与评审<br/>逐项对照"]
   B --> C["上线前<br/>配置与密钥"]
   C --> D["每季度<br/>复查与演练"]

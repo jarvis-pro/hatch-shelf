@@ -11,7 +11,7 @@
 MCP 的三个角色里，`shelf-agent` 是**宿主**（host）：它管理和模型的对话，为每个 server 创建一个**客户端**（client）连接。`shelf-books` 是 **server**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph H["shelf-agent（宿主）"]
     L["runAgent 循环"]
     T["工具表<br/>本地工具 + MCP 工具"]

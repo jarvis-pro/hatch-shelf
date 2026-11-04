@@ -116,7 +116,9 @@ hatch-counter 的拍照录单里，每张单子都有原图、模型识别出的
 {"id": "r-001", "supplier": "城东蔬菜", "image": "images/r-001.jpg", "columns": ["序号", "产品名称", "单位", "数量", "单价", "金额"], "model_rows": [["1", "土豆", "斤", "30", "2.5", "75"]], "final_rows": [["1", "土豆", "斤", "30", "2.5", "75"]], "consent": true}
 ```
 
-导出时就要去掉店铺名称、联系方式等与任务无关的信息；`consent` 表示这家门店同意数据用于改进识别。下面的脚本做四件事：过滤未授权和明显异常的记录、去重、按供货商分组切分、转成视觉对话格式：
+导出时就要去掉店铺名称、联系方式等与任务无关的信息；`consent` 表示这家门店同意数据用于改进识别。下面的脚本做四件事：过滤未授权和明显异常的记录、去重、按供货商分组切分、转成视觉对话格式。
+
+`build_dataset.py` 完整文件分 3 段给出，从上到下拼起来就是整个脚本。第一段是配置和前两件事要用的函数：逐行读取、过滤未授权和异常记录、计算去重指纹：
 
 ```python
 # build_dataset.py
@@ -149,7 +151,11 @@ def fingerprint(rec) -> str:
     # 同一张单子重复提交时，最终结果相同即视为重复
     key = json.dumps([rec["supplier"], rec["final_rows"]], ensure_ascii=False)
     return hashlib.sha256(key.encode()).hexdigest()
+```
 
+第二段把一条记录转成视觉对话格式的训练样本，答案用人工核对后的结果：
+
+```python
 def to_example(rec):
     prompt = "表格列依次是：" + "、".join(rec["columns"]) + "。请逐行抄写。"
     answer = json.dumps(rec["final_rows"], ensure_ascii=False)
@@ -164,7 +170,11 @@ def to_example(rec):
         # 留着模型原始输出与最终结果是否一致，便于统计纠错率和挑难例
         "corrected": rec["model_rows"] != rec["final_rows"],
     }
+```
 
+第三段是主流程：过滤、去重后按供货商分组，打乱供货商顺序切出三份，分别写成 jsonl 并打印统计：
+
+```python
 def main():
     seen, by_supplier = set(), defaultdict(list)
     for rec in load(SRC):

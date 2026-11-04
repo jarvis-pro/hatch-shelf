@@ -53,7 +53,10 @@ Q、K、V 都由 token 原本的向量乘上三个不同的矩阵得到，这三
 不需要完全看懂公式，但见过一次，以后读资料时会亲切很多：
 
 $$
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V
+\begin{aligned}
+&\text{Attention}(Q, K, V) \\
+&= \text{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V
+\end{aligned}
 $$
 
 拆开看：

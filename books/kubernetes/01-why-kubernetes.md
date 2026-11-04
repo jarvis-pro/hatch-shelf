@@ -30,7 +30,7 @@ Kubernetes（常写作 K8s，K 和 s 之间有 8 个字母）是目前事实上�
 回顾一下 hatch-counter 现在的生产部署（项目名和仓库地址已替换）：
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["客户端"] -->|"HTTPS 443"| N["宿主机 nginx + certbot"]
   N -->|"127.0.0.1:3000"| A["api 容器"]
   subgraph C["compose 项目 counter"]
@@ -93,7 +93,7 @@ spec:
 实现这件事的叫**控制器**（controller），每个控制器都在跑同一个循环：
 
 ```mermaid
-flowchart LR
+flowchart TD
   O["观察：实际状态"] --> D{"和期望状态一致吗"}
   D -->|"一致"| W["等待下一次变化"]
   D -->|"不一致"| A["行动：创建 / 删除 / 更新"]

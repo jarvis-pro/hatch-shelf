@@ -10,12 +10,12 @@ JS 是动态语言：对象随时可以加属性，变量随时可以换类型�
 > 表中「Maglev 默认关闭」是笔者在 Node 22.23 上用 `node --v8-options` 看到的结果，不同 Node 版本、不同 CPU 架构的默认值可能不同；以 Node.js 发布说明和 V8 官方博客为准，并用下文的命令在你自己的环境里确认。
 
 ```mermaid
-flowchart LR
+flowchart TD
   S["源码"] --> P["解析器：生成 AST"]
-  P --> I["Ignition：编译成字节码并解释执行，同时收集类型反馈"]
-  I -->|"函数变热"| SP["Sparkplug：字节码直接翻译成机器码，不做优化"]
-  SP -->|"更热且类型稳定"| TF["TurboFan：按类型反馈做激进优化"]
-  TF -->|"假设被打破"| D["退优化 deopt：回到字节码"]
+  P --> I["Ignition：<br/>编译成字节码<br/>并解释执行，<br/>同时收集类型反馈"]
+  I -->|"函数变热"| SP["Sparkplug：<br/>字节码直接<br/>翻译成机器码，<br/>不做优化"]
+  SP -->|"更热且类型稳定"| TF["TurboFan：<br/>按类型反馈做激进优化"]
+  TF -->|"假设被打破"| D["退优化 deopt：<br/>回到字节码"]
   D --> I
 ```
 
@@ -37,7 +37,7 @@ V8 不把对象当哈希表存。每个对象都指向一个**隐藏类**，描�
 给对象加属性时，V8 会沿着一条**转换链**（transition chain）切换隐藏类：
 
 ```mermaid
-flowchart LR
+flowchart TD
   M0["Map0：{}"] -->|"加 x"| M1["Map1：{x}"]
   M1 -->|"加 y"| M2["Map2：{x, y}"]
   M0 -->|"加 y"| M3["Map3：{y}"]
@@ -168,9 +168,9 @@ const c = [1, 2, 3]; c[10] = 4; console.log(holey(c) + kind(c)); // HOLEY_SMI
 ```
 
 ```mermaid
-flowchart LR
-  A["PACKED_SMI：小整数"] --> B["PACKED_DOUBLE：浮点数"]
-  B --> C["PACKED_ELEMENTS：任意值"]
+flowchart TD
+  A["PACKED_SMI：小整数"] --> B["PACKED_DOUBLE：<br/>浮点数"]
+  B --> C["PACKED_ELEMENTS：<br/>任意值"]
   A --> D["HOLEY_SMI：有空洞"]
   B --> E["HOLEY_DOUBLE"]
   C --> F["HOLEY_ELEMENTS"]

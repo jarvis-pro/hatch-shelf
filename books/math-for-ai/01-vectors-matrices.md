@@ -88,7 +88,10 @@ $$
 点积是本书最重要的运算，没有之一。定义很简单：**对应分量相乘再求和**。
 
 $$
-\mathbf{a} \cdot \mathbf{b} = a_1 b_1 + a_2 b_2 + \cdots + a_n b_n = \sum_{i=1}^{n} a_i b_i
+\begin{aligned}
+\mathbf{a} \cdot \mathbf{b} &= a_1 b_1 + a_2 b_2 + \cdots + a_n b_n \\
+&= \sum_{i=1}^{n} a_i b_i
+\end{aligned}
 $$
 
 - $\mathbf{a} \cdot \mathbf{b}$：$\mathbf{a}$ 和 $\mathbf{b}$ 的点积，结果是**一个数**，不是向量

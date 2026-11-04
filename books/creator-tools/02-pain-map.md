@@ -24,7 +24,7 @@
 ## 自媒体生产链
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["选题"] --> B["脚本"]
   B --> C["拍摄 / 录屏"]
   C --> D["剪辑"]

@@ -10,6 +10,8 @@ hatch-counter 现在的配置缓存是进程内的 `TtlCache`：十秒 TTL，改
 
 ## 一个够用的 CacheService
 
+`src/cache/cache.service.ts` 完整文件分 3 段给出，从上到下拼起来就是整个文件。第一段是选项类型、「不存在」标记，以及类的字段和构造函数：
+
 ```typescript
 // src/cache/cache.service.ts
 import { Inject, Injectable, Logger } from "@nestjs/common";
@@ -32,7 +34,11 @@ export class CacheService {
   private readonly inflight = new Map<string, Promise<unknown>>();
 
   constructor(@Inject(REDIS) private readonly redis: Redis) {}
+```
 
+第二段是核心方法 `getOrLoad`：先读 Redis，未命中时合并同一实例内的并发加载，加载结果连同「不存在」一起写回缓存：
+
+```typescript
   async getOrLoad<T>(key: string, load: Loader<T | null>, opts: CacheOptions): Promise<T | null> {
     const cached = await this.safeGet(key);
     if (cached === NULL_MARK) return null;
@@ -55,7 +61,11 @@ export class CacheService {
     this.inflight.set(key, p);
     return p;
   }
+```
 
+第三段是删除方法和两个吞掉 Redis 故障的读写包装，类到这里结束；最后是给 TTL 加随机浮动的 `jitter`：
+
+```typescript
   async del(...keys: string[]) {
     if (keys.length === 0) return;
     try {

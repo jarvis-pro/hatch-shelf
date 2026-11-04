@@ -92,7 +92,7 @@ for await (const event of stream) {
 真实产品里，链路是：浏览器 → nginx → 你的服务端 → 模型 API。每一段都要「流」起来，任何一段攒包，流式就白做了。
 
 ```mermaid
-flowchart LR
+flowchart TD
   B[浏览器] -->|POST /api/chat| N[nginx]
   N -->|关闭缓冲| S[NestJS 服务]
   S -->|stream: true| M[模型 API]

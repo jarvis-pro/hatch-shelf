@@ -33,15 +33,21 @@ $$
 定义 $f(q, m) = \tilde q\, e^{i m \theta}$，即把 $q$ 旋转角度 $m\theta$。代入：
 
 $$
-\langle f(q,m), f(k,n) \rangle
-= \mathrm{Re}\big(\tilde q\, e^{im\theta}\, \overline{\tilde k\, e^{in\theta}}\big)
-= \mathrm{Re}\big(\tilde q\, \overline{\tilde k}\, e^{i(m-n)\theta}\big)
+\begin{aligned}
+&\langle f(q,m), f(k,n) \rangle \\
+&= \mathrm{Re}\big(\tilde q\, e^{im\theta}\, \overline{\tilde k\, e^{in\theta}}\big) \\
+&= \mathrm{Re}\big(\tilde q\, \overline{\tilde k}\, e^{i(m-n)\theta}\big)
+\end{aligned}
 $$
 
 结果只含 $m - n$。用矩阵写更直观：设 $R(\alpha)$ 是旋转 $\alpha$ 角的矩阵，旋转矩阵满足 $R(\alpha)^\top = R(-\alpha)$、$R(\alpha)R(\beta) = R(\alpha+\beta)$，于是
 
 $$
-\big(R(m\theta)\, q\big)^\top \big(R(n\theta)\, k\big) = q^\top R(-m\theta) R(n\theta)\, k = q^\top R\big((n-m)\theta\big)\, k
+\begin{aligned}
+&\big(R(m\theta)\, q\big)^\top \big(R(n\theta)\, k\big) \\
+&= q^\top R(-m\theta) R(n\theta)\, k \\
+&= q^\top R\big((n-m)\theta\big)\, k
+\end{aligned}
 $$
 
 **两个向量同时转，夹角只取决于它们转的角度之差**。这就是 RoPE 的全部核心。

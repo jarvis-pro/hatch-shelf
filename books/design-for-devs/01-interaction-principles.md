@@ -82,7 +82,7 @@ Don Norman 在《设计心理学》里区分了两个概念：
 反馈的完整流程可以这样理解：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[用户有个目标] --> B[找到能做的操作]
   B --> C[执行操作]
   C --> D[界面给出反馈]

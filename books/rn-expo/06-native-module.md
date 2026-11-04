@@ -171,11 +171,11 @@ if (keys) {
 唱片墙的第二个模块 `now-playing-cards` 更复杂一些：锁屏小组件和实时活动跑在**另一个进程**（[第 5 章](05-config-plugins.md)里那个小组件扩展），和 App 之间不能直接调用。
 
 ```mermaid
-flowchart LR
+flowchart TD
   JS["JS：播放状态"] -->|"update(json)"| M["NowPlayingCards 模块"]
-  M -->|"写 App Group 的 UserDefaults"| W["小组件（扩展进程）"]
+  M -->|"写 App Group 的<br/>UserDefaults"| W["小组件（扩展进程）"]
   M -->|"ActivityKit update"| L["实时活动"]
-  W -->|"AppIntent 在 App 进程里执行"| N["NotificationCenter 通知"]
+  W -->|"AppIntent 在<br/>App 进程里执行"| N["NotificationCenter 通知"]
   L --> N
   N -->|"sendEvent onCommand"| JS
 ```

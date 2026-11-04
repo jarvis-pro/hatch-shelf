@@ -165,7 +165,7 @@ export class PromptRegistry {
 ### 发布流程
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[改 prompt 提 PR] --> B[离线回归]
   B -- 通过 --> C[部署代码]
   C --> D[灰度 5%]

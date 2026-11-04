@@ -24,7 +24,10 @@ $$
 两个回答的奖励差越大，好的那个被选中的概率越接近 1。用最大似然训练奖励模型 $r_\phi$，损失就是负对数似然：
 
 $$
-\mathcal{L}_{\text{RM}}(\phi) = -\,\mathbb{E}_{(x, y_w, y_l)}\Big[\log \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big)\Big]
+\begin{aligned}
+\mathcal{L}_{\text{RM}}(\phi) &= -\,\mathbb{E}_{(x, y_w, y_l)}\Big[\log \sigma\big(r_\phi(x, y_w) \\
+&\qquad - r_\phi(x, y_l)\big)\Big]
+\end{aligned}
 $$
 
 这本质上是一个二分类：判断一对回答里哪个更好。注意 Bradley-Terry 只关心**差值**，奖励整体加一个常数不影响任何东西。奖励模型一般用 SFT 模型初始化，把最后的词表输出层换成一个输出标量的线性层。
@@ -34,7 +37,10 @@ $$
 有了奖励模型，RLHF 的优化目标是：
 
 $$
-\max_{\pi_\theta}\ \mathbb{E}_{x,\ y \sim \pi_\theta(\cdot \mid x)}\big[r(x, y)\big] - \beta\, D_{\mathrm{KL}}\big(\pi_\theta(\cdot \mid x) \,\Vert\, \pi_{\text{ref}}(\cdot \mid x)\big)
+\begin{aligned}
+\max_{\pi_\theta}\ &\mathbb{E}_{x,\ y \sim \pi_\theta(\cdot \mid x)}\big[r(x, y)\big] \\
+&- \beta\, D_{\mathrm{KL}}\big(\pi_\theta(\cdot \mid x) \,\Vert\, \pi_{\text{ref}}(\cdot \mid x)\big)
+\end{aligned}
 $$
 
 KL 项的作用有三层：
@@ -56,8 +62,10 @@ DPO（Direct Preference Optimization，Rafailov 等，2023）的推导分三步�
 对每个固定的 $x$，把目标改写一下（省略 $x$ 以简化记号）：
 
 $$
-\mathbb{E}_{y \sim \pi}\Big[r(y) - \beta \log\frac{\pi(y)}{\pi_{\text{ref}}(y)}\Big]
-= -\beta\, \mathbb{E}_{y \sim \pi}\Big[\log\frac{\pi(y)}{\pi_{\text{ref}}(y)\, e^{r(y)/\beta}}\Big]
+\begin{aligned}
+&\mathbb{E}_{y \sim \pi}\Big[r(y) - \beta \log\frac{\pi(y)}{\pi_{\text{ref}}(y)}\Big] \\
+&= -\beta\, \mathbb{E}_{y \sim \pi}\Big[\log\frac{\pi(y)}{\pi_{\text{ref}}(y)\, e^{r(y)/\beta}}\Big]
+\end{aligned}
 $$
 
 定义配分函数 $Z = \sum_y \pi_{\text{ref}}(y)\, e^{r(y)/\beta}$，以及一个合法的概率分布
@@ -69,7 +77,10 @@ $$
 则分母 $\pi_{\text{ref}}(y)\, e^{r(y)/\beta} = Z \pi^*(y)$，代入得
 
 $$
--\beta\, \mathbb{E}_{y \sim \pi}\Big[\log\frac{\pi(y)}{\pi^*(y)} - \log Z\Big] = -\beta\, D_{\mathrm{KL}}(\pi \,\Vert\, \pi^*) + \beta \log Z
+\begin{aligned}
+&-\beta\, \mathbb{E}_{y \sim \pi}\Big[\log\frac{\pi(y)}{\pi^*(y)} - \log Z\Big] \\
+&= -\beta\, D_{\mathrm{KL}}(\pi \,\Vert\, \pi^*) + \beta \log Z
+\end{aligned}
 $$
 
 $Z$ 与 $\pi$ 无关，KL 散度非负且仅在 $\pi = \pi^*$ 时为 0。所以**最优策略就是 $\pi^*$**：参考模型的分布，按奖励的指数重新加权。
@@ -89,13 +100,21 @@ $$
 把上式代入偏好概率。$\beta \log Z(x)$ 只与 $x$ 有关，在两个回答的奖励之差里被消掉：
 
 $$
-P(y_w \succ y_l \mid x) = \sigma\Big(\beta \log\frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log\frac{\pi^*(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\Big)
+\begin{aligned}
+&P(y_w \succ y_l \mid x) \\
+&= \sigma\Big(\beta \log\frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} \\
+&\qquad - \beta \log\frac{\pi^*(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\Big)
+\end{aligned}
 $$
 
 难以计算的 $Z$ 消失了。现在直接用 $\pi_\theta$ 代替 $\pi^*$，对偏好数据做最大似然，就得到 **DPO 损失**：
 
 $$
-\mathcal{L}_{\text{DPO}}(\theta) = -\,\mathbb{E}_{(x, y_w, y_l)}\left[\log\sigma\Big(\beta\log\frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta\log\frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\Big)\right]
+\begin{aligned}
+&\mathcal{L}_{\text{DPO}}(\theta) \\
+&= -\,\mathbb{E}_{(x, y_w, y_l)}\Bigg[\log\sigma\Big(\beta\log\frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} \\
+&\qquad - \beta\log\frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\Big)\Bigg]
+\end{aligned}
 $$
 
 不需要奖励模型，不需要采样，不需要价值模型。只要两个模型（策略和冻结的参考）对已有的偏好数据各做一次前向，算出对数概率，就是一个普通的监督学习损失。
@@ -105,7 +124,11 @@ $$
 记隐式奖励 $\hat r(y) = \beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\text{ref}}(y \mid x)}$，求导可得
 
 $$
-\nabla_\theta \mathcal{L}_{\text{DPO}} = -\beta\, \mathbb{E}\Big[\sigma\big(\hat r(y_l) - \hat r(y_w)\big)\big(\nabla_\theta \log \pi_\theta(y_w \mid x) - \nabla_\theta \log \pi_\theta(y_l \mid x)\big)\Big]
+\begin{aligned}
+\nabla_\theta \mathcal{L}_{\text{DPO}} = -\beta\, \mathbb{E}\Big[&\sigma\big(\hat r(y_l) - \hat r(y_w)\big) \\
+&\big(\nabla_\theta \log \pi_\theta(y_w \mid x) \\
+&\quad - \nabla_\theta \log \pi_\theta(y_l \mid x)\big)\Big]
+\end{aligned}
 $$
 
 - 提高好回答的概率，降低差回答的概率

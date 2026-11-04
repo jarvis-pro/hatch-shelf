@@ -186,7 +186,7 @@ agent 的上下文里会有多个来源的指令：system prompt、项目记忆�
 system prompt 很少一次写对。一个可靠的迭代方式：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["收集失败案例"] --> B["归因：缺信息？缺原则？规则冲突？"]
   B --> C["改最小的一处"]
   C --> D["用失败案例 + 原来的成功案例重跑"]

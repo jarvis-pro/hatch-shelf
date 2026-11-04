@@ -18,7 +18,10 @@ $$
 例子：$f(x) = x^2$，它的导数是 $f'(x) = 2x$，所以在 $x = 3$ 处斜率是 6。用代码验证，取一个很小的 $h$：
 
 $$
-\frac{f(3.001) - f(3)}{0.001} = \frac{9.006001 - 9}{0.001} = 6.001
+\begin{aligned}
+\frac{f(3.001) - f(3)}{0.001} &= \frac{9.006001 - 9}{0.001} \\
+&= 6.001
+\end{aligned}
 $$
 
 非常接近 6。$h$ 越小越接近。
@@ -61,7 +64,10 @@ sigmoid 的导数最大只有 0.25（在 $x = 0$ 处取到），这一点在下�
 对 $p$ 求导并令它为 0：
 
 $$
-\frac{d}{dp}\Big[7 \ln p + 3 \ln(1 - p)\Big] = \frac{7}{p} - \frac{3}{1 - p} = 0
+\begin{aligned}
+\frac{d}{dp}\Big[7 \ln p + 3 \ln(1 - p)\Big] &= \frac{7}{p} - \frac{3}{1 - p} \\
+&= 0
+\end{aligned}
 $$
 
 - $\frac{7}{p}$：$7 \ln p$ 的导数，用了 $(\ln x)' = \frac{1}{x}$
@@ -90,7 +96,10 @@ $$
 把所有偏导数排成一个向量，就是**梯度**：
 
 $$
-\nabla f = \begin{bmatrix} \dfrac{\partial f}{\partial x} \\[2mm] \dfrac{\partial f}{\partial y} \end{bmatrix} = \begin{bmatrix} 2x \\ 6y \end{bmatrix}, \qquad \nabla f(2, 1) = \begin{bmatrix} 4 \\ 6 \end{bmatrix}
+\begin{gathered}
+\nabla f = \begin{bmatrix} \dfrac{\partial f}{\partial x} \\[2mm] \dfrac{\partial f}{\partial y} \end{bmatrix} = \begin{bmatrix} 2x \\ 6y \end{bmatrix}, \\
+\nabla f(2, 1) = \begin{bmatrix} 4 \\ 6 \end{bmatrix}
+\end{gathered}
 $$
 
 - $\nabla$：梯度符号，读作 nabla 或「del」
@@ -143,8 +152,10 @@ $$
 对两个参数分别求偏导（平方的导数是 2 倍，再乘上括号里对该参数的导数）：
 
 $$
-\frac{\partial \mathcal{L}}{\partial w} = \frac{2}{n} \sum_{i=1}^{n} (w x_i + b - y_i) \, x_i, \qquad
+\begin{gathered}
+\frac{\partial \mathcal{L}}{\partial w} = \frac{2}{n} \sum_{i=1}^{n} (w x_i + b - y_i) \, x_i, \\
 \frac{\partial \mathcal{L}}{\partial b} = \frac{2}{n} \sum_{i=1}^{n} (w x_i + b - y_i)
+\end{gathered}
 $$
 
 - 对 $w$：括号里 $w x_i$ 对 $w$ 的导数是 $x_i$，所以每项多乘一个 $x_i$

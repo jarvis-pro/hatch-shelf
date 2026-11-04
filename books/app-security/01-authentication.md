@@ -29,7 +29,7 @@
 很多讨论把这三件事搅在一起，比如「JWT 和 OAuth 选哪个」——这两个根本不在同一层。下面先讲第 2、3 件（会话怎么维持），再讲第 1 件（首次怎么证明）。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["首次证明身份<br/>密码 / 短信 / OAuth / Passkey"] --> B["发凭证<br/>Session ID 或 JWT"]
   B --> C["每个请求带凭证<br/>cookie 或 Authorization 头"]
   C --> D["结束<br/>退出 / 踢下线 / 过期"]

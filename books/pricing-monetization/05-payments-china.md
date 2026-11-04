@@ -54,15 +54,17 @@
 一个商户号要和一个或多个 AppID **绑定**后，才能在对应场景发起支付。
 
 ```mermaid
-flowchart LR
-  M["商户号 mchid"] --- A1["公众号 AppID"]
-  M --- A2["小程序 AppID"]
-  M --- A3["开放平台移动应用 AppID"]
-  A1 --> P1["JSAPI 支付"]
-  A2 --> P2["小程序支付"]
-  A3 --> P3["APP 支付"]
-  M --> P4["Native 扫码支付"]
-  M --> P5["H5 支付"]
+flowchart TD
+  M["商户号 mchid"] -->|"绑定 AppID"| BIND
+  M -->|"直接用商户号"| DIRECT
+  subgraph BIND["绑定后可用"]
+    direction TB
+    A1["公众号 AppID<br/>→ JSAPI 支付"] ~~~ A2["小程序 AppID<br/>→ 小程序支付"] ~~~ A3["开放平台<br/>移动应用 AppID<br/>→ APP 支付"]
+  end
+  subgraph DIRECT["无需 AppID"]
+    direction TB
+    P4["Native 扫码支付"] ~~~ P5["H5 支付"]
+  end
 ```
 
 ### 选哪种支付产品

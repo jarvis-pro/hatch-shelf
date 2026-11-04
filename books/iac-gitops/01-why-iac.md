@@ -40,7 +40,7 @@ GitOps 那一章需要一点 Kubernetes 的基础概念（Pod、Deployment、Ser
 一台手工搭的机器通常会经历这样的生命周期：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[照文档搭起来] --> B[线上出问题<br/>登上去改一行]
   B --> C[装个排障工具<br/>忘了卸]
   C --> D[升级系统包<br/>某个配置被覆盖]
@@ -141,7 +141,7 @@ hatch-counter 线上是一台云服务器（Ubuntu），上面跑着：
 用代码把这台机器完整描述出来，做到**一条命令开机器、一条命令配好，再从备份恢复数据，就能接手线上流量**：
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph Git["infra/ 目录（进 Git）"]
     T[OpenTofu 代码]
     A[Ansible playbook]

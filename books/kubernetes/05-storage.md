@@ -7,7 +7,7 @@
 K8s 把「存储从哪来」和「谁要用存储」拆成了两边：
 
 ```mermaid
-flowchart LR
+flowchart TD
   P["Pod"] -->|"引用"| PVC["PVC：我要 10Gi 可读写"]
   PVC -->|"绑定"| PV["PV：一块具体的存储"]
   SC["StorageClass：local-path"] -.->|"按需创建"| PV

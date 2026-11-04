@@ -74,7 +74,11 @@ $$
 然后用类似 PPO 的截断目标更新策略（简化写法，$\rho_{i,t}$ 是新旧策略在第 $i$ 个输出第 $t$ 个 token 上的概率比）：
 
 $$
-\mathcal{J}(\theta) = \mathbb{E}\left[\frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_i|}\sum_{t=1}^{|o_i|}\min\Big(\rho_{i,t}\hat A_i,\ \mathrm{clip}(\rho_{i,t}, 1-\epsilon, 1+\epsilon)\,\hat A_i\Big) - \beta\, D_{\mathrm{KL}}\big(\pi_\theta \,\Vert\, \pi_{\text{ref}}\big)\right]
+\begin{aligned}
+\mathcal{J}(\theta) = \mathbb{E}\Bigg[&\frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_i|}\sum_{t=1}^{|o_i|}\min\Big(\rho_{i,t}\hat A_i,\ \\
+&\quad \mathrm{clip}(\rho_{i,t}, 1-\epsilon, 1+\epsilon)\,\hat A_i\Big) \\
+&- \beta\, D_{\mathrm{KL}}\big(\pi_\theta \,\Vert\, \pi_{\text{ref}}\big)\Bigg]
+\end{aligned}
 $$
 
 拆开看：
@@ -113,7 +117,7 @@ DeepSeek-R1 的论文（2025 年 1 月）报告了两个模型：
 **R1**：为了解决可读性，采用多阶段流程：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[少量长思维链冷启动数据 SFT] --> B[推理任务 RL：加语言一致性奖励]
   B --> C[拒绝采样生成大量数据 + 通用数据 SFT]
   C --> D[全场景 RL：推理用规则奖励，通用用偏好奖励]

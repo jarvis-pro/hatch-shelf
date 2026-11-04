@@ -94,7 +94,10 @@ $$
 把这个式子变形，就得到**链式法则**：$P(A, B) = P(B) \cdot P(A \mid B)$。推广到一串事件，就是语言模型的核心公式：
 
 $$
-P(w_1, w_2, \dots, w_n) = \prod_{t=1}^{n} P(w_t \mid w_1, \dots, w_{t-1})
+\begin{aligned}
+&P(w_1, w_2, \dots, w_n) \\
+&= \prod_{t=1}^{n} P(w_t \mid w_1, \dots, w_{t-1})
+\end{aligned}
 $$
 
 - $w_1, \dots, w_n$：一句话里的 $n$ 个 token
@@ -124,7 +127,10 @@ $$
 - 告警总概率 $P(\text{告警}) = 0.01 \times 0.99 + 0.99 \times 0.05 = 0.0099 + 0.0495 = 0.0594$
 
 $$
-P(\text{故障} \mid \text{告警}) = \frac{0.99 \times 0.01}{0.0594} = \frac{0.0099}{0.0594} \approx 0.167
+\begin{aligned}
+P(\text{故障} \mid \text{告警}) &= \frac{0.99 \times 0.01}{0.0594} \\
+&= \frac{0.0099}{0.0594} \approx 0.167
+\end{aligned}
 $$
 
 只有六分之一。原因是故障本身太罕见，误报的绝对数量反而多。这个直觉在评估分类模型、设计告警阈值时都很有用：**基数很小时，再准的检测器也会被误报淹没**。

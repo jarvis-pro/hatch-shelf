@@ -27,7 +27,7 @@ ffmpeg -i memo.m4a -ar 16000 -ac 1 -c:a pcm_s16le memo.wav
 有了这张「图」，语音识别就变成了一个「看图写字」的问题，和第 1 章的视觉模型非常像：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[音频波形] --> B[切帧 + 梅尔频谱]
   B --> C[编码器：Transformer 或卷积]
   C --> D[解码器：逐 token 生成文字]
@@ -171,7 +171,7 @@ TTS 是反方向：给一段文字，生成听起来自然的语音。传统流�
 把 ASR、大模型、TTS 串起来，就是一个能对话的语音助手。这种级联方案最大的问题是**延迟叠加**：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[用户说完] --> B[判断说完了：VAD 静音阈值]
   B --> C[ASR 出最终结果]
   C --> D[大模型首个 token]

@@ -57,8 +57,12 @@ flowchart TD
 mtr -rwc 200 your-api.example.com
 
 # 看一次下载的各阶段耗时和平均速度
-curl -o /dev/null -s -w 'dns=%{time_namelookup} connect=%{time_connect} tls=%{time_appconnect} ttfb=%{time_starttransfer} total=%{time_total} speed=%{speed_download}\n' \
-  -H "Authorization: Bearer $TOKEN" https://your-api.example.com/v1/o/test/10m.bin
+fmt='dns=%{time_namelookup} connect=%{time_connect} '
+fmt+='tls=%{time_appconnect} ttfb=%{time_starttransfer} '
+fmt+='total=%{time_total} speed=%{speed_download}\n'
+curl -o /dev/null -s -w "$fmt" \
+  -H "Authorization: Bearer $TOKEN" \
+  https://your-api.example.com/v1/o/test/10m.bin
 ```
 
 几条经验：
@@ -88,7 +92,7 @@ curl -o /dev/null -s -w 'dns=%{time_namelookup} connect=%{time_connect} tls=%{ti
 hatch-recordwall 的 README 把它列为比「不设公共读」更要紧的一条：客户端只认 Worker 的地址，于是「后面挂 R2 还是国内对象存储」不用现在决定。真跑起来发现从国内太慢，换后端是服务端改一处的事，不用发版、不用让所有人重装。
 
 ```mermaid
-flowchart LR
+flowchart TD
   APP["App（只知道一个地址）"] --> GW["你的入口：Worker 或 nginx"]
   GW -->|现在| R2["R2"]
   GW -.->|以后可以换成| OSS["国内对象存储"]

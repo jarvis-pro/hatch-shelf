@@ -8,10 +8,10 @@
 
 ```mermaid
 flowchart TD
-  T["Team（开发者账号）<br/>Team ID"] --> C["证书<br/>Apple Development / Apple Distribution"]
-  T --> A["App ID<br/>= Bundle ID + 能力（Capabilities）"]
-  T --> D["已注册设备<br/>（开发 / Ad Hoc 才需要）"]
-  C --> P["描述文件（Provisioning Profile）"]
+  T["Team（开发者账号）<br/>Team ID"] --> C["证书<br/>Apple Development /<br/>Apple Distribution"]
+  T --> A["App ID<br/>= Bundle ID + 能力<br/>（Capabilities）"]
+  T --> D["已注册设备<br/>（开发 / Ad Hoc<br/>才需要）"]
+  C --> P["描述文件<br/>（Provisioning Profile）"]
   A --> P
   D --> P
   P --> S["签名后的 App<br/>+ entitlements"]

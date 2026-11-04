@@ -35,6 +35,8 @@ YAML 库选的是 `go.yaml.in/yaml/v3`。很多老代码用的是 `gopkg.in/yaml
 
 ## book.yaml：解析与校验
 
+`internal/book/manifest.go` 完整文件分 3 段给出，从上到下拼起来就是整个文件。第一段是包声明、导入和几条校验用的正则与取值范围：
+
 ```go
 // Package book 按写书规范校验一本书，对应 TS 版的 @shelf/spec 里 check 用到的那部分。
 package book
@@ -56,7 +58,11 @@ var (
 	dateRe        = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 	levels        = []string{"beginner", "intermediate", "advanced"}
 )
+```
 
+第二段定义与 `book.yaml` 对应的结构体，然后是 `ParseManifest` 的前半部分：用开启了 `KnownFields` 的解码器把 YAML 解进结构体：
+
+```go
 // Manifest 对应 book.yaml。
 type Manifest struct {
 	ID       string     `yaml:"id"`
@@ -84,7 +90,11 @@ func ParseManifest(data []byte) (*Manifest, error) {
 	if err := dec.Decode(&m); err != nil {
 		return nil, fmt.Errorf("book.yaml 解析失败: %w", err)
 	}
+```
 
+第三段是 `ParseManifest` 的后半部分：逐个字段校验，问题都收进 `errs`，最后用 `errors.Join` 一起返回：
+
+```go
 	var errs []error
 	bad := func(format string, args ...any) {
 		errs = append(errs, fmt.Errorf(format, args...))
@@ -140,6 +150,8 @@ func ParseManifest(data []byte) (*Manifest, error) {
 
 ## 检查章节
 
+`internal/book/lint.go` 的前半部分分 4 段给出，下一节的 `Check` 接在它后面。第一段是导入和章节检查用到的正则：
+
 ```go
 package book
 
@@ -158,7 +170,11 @@ var (
 	inlineRe = regexp.MustCompile("(`+).*?`+")
 	remoteRe = regexp.MustCompile(`(?i)^([a-z][a-z0-9+.-]*:|//)`)
 )
+```
 
+第二段定义校验结果 `Problem` 及其打印格式，然后是 `LintChapter` 的开头，`report` 负责收集问题：
+
+```go
 // Problem 是一条校验结果，File 和 Line 用来定位。
 type Problem struct {
 	File string
@@ -180,7 +196,11 @@ func LintChapter(file, text string, assets map[string]bool) []Problem {
 	report := func(line int, format string, args ...any) {
 		out = append(out, Problem{file, line, fmt.Sprintf(format, args...)})
 	}
+```
 
+第三段是 `LintChapter` 的主循环：逐行跟踪是否在代码块里，代码块外才数 H1、检查图片：
+
+```go
 	var fence string // 当前所在代码块的围栏，空串表示不在代码块里
 	h1 := 0
 	for i, line := range strings.Split(text, "\n") {
@@ -218,7 +238,11 @@ func LintChapter(file, text string, assets map[string]bool) []Problem {
 			}
 		}
 	}
+```
 
+第四段在循环结束后检查 H1 的数量，`LintChapter` 到此结束：
+
+```go
 	switch {
 	case h1 == 0:
 		report(0, "没有 H1 章标题")
@@ -290,6 +314,8 @@ func unwrapAll(err error) []error {
 
 ## 入口：参数、并发与退出码
 
+`cmd/shelfcheck/main.go` 完整文件分 5 段给出，从上到下拼起来就是整个文件。第一段是导入、版本号和极薄的 `main`：
+
 ```go
 // shelfcheck 按写书规范校验 books/ 下的书，是 shelf-pack check 的 Go 版。
 package main
@@ -317,7 +343,11 @@ func main() {
 	defer stop()
 	os.Exit(run(ctx, os.Args[1:], os.Stdout, os.Stderr))
 }
+```
 
+第二段是每本书的结果类型，以及 `run` 的开头：解析命令行参数，处理 `-version` 和参数个数错误：
+
+```go
 type result struct {
 	name     string
 	problems []book.Problem
@@ -344,7 +374,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		fs.Usage()
 		return 2
 	}
+```
 
+第三段找出要检查的书，用 `errgroup` 限制并发数逐本检查，结果写进各自的下标：
+
+```go
 	dirs, err := findBooks(fs.Arg(0))
 	if err != nil {
 		fmt.Fprintln(stderr, "错误：", err)
@@ -368,7 +402,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "已中断：", err)
 		return 130
 	}
+```
 
+第四段在全部检查完成后按顺序输出结果，并决定退出码，`run` 到此结束：
+
+```go
 	failed := 0
 	for _, r := range results {
 		if len(r.problems) > 0 {
@@ -388,7 +426,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "\n%d 本书全部通过\n", len(results))
 	return 0
 }
+```
 
+第五段是 `run` 用到的 `findBooks`，判断目标是一本书还是一个书库目录：
+
+```go
 // findBooks：目标目录里有 book.yaml 就是一本书，否则取它下面的每个子目录。
 func findBooks(target string) ([]string, error) {
 	if _, err := os.Stat(filepath.Join(target, "book.yaml")); err == nil {

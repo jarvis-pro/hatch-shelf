@@ -54,7 +54,10 @@ softmax 把 $-\infty$ 变成 0，把相等的分数变成均匀权重。现在�
 位置 $i$ 对位置 $j$ 的分数就是 $q_i \cdot k_j$。所有分数一次算出来就是 $QK^\top$，形状 `(T, T)`。剩下的流程和上面求平均完全一样：
 
 $$
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V
+\begin{aligned}
+&\text{Attention}(Q, K, V) \\
+&= \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V
+\end{aligned}
 $$
 
 其中 $M$ 是掩码矩阵：允许看的位置为 0，未来位置为 $-\infty$。

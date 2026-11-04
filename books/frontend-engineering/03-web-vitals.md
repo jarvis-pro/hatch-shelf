@@ -47,7 +47,7 @@ onCLS(report);
 LCP 可以拆成四段，哪段长就优化哪段：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["TTFB<br/>服务器首字节"] --> B["资源加载延迟<br/>多久才开始下载 LCP 资源"]
   B --> C["资源加载耗时"]
   C --> D["渲染延迟<br/>下载完到画出来"]

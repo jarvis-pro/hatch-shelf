@@ -135,7 +135,7 @@ flowchart TD
 ### 用户和数据
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["提前通知用户"] --> B["开放数据导出"]
   B --> C["处理退款"]
   C --> D["停止服务"]

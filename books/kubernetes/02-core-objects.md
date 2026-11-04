@@ -94,7 +94,7 @@ stateDiagram-v2
 Deployment 是跑无状态服务的标准方式。它的结构是三层：
 
 ```mermaid
-flowchart LR
+flowchart TD
   D["Deployment counter-api"] --> RS1["ReplicaSet（旧版本，副本 0）"]
   D --> RS2["ReplicaSet（当前版本，副本 2）"]
   RS2 --> P1["Pod"]
@@ -271,7 +271,7 @@ spec:
 - 集群内任何 Pod 都可以用 `http://counter-api.counter.svc.cluster.local` 访问它，同一命名空间里直接写 `http://counter-api`
 
 ```mermaid
-flowchart LR
+flowchart TD
   C["其他 Pod"] -->|"counter-api:80"| S["Service（ClusterIP）"]
   S -->|"3000"| P1["api Pod A（就绪）"]
   S -->|"3000"| P2["api Pod B（就绪）"]

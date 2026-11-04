@@ -12,7 +12,7 @@
 Hermes 的思路是**把解析和编译挪到构建时**：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["TS / JSX 源码"] --> B["Metro + Babel 打包"]
   B --> C["JS bundle"]
   C --> D["hermesc 编译"]

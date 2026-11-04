@@ -204,7 +204,7 @@ CREATE POLICY "expense_images_tenant" ON "expense_images"
 改名、拆列、换类型这类**不兼容**的改动，不要一步做完，而是分成几次发布：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["扩展：加新列，新旧都写"] --> B["回填：分批把老数据搬到新列"]
   B --> C["切换：代码只读新列"]
   C --> D["收缩：删旧列"]

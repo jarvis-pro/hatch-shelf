@@ -16,9 +16,9 @@
 文本 embedding 模型通常也是 Transformer，但它只做一件事：读完整段文字，把所有 token 的表示**汇聚**（pooling）成一个固定长度的向量。训练时用大量「问题—答案」「标题—正文」这样的配对数据做**对比学习**：让配对的两段向量靠近，和随机抽来的其他文本远离。所以它学到的「相近」，不是字面相同，而是「一个能回答另一个」「两者在讲同一件事」。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["怎么调 HNSW 参数"] --> M[embedding 模型]
-  B["ef_search 越大召回越高，<br/>但查询越慢"] --> M
+  B["ef_search 越大<br/>召回越高，<br/>但查询越慢"] --> M
   C["nginx 关闭代理缓冲"] --> M
   M --> VA[向量 a]
   M --> VB[向量 b]
@@ -201,7 +201,7 @@ export async function embedCached(texts: string[], inputType: InputType) {
 3. 换模型时走「新列 / 新表并行建 → 评测对比 → 切换读路径 → 删旧数据」的流程，而不是原地覆盖
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[新建 embedding_v2 列<br/>或新表] --> B[后台用新模型<br/>全量回填]
   B --> C[评测集对比<br/>新旧两套]
   C -- 更好 --> D[查询切到 v2]

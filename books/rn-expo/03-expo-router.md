@@ -31,11 +31,12 @@ app/src/app/
 
 ```mermaid
 flowchart TD
-  L["_layout.tsx（Stack）"] --> I["index：书架"]
-  L --> T["transfer：传书"]
-  L --> R["read/[id]：阅读"]
-  L --> B["book/[id]：书籍信息（modal）"]
-  L --> N["notes/[id]：笔记"]
+  L["_layout.tsx<br/>（Stack）"] --> PAGES
+  L --> B["book/[id]：<br/>书籍信息（modal）"]
+  subgraph PAGES["页面"]
+    direction TB
+    I["index：书架"] ~~~ T["transfer：传书"] ~~~ R["read/[id]：阅读"] ~~~ N["notes/[id]：笔记"]
+  end
 ```
 
 ## 根布局：在路由之前做完启动
@@ -155,11 +156,18 @@ sequenceDiagram
   participant OS as iOS
   participant NI as "+native-intent"
   participant R as 路由
-  participant H as useIncomingFiles
-  participant P as 导入管线
   OS->>NI: file:///…/book.zip
   NI->>R: 改写成 /
   R->>R: 显示书架首页
+```
+
+同一个 URL 还会作为 Linking 事件交给 `useIncomingFiles`，由它把文件交给导入管线：
+
+```mermaid
+sequenceDiagram
+  participant OS as iOS
+  participant H as useIncomingFiles
+  participant P as 导入管线
   OS->>H: 同一个 URL（Linking 事件）
   H->>P: importFile(url)
   P-->>H: 新增 / 更新 / 失败

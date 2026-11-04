@@ -24,12 +24,12 @@
 
 ```mermaid
 flowchart TB
-  M["主 agent"] -->|"任务描述"| S1["子 agent：调研 A"]
-  M -->|"任务描述"| S2["子 agent：调研 B"]
-  M -->|"任务描述"| S3["子 agent：调研 C"]
-  S1 -->|"结论摘要"| M
-  S2 -->|"结论摘要"| M
-  S3 -->|"结论摘要"| M
+  M["主 agent"] -->|"任务描述"| SUBS
+  subgraph SUBS["子 agent"]
+    direction TB
+    S1["子 agent：调研 A"] ~~~ S2["子 agent：调研 B"] ~~~ S3["子 agent：调研 C"]
+  end
+  SUBS -->|"结论摘要"| M
   M --> R["整合、决策、交付"]
 ```
 
@@ -38,7 +38,7 @@ Claude Code 的子 agent 就是这种模式。关键在于**任务描述的质�
 ### 流水线：前一个的输出是后一个的输入
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["抽取"] --> B["校验"] --> C["改写"] --> D["审校"]
 ```
 
@@ -49,7 +49,7 @@ flowchart LR
 一个 agent 产出，另一个 agent 评审并给出意见，前者据此修改，循环若干次：
 
 ```mermaid
-flowchart LR
+flowchart TD
   G["生成者"] -->|"产出"| R["评审者"]
   R -->|"修改意见"| G
   R -->|"通过"| D["交付"]

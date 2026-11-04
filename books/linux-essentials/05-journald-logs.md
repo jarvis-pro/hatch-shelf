@@ -7,7 +7,7 @@
 在一台 Ubuntu / Debian 服务器上，日志大致这样流动：
 
 ```mermaid
-flowchart LR
+flowchart TD
   K[内核消息] --> J[systemd-journald]
   S["systemd 服务的 stdout / stderr"] --> J
   L["syslog 调用（sshd、cron 等）"] --> J

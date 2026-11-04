@@ -49,7 +49,7 @@ readlink -f /bin/sh  # Debian / Ubuntu 上输出 /usr/bin/dash
 你敲下 `ls -l /etc` 回车，Shell 做了这几件事：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["读入一行：ls -l /etc"] --> B[展开：变量、通配符、引号]
   B --> C{内建命令？}
   C -->|是，如 cd| D[Shell 自己执行]

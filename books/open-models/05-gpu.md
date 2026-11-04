@@ -96,7 +96,7 @@ $$
 以「租一台 GPU 做一次 LoRA 微调」为例：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[本地准备数据与脚本] --> B[小模型在 Mac 上跑通]
   B --> C[租 GPU 实例]
   C --> D[同步代码和数据]

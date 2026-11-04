@@ -124,7 +124,7 @@
 这个过程和[《产品思维》第 1 章](../product-thinking/01-where-needs-come-from.md)「需求从哪来」、第 2 章「用户访谈」讲的方法一致，只是你在被付钱的同时做了用户研究。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["咨询客户"] --> B["记录问题和现状"]
   B --> C["每月汇总重复问题"]
   C --> D["手工方案 → 脚本 → 产品功能"]

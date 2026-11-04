@@ -12,16 +12,19 @@
 两者在用户看来都是「一个付款页」，但法律关系完全不同：
 
 ```mermaid
-flowchart LR
-  subgraph PSP["支付处理商模式（Stripe 直连）"]
+flowchart TD
+  subgraph PSP["支付处理商模式<br/>（Stripe 直连）"]
     U1["买家"] -- "付款" --> S1["你（卖方）"]
-    S1 -. "通过 Stripe 处理卡交易" .- ST["Stripe"]
+    S1 -. "处理卡交易" .- ST["Stripe"]
   end
-  subgraph MOR["记录商户模式（MoR）"]
-    U2["买家"] -- "付款" --> M2["MoR 平台（卖方）"]
+  subgraph MOR["记录商户模式<br/>（MoR）"]
+    U2["买家"] -- "付款" --> M2["MoR 平台<br/>（卖方）"]
     M2 -- "扣费后结算" --> S2["你（供应商）"]
   end
+  PSP ~~~ MOR
 ```
+
+Stripe 直连模式下，卡交易通过 Stripe 处理。
 
 | | Stripe 直连 | MoR 平台 |
 |---|---|---|
@@ -70,12 +73,12 @@ sequenceDiagram
   U->>W: 点击订阅
   W->>S: 创建 Checkout Session
   S-->>W: 返回付款页 URL
-  W-->>U: 重定向到 Stripe 付款页
+  W-->>U: 重定向到<br/>Stripe 付款页
   U->>S: 填卡、付款
   S-->>U: 跳回 success_url
-  S->>W: Webhook：checkout.session.completed
-  W->>W: 验签、写入订阅状态
-  S->>W: 之后每期：invoice.paid / invoice.payment_failed
+  S->>W: Webhook：checkout.<br/>session.completed
+  W->>W: 验签、<br/>写入订阅状态
+  S->>W: 之后每期：invoice.paid /<br/>invoice.payment_failed
 ```
 
 关键设计原则：**订阅状态以 webhook 为准，不以浏览器跳回为准**。用户可能付完款就关了页面，跳回的 `success_url` 只用来展示「处理中」。
@@ -231,10 +234,10 @@ stripe trigger checkout.session.completed
 
 ```mermaid
 flowchart TD
-  A["买家向发卡行发起争议"] --> B["Stripe 通知你，资金被暂扣"]
+  A["买家向发卡行<br/>发起争议"] --> B["Stripe 通知你，<br/>资金被暂扣"]
   B --> C{"你是否应诉"}
-  C -- "接受" --> D["钱退给买家，争议费不退"]
-  C -- "应诉" --> E["在期限内提交证据"]
+  C -- "接受" --> D["钱退给买家，<br/>争议费不退"]
+  C -- "应诉" --> E["在期限内<br/>提交证据"]
   E --> F["发卡行裁决"]
 ```
 

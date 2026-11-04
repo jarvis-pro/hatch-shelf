@@ -30,7 +30,10 @@ sequenceDiagram
 每个 token 在每一层要存一个 key 和一个 value，各 $n_{kv} \times d_k$ 个数：
 
 $$
-\text{KV 字节数} = 2 \times L \times n_{kv} \times d_k \times n_{\text{ctx}} \times B \times \text{每个数的字节数}
+\begin{aligned}
+\text{KV 字节数} &= 2 \times L \times n_{kv} \times d_k \times n_{\text{ctx}} \\
+&\quad \times B \times \text{每个数的字节数}
+\end{aligned}
 $$
 
 - $L$：层数；$n_{kv}$：KV 头数（下面会讲它为什么可以小于注意力头数）；$d_k$：每头维度
@@ -112,7 +115,10 @@ print(S.shape)   # (32, 10, 10)
 DeepSeek-V2（2024）提出的 **MLA**（Multi-head Latent Attention）走得更远：不缓存每个头的 K、V，而是缓存一个低维的**潜向量** $c_t$，需要时再用矩阵把它「解压」成各头的 K、V：
 
 $$
-c_t = x_t W_{DKV},\qquad k_t^{(i)} = c_t W_{UK}^{(i)},\qquad v_t^{(i)} = c_t W_{UV}^{(i)}
+\begin{gathered}
+c_t = x_t W_{DKV} \\
+k_t^{(i)} = c_t W_{UK}^{(i)},\qquad v_t^{(i)} = c_t W_{UV}^{(i)}
+\end{gathered}
 $$
 
 关键技巧是矩阵吸收：$q^{(i)} \cdot k^{(i)} = q^{(i)} W_{UK}^{(i)\top} c_t^\top$，可以把 $W_{UK}^{(i)}$ 提前并入 query 一侧，推理时直接拿 $c_t$ 算分数，不必真的解压出每个头的 key。同理 $W_{UV}$ 可以并入输出矩阵。
@@ -132,7 +138,7 @@ RoPE 和这种吸收不兼容（旋转矩阵夹在中间，随位置变化，无
 - 按需分配，序列结束立即回收
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph S1[序列 A 的块表]
     A0[逻辑块 0] --> P3[物理块 3]
     A1[逻辑块 1] --> P7[物理块 7]

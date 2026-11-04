@@ -39,14 +39,17 @@
 
 ```mermaid
 flowchart TD
-  A["用户付款"] --> B["苹果扣除当地适用的税费"]
+  A["用户付款"] --> B["苹果扣除当地<br/>适用的税费"]
   B --> C["按费率扣佣金"]
   C --> D["结算给开发者"]
-  C --- R1["标准费率"]
-  C --- R2["小型企业计划：年收入低于门槛的开发者可申请较低费率"]
-  C --- R3["自动续期订阅：连续付费满一年后的续订费率较低"]
-  C --- R4["部分地区的替代条款或外部支付规则"]
+  C --- RATES
+  subgraph RATES["费率"]
+    direction TB
+    R1["标准费率"] ~~~ R2["小型企业计划：<br/>较低费率"] ~~~ R3["自动续期订阅：<br/>满一年后较低"] ~~~ R4["部分地区的<br/>替代条款或<br/>外部支付规则"]
+  end
 ```
+
+小型企业计划面向年收入低于门槛的开发者，需要申请；自动续期订阅是同一用户连续付费满一年后，续订费率较低。
 
 - **标准费率**：多年来被广泛报道的是 30%
 - **小型企业计划**（App Store Small Business Program）：上一个自然年收入低于某个门槛的开发者可以申请降低的费率，被广泛报道为 15%。**需要主动申请**，不是自动生效
@@ -92,18 +95,25 @@ sequenceDiagram
   participant U as 用户
   participant App as iOS App
   participant SK as StoreKit
-  participant S as 你的服务端
-  participant A as App Store 服务器
-  App->>S: 获取当前用户的 appAccountToken
+  participant S as 服务端
+  App->>S: 获取当前用户的<br/>appAccountToken
   U->>App: 点击购买
-  App->>SK: 发起购买（带 appAccountToken）
+  App->>SK: 发起购买<br/>（带 appAccountToken）
   SK->>U: 系统支付弹窗
-  SK-->>App: 返回签名的交易 JWS
+  SK-->>App: 返回签名的<br/>交易 JWS
   App->>S: 上传交易 JWS
   S->>S: 验证签名，记录权益
   S-->>App: 返回最新权益
   App->>SK: 完成交易 finish
-  A-->>S: 服务器通知 V2（续订、退款、过期等）
+```
+
+在这之外，App Store 服务器会把续订、退款、过期等事件主动推给你的服务端：
+
+```mermaid
+sequenceDiagram
+  participant A as App Store 服务器
+  participant S as 服务端
+  A-->>S: 服务器通知 V2<br/>（续订、退款、过期等）
 ```
 
 几个关键点：

@@ -131,7 +131,7 @@ docker stats api   # 实时看 CPU、内存占用
 平时敲的 `docker` 只是一个客户端。完整的调用链是这样的：
 
 ```mermaid
-flowchart LR
+flowchart TD
   CLI["docker CLI"] -->|"REST API（docker.sock）"| D["dockerd"]
   D --> C["containerd"]
   C --> S["containerd-shim"]

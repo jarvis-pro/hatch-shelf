@@ -7,7 +7,7 @@ OWASP Top 10:2025 把 2021 版的「易受攻击和过时的组件」扩展为�
 ## 攻击是怎么进来的
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["维护者账号被盗<br/>发布恶意版本"] --> R[npm 仓库]
   B["仿冒包名<br/>拼写近似、AI 编造的名字"] --> R
   R --> I["pnpm install<br/>安装脚本执行"]

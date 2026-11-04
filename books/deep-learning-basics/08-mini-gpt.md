@@ -35,7 +35,9 @@ flowchart TD
 
 ## 完整代码
 
-新建 `gpt.py`，`input.txt` 沿用上一章的语料。需要 Python 3.10 及以上（用到了 `int | None` 写法）：
+新建 `gpt.py`，`input.txt` 沿用上一章的语料。需要 Python 3.10 及以上（用到了 `int | None` 写法）。
+
+完整文件分 8 段给出，从上到下拼起来就是 `gpt.py`。第一段是导入和超参数配置 `Config`：
 
 ```python
 """字符级 mini-GPT：python gpt.py train / python gpt.py sample "提示词" """
@@ -57,8 +59,11 @@ class Config:
     n_head: int = 4
     d_model: int = 256
     dropout: float = 0.1
+```
 
+第二段是因果自注意力，和第 7 章写的基本一样，多了一个 `resid_drop`：
 
+```python
 # ---------------- 模型 ----------------
 class CausalSelfAttention(nn.Module):
     def __init__(self, cfg: Config):
@@ -83,8 +88,11 @@ class CausalSelfAttention(nn.Module):
         att = self.attn_drop(F.softmax(att, dim=-1))
         y = (att @ v).transpose(1, 2).contiguous().view(B, T, C)
         return self.resid_drop(self.proj(y))
+```
 
+第三段是逐位置加工的 MLP，以及把注意力和 MLP 串起来的 Transformer Block（pre-norm 加残差）：
 
+```python
 class MLP(nn.Module):
     def __init__(self, cfg: Config):
         super().__init__()
@@ -111,8 +119,11 @@ class Block(nn.Module):
         x = x + self.attn(self.ln1(x))   # pre-norm + 残差
         x = x + self.mlp(self.ln2(x))
         return x
+```
 
+第四段把若干个 Block 堆成完整的 `GPT`：token embedding 加位置 embedding 进去，经过各层后接 LayerNorm 和输出头，输出头与 token embedding 共享权重：
 
+```python
 class GPT(nn.Module):
     def __init__(self, cfg: Config):
         super().__init__()
@@ -145,7 +156,11 @@ class GPT(nn.Module):
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
         return logits, loss
+```
 
+第五段是 `GPT` 类的最后一个方法 `generate`，在上一段的 `forward` 基础上逐个字符采样续写：
+
+```python
     @torch.no_grad()
     def generate(self, idx, max_new_tokens: int, temperature: float = 1.0, top_k: int | None = None):
         for _ in range(max_new_tokens):
@@ -159,8 +174,11 @@ class GPT(nn.Module):
             nxt = torch.multinomial(probs, num_samples=1)
             idx = torch.cat([idx, nxt], dim=1)
         return idx
+```
 
+第六段离开模型，进入数据和训练：选设备、建字符词表，然后是 `train()` 的开头——读语料、切训练/验证集、建模型和优化器：
 
+```python
 # ---------------- 数据 ----------------
 def get_device() -> torch.device:
     if torch.cuda.is_available():
@@ -194,7 +212,11 @@ def train():
     batch_size, max_iters, eval_interval = 32, 5000, 500
     max_lr, min_lr, warmup = 1e-3, 1e-4, 200
     opt = torch.optim.AdamW(model.parameters(), lr=max_lr, weight_decay=0.1)
+```
 
+第七段仍在 `train()` 里，定义三个内部函数：随机取 batch、学习率调度（线性预热加余弦退火）、估计训练/验证损失：
+
+```python
     def get_batch(split):
         src = train_data if split == "train" else val_data
         ix = torch.randint(len(src) - cfg.block_size - 1, (batch_size,))
@@ -220,7 +242,11 @@ def train():
             out[split] = losses.mean().item()
         model.train()
         return out
+```
 
+最后一段是 `train()` 的主循环和保存权重，然后是加载权重续写的 `sample()`，以及命令行入口：
+
+```python
     t0 = time.time()
     for it in range(max_iters + 1):
         if it % eval_interval == 0:

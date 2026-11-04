@@ -21,7 +21,7 @@
 
 ```mermaid
 flowchart TB
-  O["编排者：理解任务、拆分"] --> W1["工作者 1"]
+  O["编排者：<br/>理解任务、拆分"] --> W1["工作者 1"]
   O --> W2["工作者 2"]
   O --> W3["工作者 N"]
   W1 --> I["编排者：整合"]
@@ -44,7 +44,7 @@ flowchart TB
 先判断输入属于哪一类，再交给对应的处理者。路由本身可以是一个便宜的模型调用，也可以是普通代码。
 
 ```mermaid
-flowchart LR
+flowchart TD
   IN["输入"] --> R{"路由"}
   R -->|"手写单据照片"| A["视觉识别 + 逐行核对"]
   R -->|"供货商 Excel"| B["按表头读格子"]
@@ -86,11 +86,11 @@ export async function route(message: string) {
 每一步的输出是下一步的输入，顺序是代码写死的。可以在两步之间加**门**（gate）：一段检查代码，不通过就停下或者打回。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["写大纲"] --> G1{"门：章数 6-10？"}
   G1 -->|"否"| A
   G1 -->|"是"| B["写章节"]
-  B --> G2{"门：shelf-pack check"}
+  B --> G2{"门：<br/>shelf-pack check"}
   G2 -->|"否"| B
   G2 -->|"是"| C["主会话复核"]
 ```
@@ -138,8 +138,8 @@ sequenceDiagram
   participant A as 接待 agent
   participant B as 退款 agent
   U->>A: 我上周买的东西想退
-  A->>B: 交接：用户、订单号、诉求摘要
-  B->>U: 我来处理退款，请确认订单……
+  A->>B: 交接：用户、订单号、<br/>诉求摘要
+  B->>U: 我来处理退款，<br/>请确认订单……
   U->>B: 确认
 ```
 

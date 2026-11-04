@@ -7,7 +7,7 @@
 一个 Dockerfile 里可以有多个 `FROM`，每个 `FROM` 开启一个新阶段，可以用 `AS` 起名。后面的阶段用 `COPY --from=<名字>` 从前面的阶段拷文件。**最终镜像只包含最后一个阶段的层**，前面阶段的一切（源码、编译器、缓存）都不会进去。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph S1["deps 阶段"]
     A["lockfile"] --> B["pnpm install"]
   end
@@ -56,7 +56,8 @@ FROM deps AS build
 WORKDIR /repo
 COPY packages/core packages/core
 COPY apps/api apps/api
-RUN pnpm --filter @counter/core build && pnpm --filter @counter/api exec tsc -p tsconfig.json
+RUN pnpm --filter @counter/core build \
+ && pnpm --filter @counter/api exec tsc -p tsconfig.json
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
@@ -68,7 +69,9 @@ COPY --from=build /repo/apps/api /repo/apps/api
 WORKDIR /repo/apps/api
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD \
-  node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/v1/health') \
+    .then(r=>process.exit(r.ok?0:1)) \
+    .catch(()=>process.exit(1))"
 
 CMD ["node", "dist/main.js"]
 ```

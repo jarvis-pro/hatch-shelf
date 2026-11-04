@@ -61,7 +61,7 @@
 「单体」本身不是问题，问题是哪种单体。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph A["大泥球"]
     a1[订单] <--> a2[库存]
     a2 <--> a3[用户]
@@ -76,6 +76,7 @@ flowchart LR
     b4[报表] --> b1
     b4 --> b2
   end
+  A ~~~ B
 ```
 
 - **大泥球**：任何代码都可以直接调用任何代码、直接读写任何表。早期很快，后来每一处改动都可能影响任何地方
@@ -134,13 +135,18 @@ hatch-counter 的服务端是一个 NestJS 进程，九个模块：Db、Auth、A
 
 ```mermaid
 flowchart TD
-  Auth --> Admin
-  Ocr --> Admin
-  Business --> Db
-  Overview --> Db
-  Admin --> AdminDb["AdminDbModule（不导出）"]
-  Live -.->|版本号| Business
-  Idempotency -.->|拦截器| Business
+  subgraph ADM[" "]
+    Auth --> Admin
+    Ocr --> Admin
+    Admin --> AdminDb["AdminDbModule<br/>（不导出）"]
+  end
+  subgraph BIZ[" "]
+    Live -.->|版本号| Business
+    Idempotency -.->|拦截器| Business
+    Business --> Db
+    Overview --> Db
+  end
+  ADM ~~~ BIZ
 ```
 
 几条值得学的做法：

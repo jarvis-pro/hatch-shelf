@@ -11,7 +11,7 @@
 ```mermaid
 flowchart TB
   M["素材卡<br/>materials/*.md"] --> S1["脚本生成<br/>LLM + 模板"]
-  S1 --> C1["自动检查<br/>字数 / 待补 / 禁用词"]
+  S1 --> C1["自动检查<br/>字数 / 待补 /<br/>禁用词"]
   C1 --> G1{"人工关卡 1<br/>审脚本、核事实"}
   G1 -->|"通过"| S2["朗读稿 + TTS<br/>按段合成"]
   G1 -->|"退回"| S1
@@ -21,7 +21,7 @@ flowchart TB
   S5 --> S6["标识<br/>显式角标 + 元数据"]
   S6 --> C2["自动检查<br/>时长 / 响度 / 条目"]
   C2 --> G2{"人工关卡 2<br/>看成片、过清单"}
-  G2 -->|"通过"| P["待发布包<br/>视频、封面、标题、声明提醒"]
+  G2 -->|"通过"| P["待发布包<br/>视频、封面、<br/>标题、声明提醒"]
   G2 -->|"退回某一步"| S2
   P --> H["人在平台发布"]
 ```
@@ -38,22 +38,32 @@ flowchart TB
 
 ```text
 jobs/2026-11-03-first-users/
-├── job.json              # 状态和元数据
-├── material.md           # 素材卡副本
-├── script.json           # 脚本：hooks、segments、facts、todo
-├── review-script.json    # 人工关卡 1 的结论
+├── job.json
+├── material.md
+├── script.json
+├── review-script.json
 ├── segments/
-│   ├── 01.read.txt       # 朗读稿
-│   ├── 01.mp3            # 配音
-│   ├── 01.png            # 配图
+│   ├── 01.read.txt
+│   ├── 01.mp3
+│   ├── 01.png
 │   └── ...
 ├── subtitles.srt
-├── draft.mp4             # 合成结果
-├── final.mp4             # 加标识后
+├── draft.mp4
+├── final.mp4
 ├── cover.jpg
-├── review-final.json     # 人工关卡 2 的结论
-└── publish/              # 待发布包
+├── review-final.json
+└── publish/
 ```
+
+- `job.json`：状态和元数据
+- `material.md`：素材卡副本
+- `script.json`：脚本：hooks、segments、facts、todo
+- `review-script.json`：人工关卡 1 的结论
+- `segments/`：`01.read.txt` 是朗读稿，`01.mp3` 是配音，`01.png` 是配图
+- `draft.mp4`：合成结果
+- `final.mp4`：加标识后
+- `review-final.json`：人工关卡 2 的结论
+- `publish/`：待发布包
 
 `job.json` 记录每一步的状态和用到的模型、提示词版本，方便回头和数据对照：
 
@@ -85,14 +95,21 @@ jobs/2026-11-03-first-users/
 pipeline/
 ├── src/
 │   ├── types.ts
-│   ├── job.ts          # 读写 job 目录
-│   ├── llm.ts          # 大模型调用
-│   ├── providers.ts    # TTS、图像的适配层
-│   ├── checks.ts       # 确定性检查
-│   ├── stages/         # 每一步一个文件
+│   ├── job.ts
+│   ├── llm.ts
+│   ├── providers.ts
+│   ├── checks.ts
+│   ├── stages/
 │   └── cli.ts
-└── prompts/            # 第 2 章的提示词模板
+└── prompts/
 ```
+
+- `job.ts`：读写 job 目录
+- `llm.ts`：大模型调用
+- `providers.ts`：TTS、图像的适配层
+- `checks.ts`：确定性检查
+- `stages/`：每一步一个文件
+- `prompts/`：第 2 章的提示词模板
 
 ### 类型
 
@@ -495,9 +512,12 @@ pnpm pipeline rerun 2026-11-03-first-users images   # 只重跑配图及其之�
 publish/
 ├── final.mp4
 ├── cover.jpg
-├── post.md          # 各平台的标题、简介、话题标签
-└── checklist.md     # 发布时要做的事
+├── post.md
+└── checklist.md
 ```
+
+- `post.md`：各平台的标题、简介、话题标签
+- `checklist.md`：发布时要做的事
 
 `checklist.md` 提醒发布时的手工步骤：
 

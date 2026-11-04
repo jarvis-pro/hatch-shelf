@@ -65,7 +65,7 @@ volumes:
 整体架构是这样的：
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["客户端"] -->|"HTTPS 443"| N["宿主机 nginx"]
   N -->|"127.0.0.1:3000"| A["api 容器"]
   subgraph C["compose 项目 counter"]

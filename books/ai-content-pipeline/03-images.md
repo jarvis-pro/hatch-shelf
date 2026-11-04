@@ -32,8 +32,8 @@
 正确的分工：
 
 ```mermaid
-flowchart LR
-  A["模型生成底图<br/>留出文字区域"] --> B["模板合成<br/>固定字体、字号、颜色、位置"]
+flowchart TD
+  A["模型生成底图<br/>留出文字区域"] --> B["模板合成<br/>固定字体、字号、<br/>颜色、位置"]
   B --> C["导出各平台尺寸"]
   C --> D["人工检查<br/>安全区、错字"]
 ```
@@ -220,14 +220,21 @@ export async function makeCover(spec: CoverSpec): Promise<void> {
 images/
 ├── style-cards/
 │   └── warm-flat-v2.md
-├── refs/                      # 风格参考图
-├── templates/                 # 封面、要点页的版式模板
+├── refs/
+├── templates/
 └── jobs/2026-11-03-first-users/
-    ├── prompts.jsonl          # 每张图一行：id、提示词、参考图、种子
-    ├── raw/                   # 模型原始输出，每个 prompt 出 4 张
-    ├── picked/                # 人工挑选
-    └── final/                 # 合成文字后的成图
+    ├── prompts.jsonl
+    ├── raw/
+    ├── picked/
+    └── final/
 ```
+
+- `refs/`：风格参考图
+- `templates/`：封面、要点页的版式模板
+- `prompts.jsonl`：每张图一行：id、提示词、参考图、种子
+- `raw/`：模型原始输出，每个 prompt 出 4 张
+- `picked/`：人工挑选
+- `final/`：合成文字后的成图
 
 每个提示词出 4 张，人工挑 1 张，这是目前效率和质量比较好的平衡。挑选这一步不要省：模型输出的图里，大约总有一部分有明显瑕疵，自动化只能筛掉其中一部分（比如用视觉模型检查是否有乱码文字），最后一眼还得人看。
 

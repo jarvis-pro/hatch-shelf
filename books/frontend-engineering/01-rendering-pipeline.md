@@ -24,7 +24,7 @@
 浏览器拿到一份 HTML 之后，要经过一条固定的流水线才能把它画到屏幕上。理解这条流水线，是理解几乎所有前端性能问题的前提：**每一种卡顿，都是某一段流水线被迫重跑了太多次，或者某一段跑得太久**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   H[HTML 字节] --> D[DOM 树]
   C[CSS 字节] --> O[CSSOM]
   D --> S[样式计算]
@@ -139,7 +139,7 @@ hatch-counter 里「最好的一天」那个格子有一道扫过的斜光动画
 屏幕通常每秒刷新 60 次（高刷屏 120 次），一帧大约 16.7ms（或 8.3ms）。浏览器在一帧里要做的事大致是：
 
 ```mermaid
-flowchart LR
+flowchart TD
   I[处理输入事件] --> T[执行定时器和任务]
   T --> R[requestAnimationFrame 回调]
   R --> S[样式计算]

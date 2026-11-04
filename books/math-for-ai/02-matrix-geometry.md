@@ -198,9 +198,11 @@ $$
 例子：
 
 $$
-M = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}, \quad
-M\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 3 \end{bmatrix} = 3\begin{bmatrix} 1 \\ 1 \end{bmatrix}, \quad
+\begin{gathered}
+M = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}, \\
+M\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 3 \end{bmatrix} = 3\begin{bmatrix} 1 \\ 1 \end{bmatrix}, \\
 M\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+\end{gathered}
 $$
 
 - 沿对角线 $(1, 1)$ 方向：被拉伸 3 倍，特征值 3

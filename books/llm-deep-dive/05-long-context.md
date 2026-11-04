@@ -121,7 +121,7 @@ $K^\top V$ 是 $d_k \times d_k$ 的矩阵，与 $n$ 无关。在因果情形下�
 把以上技术组合起来，一个长上下文模型通常这样产生：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[短上下文预训练：比如 8K] --> B[调整 RoPE：增大 base 或插值]
   B --> C[长文本继续训练：逐级拉长长度]
   C --> D[长上下文 SFT：长文档问答等]

@@ -9,11 +9,11 @@
 一次 agent 操作要经过好几层，每一层都可以设边界：
 
 ```mermaid
-flowchart LR
+flowchart TD
   P["prompt 里的规矩"] --> H["宿主权限规则"]
   H --> T["工具代码校验"]
   T --> C["凭证的权限范围"]
-  C --> R["资源自身的访问控制<br/>数据库角色、分支保护"]
+  C --> R["资源自身的访问控制<br/>数据库角色、<br/>分支保护"]
 ```
 
 越往右越硬、越难绕过：
@@ -182,9 +182,9 @@ export function checkFetchUrl(raw: string): Verdict {
 
 ```mermaid
 flowchart TB
-  U["店主 A 的请求<br/>（带登录态）"] --> S["后端：从登录态取出 storeId"]
+  U["店主 A 的请求<br/>（带登录态）"] --> S["后端：<br/>从登录态取出 storeId"]
   S --> L["agent loop"]
-  L -->|"工具调用：只有业务参数"| T["工具执行层"]
+  L -->|"工具调用：<br/>只有业务参数"| T["工具执行层"]
   S -->|"storeId 由代码注入"| T
   T --> D[("数据库<br/>行级安全")]
 ```

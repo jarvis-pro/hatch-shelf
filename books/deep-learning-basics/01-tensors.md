@@ -163,7 +163,7 @@ print(w.grad)             # tensor(8.)，因为 dy/dw = 2w + 2 = 8
 ```
 
 ```mermaid
-flowchart LR
+flowchart TD
   W["w（requires_grad）"] --> SQ["w²"]
   W --> MUL["2w"]
   SQ --> ADD["y = w² + 2w"]

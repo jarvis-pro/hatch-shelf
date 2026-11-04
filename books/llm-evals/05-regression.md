@@ -286,7 +286,7 @@ const { values } = parseArgs({
 
 ```mermaid
 flowchart TD
-  A[新型号] --> B["EVAL_MODEL=新型号 跑验收 eval"]
+  A[新型号] --> B["EVAL_MODEL=新型号<br/>跑验收 eval"]
   B --> C[对比：质量 / 延迟 / 成本]
   C --> D{必过样例全过，<br/>弄坏的都看过？}
   D -->|是| E[切一小部分线上流量观察]

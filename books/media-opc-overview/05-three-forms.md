@@ -115,7 +115,7 @@
 ### 一集的生产流程
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["选题与剧本"] --> B["分镜表"]
   B --> C["角色与场景设定<br/>保证一致性"]
   C --> D["图像生成"]
@@ -201,7 +201,7 @@ flowchart TD
 三种形态在时间上常见的演进方向：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["个人 IP<br/>单平台"] --> B["跨平台分发"]
   B --> C["知识付费 / 工具"]
   D["AI 短剧<br/>第一部"] --> E["稳定产能"]

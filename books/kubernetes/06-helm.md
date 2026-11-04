@@ -256,15 +256,18 @@ pre-upgrade 也有一个容易忽略的细节：hook 跑的时候 ConfigMap **�
 
 ```bash
 helm lint ./counter
-helm template counter ./counter -n counter -f counter/values-prod.yaml > /tmp/rendered.yaml
+helm template counter ./counter -n counter \
+  -f counter/values-prod.yaml > /tmp/rendered.yaml
 ```
 
 `helm template` 在本地渲染，不连集群。把渲染结果交给 kubeconform 这类工具校验，能在 CI 里提前发现字段拼错、API 版本写错的问题：
 
 ```bash
+CRDS='https://raw.githubusercontent.com/datreeio/CRDs-catalog/main'
+SCHEMA='{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
 helm template counter ./counter -n counter | kubeconform -strict -summary \
   -schema-location default \
-  -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+  -schema-location "$CRDS/$SCHEMA"
 ```
 
 第二个 `-schema-location` 是社区维护的 CRD schema 目录，用来校验 Traefik 的 Middleware 这类自定义资源。本书所有清单都用这种方式校验过。

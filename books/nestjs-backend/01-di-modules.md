@@ -165,17 +165,19 @@ export class ActorInterceptor implements NestInterceptor {
 Nest 的模块不只是「把文件分组」。它是一个**可见性边界**：一个 provider 只有被所在模块 `exports`、并且被使用方 `imports`，才能被注入。
 
 ```mermaid
-flowchart LR
-  App[AppModule] --> Db["DbModule（@Global）"]
-  App --> Auth[AuthModule]
-  App --> Admin[AdminModule]
-  App --> Biz[BusinessModule]
+flowchart TD
+  App[AppModule] --> Auth[AuthModule]
   App --> Ocr[OcrModule]
-  App --> Live[LiveModule]
+  App --> Admin[AdminModule]
+  App --> REST
+  subgraph REST["其余模块"]
+    direction TB
+    Db["DbModule<br/>（@Global）"] ~~~ Biz[BusinessModule] ~~~ Live[LiveModule]
+  end
   Auth --> Tokens[TokensModule]
   Auth --> Admin
   Ocr --> Admin
-  Admin --> AdminDb["AdminDbModule（不导出）"]
+  Admin --> AdminDb["AdminDbModule<br/>（不导出）"]
 ```
 
 几条值得学的做法：

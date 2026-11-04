@@ -17,8 +17,9 @@ flowchart TB
     V2 --> S1
   end
   subgraph cross["cross-encoder：重排用"]
-    Q2["问题 + 文档 拼在一起"] --> E3[编码器] --> S2[相关性分数]
+    Q2["问题 + 文档<br/>拼在一起"] --> E3[编码器] --> S2[相关性分数]
   end
+  bi ~~~ cross
 ```
 
 | | bi-encoder | cross-encoder |
@@ -31,7 +32,7 @@ flowchart TB
 所以两者是分工关系：**bi-encoder 负责从全库里快速捞出几十个候选（追求召回），cross-encoder 负责在候选里精细排序（追求精度）**。这种「先粗后精」的两阶段结构，和推荐系统、搜索引擎的做法是一样的。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[全库几万块] -->|混合检索| B[候选 40–50]
   B -->|重排| C[前 8 个]
   C -->|邻居扩展 + 预算控制| D[拼进 prompt]

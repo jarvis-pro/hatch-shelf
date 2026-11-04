@@ -5,7 +5,7 @@
 ## 默认路线：八批
 
 ```mermaid
-flowchart LR
+flowchart TD
   B1[第一批 认知打底] --> B2[第二批 运维上手]
   B2 --> B3[第三批 AI 纵深]
   B3 --> B4[第四批 OPC 商业]

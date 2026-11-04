@@ -19,7 +19,7 @@
 ### 架构
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph Desktop["Electron 桌面端"]
     R["渲染进程<br/>React：分镜表、镜头详情、对比视图"]
     M["主进程<br/>文件监听、缩略图、导出"]
@@ -152,7 +152,7 @@ export async function exportFinals(shots: FinalShot[], outDir: string): Promise<
 ### 架构
 
 ```mermaid
-flowchart LR
+flowchart TD
   Web["Web 管理端<br/>React"] --> API["NestJS API"]
   App["Expo App<br/>提醒、快速记录"] --> API
   API --> PG[("Postgres<br/>租户 / 品牌 / 商单 / 回款")]

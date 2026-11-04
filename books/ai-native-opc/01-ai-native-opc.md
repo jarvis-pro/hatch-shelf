@@ -57,14 +57,14 @@ AI 原生不意味着「全自动」。一家 AI 原生的一人公司里，绝�
 
 ```mermaid
 flowchart TB
-  BOSS["你：方向、对外承诺、最终责任"]
-  BOSS --> ENG["研发岗"]
-  BOSS --> CS["客服岗"]
-  BOSS --> OPS["运营与内容岗"]
-  BOSS --> MKT["营销岗"]
-  BOSS --> FIN["财务与行政岗"]
-  ENG & CS & OPS & MKT & FIN --> INFRA["共用设施：公司仓库 · 调度 · 审批队列 · 通知"]
-  FIN -.-> EXT["外包：代账、法务、设计"]
+  BOSS["你：方向、<br/>对外承诺、<br/>最终责任"]
+  BOSS --> ROLES
+  subgraph ROLES["五个岗位"]
+    direction TB
+    ENG["研发岗"] ~~~ CS["客服岗"] ~~~ OPS["运营与内容岗"] ~~~ MKT["营销岗"] ~~~ FIN["财务与行政岗"]
+  end
+  ROLES --> INFRA["共用设施：<br/>公司仓库 · 调度 ·<br/>审批队列 · 通知"]
+  FIN -.-> EXT["外包：代账、<br/>法务、设计"]
 ```
 
 几个要点：
@@ -199,7 +199,7 @@ budget: 单次最多 20 轮，超时 10 分钟
 5. **再加下一条**
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["建仓库<br/>CLAUDE.md + kb/"] --> B["写一张岗位卡"]
   B --> C["一条工作流<br/>只读"]
   C --> D{"两周后<br/>准吗"}

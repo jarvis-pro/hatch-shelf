@@ -182,13 +182,15 @@ Node 的类型擦除**完全不读 tsconfig**。所以这些 tsconfig 里的功�
 
 ```mermaid
 flowchart TD
-  A["要运行的 TS 代码"] --> B{"用到装饰器、enum、JSX、paths？"}
-  B -->|"是：NestJS、React 等"| C["编译或打包：tsc / SWC / Vite / esbuild"]
-  B -->|"否"| D{"是发布到 npm 的库吗？"}
-  D -->|"是"| E["tsc 编译成 JS + .d.ts<br/>可用 rewriteRelativeImportExtensions"]
-  D -->|"否"| F{"Node 下限能定在 22.18 吗？"}
-  F -->|"能"| G["node 直接跑 + erasableSyntaxOnly"]
-  F -->|"不能"| H["tsx 等即时转译工具"]
+  A["要运行的 TS 代码"] --> B{"用到装饰器、<br/>enum、JSX、<br/>paths？"}
+  B -->|"是：NestJS、<br/>React 等"| C["编译或打包：<br/>tsc / SWC /<br/>Vite / esbuild"]
+  B -->|"否"| D{"是发布到<br/>npm 的库吗？"}
+  D -->|"是"| E["tsc 编译成<br/>JS + .d.ts<br/>可用 rewriteRelative<br/>ImportExtensions"]
+  D -->|"否"| F{"Node 下限能<br/>定在 22.18 吗？"}
+  F -->|"能"| G["node 直接跑 +<br/>erasableSyntaxOnly"]
+  F -->|"不能"| H["tsx 等<br/>即时转译工具"]
+  C ~~~ D
+  E ~~~ F
 ```
 
 几个真实项目的选择：

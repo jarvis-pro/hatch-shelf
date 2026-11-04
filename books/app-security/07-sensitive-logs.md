@@ -7,7 +7,7 @@
 ## 日志会去哪里
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[应用日志] --> B[服务器上的文件 / journald]
   A --> C[第三方错误追踪服务]
   N[nginx 访问日志] --> B

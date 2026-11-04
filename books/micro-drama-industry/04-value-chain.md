@@ -5,7 +5,7 @@
 ## 产业链一张图
 
 ```mermaid
-flowchart LR
+flowchart TD
   IP["IP 方<br/>网文平台、作者"] --> PUB["出品方 / 版权方"]
   W["编剧"] --> PUB
   PUB --> PROD["承制方<br/>实拍团队或 AI 制作团队"]

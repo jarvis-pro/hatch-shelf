@@ -73,7 +73,7 @@ $$
 **按属性拆分**。把同一个漏斗按渠道、设备、App 版本、套餐拆开：
 
 ```mermaid
-flowchart LR
+flowchart TD
     F["导入漏斗整体 50%"] --> A["网页端 62%"]
     F --> B["App 端 31%"]
     B --> B1["iOS 45%"]

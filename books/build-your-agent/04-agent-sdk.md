@@ -20,7 +20,7 @@
 Tool Runner 在[《大模型应用工程》第 4 章](../llm-app-engineering/04-tool-use.md)介绍过，它只是替你写好了第 1 章那个循环。Agent SDK 不一样：调用 `query()` 时，它会**启动一个 Claude Code 子进程**，通过 stdio 和它通信。子进程拥有自己的工作目录、shell 和会话文件。你得到的是一个完整的 Claude Code，只是由代码而不是人来驱动。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["你的代码<br/>query(prompt, options)"] <-->|"stdio 上的消息流"| B["Claude Code 子进程"]
   B --> C["内置工具<br/>Read / Edit / Grep ..."]
   B --> D["MCP server<br/>（进程内或外部）"]

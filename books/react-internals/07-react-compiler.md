@@ -203,7 +203,7 @@ function DishRank(props: Props) {
 6. **切换到全量模式**，保留现有 `useMemo` / `useCallback`，新代码不再手写
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["清理渲染期 ref"] --> B["处理 effect 里 setState"]
   B --> C["lint 全开、清零"]
   C --> D["annotation 模式<br/>编译重页面"]

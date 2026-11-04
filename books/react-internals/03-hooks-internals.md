@@ -20,7 +20,7 @@ function StockCount() {
 ```
 
 ```mermaid
-flowchart LR
+flowchart TD
   F["Fiber<br/>memoizedState"] --> H1["hook 1<br/>state: ''<br/>queue"]
   H1 -->|next| H2["hook 2<br/>{ current: input }"]
   H2 -->|next| H3["hook 3<br/>[rows, [query]]"]

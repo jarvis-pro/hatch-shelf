@@ -5,10 +5,10 @@
 ## 三个部件
 
 ```mermaid
-flowchart LR
-  JS["主线程：V8 执行你的 JS"] -->|"注册回调"| L["libuv 事件循环"]
-  L -->|"网络 I/O"| OS["操作系统：epoll / kqueue / IOCP"]
-  L -->|"文件、DNS lookup、部分 crypto、zlib"| TP["libuv 线程池（默认 4 个线程）"]
+flowchart TD
+  JS["主线程：<br/>V8 执行你的 JS"] -->|"注册回调"| L["libuv 事件循环"]
+  L -->|"网络 I/O"| OS["操作系统：epoll /<br/>kqueue / IOCP"]
+  L -->|"文件、<br/>DNS lookup、<br/>部分 crypto、zlib"| TP["libuv 线程池<br/>（默认 4 个线程）"]
   OS -->|"就绪通知"| L
   TP -->|"完成通知"| L
   L -->|"调用回调"| JS
@@ -26,11 +26,11 @@ libuv 的事件循环每一轮按固定顺序走过几个阶段，每个阶段�
 
 ```mermaid
 flowchart TD
-  T["timers：到期的 setTimeout / setInterval"] --> P["pending callbacks：上一轮推迟的部分系统回调"]
-  P --> I["idle / prepare：内部使用"]
-  I --> O["poll：等待并处理 I/O 事件"]
+  T["timers：<br/>到期的 setTimeout /<br/>setInterval"] --> P["pending callbacks：<br/>上一轮推迟的<br/>部分系统回调"]
+  P --> I["idle / prepare：<br/>内部使用"]
+  I --> O["poll：<br/>等待并处理 I/O 事件"]
   O --> C["check：setImmediate"]
-  C --> X["close callbacks：socket.on('close') 等"]
+  C --> X["close callbacks：<br/>socket.on('close') 等"]
   X --> T
 ```
 

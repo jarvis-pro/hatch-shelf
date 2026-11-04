@@ -161,12 +161,12 @@ const judgeScorer = ({ input, output }: { input: string; output: string }) =>
 有时你不需要绝对的分数，只想知道新版 prompt 比旧版好还是差。这时让评判模型**同时看两份输出，选更好的那个**，往往比分别打分再比较更敏感：人和模型都更擅长比较，而不是给出绝对评价。
 
 ```mermaid
-flowchart LR
+flowchart TD
   I[同一个输入] --> A[旧版输出]
   I --> B[新版输出]
-  A --> J1["评判：A 在前、B 在后"]
+  A --> J1["评判：A 在前、<br/>B 在后"]
   B --> J1
-  A --> J2["评判：B 在前、A 在后"]
+  A --> J2["评判：B 在前、<br/>A 在后"]
   B --> J2
   J1 --> R{两次结论一致？}
   J2 --> R

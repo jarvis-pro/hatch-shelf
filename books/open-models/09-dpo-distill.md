@@ -171,7 +171,7 @@ flowchart TD
 最后把整本书串起来：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[LoRA 适配器] --> B[合并到 BF16 底座]
   B --> C{部署到哪}
   C -->|Mac 或单机| D[转 GGUF 并量化]

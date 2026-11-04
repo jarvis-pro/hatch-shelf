@@ -21,10 +21,10 @@
 ```mermaid
 flowchart TD
   S0["阶段 0：只有自己<br/>本地优先，零后端"] --> S1
-  S1["阶段 1：前 100 个用户<br/>一台 VPS，一个 compose"] --> S2
-  S2["阶段 2：几百到上千<br/>修查询、加缓存、异步化、文件外置"] --> S3
-  S3["阶段 3：上千到上万<br/>纵向扩容、去掉单实例假设、读副本"]
-  S3 -.很久以后.-> S4["拆服务、分库<br/>多数一人项目到不了这里"]
+  S1["阶段 1：<br/>前 100 个用户<br/>一台 VPS，<br/>一个 compose"] --> S2
+  S2["阶段 2：几百到上千<br/>修查询、加缓存、<br/>异步化、文件外置"] --> S3
+  S3["阶段 3：上千到上万<br/>纵向扩容、<br/>去掉单实例假设、<br/>读副本"]
+  S3 -.很久以后.-> S4["拆服务、分库<br/>多数一人项目<br/>到不了这里"]
 ```
 
 ## 阶段 0：只有自己
@@ -46,7 +46,7 @@ hatch-shelf 就是这样：书写在电脑上，通过 AirDrop 或局域网传�
 这时的标准配置：**一台 VPS，Docker Compose 起一个 Postgres 和一个 API，宿主机上一个 nginx**。hatch-counter 线上就是这个形状，compose 文件里只有两个服务：数据库不暴露端口，API 只绑本机回环地址给 nginx，数据放在命名卷里。
 
 ```mermaid
-flowchart LR
+flowchart TD
   U[用户] -->|HTTPS| N[nginx（宿主机）]
   N --> A[API 容器]
   A --> P[(Postgres 容器)]

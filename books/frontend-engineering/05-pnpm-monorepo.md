@@ -15,7 +15,7 @@ npm 和 Yarn Classic 把依赖尽量**平铺**在 `node_modules` 顶层。这带
 pnpm 默认的 `node-linker=isolated` 布局是这样的：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["apps/web/node_modules/react"] -- 符号链接 --> B["node_modules/.pnpm/react@19.2.8/node_modules/react"]
   B -- 硬链接 --> C["全局内容寻址存储<br/>~/.local/share/pnpm/store 等位置"]
   D["apps/admin/node_modules/react"] -- 符号链接 --> B

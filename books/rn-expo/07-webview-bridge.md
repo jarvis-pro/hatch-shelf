@@ -26,13 +26,13 @@ Mermaid 依赖 DOM 和 SVG 排版，KaTeX 依赖 CSS 和字体度量，highlight
 阅读器是一个独立的小前端工程 `app/reader-web/`，用 esbuild 打成**单个 HTML 文件**：JS、CSS、KaTeX 字体全部内联，输出到 `app/assets/reader/index.html`。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["reader-web/src/main.ts"] --> B["esbuild 打包"]
   K["KaTeX CSS + woff2 字体"] --> C["转成 data URL 内联"]
   B --> D["单文件 index.html"]
   C --> D
   D --> E["作为资源随 App 安装"]
-  E --> F["启动时拷到 documentDirectory/reader/"]
+  E --> F["启动时拷到<br/>documentDirectory/reader/"]
   F --> G["WebView 以 file:// 加载"]
 ```
 
@@ -147,15 +147,15 @@ WebView 加载页面需要时间。RN 在页面就绪之前发的消息会丢失
 sequenceDiagram
   participant RN as RN 阅读页
   participant W as WebView 阅读器
-  RN->>W: 加载 file://…/reader/index.html
+  RN->>W: 加载 file://…/<br/>reader/index.html
   W-->>RN: ready
-  RN->>RN: 读章节文件、进度、高亮
-  RN->>W: load（markdown、主题、恢复位置、高亮）
-  W->>W: 渲染、恢复滚动位置
+  RN->>RN: 读章节文件、<br/>进度、高亮
+  RN->>W: load（markdown、主题、<br/>恢复位置、高亮）
+  W->>W: 渲染、<br/>恢复滚动位置
   W-->>RN: toc（目录）
   W-->>RN: rendered
-  W-->>RN: position（滚动停止 400ms 后）
-  RN->>RN: saveProgress 写 SQLite
+  W-->>RN: position（滚动<br/>停止 400ms 后）
+  RN->>RN: saveProgress<br/>写 SQLite
 ```
 
 RN 侧用 `webReady` 状态门控：只有收到 `ready` 之后，切章节的 effect 才会发 `load`。

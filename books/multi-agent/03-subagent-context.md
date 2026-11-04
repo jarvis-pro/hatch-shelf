@@ -18,15 +18,13 @@
 出来的方向只有一条：**子 agent 最后的总结文字**。它跑过的命令、读过的文件、中途的判断，主会话都看不到。它写在磁盘上的文件当然还在，但主会话要读才知道。
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph IN["进入边界"]
-    A["系统提示词"]
-    B["CLAUDE.md"]
-    C["环境快照"]
-    D["任务描述"]
+    direction TB
+    A["系统提示词"] ~~~ B["CLAUDE.md"] ~~~ C["环境快照"] ~~~ D["任务描述"]
   end
   subgraph SUB["子 agent 的上下文"]
-    W["读文件、跑命令、写文件<br/>这些都留在这里"]
+    W["读文件、跑命令、<br/>写文件<br/>这些都留在这里"]
   end
   subgraph OUT["离开边界"]
     R["一段总结"]

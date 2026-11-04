@@ -66,7 +66,7 @@ location / {
 - **入口文件**：`index.html`、`manifest.webmanifest`、`sw.js`。文件名永远不变，里面引用着当前版本的哈希文件名
 
 ```mermaid
-flowchart LR
+flowchart TD
   H["index.html（no-cache）"] -->|"引用"| J["index-a1b2c3d4.js（缓存一年）"]
   H -->|"引用"| C["index-77ee01.css（缓存一年）"]
   N["发新版"] -->|"index.html 内容变化"| H2["index.html 引用 index-e5f6a7b8.js"]

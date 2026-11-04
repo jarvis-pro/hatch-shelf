@@ -17,10 +17,10 @@
 ## 实现方式的光谱
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[请求里直接做] --> B[进程内队列]
   B --> C[Postgres 表当队列]
-  C --> D["Redis 队列（BullMQ）"]
+  C --> D["Redis 队列<br/>（BullMQ）"]
   D --> E[托管队列]
 ```
 

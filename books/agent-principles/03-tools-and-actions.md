@@ -13,8 +13,8 @@ sequenceDiagram
   participant P as 你的程序
   participant M as 模型
   participant E as 外部环境
-  P->>M: 工具定义（名称、描述、参数 schema）+ 对话
-  M-->>P: tool_use：name=run_command, input={cmd: "pnpm test"}
+  P->>M: 工具定义（名称、描述、<br/>参数 schema）+ 对话
+  M-->>P: tool_use：name=run_command,<br/>input={cmd: "pnpm test"}
   P->>P: 校验参数、检查权限
   P->>E: 真正执行命令
   E-->>P: 退出码 + 输出

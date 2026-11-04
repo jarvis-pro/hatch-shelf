@@ -50,7 +50,7 @@ sops:
 加密用的是**信封加密**：
 
 ```mermaid
-flowchart LR
+flowchart TD
   DK["数据密钥<br/>每个文件随机生成"] -->|AES-256-GCM| V[加密每个值]
   DK -->|用 age 公钥加密| E1[接收者 1 的密文]
   DK -->|用另一把公钥加密| E2[接收者 2 的密文]

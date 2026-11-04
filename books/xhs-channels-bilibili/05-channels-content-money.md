@@ -169,7 +169,7 @@
 对副业开发者，视频号上比较现实的变现组合是：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[视频号短视频] --> B[公众号长文]
   A --> C[知识直播]
   B --> D[企业微信]

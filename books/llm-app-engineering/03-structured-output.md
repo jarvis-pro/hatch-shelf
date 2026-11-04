@@ -124,7 +124,7 @@ const Line = z.object({
 所以结构化输出后面一定要接一层**业务校验**：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[模型输出] --> B{符合 schema？}
   B -- 否 --> R[重试或报错]
   B -- 是 --> C{业务规则校验}

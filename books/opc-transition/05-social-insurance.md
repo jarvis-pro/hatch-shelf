@@ -206,7 +206,7 @@ flowchart TD
 ## 离职前后的操作时间线
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["离职前 1 个月<br/>查记录、问规则"] --> B["离职当月<br/>确认停缴月份"]
   B --> C["停缴后尽快<br/>办理灵活就业参保"]
   C --> D["签约自动扣款"]

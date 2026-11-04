@@ -91,6 +91,8 @@ serde_json.workspace = true
 
 ### lint.rs：逐行扫描 Markdown
 
+`lint.rs` 完整文件分 3 段给出，从上到下拼起来就是整个文件。第一段定义问题的严重程度和 `Issue`，附带两个构造函数和打印格式：
+
 ```rust
 use serde::Serialize;
 use std::fmt;
@@ -132,7 +134,11 @@ impl fmt::Display for Issue {
         }
     }
 }
+```
 
+第二段是逐行扫描：`MdLine` 描述一行，`fence_marker` 识别围栏标记，`scan` 返回一个迭代器，边走边记录当前是否在代码块里：
+
+```rust
 /// 扫描结果中的一行：行号、原文、是否在代码块内；开头的 fence 行带上语言标注
 pub struct MdLine<'a> {
     pub no: usize,
@@ -173,7 +179,11 @@ pub fn scan(markdown: &str) -> impl Iterator<Item = MdLine<'_>> {
         }
     })
 }
+```
 
+第三段是两个判断函数和对外的 `lint_chapter`：用上一段的 `scan` 逐行检查代码块语言、H1 数量和远程图片：
+
+```rust
 fn is_h1(line: &str) -> bool {
     line.strip_prefix('#')
         .is_some_and(|rest| rest.starts_with(|c: char| c == ' ' || c == '\t') && !rest.trim().is_empty())
@@ -223,6 +233,8 @@ pub fn lint_chapter(file: &str, markdown: &str) -> Vec<Issue> {
 
 ### manifest.rs：book.yaml
 
+`manifest.rs` 完整文件分 3 段给出，从上到下拼起来就是整个文件。第一段是导入和与 `book.yaml` 对应的类型：
+
 ```rust
 use crate::lint::Issue;
 use serde::{Deserialize, Serialize};
@@ -257,7 +269,11 @@ pub struct BookManifest {
     #[serde(default)]
     pub next: Vec<NextBook>,
 }
+```
 
+第二段是读取失败时的错误类型 `LoadError`（用 thiserror 派生），以及判断 slug 的 `is_slug`：
+
+```rust
 #[derive(Debug, Error)]
 pub enum LoadError {
     #[error("读取 {} 失败", .path.display())]
@@ -278,7 +294,11 @@ pub fn is_slug(s: &str) -> bool {
         && !s.contains("--")
         && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
+```
 
+第三段是 `validate`：serde 只保证结构，业务规则在这里逐条检查，问题全部收集后返回：
+
+```rust
 impl BookManifest {
     /// serde 只保证形状，这里检查业务规则
     pub fn validate(&self, dir_name: &str) -> Vec<Issue> {

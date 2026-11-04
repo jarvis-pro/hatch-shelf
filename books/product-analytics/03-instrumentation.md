@@ -10,10 +10,10 @@
 
 ```mermaid
 flowchart TD
-    T["@app/analytics：事件类型 + track 接口"] --> W["网页端：posthog-js 适配器"]
-    T --> M["Expo App：posthog-react-native 适配器"]
-    T --> S["服务端：posthog-node 适配器"]
-    W --> P["分析服务（自托管或云）"]
+    T["@app/analytics：<br/>事件类型 + track 接口"] --> W["网页端：<br/>posthog-js 适配器"]
+    T --> M["Expo App：<br/>posthog-react-native<br/>适配器"]
+    T --> S["服务端：<br/>posthog-node 适配器"]
+    W --> P["分析服务<br/>（自托管或云）"]
     M --> P
     S --> P
 ```

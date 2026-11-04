@@ -13,7 +13,7 @@
 | Server（服务端） | 暴露能力的程序 | 本书的 `shelf-books` |
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["用户"] --> H
   subgraph H["Host：Claude Code"]
     M["模型调用与权限"]

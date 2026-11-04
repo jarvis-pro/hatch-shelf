@@ -115,8 +115,8 @@ export function toReadable(text: string): string {
 主流服务的声音复刻流程大致相同：
 
 ```mermaid
-flowchart LR
-  A["实名认证"] --> B["录制样本<br/>按服务要求朗读指定文本"]
+flowchart TD
+  A["实名认证"] --> B["录制样本<br/>按服务要求<br/>朗读指定文本"]
   B --> C["声纹核验<br/>确认是本人"]
   C --> D["训练音色"]
   D --> E["试听调整"]

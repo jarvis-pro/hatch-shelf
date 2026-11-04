@@ -172,7 +172,7 @@ docker compose run --rm --entrypoint promtool prometheus check rules /etc/promet
 Prometheus 只负责判断「哪些告警在触发」，发通知是 **Alertmanager** 的事。它做三件 Prometheus 不做的事：
 
 ```mermaid
-flowchart LR
+flowchart TD
   P["Prometheus<br/>评估规则"] -->|"触发中的告警"| A["Alertmanager"]
   A --> G["分组<br/>同类合并成一条"]
   G --> I["抑制<br/>主机挂了就不报其上的服务"]

@@ -77,7 +77,7 @@ docker compose exec -T postgres pg_restore --list < /srv/pg-backups/dump/counter
 不要在生产库上练恢复。起一个一次性的同版本容器，把备份还原进去，核对数据，然后删掉。
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["取最近一份<br/>dump + roles"] --> B["起临时容器<br/>postgres:16-alpine"]
   B --> C["导入角色"]
   C --> D["pg_restore 建库并导入"]

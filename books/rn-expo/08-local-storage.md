@@ -23,8 +23,8 @@
 
 ```mermaid
 flowchart TD
-  F["books/ 目录（真相）"] -->|"启动时扫描"| I["索引表：books / chapters / search"]
-  U["用户操作"] --> D["用户数据表：progress / settings / highlights"]
+  F["books/ 目录（真相）"] -->|"启动时扫描"| I["索引表：books /<br/>chapters / search"]
+  U["用户操作"] --> D["用户数据表：<br/>progress /<br/>settings /<br/>highlights"]
   I --> UI["书架、搜索、阅读页"]
   D --> UI
 ```

@@ -42,7 +42,7 @@ hatch-counter 的选择是 **git tag**，而且 tag 只由流水线在出包（�
 - 失败的发版不留下 tag，同一个版本号修完可以再触发一次
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["pnpm release web"] --> B["找上一个 web-v* tag"]
   B --> C["收区间内碰过 apps/web 的提交"]
   C --> D["算出新版本号和 changelog"]

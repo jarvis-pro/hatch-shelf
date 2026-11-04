@@ -5,13 +5,8 @@
 ## 全景
 
 ```mermaid
-flowchart LR
-  subgraph SRC["外部世界"]
-    S1["邮箱"]
-    S2["后端事件"]
-    S3["银行和平台导出"]
-    S4["应用商店评价"]
-  end
+flowchart TD
+  SRC["外部世界<br/>邮箱 · 后端事件 ·<br/>银行和平台导出 ·<br/>应用商店评价"]
   SRC --> COL["采集器<br/>去重 · 脱敏"]
   COL --> IN["inbox/角色/"]
   IN --> DIS["调度器"]
@@ -22,7 +17,7 @@ flowchart LR
   OUT --> YOU{"你批准"}
   YOU --> ACT["执行器<br/>白名单动作"]
   ACT --> SRC
-  LOG --> NOTI["通知<br/>安静成功 · 大声失败"]
+  LOG --> NOTI["通知<br/>安静成功 ·<br/>大声失败"]
 ```
 
 图里有一条清晰的分界线：**agent 只在中间那一段工作**。它读 inbox、写 logs 和 outbox，和外部世界之间隔着两层：进来的路上有采集器做去重和脱敏，出去的路上有你的批准和执行器的白名单。agent 本身不持有任何外部系统的凭据。
@@ -297,12 +292,21 @@ for (const file of files) {
 有了统一的 inbox 和 outbox，岗位之间的协作就变成了**一个工作流的产出写进另一个岗位的 inbox**：
 
 ```mermaid
-flowchart LR
-  CSW["客服周报"] -->|"缺报错文案"| ENGI["inbox/eng/<br/>需求卡草稿"]
-  CSW -->|"kb 缺条目"| KB["kb/ 的 PR"]
-  REV["差评监测"] -->|"描述了故障"| CSI["inbox/support/"]
-  MATCH["收款核对"] -->|"超期未付"| OPSI["inbox/ops/<br/>跟进卡"]
-  REL["发版"] -->|"改动清单"| DOCI["inbox/ops/<br/>文档检查"]
+flowchart TD
+  subgraph P1[" "]
+    CSW["客服周报"] -->|"缺报错文案"| ENGI["inbox/eng/<br/>需求卡草稿"]
+    CSW -->|"kb 缺条目"| KB["kb/ 的 PR"]
+  end
+  subgraph P2[" "]
+    REV["差评监测"] -->|"描述了故障"| CSI["inbox/support/"]
+  end
+  subgraph P3[" "]
+    MATCH["收款核对"] -->|"超期未付"| OPSI["inbox/ops/<br/>跟进卡"]
+  end
+  subgraph P4[" "]
+    REL["发版"] -->|"改动清单"| DOCI["inbox/ops/<br/>文档检查"]
+  end
+  P1 ~~~ P2 ~~~ P3 ~~~ P4
 ```
 
 接力的规则写在发起方的 prompt 里：「发现缺报错文案的工单，在 `inbox/eng/` 写一份需求卡草稿」。接收方的岗位卡里不需要知道它从哪来，它只看自己的 inbox。这样岗位之间是松耦合的，你可以随时调整某个岗位的内部实现而不影响别人。

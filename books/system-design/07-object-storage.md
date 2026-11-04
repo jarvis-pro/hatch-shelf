@@ -51,7 +51,7 @@ hatch-counter 在启动时就拦住了这个错误：生产环境如果配置的
 ## 上传：三种路径
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph A["经服务端转发"]
     c1[客户端] -->|文件| s1[API] -->|文件| o1[(对象存储)]
   end
@@ -62,6 +62,7 @@ flowchart LR
   subgraph C["经边缘代理"]
     c3[客户端] -->|文件 + 令牌| w3[Worker] --> o3[(R2)]
   end
+  A ~~~ B ~~~ C
 ```
 
 | 路径 | 优点 | 缺点 | 适合 |

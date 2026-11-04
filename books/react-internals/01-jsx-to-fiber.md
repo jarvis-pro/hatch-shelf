@@ -135,7 +135,7 @@ React 同时维护两棵 Fiber 树：
 ## 一次更新的三个阶段
 
 ```mermaid
-flowchart LR
+flowchart TD
   T["触发<br/>setState / root.render"] --> S["调度<br/>标记 lanes，排进 Scheduler"]
   S --> R["渲染阶段 render<br/>beginWork / completeWork<br/>可中断，纯计算"]
   R --> C["提交阶段 commit<br/>改 DOM、跑 layout effect<br/>同步、不可中断"]

@@ -223,7 +223,7 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
 各自的分工：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["form action"] -->|"transition + FormData"| B["useActionState<br/>排队、结果、错误"]
   B --> C["Submission<br/>请求号、重试去重"]
   C --> D["服务端<br/>幂等、业务校验、中文报错"]

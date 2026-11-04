@@ -106,7 +106,7 @@ $$
 ## 全流程
 
 ```mermaid
-flowchart LR
+flowchart TD
   T[原始文本] --> K[分词器切成 token]
   K --> I[查词表得到编号]
   I --> E[查 embedding 表得到向量]

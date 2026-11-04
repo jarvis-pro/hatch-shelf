@@ -29,7 +29,10 @@ flowchart TD
 设路由器的参数为 $W_r \in \mathbb{R}^{d \times E}$。对 token 的隐状态 $x$：
 
 $$
-s = \mathrm{softmax}(x W_r) \in \mathbb{R}^{E},\qquad \mathcal{T} = \mathrm{TopK}(s, k)
+\begin{gathered}
+s = \mathrm{softmax}(x W_r) \in \mathbb{R}^{E} \\
+\mathcal{T} = \mathrm{TopK}(s, k)
+\end{gathered}
 $$
 
 $$

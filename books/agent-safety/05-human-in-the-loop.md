@@ -187,8 +187,8 @@ export function consume(store: Map<string, PendingAction>, id: string, tool: str
 
 ```mermaid
 flowchart LR
-  P["计划审批<br/>动手前：要做什么、改哪些地方"] --> A["动作审批<br/>执行中：只针对高风险操作"]
-  A --> R["结果审批<br/>结束后：审阅 diff 或 PR"]
+  P["计划审批<br/>动手前：<br/>要做什么、<br/>改哪些地方"] --> A["动作审批<br/>执行中：<br/>只针对高风险操作"]
+  A --> R["结果审批<br/>结束后：<br/>审阅 diff 或 PR"]
 ```
 
 对编码 agent，**结果审批是最高效的**：agent 在分支上自由工作，最后开一个 PR，你审阅 diff 后合并。第 4 章的分支保护让这个流程成为硬约束：agent 根本没有办法跳过你的审阅直接进 main。这套书本身也是这样写的：写书 agent 只写自己的目录、不运行 git，主会话审阅后统一提交。

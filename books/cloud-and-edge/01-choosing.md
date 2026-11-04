@@ -33,7 +33,7 @@
 | 计费单位 | 按时长（月 / 小时） | 按请求和计算量 | 按容量、请求、流量等用量 |
 
 ```mermaid
-flowchart LR
+flowchart TD
   subgraph V["VPS：你管到操作系统"]
     V1["代码"] --> V2["运行时 / 容器"] --> V3["操作系统"]
   end
@@ -132,7 +132,7 @@ flowchart TD
 真实项目很少只用一种形态。一人公司里最常见的组合：
 
 ```mermaid
-flowchart LR
+flowchart TD
   U["客户端"] --> E["边缘：静态资源、鉴权、轻量 API"]
   E --> V["VPS：主业务进程"]
   V --> DB["托管或自建 Postgres"]

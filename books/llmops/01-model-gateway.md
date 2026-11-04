@@ -47,7 +47,7 @@ hatch-counter 是给中小餐饮门店用的经营管理工具，店主拍一张
 把「调模型」看成一次请求穿过一串关卡：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[业务代码] --> B[配额检查]
   B --> C[解析 prompt 版本]
   C --> D[选候选供应商]

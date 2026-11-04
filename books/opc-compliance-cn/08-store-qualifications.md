@@ -12,7 +12,7 @@
 先把前面几章的产出和上架的关系画清楚：
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["公司主体"] --> B["开发者账号<br/>企业认证"]
   A --> C["ICP 备案"]
   C --> D["App 备案"]

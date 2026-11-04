@@ -23,7 +23,7 @@ Terraform 是 HashiCorp 做的 IaC 工具，用 HCL（HashiCorp Configuration La
 OpenTofu 的一切都围绕三样东西：
 
 ```mermaid
-flowchart LR
+flowchart TD
   C["代码<br/>*.tf：你想要什么"] --> P{tofu plan}
   S["状态<br/>terraform.tfstate：上次记下的样子"] --> P
   R["现实<br/>云 API 返回的样子"] --> P

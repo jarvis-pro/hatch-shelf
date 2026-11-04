@@ -17,7 +17,7 @@ electron-vite 把这件事标准化了：
 它在开发时做三件事：打包 main 和 preload、启动渲染进程的 Vite 开发服务器、把服务器地址通过环境变量 `ELECTRON_RENDERER_URL` 传给 Electron 并启动它。
 
 ```mermaid
-flowchart LR
+flowchart TD
   CFG[electron.vite.config.ts] --> M[构建 main]
   CFG --> P[构建 preload]
   CFG --> R[启动 renderer 开发服务器]

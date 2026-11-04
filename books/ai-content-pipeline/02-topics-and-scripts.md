@@ -150,7 +150,7 @@
 ### 一条脚本的生命周期
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["素材卡"] --> B["模型出初稿<br/>+ hooks + facts"]
   B --> C{"有【待补】?"}
   C -->|"有"| D["人补素材"]
@@ -279,10 +279,13 @@ materials/
 └── 2026-11-01-first-users.md
 outputs/
 └── 2026-11-01-first-users/
-    ├── script.json
-    ├── facts-check.md
-    └── meta.json     # 用的哪个模型、哪版提示词、生成时间
 ```
+
+`outputs/2026-11-01-first-users/` 里放三个文件：
+
+- `script.json`
+- `facts-check.md`
+- `meta.json`：用的哪个模型、哪版提示词、生成时间
 
 meta.json 记下模型和提示词版本，等这条视频的数据出来，你才能回头判断是哪一版提示词写出的稿子数据更好。这个结构在第 7 章的流水线里会直接用到。
 

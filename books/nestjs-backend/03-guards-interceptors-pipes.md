@@ -195,15 +195,17 @@ intercept(ctx: ExecutionContext, next: CallHandler): Observable<unknown> {
 
 ```mermaid
 flowchart TD
-  A[写请求带 idempotency-key] --> B{有这条回执吗}
-  B -- 没有 --> C[占一行「还在跑」]
+  A["写请求带<br/>idempotency-key"] --> B{"有这条<br/>回执吗"}
+  B -- 没有 --> C["占一行<br/>「还在跑」"]
   C --> D[执行处理函数]
   D -- 成功 --> E[记下回包]
-  D -- 失败 --> F[删掉占的那行]
-  B -- 有，已完成 --> G{内容摘要一致吗}
-  G -- 一致 --> H[原样回放上次的回包]
-  G -- 不一致 --> I[422 idempotency_mismatch]
-  B -- 有，还在跑 --> J["409 稍等几秒"]
+  D -- 失败 --> F["删掉占的那行"]
+  B -- 有 --> K{"还在跑吗"}
+  K -- 还在跑 --> J["409 稍等几秒"]
+  K -- 已完成 --> G{"内容摘要<br/>一致吗"}
+  G -- 一致 --> H["原样回放<br/>上次的回包"]
+  G -- 不一致 --> I["422<br/>idempotency_mismatch"]
+  E ~~~ K
 ```
 
 几个容易写错的决定，都写在它的注释和文档里：

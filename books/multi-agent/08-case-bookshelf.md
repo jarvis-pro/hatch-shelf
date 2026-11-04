@@ -10,21 +10,30 @@
 sequenceDiagram
   participant H as 人
   participant M as 主会话
-  participant S as 写书 agent（每批十个）
-  participant C as shelf-pack check
+  participant S as 写书 agent
+  participant C as check
   H->>M: 开写下一批
-  M->>M: 按 ROADMAP 顺序挑出十本，检查前置书已完成
-  M->>S: 任务：书名、id、针对性提示 + 共用简报路径
-  S->>S: 读规范、大纲、范文、前置书、案例项目
-  S->>S: 写章节、画图、渲染预览
+  M->>M: 按 ROADMAP 顺序<br/>挑出十本，检查<br/>前置书已完成
+  M->>S: 任务：书名、id、<br/>针对性提示 +<br/>共用简报路径
+  S->>S: 读规范、大纲、<br/>范文、前置书、<br/>案例项目
+  S->>S: 写章节、画图、<br/>渲染预览
   S->>C: 自检
   C-->>S: 通过或错误清单
   S-->>M: 不超过十行的回执
+```
+
+上图是派发和写书：写书 agent 每批十个，check 指 `shelf-pack check`。写完之后，主会话收尾、人来确认：
+
+```mermaid
+sequenceDiagram
+  participant H as 人
+  participant M as 主会话
+  participant C as check
   M->>C: 逐本再跑一遍
-  M->>M: 回写大纲调整、更新状态和进度页
+  M->>M: 回写大纲调整、<br/>更新状态和进度页
   M-->>H: 待复核事实清单
   H->>M: 确认
-  M->>M: 一本书一个提交，进度单独提交
+  M->>M: 一本书一个提交，<br/>进度单独提交
 ```
 
 ## 决策一：以书为拆分单位

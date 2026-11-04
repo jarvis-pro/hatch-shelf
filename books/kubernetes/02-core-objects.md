@@ -219,7 +219,11 @@ Pod 被删除时，有两件事**同时**发生：
 1. kubelet 给容器发 SIGTERM（先执行 preStop）
 2. 控制面把这个 Pod 从 Service 的转发列表（EndpointSlice）里删掉，各节点的 kube-proxy 和 Ingress 控制器再去更新自己的规则
 
-第 2 步需要传播时间。如果容器收到 SIGTERM 立刻关闭监听，传播完成前到达的请求就会失败。`preStop` 里 sleep 几秒，等转发规则更新完再开始关停，是消除滚动发布中零星 502 的标准做法。`lifecycle.preStop.sleep` 是较新的 K8s 版本提供的原生写法；老版本集群上用 `exec: { command: ["sleep", "5"] }`，前提是镜像里有 `sleep`（alpine 有）。
+第 2 步需要传播时间。如果容器收到 SIGTERM 立刻关闭监听，传播完成前到达的请求就会失败。`preStop` 里 sleep 几秒，等转发规则更新完再开始关停，是消除滚动发布中零星 502 的标准做法。下图把两种情况的先后顺序并排画出来：
+
+![不睡时 SIGTERM 和转发规则传播同时开始，规则还没摘完进程就已关闭，中间这段时间到达的请求返回 502；preStop 先睡 5 秒，摘除完成后才发 SIGTERM，这个窗口就消失了](assets/prestop-sleep-timeline.svg)
+
+`lifecycle.preStop.sleep` 是较新的 K8s 版本提供的原生写法；老版本集群上用 `exec: { command: ["sleep", "5"] }`，前提是镜像里有 `sleep`（alpine 有）。
 
 之后 NestJS 收到 SIGTERM，因为 hatch-counter 在 `main.ts` 里调了 `app.enableShutdownHooks()`，它会停止接新连接、跑完 `onModuleDestroy` 等钩子。整个过程要在 `terminationGracePeriodSeconds`（默认 30 秒）内结束，超时会被 SIGKILL。
 

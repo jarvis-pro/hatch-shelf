@@ -59,6 +59,30 @@ flowchart TD
 > [!WARNING]
 > Go 1.25 起，Linux 上的 `GOMAXPROCS` 默认会参考容器的 CPU 限额（cgroup），不再直接等于宿主机核数；更早的版本在容器里常需要 `go.uber.org/automaxprocs`。以 [go.dev/doc/go1.25](https://go.dev/doc/go1.25) 和 `runtime` 包文档为准。
 
+### G、M、P：调度器里的三个角色
+
+> [!WARNING]
+> 下面的本地队列长度 256、偷一半、sysmon 何时收回 P、多久检查一次全局队列，都是 runtime 的实现细节，不属于语言规范，不同 Go 版本可能调整，以对应版本的 `runtime/proc.go` 源码注释为准，背景可看 [Go 1.1 调度器设计文档](https://golang.org/s/go11sched)。
+
+上面说「M:N 调度」，具体由三种对象配合完成，名字取自 runtime 源码（`runtime/proc.go` 开头的注释）：
+
+- **G**（goroutine）：一个待执行的函数加上它自己的栈和状态。`go f()` 就是新建一个 G
+- **M**（machine）：一个操作系统线程，真正在 CPU 上跑代码的是它
+- **P**（processor）：执行 Go 代码的「许可」，数量就是 `GOMAXPROCS`。**M 必须持有一个 P 才能运行 G**；M 在系统调用里阻塞时可以不持有 P
+
+所以前面那句「线程数默认等于 CPU 核数」更准确的说法是：**同时在跑 Go 代码的线程**最多 `GOMAXPROCS` 个，进程里的线程总数可以更多。
+
+为什么要多一个 P？Go 1.1 之前只有 G 和 M，所有 goroutine 放在一个全局队列里，每次取任务都要抢同一把锁，核数一多就成了瓶颈。P 把可运行的 G 分散到每个 P 自己的本地队列（源码里是长 256 的环形缓冲），内存分配缓存等资源也挂在 P 上，绝大多数调度不需要全局锁。全局队列仍然保留，用来放溢出的 G，各个 P 会定期查看它，避免里面的 G 饿死。
+
+两种情况最能看出 P 的作用：
+
+- **阻塞系统调用**：G 发起一个会卡住线程的系统调用（比如读普通文件、调用 cgo），它所在的 M 跟着卡住。运行时的监控线程 sysmon 发现这个 P 卡在系统调用里超过一小段时间，就把 P 从这个 M 上拿走，交给一个空闲的或新建的 M，P 队列里的其他 G 继续跑。系统调用返回后，原来的 M 要重新找一个空闲 P，找不到就把 G 放回全局队列、自己休眠。网络 I/O 不走这条路：它由 netpoller（epoll / kqueue）处理，G 被挂起，M 不阻塞
+- **work stealing**：一个 P 的本地队列空了，它会依次看全局队列、netpoller，再随机挑一个别的 P，**偷走对方本地队列里的一半 G**。这样不需要中央分配，负载也能自动摊平
+
+下图把这几种状态画在一起：
+
+![三个 P 各持有一个 M：P0 的本地队列有四个 G，空闲的 P1 从中偷走一半；P2 原来的 M2 带着 G2 阻塞在系统调用里，P2 被交给新的 M3 继续运行；全局队列由所有 P 共享。](assets/gmp-scheduler.svg)
+
 ## 等待一组 goroutine：WaitGroup
 
 上面的例子里 `main` 不会等后台 goroutine。要等一组 goroutine 结束，用 `sync.WaitGroup`：

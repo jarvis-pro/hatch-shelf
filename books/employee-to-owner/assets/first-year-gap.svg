@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="360" height="380" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="379" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">林岚第一年：比上班少拿多少</text>
+<text x="16.0" y="56.0" font-size="12" fill="#656d76" text-anchor="start" font-weight="600">上班一年（万元）</text>
+<text x="96.0" y="84.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">工资</text>
+<rect x="104.0" y="71.0" width="188.8" height="18.0" rx="3.0" fill="#2f6fdf"/>
+<text x="286.8" y="84.0" font-size="12" fill="#ffffff" text-anchor="end" font-weight="600">28.6</text>
+<text x="96.0" y="112.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">+社保公积金</text>
+<line x1="292.8" y1="89.0" x2="292.8" y2="99.0" stroke="#656d76" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="292.8" y="99.0" width="39.6" height="18.0" rx="3.0" fill="#dbe7fb"/>
+<text x="338.4" y="112.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">+6</text>
+<text x="96.0" y="140.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">总报酬</text>
+<line x1="332.4" y1="117.0" x2="332.4" y2="127.0" stroke="#656d76" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="104.0" y="127.0" width="228.4" height="18.0" rx="3.0" fill="#2f6fdf"/>
+<text x="326.4" y="140.0" font-size="12" fill="#ffffff" text-anchor="end" font-weight="600">34.6</text>
+<text x="16.0" y="170.0" font-size="12" fill="#656d76" text-anchor="start" font-weight="600">开工作室第一年（万元）</text>
+<text x="96.0" y="198.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">到账</text>
+<rect x="104.0" y="185.0" width="174.2" height="18.0" rx="3.0" fill="#2f6fdf"/>
+<text x="272.2" y="198.0" font-size="12" fill="#ffffff" text-anchor="end" font-weight="600">26.4</text>
+<text x="96.0" y="226.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">−业务成本</text>
+<line x1="278.2" y1="203.0" x2="278.2" y2="213.0" stroke="#656d76" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="254.5" y="213.0" width="23.8" height="18.0" rx="3.0" fill="#e6e9ed"/>
+<text x="284.2" y="226.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">−3.6</text>
+<text x="96.0" y="254.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">−自缴社保</text>
+<line x1="254.5" y1="231.0" x2="254.5" y2="241.0" stroke="#656d76" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="238.6" y="241.0" width="15.8" height="18.0" rx="3.0" fill="#e6e9ed"/>
+<text x="260.5" y="254.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">−2.4</text>
+<text x="96.0" y="282.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">实际到手</text>
+<line x1="238.6" y1="259.0" x2="238.6" y2="269.0" stroke="#656d76" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="104.0" y="269.0" width="134.6" height="18.0" rx="3.0" fill="#2f6fdf"/>
+<text x="232.6" y="282.0" font-size="12" fill="#ffffff" text-anchor="end" font-weight="600">20.4</text>
+<text x="96.0" y="310.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">隐形亏损</text>
+<line x1="238.6" y1="287.0" x2="238.6" y2="297.0" stroke="#656d76" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="238.6" y="297.0" width="93.7" height="18.0" rx="3.0" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="326.4" y="310.0" font-size="12" fill="#1f2328" text-anchor="end" font-weight="600">约 14</text>
+<line x1="332.4" y1="145.0" x2="332.4" y2="315.0" stroke="#2f6fdf" stroke-width="1" stroke-dasharray="2 3" stroke-opacity="0.6"/>
+<text x="180.0" y="336.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">34.6 − 20.4 = 14.2 万，个税另算</text>
+<rect x="24.0" y="354.0" width="14.0" height="12.0" rx="2.0" fill="#2f6fdf"/>
+<text x="44.0" y="364.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">合计</text>
+<rect x="86.0" y="354.0" width="14.0" height="12.0" rx="2.0" fill="#dbe7fb"/>
+<text x="106.0" y="364.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">加项</text>
+<rect x="148.0" y="354.0" width="14.0" height="12.0" rx="2.0" fill="#e6e9ed"/>
+<text x="168.0" y="364.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">扣项</text>
+<rect x="210.0" y="354.0" width="14.0" height="12.0" rx="2.0" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="3 2"/>
+<text x="230.0" y="364.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">差额</text>
+</svg>

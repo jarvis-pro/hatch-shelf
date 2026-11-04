@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 415" width="360" height="415" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="414" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">如果 L1 缓存是 1 秒</text>
+<text x="180" y="50" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">延迟按同一比例放大（纵轴为对数尺度）</text>
+<text x="54" y="74" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">人类尺度</text>
+<line x1="64" y1="84" x2="64" y2="369.517" stroke="#656d76"/>
+<line x1="60" y1="88" x2="64" y2="88" stroke="#656d76"/>
+<text x="56" y="92" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1 秒</text>
+<line x1="60" y1="173.351" x2="64" y2="173.351" stroke="#656d76"/>
+<text x="56" y="177.351" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1 分钟</text>
+<line x1="60" y1="258.703" x2="64" y2="258.703" stroke="#656d76"/>
+<text x="56" y="262.703" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1 小时</text>
+<line x1="60" y1="324.953" x2="64" y2="324.953" stroke="#656d76"/>
+<text x="56" y="328.953" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1 天</text>
+<line x1="60" y1="365.517" x2="64" y2="365.517" stroke="#656d76"/>
+<text x="56" y="369.517" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1 周</text>
+<path d="M72,88.0 L92,88.0 L92,128.6 L112,128.6 L112,184.0 L132,184.0 L132,313.6 L152,313.6 L152,361.6 L172,361.6" stroke="#2f6fdf" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+<circle cx="92" cy="88.0" r="4" fill="#2f6fdf"/>
+<line x1="98" y1="88" x2="182" y2="88" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="186" y="85" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">L1 缓存  <tspan fill="#656d76">1 ns</tspan></text>
+<text x="186" y="102" font-size="13" fill="#2f6fdf" text-anchor="start" font-weight="600">→ 1 秒</text>
+<circle cx="112" cy="128.6" r="4" fill="#2f6fdf"/>
+<line x1="118" y1="128.565" x2="182" y2="128.565" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="186" y="125.565" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">L2 缓存  <tspan fill="#656d76">5–10 ns</tspan></text>
+<text x="186" y="142.565" font-size="13" fill="#2f6fdf" text-anchor="start" font-weight="600">→ 5–10 秒</text>
+<circle cx="132" cy="184.0" r="4" fill="#2f6fdf"/>
+<line x1="138" y1="184" x2="182" y2="184" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="186" y="181" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">内存  <tspan fill="#656d76">100 ns</tspan></text>
+<text x="186" y="198" font-size="13" fill="#2f6fdf" text-anchor="start" font-weight="600">→ 约 1.7 分钟</text>
+<circle cx="152" cy="313.6" r="4" fill="#2f6fdf"/>
+<line x1="158" y1="313.551" x2="182" y2="313.551" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="186" y="310.551" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">SSD  <tspan fill="#656d76">数十–上百 µs</tspan></text>
+<text x="186" y="327.551" font-size="13" fill="#2f6fdf" text-anchor="start" font-weight="600">→ 几小时到一天多</text>
+<circle cx="172" cy="361.6" r="4" fill="#2f6fdf"/>
+<line x1="178" y1="361.551" x2="182" y2="361.551" stroke="#d8dee4" stroke-dasharray="2 3"/>
+<text x="186" y="358.551" font-size="13" fill="#1f2328" text-anchor="start" font-weight="normal">同机房网络往返  <tspan fill="#656d76">0.5 ms</tspan></text>
+<text x="186" y="375.551" font-size="13" fill="#2f6fdf" text-anchor="start" font-weight="600">→ 约 6 天</text>
+<text x="186" y="240" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">从内存到 SSD，</text>
+<text x="186" y="258" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">等待从分钟级跳到天级</text>
+<text x="180" y="399.517" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">L1、L2、内存为本章实测；SSD、网络为常见量级</text>
+</svg>

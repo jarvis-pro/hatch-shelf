@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 610.0" width="360" height="610.0" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="609.0" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">横屏母版改竖屏：裁哪里、放哪里</text>
+<text x="24" y="58" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">① 16:9 母版上的竖屏取景框（居中裁）</text>
+<rect x="36" y="70" width="288" height="162.0" fill="#e6e9ed" stroke="#656d76" stroke-width="1.5"/>
+<rect x="36" y="70" width="288" height="14" fill="#d8dee4"/>
+<rect x="44" y="94" width="40" height="128.0" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="272" y="94" width="44" height="128.0" fill="#ffffff" stroke="#d8dee4"/>
+<rect x="142.0" y="116" width="76" height="70" rx="4" fill="#dbe7fb"/>
+<text x="180.0" y="148" font-size="12" fill="#1f2328" text-anchor="middle">关键操作</text>
+<text x="180.0" y="165" font-size="12" fill="#1f2328" text-anchor="middle">集中在中央</text>
+<rect x="119.25" y="70" width="121.5" height="162.0" fill="none" stroke="#2f6fdf" stroke-width="2" stroke-dasharray="6 4"/>
+<rect x="134.4375" y="70" width="91.125" height="162.0" fill="none" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="66" y="218.0" font-size="11" fill="#656d76" text-anchor="middle">裁掉</text>
+<text x="294" y="218.0" font-size="11" fill="#656d76" text-anchor="middle">裁掉</text>
+<line x1="36" y1="250.0" x2="60" y2="250.0" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="66" y="254.0" font-size="12" fill="#1f2328" text-anchor="start">9:16（视频号、小红书竖屏）</text>
+<line x1="36" y1="270.0" x2="60" y2="270.0" stroke="#2f6fdf" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="66" y="274.0" font-size="12" fill="#1f2328" text-anchor="start">3:4（小红书）</text>
+<text x="24" y="306.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">② 另一种做法：整幅放中间，上下补内容</text>
+<rect x="40" y="320.0" width="135" height="240.0" rx="4" fill="#ffffff" stroke="#656d76" stroke-width="1.5"/>
+<rect x="48" y="342.0" width="119" height="34" rx="3" fill="#2f6fdf"/>
+<text x="107.5" y="364.0" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">标题条</text>
+<rect x="40" y="386.0" width="135" height="75.9375" fill="#e6e9ed" stroke="#656d76"/>
+<rect x="85.5" y="404.0" width="44" height="40" rx="3" fill="#dbe7fb"/>
+<rect x="48" y="475.9375" width="91" height="30" rx="3" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="93.5" y="495.9375" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="600">字幕</text>
+<rect x="145" y="430.0" width="26" height="86.0" rx="3" fill="#d8dee4"/>
+<circle cx="158" cy="456.0" r="7" fill="#ffffff" stroke="#656d76"/>
+<circle cx="158" cy="482.0" r="7" fill="#ffffff" stroke="#656d76"/>
+<circle cx="158" cy="508.0" r="7" fill="#ffffff" stroke="#656d76"/>
+<rect x="44" y="520.0" width="127" height="36" rx="3" fill="#d8dee4"/>
+<line x1="52" y1="532.0" x2="110" y2="532.0" stroke="#656d76" stroke-width="3" stroke-linecap="round"/>
+<line x1="52" y1="544.0" x2="140" y2="544.0" stroke="#656d76" stroke-width="3" stroke-linecap="round"/>
+<line x1="177" y1="359.0" x2="191" y2="359.0" stroke="#656d76" stroke-width="1"/>
+<text x="195" y="363.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">顶部：标题</text>
+<text x="195" y="379.0" font-size="11" fill="#656d76" text-anchor="start">利用上方空白</text>
+<line x1="177" y1="423.96875" x2="191" y2="413.96875" stroke="#656d76" stroke-width="1"/>
+<text x="195" y="417.96875" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">母版整幅</text>
+<text x="195" y="433.96875" font-size="11" fill="#656d76" text-anchor="start">录屏放中间</text>
+<line x1="177" y1="490.9375" x2="191" y2="490.9375" stroke="#656d76" stroke-width="1"/>
+<text x="195" y="494.9375" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">底部：字幕</text>
+<text x="195" y="510.9375" font-size="11" fill="#656d76" text-anchor="start">竖屏字号要重设</text>
+<line x1="177" y1="538.0" x2="191" y2="544.0" stroke="#656d76" stroke-width="1"/>
+<text x="195" y="548.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">平台 UI 遮挡区</text>
+<text x="195" y="564.0" font-size="11" fill="#656d76" text-anchor="start">点赞、评论、文案</text>
+<text x="180" y="594.0" font-size="11" fill="#656d76" text-anchor="middle">②里遮挡区和字幕区的位置为示意，以平台规范为准</text>
+</svg>

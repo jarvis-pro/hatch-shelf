@@ -15,22 +15,39 @@
 | `QueueEvents` | 订阅整个队列的事件（完成、失败、进度） | 任意进程，需要时才用 |
 | `FlowProducer` | 一次创建一棵父子任务树，子任务都完成后父任务才执行 | 需要时才用 |
 
-一个任务在 Redis 里的生命周期：
+一个任务在 Redis 里的完整生命周期（状态名按 BullMQ 文档）：
 
 ```mermaid
 stateDiagram-v2
-  [*] --> waiting: add()
-  [*] --> delayed: add() 带 delay
-  delayed --> waiting: 到期
-  waiting --> active: Worker 取走
+  direction TB
+  state "waiting-children" as children
+  [*] --> delayed: 带 delay
+  [*] --> wait: add()
+  [*] --> prioritized: 带 priority
+  [*] --> children: Flow 父任务
+  delayed --> wait: 到期
+  delayed --> prioritized: 到期且有优先级
+  children --> wait: 子任务全完成
+  wait --> active: Worker 取走
+  prioritized --> active: 按优先级取
   active --> completed: 处理函数返回
-  active --> failed: 抛错且次数用完
-  active --> delayed: 抛错，退避后重试
-  active --> waiting: 卡住被回收
-  failed --> waiting: 手动重试
+  active --> failed: 次数用完或超限
+  active --> delayed: 失败，有退避
+  active --> wait: 无退避或 stalled
+  failed --> wait: 手动 retry()
 ```
 
-带优先级的任务进入的是 `prioritized` 状态而不是 `waiting`，行为相同，只是按优先级出队。
+几个状态的含义：
+
+- `wait`：普通的待执行队列，先进先出
+- `prioritized`：带 `priority` 的任务进这里，按优先级而不是入队时间出队；从 `delayed` 到期或重试回来的任务，有优先级的也回到这里而不是 `wait`
+- `delayed`：还没到执行时间，包括带 `delay` 加入的任务和**等待退避的重试**
+- `waiting-children`：用 `FlowProducer` 建的父任务，等全部子任务完成后才进入 `wait`（父任务本身带延迟或优先级时进 `delayed` / `prioritized`）
+- `active`：正在被某个 Worker 执行，持有锁；锁过期就是下文的「卡住的任务」（stalled），被放回 `wait`，超过 `maxStalledCount` 则直接进 `failed`；没有退避的重试也直接回到 `wait`
+- `completed` / `failed`：终态，按 `removeOnComplete` / `removeOnFail` 保留；`failed` 的任务可以手动 `retry()` 回到 `wait`
+
+> [!WARNING]
+> `prioritized` 是 BullMQ 4.0 起才有的独立状态，更早的版本里带优先级的任务也在 `wait` 里，监控和查询代码要按所用版本写。另外文档图里的状态叫 `wait`，而 `job.getState()`、`getJobCounts()` 等 API 里用的名字是 `waiting`。BullMQ 已有 6.x，本章内容按 5.x 核对，状态迁移细节以 docs.bullmq.io 的 Architecture 一节为准。
 
 ## 连接：两条规矩
 
@@ -122,7 +139,7 @@ BullMQ 默认**保留所有完成和失败的任务**。每天几千个任务、
 
 ## 卡住的任务
 
-Worker 取走一个任务后，会在 Redis 里给它加一把锁（默认 30 秒），并定期续期。如果 Worker 进程被杀了，锁就不会再续，到期之后 BullMQ 的检查器会发现这个任务「卡住了」（stalled），把它放回 `waiting` 让别的 Worker 重新执行。
+Worker 取走一个任务后，会在 Redis 里给它加一把锁（默认 30 秒），并定期续期。如果 Worker 进程被杀了，锁就不会再续，到期之后 BullMQ 的检查器会发现这个任务「卡住了」（stalled），把它放回 `wait` 让别的 Worker 重新执行。
 
 这和[《软件架构与系统设计》里 Postgres 队列的租约](../system-design/04-queues-jobs.md#取任务)是同一个机制，同样带来同一个后果：**同一个任务可能被执行两次**。
 

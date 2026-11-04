@@ -5,7 +5,7 @@ category: 人工智能/Agent
 tags: [agent, typescript, claude-api, agent-sdk, mcp]
 level: advanced
 created: 2026-11-02
-updated: 2026-11-03
+updated: 2026-11-04
 chapters:
   - 01-minimal-loop.md
   - 02-tools.md

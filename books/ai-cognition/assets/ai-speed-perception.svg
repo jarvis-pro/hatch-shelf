@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 312" width="360" height="312" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="311" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">AI 让资深开发者变快了吗</text>
+<text x="180" y="50" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">METR 2025 随机对照实验：完成任务的耗时变化</text>
+<text x="172" y="78" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">← 变快（耗时缩短）</text>
+<text x="188" y="78" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">变慢（耗时增加）→</text>
+<rect x="60" y="110" width="120" height="22" fill="#dbe7fb" rx="3"/>
+<text x="176" y="104" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">开发者事前预期</text>
+<text x="66" y="126" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">−24%</text>
+<rect x="80" y="160" width="100" height="22" fill="#dbe7fb" rx="3"/>
+<text x="176" y="154" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">开发者事后自评</text>
+<text x="86" y="176" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">−20%</text>
+<rect x="180" y="210" width="95" height="22" fill="#2f6fdf" rx="3"/>
+<text x="184" y="204" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">实际测得</text>
+<text x="269" y="226" font-size="13" fill="#ffffff" text-anchor="end" font-weight="600">+19%</text>
+<line x1="180" y1="88" x2="180" y2="248" stroke="#1f2328"/>
+<line x1="30" y1="248" x2="330" y2="248" stroke="#656d76"/>
+<line x1="80" y1="248" x2="80" y2="252" stroke="#656d76"/>
+<text x="80" y="266" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20%</text>
+<line x1="130" y1="248" x2="130" y2="252" stroke="#656d76"/>
+<text x="130" y="266" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">10%</text>
+<line x1="180" y1="248" x2="180" y2="252" stroke="#656d76"/>
+<text x="180" y="266" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<line x1="230" y1="248" x2="230" y2="252" stroke="#656d76"/>
+<text x="230" y="266" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">10%</text>
+<line x1="280" y1="248" x2="280" y2="252" stroke="#656d76"/>
+<text x="280" y="266" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20%</text>
+<rect x="66" y="284" width="12" height="12" fill="#dbe7fb" rx="2"/>
+<text x="84" y="294" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">开发者的感觉</text>
+<rect x="196" y="284" width="12" height="12" fill="#2f6fdf" rx="2"/>
+<text x="214" y="294" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">实际耗时</text>
+</svg>

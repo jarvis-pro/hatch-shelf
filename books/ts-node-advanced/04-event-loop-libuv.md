@@ -92,6 +92,10 @@ Node 22 上的输出：
 2. **主模块里 timeout 和 immediate 的顺序理论上不确定**：取决于进入循环时 1 ms 是否已经过去。这台机器上多次运行都是 timeout 先，但换个负载可能反过来
 3. **I/O 回调里，immediate 一定先于 timeout**：回调在 poll 阶段执行，下一个阶段就是 check
 
+下图把这九行输出放回[事件循环的阶段](#事件循环的阶段)那张环上：0、3、5、4 在进入循环前就打印完了，其余每一行都落在某个阶段或某个回调之后的微任务检查点上：
+
+![事件循环按 timers、pending、poll、check、close 循环；进入循环前打印 0、3、5、4；第一轮 timers 打印 1、check 打印 2；readFile 回调在 poll 中执行后先清空 nextTick 打印 8，同轮 check 打印 7，下一轮 timers 打印 6；poll 在无事可做时阻塞等待，每个回调之后先清空 nextTick 队列再清空 Promise 队列。](assets/event-loop-phases.svg)
+
 ## 线程池：4 个线程的瓶颈
 
 线程池默认只有 4 个线程。所有走线程池的操作共用它们：

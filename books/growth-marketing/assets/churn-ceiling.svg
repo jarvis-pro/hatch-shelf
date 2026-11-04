@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 322" width="360" height="322" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="321" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">每月获客 200：流失率决定上限</text>
+<text x="52.0" y="240.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">0</text>
+<line x1="58.0" y1="195.1" x2="334.0" y2="195.1" stroke="#d8dee4" stroke-width="1"/>
+<text x="52.0" y="199.1" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">500</text>
+<text x="52.0" y="158.2" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1,000</text>
+<line x1="58.0" y1="113.3" x2="334.0" y2="113.3" stroke="#d8dee4" stroke-width="1"/>
+<text x="52.0" y="117.3" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1,500</text>
+<text x="52.0" y="76.4" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">2,000</text>
+<line x1="58.0" y1="236.0" x2="334.0" y2="236.0" stroke="#656d76" stroke-width="1"/>
+<line x1="58.0" y1="236.0" x2="58.0" y2="56.0" stroke="#656d76" stroke-width="1"/>
+<line x1="58.0" y1="236.0" x2="58.0" y2="240.0" stroke="#656d76" stroke-width="1"/>
+<text x="58.0" y="251.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">0</text>
+<line x1="127.0" y1="236.0" x2="127.0" y2="240.0" stroke="#656d76" stroke-width="1"/>
+<text x="127.0" y="251.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">6</text>
+<line x1="196.0" y1="236.0" x2="196.0" y2="240.0" stroke="#656d76" stroke-width="1"/>
+<text x="196.0" y="251.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">12</text>
+<line x1="265.0" y1="236.0" x2="265.0" y2="240.0" stroke="#656d76" stroke-width="1"/>
+<text x="265.0" y="251.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">18</text>
+<line x1="334.0" y1="236.0" x2="334.0" y2="240.0" stroke="#656d76" stroke-width="1"/>
+<text x="334.0" y="251.0" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">24</text>
+<text x="196.0" y="266.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">月份</text>
+<text x="18.0" y="146.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" transform="rotate(-90 18 146.0)">活跃用户数</text>
+<line x1="58.0" y1="154.2" x2="334.0" y2="154.2" stroke="#2f6fdf" stroke-width="1.2" stroke-dasharray="5 4" stroke-opacity="0.45"/>
+<path d="M58.0,236.0 L69.5,219.6 L81.0,206.5 L92.5,196.1 L104.0,187.7 L115.5,181.0 L127.0,175.6 L138.5,171.3 L150.0,167.9 L161.5,165.2 L173.0,163.0 L184.5,161.2 L196.0,159.8 L207.5,158.7 L219.0,157.8 L230.5,157.1 L242.0,156.5 L253.5,156.0 L265.0,155.7 L276.5,155.4 L288.0,155.1 L299.5,154.9 L311.0,154.8 L322.5,154.7 L334.0,154.6" stroke="#2f6fdf" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-opacity="0.45"/>
+<circle cx="334.0" cy="154.6" r="4" fill="#2f6fdf" fill-opacity="0.45" stroke="none" stroke-width="1"/>
+<line x1="58.0" y1="72.4" x2="334.0" y2="72.4" stroke="#2f6fdf" stroke-width="1.2" stroke-dasharray="5 4"/>
+<path d="M58.0,236.0 L69.5,219.6 L81.0,204.9 L92.5,191.7 L104.0,179.7 L115.5,169.0 L127.0,159.3 L138.5,150.6 L150.0,142.8 L161.5,135.8 L173.0,129.4 L184.5,123.7 L196.0,118.6 L207.5,114.0 L219.0,109.8 L230.5,106.1 L242.0,102.7 L253.5,99.7 L265.0,96.9 L276.5,94.5 L288.0,92.3 L299.5,90.3 L311.0,88.5 L322.5,86.9 L334.0,85.4" stroke="#2f6fdf" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+<circle cx="334.0" cy="85.4" r="4" fill="#2f6fdf" stroke="none" stroke-width="1"/>
+<text x="334.0" y="65.4" font-size="12" fill="#1f2328" text-anchor="end" font-weight="600">上限 A/c = 2,000</text>
+<text x="334.0" y="147.2" font-size="12" fill="#1f2328" text-anchor="end" font-weight="600">上限 A/c = 1,000</text>
+<text x="330.0" y="111.4" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">第 24 月约 1,840</text>
+<text x="330.0" y="172.6" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">第 24 月约 995</text>
+<line x1="26.0" y1="282.0" x2="50.0" y2="282.0" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="56.0" y="286.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">流失 10%</text>
+<line x1="132.0" y1="282.0" x2="156.0" y2="282.0" stroke="#2f6fdf" stroke-width="2.5" stroke-opacity="0.45"/>
+<text x="162.0" y="286.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">流失 20%</text>
+<line x1="238.0" y1="282.0" x2="262.0" y2="282.0" stroke="#2f6fdf" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="268.0" y="286.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">上限 A/c</text>
+<text x="180.0" y="308.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">k 取 0，从 0 个用户开始逐月计算</text>
+</svg>

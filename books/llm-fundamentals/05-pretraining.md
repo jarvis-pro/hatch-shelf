@@ -74,13 +74,19 @@
 
 ### 有多大
 
-规模大致是这样的量级（不同模型差异很大，这里只给数量级）：
+几个公开了训练数据量的代表模型（商业闭源模型大多不公布这个数字）：
 
-| 年份 | 代表模型 | 训练 token 数（约） |
-|---|---|---|
-| 2018 | GPT-1 | 数十亿 |
-| 2020 | GPT-3 | 约 3000 亿 |
-| 2023 起 | 主流开源和商业模型 | 数万亿到十几万亿 |
+| 年份 | 模型 | 训练 token 数（约） | 出处 |
+|---|---|---|---|
+| 2020 | GPT-3 | 3000 亿 | OpenAI 论文《Language Models are Few-Shot Learners》 |
+| 2022 | Chinchilla | 1.4 万亿 | DeepMind 论文《Training Compute-Optimal Large Language Models》 |
+| 2023 | Llama 2 | 2 万亿 | Meta 论文《Llama 2: Open Foundation and Fine-Tuned Chat Models》 |
+| 2024 | Llama 3 | 超过 15 万亿 | Meta 官方发布博客 |
+| 2025 | Qwen3 | 约 36 万亿 | 阿里《Qwen3 Technical Report》 |
+
+下图把这几个数字画在对数坐标上，五年间增长了约 120 倍：
+
+![对数坐标的柱状图：训练 token 数从 2020 年 GPT-3 的 3000 亿，到 Chinchilla 1.4 万亿、Llama 2 2 万亿、Llama 3 超过 15 万亿，再到 2025 年 Qwen3 的约 36 万亿](assets/training-tokens.svg)
 
 一万亿个 token 大约相当于几百万本书。
 

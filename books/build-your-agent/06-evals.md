@@ -337,6 +337,12 @@ pnpm --filter shelf-agent exec tsx src/eval-cli.ts --k 1 --replay .agent/tapes
 
 `--k 3` 是最低限度。样例多起来以后，要用[《评测与质量》第 5 章](../llm-evals/05-regression.md)的方法估计噪声、做配对比较；对 agent 还要区分 pass@k（k 次里至少成功一次）和 pass^k（k 次全部成功）：用户交给后台服务的任务，关心的是后者。
 
+单次成功率为 $p$、各次相互独立时，pass@k $= 1-(1-p)^k$，pass^k $= p^k$。下图取 $p = 80\%$，把两条线画出来：
+
+![单次成功率 80% 时，pass@k 在 k 等于 5 时已达 99.97%，pass^k 却降到 32.8%，跑 10 次全部成功只剩约 11%](assets/pass-k-agent.svg)
+
+同一个 agent，按 pass@5 看几乎从不失败，按 pass^5 看三次里有两次至少出一回错。评测报告里只写「通过率 80%」不够，要写清楚是哪个口径。
+
 ## 用评测做决定
 
 有了这套脚手架，下面这些问题都可以用数据回答：

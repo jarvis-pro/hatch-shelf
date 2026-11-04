@@ -113,18 +113,11 @@ function performUnitOfWork(fiber) {
 
 每处理完一个 Fiber，循环都可以检查一次「该不该让出主线程」。当前进度就保存在 `workInProgress` 这个变量里，下次接着从这里干。**可中断**是 Fiber 架构存在的根本理由，并发渲染（第 4 章）全靠它。
 
-遍历顺序是深度优先：
+遍历顺序是深度优先。拿一棵五个节点的小树按上面的 `performUnitOfWork` 走一遍，下图标出了三种指针，以及每个节点在第几步执行 `beginWork`、第几步执行 `completeWork`：
 
-```mermaid
-flowchart TD
-  App["App"] -->|child| Shell["AppShell"]
-  Shell -->|child| Nav["AppNav"]
-  Nav -->|sibling| Main["main"]
-  Main -->|child| Page["OverviewPage"]
-  Nav -.->|return| Shell
-  Main -.->|return| Shell
-  Page -.->|return| Main
-```
+![App 的 child 是 AppShell，AppShell 的 child 是 AppNav，AppNav 的 sibling 是 main，main 的 child 是 OverviewPage，每个子节点的 return 指回父节点；按深度优先，beginWork 依次是 App 1、AppShell 2、AppNav 3、main 5、OverviewPage 6，completeWork 依次是 AppNav 4、OverviewPage 7、main 8、AppShell 9、App 10。](assets/fiber-traversal.svg)
+
+注意 AppShell 只有一个 `child` 指针指向第一个子节点 AppNav，main 是顺着 AppNav 的 `sibling` 找到的。AppNav 没有子节点，所以第 3 步 begin 之后紧接着第 4 步就 complete 它，再去兄弟 main；OverviewPage complete 之后没有兄弟，循环沿 `return` 一路往上，依次完成 main、AppShell、App。
 
 `beginWork` 在「往下走」时调用：调用函数组件拿到新元素，和旧 Fiber 比较，生成或复用子 Fiber。`completeWork` 在「往回走」时调用：宿主组件在这里创建 DOM 节点（还不挂到页面上）、收集要提交的副作用标记。
 

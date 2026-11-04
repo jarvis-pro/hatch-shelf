@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 584" width="360" height="584" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="583" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">镜 17–20：竖屏火柴人分镜</text>
+<defs>
+<clipPath id="f0"><rect x="52" y="52" width="112" height="199"/></clipPath>
+<clipPath id="f1"><rect x="196" y="52" width="112" height="199"/></clipPath>
+<clipPath id="f2"><rect x="52" y="303" width="112" height="199"/></clipPath>
+<clipPath id="f3"><rect x="196" y="303" width="112" height="199"/></clipPath>
+</defs>
+<g clip-path="url(#f0)">
+<path d="M46 251 Q108.0 180 170 251" fill="none" stroke="#1f2328" stroke-width="2.5"/>
+<line x1="108.0" y1="184" x2="108.0" y2="202" stroke="#1f2328" stroke-width="2.5"/>
+<circle cx="108.0" cy="140" r="44" fill="#ffffff" stroke="#1f2328" stroke-width="2.5"/>
+<circle cx="93.0" cy="132" r="4" fill="#1f2328"/><circle cx="123.0" cy="132" r="4" fill="#1f2328"/>
+<line x1="84.0" y1="118" x2="100.0" y2="116" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="116.0" y1="116" x2="132.0" y2="118" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<ellipse cx="108.0" cy="160" rx="5" ry="7" fill="none" stroke="#1f2328" stroke-width="2"/>
+</g>
+<rect x="52" y="52" width="112" height="199" rx="3" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<text x="108.0" y="271" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">镜 17 · 特写 · 1.5s</text>
+<text x="108.0" y="289" font-size="12" fill="#656d76" text-anchor="middle">小林愣住</text>
+<g clip-path="url(#f1)">
+<circle cx="248.0" cy="98" r="20.0" fill="#ffffff" stroke="#1f2328" stroke-width="2.5"/>
+<line x1="248.0" y1="118.0" x2="248.0" y2="186.0" stroke="#1f2328" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="248.0" y1="134.0" x2="280.0" y2="106.0" stroke="#1f2328" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="248.0" y1="134.0" x2="220.0" y2="170.0" stroke="#1f2328" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="248.0" y1="186.0" x2="230.0" y2="306.0" stroke="#1f2328" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="248.0" y1="186.0" x2="266.0" y2="306.0" stroke="#1f2328" stroke-width="2.5" stroke-linecap="round"/>
+<g fill="none" stroke="#1f2328" stroke-width="1.75"><circle cx="240.0" cy="96.0" r="6.0"/><circle cx="256.0" cy="96.0" r="6.0"/></g>
+<rect x="278.0" y="84" width="20" height="28" rx="2" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="2" transform="rotate(12 280.0 106)"/>
+<rect x="208.0" y="154" width="22" height="30" rx="2" fill="#ffffff" stroke="#656d76" stroke-width="2"/>
+</g>
+<rect x="196" y="52" width="112" height="199" rx="3" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<text x="252.0" y="271" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">镜 18 · 中景 · 4.5s</text>
+<text x="252.0" y="289" font-size="12" fill="#656d76" text-anchor="middle">产品经理抽出电影票</text>
+<g clip-path="url(#f2)">
+<rect x="62" y="343" width="92" height="119" rx="6" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="2"/>
+<line x1="62" y1="379" x2="154" y2="379" stroke="#2f6fdf" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="76" y1="361" x2="140" y2="361" stroke="#656d76" stroke-width="3" stroke-linecap="round"/>
+<text x="108.0" y="415" font-size="24" fill="#2f6fdf" text-anchor="middle" font-weight="600">19:00</text>
+<line x1="80" y1="437" x2="136" y2="437" stroke="#656d76" stroke-width="3" stroke-linecap="round"/>
+</g>
+<rect x="52" y="303" width="112" height="199" rx="3" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<text x="108.0" y="522" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">镜 19 · 大特写 · 1.5s</text>
+<text x="108.0" y="540" font-size="12" fill="#656d76" text-anchor="middle">电影票：场次 19:00</text>
+<g clip-path="url(#f3)">
+<line x1="196" y1="463" x2="308" y2="463" stroke="#d8dee4" stroke-width="2"/>
+<rect x="272" y="371" width="30" height="92" fill="#dbe7fb" stroke="#2f6fdf" stroke-width="2"/>
+<circle cx="278" cy="417" r="2.5" fill="#2f6fdf"/>
+<circle cx="222" cy="389" r="11.0" fill="#ffffff" stroke="#1f2328" stroke-width="2"/>
+<line x1="222" y1="400.0" x2="222" y2="437.4" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="408.8" x2="237.4" y2="419.8" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="408.8" x2="208.8" y2="426.40000000000003" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="437.4" x2="237.4" y2="470.4" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="437.4" x2="208.8" y2="470.4" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<circle cx="250" cy="389" r="11.0" fill="#ffffff" stroke="#1f2328" stroke-width="2"/>
+<line x1="250" y1="400.0" x2="250" y2="437.4" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="408.8" x2="265.4" y2="419.8" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="408.8" x2="236.8" y2="426.40000000000003" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="437.4" x2="265.4" y2="470.4" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="437.4" x2="236.8" y2="470.4" stroke="#1f2328" stroke-width="2" stroke-linecap="round"/>
+<g fill="none" stroke="#1f2328" stroke-width="1.4"><circle cx="245.6" cy="387.9" r="3.3000000000000003"/><circle cx="254.4" cy="387.9" r="3.3000000000000003"/></g>
+</g>
+<rect x="196" y="303" width="112" height="199" rx="3" fill="none" stroke="#656d76" stroke-width="1.5"/>
+<text x="252.0" y="522" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="600">镜 20 · 全景 · 2.5s</text>
+<text x="252.0" y="540" font-size="12" fill="#656d76" text-anchor="middle">两人一起冲出门</text>
+<text x="180" y="566" font-size="12" fill="#656d76" text-anchor="middle">第 7 章剧情示例，四个镜头合计 10 秒</text>
+</svg>

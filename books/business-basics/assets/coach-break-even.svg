@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 338" width="360" height="338" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="337" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30.0" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">独立私教：每月上多少节课才划算</text>
+<line x1="58.0" y1="230.2" x2="334.0" y2="230.2" stroke="#656d76" stroke-width="1"/>
+<text x="52.0" y="234.2" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">0</text>
+<line x1="58.0" y1="190.6" x2="334.0" y2="190.6" stroke="#d8dee4" stroke-width="1"/>
+<text x="52.0" y="194.6" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">0.5 万</text>
+<line x1="58.0" y1="151.0" x2="334.0" y2="151.0" stroke="#d8dee4" stroke-width="1"/>
+<text x="52.0" y="155.0" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1 万</text>
+<line x1="58.0" y1="111.4" x2="334.0" y2="111.4" stroke="#d8dee4" stroke-width="1"/>
+<text x="52.0" y="115.4" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">1.5 万</text>
+<line x1="58.0" y1="71.8" x2="334.0" y2="71.8" stroke="#d8dee4" stroke-width="1"/>
+<text x="52.0" y="75.8" font-size="11" fill="#656d76" text-anchor="end" font-weight="normal">2 万</text>
+<line x1="58.0" y1="246.0" x2="58.0" y2="56.0" stroke="#656d76" stroke-width="1"/>
+<line x1="58.0" y1="230.2" x2="58.0" y2="234.2" stroke="#656d76" stroke-width="1"/>
+<line x1="119.3" y1="230.2" x2="119.3" y2="234.2" stroke="#656d76" stroke-width="1"/>
+<text x="119.3" y="245.2" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">20</text>
+<line x1="180.7" y1="230.2" x2="180.7" y2="234.2" stroke="#656d76" stroke-width="1"/>
+<text x="180.7" y="245.2" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">40</text>
+<line x1="242.0" y1="230.2" x2="242.0" y2="234.2" stroke="#656d76" stroke-width="1"/>
+<text x="242.0" y="245.2" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">60</text>
+<line x1="303.3" y1="230.2" x2="303.3" y2="234.2" stroke="#656d76" stroke-width="1"/>
+<text x="303.3" y="245.2" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">80</text>
+<text x="196.0" y="276.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">每月课时（节）</text>
+<text x="18.0" y="151.0" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal" transform="rotate(-90 18 151.0)">月收入（元）</text>
+<line x1="58.0" y1="130.4" x2="334.0" y2="130.4" stroke="#656d76" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="62.0" y="124.4" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">原收入 12,600</text>
+<path d="M58.0,206.4 L334.0,120.9" stroke="#2f6fdf" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-dasharray="7 5"/>
+<path d="M58.0,243.6 L334.0,65.5" stroke="#2f6fdf" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+<line x1="168.9" y1="172.1" x2="168.9" y2="230.2" stroke="#656d76" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="168.9" cy="172.1" r="4.5" fill="#2f6fdf" stroke="none" stroke-width="1"/>
+<text x="177.9" y="194.1" font-size="12" fill="#1f2328" text-anchor="start" font-weight="600">约 36 节</text>
+<text x="177.9" y="209.1" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">两边持平</text>
+<line x1="235.9" y1="130.4" x2="235.9" y2="230.2" stroke="#656d76" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="235.9" cy="130.4" r="4.5" fill="#ffffff" stroke="#2f6fdf" stroke-width="2"/>
+<text x="227.9" y="106.4" font-size="12" fill="#1f2328" text-anchor="end" font-weight="600">58 节</text>
+<text x="227.9" y="121.4" font-size="12" fill="#656d76" text-anchor="end" font-weight="normal">追平原收入</text>
+<circle cx="303.3" cy="130.4" r="3.5" fill="#656d76" stroke="none" stroke-width="1"/>
+<text x="303.3" y="148.4" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">健身房 80 节</text>
+<line x1="26.0" y1="286.0" x2="50.0" y2="286.0" stroke="#2f6fdf" stroke-width="2.5" stroke-dasharray="7 5"/>
+<text x="56.0" y="290.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">留在健身房 3,000 + 120x</text>
+<line x1="26.0" y1="308.0" x2="50.0" y2="308.0" stroke="#2f6fdf" stroke-width="2.5"/>
+<text x="56.0" y="312.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">独立 250x − 1,700</text>
+<line x1="206.0" y1="308.0" x2="230.0" y2="308.0" stroke="#656d76" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="236.0" y="312.0" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">原收入水平</text>
+</svg>

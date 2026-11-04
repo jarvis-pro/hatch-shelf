@@ -38,6 +38,12 @@ git reset --hard 'HEAD@{6}'
 git reset --hard 'main@{1}'
 ```
 
+`reset --hard` 退过头也是同样的救法。接着上面的仓库：变基完成后 main 在 `fb1b1de`（feat: f3），你想丢掉最后两个提交，执行了 `git reset --hard 784b823`（feat: f1），过后又后悔了。此时 `7ec4daf` 和 `fb1b1de` 不在任何分支上，`git log` 看不到它们，但 main 的 reflog 新记了一笔 `reset: moving to 784b823`，上一笔 `main@{1}` 仍然指着 `fb1b1de`。下图把 reset 前后和找回的过程画出来：
+
+![提交 784b823、7ec4daf、fb1b1de 依次相连；git reset --hard 784b823 之后 main 指向 784b823，后两个提交不在任何分支上，但 main 的 reflog 里 main@{1} 仍指向 fb1b1de；执行 git reset --hard 'main@{1}' 后 main 回到 fb1b1de。](assets/reflog-rescue.svg)
+
+找回同样只要一句 `git reset --hard 'main@{1}'`，前提是两次 reset 之间 main 没有再动过；动过的话先 `git reflog show main` 看清楚是第几条。
+
 几个要知道的事实：
 
 - **reflog 只在本地**。它不随 push 传出去，clone 下来的仓库没有之前的 reflog。救援只能在出事的那个目录里做

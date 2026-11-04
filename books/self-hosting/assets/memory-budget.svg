@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 388" width="360" height="388" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<rect x="0.5" y="0.5" width="359" height="387" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180.0" y="30" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">4G 工具机的内存上限分配</text>
+<text x="180.0" y="48" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">单位 MB，示例配置的 mem_limit，不含 CI</text>
+<text x="142" y="75" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">GlitchTip（含库、缓存）</text>
+<rect x="150" y="62" width="150.0" height="18" rx="3" fill="#2f6fdf"/>
+<text x="305.0" y="75" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">1088</text>
+<text x="142" y="105" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">Forgejo（含库）</text>
+<rect x="150" y="92" width="105.9" height="18" rx="3" fill="#2f6fdf"/>
+<text x="260.88235294117646" y="105" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">768</text>
+<text x="142" y="135" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">Umami（含库）</text>
+<rect x="150" y="122" width="70.6" height="18" rx="3" fill="#2f6fdf"/>
+<text x="225.58823529411765" y="135" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">512</text>
+<text x="142" y="165" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">Uptime Kuma</text>
+<rect x="150" y="152" width="35.3" height="18" rx="3" fill="#2f6fdf"/>
+<text x="190.29411764705884" y="165" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">256</text>
+<text x="142" y="195" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">Caddy</text>
+<rect x="150" y="182" width="17.6" height="18" rx="3" fill="#2f6fdf"/>
+<text x="172.64705882352942" y="195" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">128</text>
+<text x="142" y="225" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">Beszel hub</text>
+<rect x="150" y="212" width="17.6" height="18" rx="3" fill="#2f6fdf"/>
+<text x="172.64705882352942" y="225" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">128</text>
+<text x="142" y="255" font-size="12" fill="#1f2328" text-anchor="end" font-weight="normal">Vaultwarden</text>
+<rect x="150" y="242" width="17.6" height="18" rx="3" fill="#2f6fdf"/>
+<text x="172.64705882352942" y="255" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">128</text>
+<line x1="16" y1="280" x2="344" y2="280" stroke="#d8dee4"/>
+<text x="16" y="300" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">合计 3008 / 4096</text>
+<rect x="16" y="310" width="240.9" height="20" rx="3" fill="#2f6fdf"/>
+<rect x="256.9" y="310" width="87.1" height="20" rx="3" fill="#e6e9ed"/>
+<text x="136.4375" y="324" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="normal">各服务上限</text>
+<text x="300.4375" y="324" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">系统 1088</text>
+<text x="180.0" y="356" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">实际占用用 docker stats 观察，按峰值的 1.5 倍调整</text>
+</svg>

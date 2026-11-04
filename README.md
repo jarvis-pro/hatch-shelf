@@ -354,7 +354,7 @@ shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手
 | 动效实现 | RN Animated，不引入 Reanimated | 设计稿的动效都是淡入、位移、弹簧这类简单动画，Animated 的原生驱动足够；少一个原生依赖 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
 | 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，`ios/` 仍然只由 prebuild 生成 |
-| 版本号与构建号 | 只维护 `expo.version`，每次上传升 patch，构建号取同一个值 | 苹果要求包里必须有构建号；两个号分开递增容易忘、TestFlight 列表也难对应。个人自用不需要同一版本多次上传，一次一版最简单 |
+| 版本号与构建号 | 只维护 `expo.version`，每次上传升 patch，构建号不设、用 Expo 默认的 1 | 苹果只要求同一版本下构建号不重复，每次都升版本，构建号恒为 1 就够；两个号分开递增容易忘。早先让构建号取与 version 相同的值，没有必要，改回默认。个人自用不需要同一版本多次上传，一次一版最简单 |
 | 书架分组 | 分组名就是 `category` 的第一段，直接写中文；顺序按系列里最早导入的书 | 分组名写死在 App 里时，新增系列要改代码、重新出包，违背「内容跟着书走」；导入时间在重建索引时保留，顺序稳定，不需要额外配置 |
 | 阅读数据备份 | 手动导出 JSON + 合并式恢复，不做自动同步 | App 不联网，iCloud 同步要引入原生能力和冲突处理；进度和高亮都带 `updated_at`，按「较新者胜」合并足够个人使用。备份是个人数据，`backups/` 不入库 |
 | 跨书链接 | 用文件系统式的相对路径 `../<id>/<章节>.md#锚点`，不用自定义 scheme | 在仓库里、GitHub 和编辑器预览中都是能点通的真实路径；与 App 里 `books/<id>/` 的目录结构一致，`check` 按同级目录即可校验 |
@@ -384,5 +384,5 @@ pnpm app testflight --no-upload      # 只导出 .ipa 到 app/ios/build/export�
 ```
 
 - 只维护 `app.json` 的 `expo.version` 一个号：每次上传都是新版本，脚本自动升 patch（或用 `--version` 指定），失败时恢复原值；上传成功后脚本自动单独提交 `app.json`（`chore(release): v<版本>`）并打同名 tag `v<版本>`，不带上工作区的其他改动；`git log --oneline --decorate` 或 `git tag` 即可看到各版本节点（tag 需要 `git push --follow-tags` 才会推到远端）
-- 构建号（`CFBundleVersion`）由 `app/app.config.js` 设成与 version 相同，不要在 `app.json` 里写 `ios.buildNumber`。同一版本不能重复上传，上传后处理失败也要升版本重传
+- 构建号（`CFBundleVersion`）不设，用 Expo 默认的 1，不要在 `app.json` 或 `app.config.js` 里写 `ios.buildNumber`。同一版本只能上传一次，上传后处理失败也要升版本重传
 - 上传后 App Store Connect 处理 5～15 分钟，构建出现在 TestFlight 的内部测试组即可安装；内部测试不需要审核，构建 90 天后过期

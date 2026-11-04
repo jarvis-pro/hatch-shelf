@@ -1,6 +1,6 @@
 // 本地构建 Release 包并上传到 App Store Connect（TestFlight），不走 EAS（见 README 决策记录）。
 // 流程：app.json 的 expo.version 升 patch → build:assets → prebuild → xcodebuild archive → exportArchive 上传。
-// 构建号由 app.config.js 设成与 version 相同，不单独维护。--version x.y.z 指定新版本号（升 minor / major 时用）。
+// 构建号固定为 Expo 默认的 1，不单独维护。--version x.y.z 指定新版本号（升 minor / major 时用）。
 // 失败时把 app.json 恢复原样；上传成功后只把 app.json 单独提交为 `chore(release): v<版本>` 并打同名 tag，
 // 不带上工作区其他改动，git log 里就能看到每个版本节点。加 --no-upload 只导出 .ipa 到 ios/build/export，不改版本号、不上传。
 import { spawnSync } from 'node:child_process';
@@ -48,7 +48,7 @@ if (upload) {
 }
 config.expo.version = version;
 writeFileSync(appJsonPath, `${JSON.stringify(config, null, 2)}\n`);
-console.log(`版本 ${version}（构建号相同）`);
+console.log(`版本 ${version}（构建号 1）`);
 
 try {
   run('pnpm', ['build:assets']);

@@ -1,12 +1,14 @@
+import { audioManifestSchema, chapterAudio, type AudioManifest } from '@shelf/spec';
 import { setAudioModeAsync, setIsAudioActiveAsync } from 'expo-audio';
 import { File } from 'expo-file-system';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { AppState } from 'react-native';
 import { getSetting, setSetting, type ChapterRow } from '@/db/queries';
-import { bookDir } from '@/lib/paths';
+import { audioDir, bookDir } from '@/lib/paths';
 import { addNowPlayingListener, clearNowPlaying, updateNowPlaying, type NowPlayingCommand } from '../../modules/now-playing';
 import type { ToReader } from './bridge';
+import { recordingEngine, systemEngine, type Engine } from './engines';
 
 /**
  * 听书（README 第 8 节）：用系统语音逐段朗读，完全在本机运行，读完一章接着读下一章。
@@ -14,6 +16,9 @@ import type { ToReader } from './bridge';
  * 一章一次排进系统的朗读队列，本章最后一段开始时排进下一章，段与段、章与章之间都没有停顿；
  * 每段开始时让阅读器标出这一段。音频会话设为 playback，静音键打开、锁屏或切到后台时都能接着读；
  * 锁屏和控制中心显示正在读的章节，锁屏按钮、耳机线控可以暂停和跳段。
+ *
+ * 原声（README 第 8.1 节）：书有预生成的录音时，以章为单位选引擎——本章每段都对得上录音清单才播录音，
+ * 否则整章用系统语音，不在一章中间换声音。
  */
 
 export type SpeechState = 'idle' | 'playing' | 'paused';
@@ -35,6 +40,21 @@ export const SPEECH_RATES = [0.8, 1, 1.25, 1.5] as const;
 const RATE_KEY = 'speechRate';
 /** 选中的语音 identifier；没有记录或为 null 时自动挑选 */
 const VOICE_KEY = 'speechVoice';
+/** 语音选「原声」时记下的值；本章不支持原声时用自动挑的系统语音 */
+export const ORIGINAL_VOICE = 'original';
+
+/** 本书的录音清单；没有原声或清单有误时为 null */
+function loadAudioManifest(bookId: string): Promise<AudioManifest | null> {
+  const f = new File(audioDir(bookId), 'manifest.json');
+  if (!f.exists) return Promise.resolve(null);
+  return f
+    .text()
+    .then((text) => {
+      const r = audioManifestSchema.safeParse(JSON.parse(text));
+      return r.success && r.data.bookId === bookId ? r.data : null;
+    })
+    .catch(() => null);
+}
 
 /** 可选的中文语音，按这个顺序分组 */
 export const VOICE_LANGUAGES = [
@@ -95,6 +115,11 @@ function releaseAudio() {
   setIsAudioActiveAsync(false).catch(() => {});
 }
 
+const stopEngines = () => Promise.all([systemEngine.stop(), recordingEngine.stop()]);
+
+/** 正在用哪种声音读：原声，或系统语音 */
+export type EngineKind = 'original' | 'system';
+
 interface Book {
   id: string;
   title: string | undefined;
@@ -127,6 +152,15 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
   /** 手动滚走、正在读的段落不在屏幕上；面板显示「从这里读」 */
   const [away, setAway] = useState(false);
   const [sleep, setSleep] = useState<SleepTimer>(null);
+  /** 本书的录音清单 */
+  const [audio, setAudio] = useState<AudioManifest | null>(null);
+  const audioRef = useRef<AudioManifest | null>(null);
+  /** 正在读的这一章用的引擎、这一章有没有原声 */
+  const [engineKind, setEngineKind] = useState<EngineKind>('system');
+  const [chapterOriginal, setChapterOriginal] = useState(false);
+  const engineRef = useRef<Engine>(systemEngine);
+  /** 各章的录音文件（uri），按段落；null 为本章不支持原声。段落或清单变了就作废 */
+  const recordings = useRef(new Map<number, string[][] | null>());
   /** 已切好的各章段落，按章节下标 */
   const segments = useRef(new Map<number, string[]>());
   /** 这次 ttsCollect 从第几章开始、following 对应哪些章 */
@@ -158,10 +192,39 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
     return () => {
       sub.remove();
       session.current += 1;
-      void Speech.stop();
+      void stopEngines();
       void clearNowPlaying();
       releaseAudio();
     };
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    void loadAudioManifest(book.id).then((m) => {
+      if (!live) return;
+      audioRef.current = m;
+      recordings.current.clear();
+      setAudio(m);
+    });
+    return () => {
+      live = false;
+    };
+  }, [book.id]);
+
+  /** 第 c 章的录音：每段都对得上清单、文件都在才返回 */
+  const recordingsOf = useCallback((c: number) => {
+    if (recordings.current.has(c)) return recordings.current.get(c)!;
+    const manifest = audioRef.current;
+    const file = bookRef.current.chapters[c]?.file;
+    const texts = segments.current.get(c);
+    let found: string[][] | null = null;
+    if (manifest && file && texts) {
+      const dir = audioDir(manifest.bookId);
+      const files = chapterAudio(manifest, file, texts)?.map((list) => list.map((fp) => new File(dir, `${fp}.mp3`)));
+      if (files?.every((list) => list.every((f) => f.exists))) found = files.map((list) => list.map((f) => f.uri));
+    }
+    recordings.current.set(c, found);
+    return found;
   }, []);
 
   // 锁屏封面用书的 cover.png，没有就不显示
@@ -184,7 +247,7 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
     chooseSleep(null);
     interrupted.current = false;
     send({ type: 'ttsMark', index: null });
-    void Speech.stop();
+    void stopEngines();
     void clearNowPlaying();
     releaseAudio();
   }, [chooseSleep, send]);
@@ -202,7 +265,14 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
     /** jump：用户主动跳段，阅读器即使被手动滚走也要滚到这一段 */
     async (from: { chapter: number; index: number }, speed: number, chosen: string | null, jump = false) => {
       const s = ++session.current;
+      /** 自动和「原声」在本章有录音时用原声；选了某个系统语音就总用它 */
+      const wantsOriginal = chosen === null || chosen === ORIGINAL_VOICE;
+      const filesOf = (c: number) => (wantsOriginal ? recordingsOf(c) : null);
       const enter = (c: number, i: number, scroll: boolean) => {
+        const original = filesOf(c) !== null;
+        engineRef.current = original ? recordingEngine : systemEngine;
+        setEngineKind(original ? 'original' : 'system');
+        setChapterOriginal(recordingsOf(c) !== null);
         if (reading.current !== c) {
           reading.current = c;
           setAway(false);
@@ -216,7 +286,7 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
       };
       enter(from.chapter, from.index, false);
       rateChanged.current = false;
-      await Speech.stop();
+      await stopEngines();
       const [list] = await Promise.all([loadVoices(), activateAudio()]);
       const voice = resolveVoice(list, chosen)?.id;
       if (s !== session.current) return;
@@ -226,36 +296,46 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
       const count = bookRef.current.chapters.length;
       const enqueue = (c: number, begin: number) => {
         const texts = segments.current.get(c) ?? [];
+        const files = filesOf(c);
+        const engine = files ? recordingEngine : systemEngine;
         const last = texts.length - 1;
         const next = nextChapter(segments.current, count, c);
+        const queueNext = () => {
+          if (next === null || queued.has(next)) return;
+          queued.add(next);
+          enqueue(next, 0);
+        };
         for (let i = begin; i <= last; i++) {
-          Speech.speak(texts[i], {
-            language: 'zh-CN',
-            voice,
-            rate: speed,
-            onStart: () => {
-              if (!alive()) return;
-              enter(c, i, jump && c === from.chapter && i === from.index);
-              // 最后一段开始时排进下一章，换章时不留空：后台没有声音的间隙里 App 可能被挂起
-              if (i === last && next !== null && sleepRef.current !== 'chapter' && !queued.has(next)) {
-                queued.add(next);
-                enqueue(next, 0);
-              }
+          engine.speak(
+            {
+              text: texts[i],
+              files: files?.[i],
+              onStart: () => {
+                if (!alive()) return;
+                enter(c, i, jump && c === from.chapter && i === from.index);
+                // 最后一段开始时排进下一章，换章时不留空：后台没有声音的间隙里 App 可能被挂起。
+                // 下一章换了引擎（原声 ↔ 系统语音）时两边的队列不相通，等这一段读完再开始
+                const sameEngine = next !== null && (filesOf(next) ? recordingEngine : systemEngine) === engine;
+                if (i === last && sleepRef.current !== 'chapter' && sameEngine) queueNext();
+              },
+              onDone: () => {
+                if (!alive()) return;
+                // 定时到点：读完这一段就停，下一段刚开头也一并停掉
+                if (deadline.current !== null && Date.now() >= deadline.current) return finish();
+                if (i !== last) return;
+                if (sleepRef.current === 'chapter' || next === null) return finish();
+                queueNext();
+              },
+              onError: () => void (alive() && finish()),
             },
-            onDone: () => {
-              if (!alive()) return;
-              // 定时到点：读完这一段就停，下一段刚开头也一并停掉
-              if (deadline.current !== null && Date.now() >= deadline.current) return finish();
-              if (i === last && (sleepRef.current === 'chapter' || next === null || !queued.has(next))) finish();
-            },
-            onError: () => void (alive() && finish()),
-          });
+            { rate: speed, voice },
+          );
         }
       };
       enqueue(from.chapter, from.index);
       setState('playing');
     },
-    [finish, mark],
+    [finish, mark, recordingsOf],
   );
 
   /** 从视口里第一段开始读第 at 章：先请阅读器切段落（连同还没切过的后面各章），回报后由 onBlocks 开始 */
@@ -280,6 +360,9 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
       collecting.current = null;
       segments.current.set(req.chapter, list);
       req.following.forEach((c, k) => segments.current.set(c, following[k] ?? []));
+      // 段落重新切过，录音要重新对
+      recordings.current.delete(req.chapter);
+      req.following.forEach((c) => recordings.current.delete(c));
       if (list.length === 0) return;
       // 从显示的这一章开始读，不算换章
       reading.current = req.chapter;
@@ -289,7 +372,7 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
   );
 
   const pause = useCallback(() => {
-    void Speech.pause();
+    engineRef.current.pause();
     setState('paused');
   }, []);
 
@@ -303,8 +386,9 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
       speakFrom({ chapter: reading.current, index: current.current }, rate, voiceId).catch(finish);
       return;
     }
+    const engine = engineRef.current;
     void activateAudio()
-      .then(() => Speech.resume())
+      .then(() => engine.resume())
       .catch(() => {});
     setState('playing');
   }, [chooseSleep, finish, rate, speakFrom, voiceId]);
@@ -314,7 +398,10 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
     const next = SPEECH_RATES[(SPEECH_RATES.indexOf(rate as (typeof SPEECH_RATES)[number]) + 1) % SPEECH_RATES.length];
     setRate(next);
     void setSetting(RATE_KEY, next);
-    if (state === 'playing') speakFrom({ chapter: reading.current, index: current.current }, next, voiceId).catch(finish);
+    // 原声直接改播放速度，不用从段首重读
+    const { setRate: live } = engineRef.current;
+    if (state !== 'idle' && live) live(next);
+    else if (state === 'playing') speakFrom({ chapter: reading.current, index: current.current }, next, voiceId).catch(finish);
     else if (state === 'paused') rateChanged.current = true;
   }, [finish, rate, speakFrom, state, voiceId]);
 
@@ -414,6 +501,11 @@ export function useReadAloud(send: (msg: ToReader) => void, book: Book) {
     voices,
     voiceId,
     voice,
+    /** 本书有原声 */
+    hasOriginal: audio !== null,
+    /** 正在读的这一章：在用哪种声音、有没有原声 */
+    engineKind,
+    chapterOriginal,
     chapter,
     index,
     total,

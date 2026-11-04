@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Menu } from '@/ui/Menu';
 import { EASE_OUT_QUINT, useReduceMotion } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
-import { SLEEP_TIMERS, VOICE_TIER_LABELS, type SleepTimer, type SpeechState, type VoiceOption } from './speech';
+import { SLEEP_TIMERS, VOICE_TIER_LABELS, type EngineKind, type SleepTimer, type SpeechState, type VoiceOption } from './speech';
 
 interface Props {
   state: SpeechState;
@@ -20,6 +20,10 @@ interface Props {
   away: boolean;
   rate: number;
   voice: VoiceOption | undefined;
+  /** 本章用原声还是系统语音 */
+  engine: EngineKind;
+  /** 想用原声但本章没有，退回了系统语音：标题下方提示一行 */
+  fallback: boolean;
   sleep: SleepTimer;
   onPause(): void;
   onResume(): void;
@@ -36,7 +40,8 @@ interface Props {
  * 语速 / 上一段 / 播放 / 下一段 / 语音。听书不要求沉浸，正文让出底部；不朗读时不占位置
  */
 export function ReadAloudPanel(props: Props) {
-  const { state, chapterNo, chapterTitle, index, total, away, rate, voice, sleep } = props;
+  const { state, chapterNo, chapterTitle, index, total, away, rate, voice, engine, fallback, sleep } = props;
+  const original = engine === 'original';
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
@@ -78,6 +83,7 @@ export function ReadAloudPanel(props: Props) {
           <Text style={[styles.title, { color: t.fg }]} numberOfLines={1}>
             {chapterTitle}
           </Text>
+          {fallback && <Text style={[styles.kicker, { color: t.fg3 }]}>本章暂不支持原声，先用系统语音读</Text>}
         </View>
         <Pressable
           accessibilityRole="button"
@@ -162,15 +168,16 @@ export function ReadAloudPanel(props: Props) {
         <View style={[styles.side, styles.end]}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`语音 ${voice ? `${voice.name}${tier ? `，${tier}` : ''}` : '系统语音'}，点按选择`}
+            accessibilityLabel={`语音 ${original ? '原声' : voice ? `${voice.name}${tier ? `，${tier}` : ''}` : '系统语音'}，点按选择`}
             hitSlop={6}
-            style={[styles.chip, styles.voice, { backgroundColor: t.fill }]}
+            style={[styles.chip, styles.voice, { backgroundColor: original ? t.accentSoft : t.fill }]}
             onPress={props.onVoice}
           >
-            <Text style={[styles.voiceText, { color: t.fg }]} numberOfLines={1}>
-              {voice?.name ?? '系统语音'}
+            {original && <AudioLines size={14} color={t.accent} strokeWidth={2} />}
+            <Text style={[styles.voiceText, { color: original ? t.accent : t.fg }]} numberOfLines={1}>
+              {original ? '原声' : (voice?.name ?? '系统语音')}
             </Text>
-            <ChevronRight size={14} color={t.fg3} strokeWidth={2} />
+            <ChevronRight size={14} color={original ? t.accent : t.fg3} strokeWidth={2} />
           </Pressable>
         </View>
       </View>

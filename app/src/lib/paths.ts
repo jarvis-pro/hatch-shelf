@@ -5,8 +5,14 @@ export const booksDir = new Directory(Paths.document, 'books');
 export const inboxDir = new Directory(Paths.document, 'inbox');
 /** 阅读器 HTML 的落地目录；与 books/ 同在 documentDirectory 下，WebView 才能读到书里的图片 */
 export const readerDir = new Directory(Paths.document, 'reader');
+/** 原声录音（README 第 8.1 节）：audio/<id>/，不放进 books/<id>/，书更新时整目录替换不会冲掉 */
+export const audioRoot = new Directory(Paths.document, 'audio');
 export const DB_NAME = 'shelf.db';
 
 export function bookDir(id: string) {
   return new Directory(booksDir, id);
+}
+
+export function audioDir(id: string) {
+  return new Directory(audioRoot, id);
 }

@@ -27,7 +27,7 @@ import { FindBar, type FindState } from '@/reader/FindBar';
 import { COVER_MS, PagePlaceholder, type PlaceholderChapter } from '@/reader/PagePlaceholder';
 import { ReadAloudPanel } from '@/reader/ReadAloudPanel';
 import { SettingsSheet } from '@/reader/SettingsSheet';
-import { useReadAloud } from '@/reader/speech';
+import { ORIGINAL_VOICE, useReadAloud } from '@/reader/speech';
 import { loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, toReaderTheme, type ReaderPrefs } from '@/reader/theme';
 import { TocSheet } from '@/reader/TocSheet';
 import { VoiceSheet } from '@/reader/VoiceSheet';
@@ -427,6 +427,12 @@ export default function ReaderScreen() {
           away={speech.away}
           rate={speech.rate}
           voice={speech.voice}
+          engine={speech.engineKind}
+          fallback={
+            speech.hasOriginal &&
+            speech.engineKind === 'system' &&
+            (speech.voiceId === null || speech.voiceId === ORIGINAL_VOICE)
+          }
           onPause={speech.pause}
           onResume={speech.resume}
           onSeek={speech.seek}
@@ -442,6 +448,8 @@ export default function ReaderScreen() {
         visible={panel === 'voice'}
         voices={speech.voices}
         voiceId={speech.voiceId}
+        hasOriginal={speech.hasOriginal}
+        chapterOriginal={speech.chapterOriginal}
         onChoose={speech.chooseVoice}
         onClose={() => setPanel(null)}
       />

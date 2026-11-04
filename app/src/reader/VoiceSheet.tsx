@@ -5,27 +5,34 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Panel, PanelScrollView } from '@/ui/Panel';
 import { useTheme } from '@/ui/theme';
-import { VOICE_LANGUAGES, VOICE_TIER_LABELS, type VoiceOption, type VoiceTier } from './speech';
+import { ORIGINAL_VOICE, VOICE_LANGUAGES, VOICE_TIER_LABELS, type VoiceOption, type VoiceTier } from './speech';
 
 interface Props {
   visible: boolean;
   voices: VoiceOption[];
-  /** null 为自动 */
+  /** null 为自动，ORIGINAL_VOICE 为原声 */
   voiceId: string | null;
+  /** 本书有原声；正在读的这一章有没有 */
+  hasOriginal: boolean;
+  chapterOriginal: boolean;
   onChoose(id: string | null): void;
   onClose(): void;
 }
 
-/** 朗读语音：自动，或按普通话 / 台湾国语 / 粤语挑设备上的系统语音。选完不关面板，方便挨个试听 */
-export function VoiceSheet({ visible, voices, voiceId, onChoose, onClose }: Props) {
+/**
+ * 朗读语音：自动、原声（本书有预生成录音时），或按普通话 / 台湾国语 / 粤语挑设备上的系统语音。
+ * 选完不关面板，方便挨个试听
+ */
+export function VoiceSheet({ visible, voices, voiceId, hasOriginal, chapterOriginal, onChoose, onClose }: Props) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const groups = VOICE_LANGUAGES.map((l) => ({ ...l, voices: voices.filter((v) => v.language === l.language) })).filter(
     (g) => g.voices.length > 0,
   );
-  // 选中的语音被删掉后按自动处理
-  const selected = voices.some((v) => v.id === voiceId) ? voiceId : null;
+  // 选中的语音被删掉、或本书没有原声时按自动处理
+  const selected =
+    voiceId === ORIGINAL_VOICE ? (hasOriginal ? voiceId : null) : voices.some((v) => v.id === voiceId) ? voiceId : null;
 
   return (
     <Panel visible={visible} side="bottom" onClose={onClose}>
@@ -53,11 +60,39 @@ export function VoiceSheet({ visible, voices, voiceId, onChoose, onClose }: Prop
                 <Text style={[styles.name, { color: selected === null ? t.accent : t.fg }, selected === null && styles.bold]}>
                   自动
                 </Text>
-                <Text style={[styles.hint, { color: t.fg3 }]}>用设备上音质最好的普通话语音</Text>
+                <Text style={[styles.hint, { color: t.fg3 }]}>
+                  {hasOriginal ? '本章有原声时用原声，否则用音质最好的普通话语音' : '用设备上音质最好的普通话语音'}
+                </Text>
               </View>
               {selected === null && <Check size={18} color={t.accent} strokeWidth={2.2} />}
             </Pressable>
           </View>
+
+          {hasOriginal && (
+            <View style={[styles.list, { backgroundColor: t.fill }]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`原声，${chapterOriginal ? '本章支持' : '本章暂不支持'}`}
+                accessibilityState={{ selected: selected === ORIGINAL_VOICE }}
+                style={styles.autoRow}
+                onPress={() => onChoose(ORIGINAL_VOICE)}
+              >
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text
+                    style={[
+                      styles.name,
+                      { color: selected === ORIGINAL_VOICE ? t.accent : t.fg },
+                      selected === ORIGINAL_VOICE && styles.bold,
+                    ]}
+                  >
+                    原声
+                  </Text>
+                  <Text style={[styles.hint, { color: t.fg3 }]}>{chapterOriginal ? '本章支持' : '本章暂不支持'}</Text>
+                </View>
+                {selected === ORIGINAL_VOICE && <Check size={18} color={t.accent} strokeWidth={2.2} />}
+              </Pressable>
+            </View>
+          )}
 
           {groups.map((g) => (
             <View key={g.language} style={{ gap: 8 }}>

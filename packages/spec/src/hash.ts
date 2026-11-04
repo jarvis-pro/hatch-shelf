@@ -5,19 +5,33 @@ import { strToU8 } from 'fflate';
  * 只用来判断内容是否变化（push --changed），不需要抗碰撞。
  */
 export function contentHash(files: { path: string; text?: string; bytes?: Uint8Array }[]): string {
-  let a = 0x811c9dc5;
-  let b = 0x050c5d1f;
-  const feed = (bytes: Uint8Array) => {
-    for (let i = 0; i < bytes.length; i++) {
-      a = Math.imul(a ^ bytes[i], 0x01000193);
-      b = Math.imul(b ^ bytes[i], 0x01000193) ^ (b >>> 15);
-    }
-  };
+  const h = fnv();
   for (const f of [...files].sort((x, y) => (x.path < y.path ? -1 : x.path > y.path ? 1 : 0))) {
     const data = f.bytes ?? strToU8(f.text ?? '');
-    feed(strToU8(`${f.path}\0${data.length}\0`));
-    feed(data);
+    h.feed(strToU8(`${f.path}\0${data.length}\0`));
+    h.feed(data);
   }
+  return h.hex();
+}
+
+/** 一段文字的指纹，算法同 contentHash；录音清单用它对段落（README 第 8.1 节），App 和 CLI 必须算得一样 */
+export function textHash(text: string): string {
+  const h = fnv();
+  h.feed(strToU8(text));
+  return h.hex();
+}
+
+function fnv() {
+  let a = 0x811c9dc5;
+  let b = 0x050c5d1f;
   const hex = (n: number) => (n >>> 0).toString(16).padStart(8, '0');
-  return hex(a) + hex(b);
+  return {
+    feed(bytes: Uint8Array) {
+      for (let i = 0; i < bytes.length; i++) {
+        a = Math.imul(a ^ bytes[i], 0x01000193);
+        b = Math.imul(b ^ bytes[i], 0x01000193) ^ (b >>> 15);
+      }
+    },
+    hex: () => hex(a) + hex(b),
+  };
 }

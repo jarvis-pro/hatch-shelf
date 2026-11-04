@@ -6,3 +6,4 @@ export * from './hash';
 export * from './import';
 export * from './lint';
 export * from './links';
+export * from './audio';

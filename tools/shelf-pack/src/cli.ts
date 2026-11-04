@@ -3,7 +3,18 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { MAX_PACKAGE_BYTES, prepareImport } from '@shelf/spec';
 import { Command } from 'commander';
+import {
+  DEFAULT_PARAMS,
+  DEFAULT_VOICE,
+  estimateSeconds,
+  fishApiKey,
+  generateAudio,
+  planAudio,
+  voiceName,
+  writeAudioManifest,
+} from './audio';
 import { findBooks, groupByCategory, lint, packBook, readBook, sameNotes, type LocalBook } from './books';
+import { segmentChapter } from './segment';
 import { listDeviceBooks, PinError, pullBackup, pullDeviceNotes, pushRestore, upload } from './device';
 
 const c = {
@@ -199,6 +210,80 @@ program
       console.error(c.red((e as Error).message));
       process.exitCode = 1;
     }
+  });
+
+const hours = (seconds: number) => `${(seconds / 3600).toFixed(1)} 小时`;
+
+program
+  .command('audio')
+  .argument('<book-dir>', '一本书的目录')
+  .option('--voice <id>', 'Fish Audio 音色 id', DEFAULT_VOICE)
+  .option('--speed <n>', '语速 0.5–2', '1')
+  .option('--only <chapters>', '只生成这些章：逗号分隔的章节文件名或序号前缀，如 01,02')
+  .option('-o, --out <dir>', '录音根目录，录音写到 <dir>/<book-id>/', 'audio')
+  .option('-j, --concurrency <n>', '同时合成的请求数', '3')
+  .option('--dry', '只打印朗读稿（按段落），不合成')
+  .description('用 Fish Audio 把书按阅读器的段落预先读成录音（原声）；可以随时中断，重跑只补缺的')
+  .action(async (dir: string, opts: { voice: string; speed: string; only?: string; out: string; concurrency: string; dry?: boolean }) => {
+    const book = readBook(path.resolve(dir));
+    const r = checkBook(book, true);
+    if (!r) return void (process.exitCode = 1);
+    const meta = r.manifest!;
+    const speed = Number(opts.speed);
+    if (!(speed >= 0.5 && speed <= 2)) throw new Error('--speed 应在 0.5 到 2 之间');
+    const only = opts.only?.split(',').map((s) => s.trim()).filter(Boolean);
+    const picked = meta.chapters.filter((ch) => !only || only.some((p) => ch === p || ch.startsWith(p)));
+    if (picked.length === 0) throw new Error(`--only 没有匹配的章节：${opts.only}`);
+
+    const voice = { provider: 'fish' as const, id: opts.voice };
+    const params = { ...DEFAULT_PARAMS, speed };
+    const plan = planAudio(book, meta, voice, params);
+
+    if (opts.dry) {
+      for (const ch of picked) {
+        const md = book.files.find((f) => f.path === ch)!.text!;
+        console.log(`\n# ${ch}`);
+        for (const [i, text] of segmentChapter(md).entries()) console.log(`${String(i + 1).padStart(4)}  ${text}`);
+      }
+      return;
+    }
+
+    const fps = [...new Set(picked.flatMap((ch) => plan.chapterFiles.get(ch)!))];
+    const outDir = path.resolve(opts.out, meta.id);
+    const missing = fps.filter((fp) => !existsSync(path.join(outDir, `${fp}.mp3`)));
+    const missingChars = missing.reduce((n, fp) => n + plan.jobs.get(fp)!.length, 0);
+    console.log(
+      `${meta.title}：${plan.paragraphs} 段，${plan.chars} 字，约 ${hours(estimateSeconds(plan.chars, speed))}；` +
+        `本次 ${picked.length} 章，需要合成 ${missing.length} / ${fps.length} 个录音（${missingChars} 字）`,
+    );
+
+    const key = fishApiKey();
+    plan.manifest.voice = { ...voice, name: await voiceName(key, voice.id) };
+    // Ctrl-C 时先把已经齐全的章节写进清单
+    process.once('SIGINT', () => {
+      const n = writeAudioManifest(outDir, plan);
+      console.log(c.yellow(`\n已中断；${n} 章录音齐全，重跑同一命令即可接着生成`));
+      process.exit(130);
+    });
+    const started = Date.now();
+    const { failed } = await generateAudio(outDir, plan, missing, {
+      key,
+      concurrency: Number(opts.concurrency),
+      onProgress: (done, total) => {
+        const eta = ((Date.now() - started) / done) * (total - done);
+        process.stdout.write(`\r  ${done} / ${total}  ${c.dim(`剩余约 ${Math.ceil(eta / 60000)} 分钟`)}   `);
+      },
+    });
+    if (missing.length) process.stdout.write('\n');
+    const complete = writeAudioManifest(outDir, plan);
+    for (const f of failed) console.log(`    ${c.red('失败')} ${f.fp}  ${f.error}  ${c.dim(plan.jobs.get(f.fp)!.slice(0, 40))}`);
+    console.log(
+      (failed.length ? c.yellow : c.green)(
+        `${complete} / ${meta.chapters.length} 章录音齐全 → ${path.relative(process.cwd(), outDir)}` +
+          (failed.length ? `；${failed.length} 个失败，重跑同一命令会补上` : ''),
+      ),
+    );
+    process.exitCode = failed.length ? 1 : 0;
   });
 
 program.parse();

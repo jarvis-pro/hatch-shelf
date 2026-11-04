@@ -283,18 +283,21 @@ documentDirectory/
 听书本来就是一段一段读的（`ttsBlocks` 切出的段落），录音按完全相同的段落生成，播放时「读第 i 段」就是「播第 i 段的文件」，高亮、跳段、进度不需要任何时间戳。
 
 - 切段只有一份实现（已完成）：markdown-it 配置在 `app/reader-web/src/render.ts`，切段规则在 `segment.ts`，两者都不依赖页面状态。`shelf-pack` 的 `src/segment.ts` 在 happy-dom 里跑同一份代码，得到与手机上完全相同的段落文字；`segment.test.ts` 对 `books/` 里每本能通过 check 的书分别走阅读器（`collectBlocks`）和 CLI 两条路径，段落必须逐条相同。happy-dom 每章新开一个窗口、用完关掉，关掉的窗口要等事件循环空闲才释放，整库连续同步切会耗尽内存
-- 每段文字算一个指纹 `sha1(段落文字 + 音色 + 参数)`，文件名就是指纹，如 `3f2a….mp3`；超过单次上限（免费版 500 字符）的段落按句切成多个文件，清单里记成一个数组，顺序播放
+- 指纹用 `@shelf/spec` 的 `textHash`（与内容指纹同一套 64 位 FNV-1a，App 和 CLI 都能算，不依赖 Node 的 crypto）：段落的 key 是 `textHash(段落文字)`，只看文字；录音文件名是 `textHash(合成用文字 + 音色 + 参数)`，如 `3f2a9c…（16 位）.mp3`。超过单次上限（免费版 500 字符，CLI 按 450 切）的段落按句切成多个文件，清单里记成一个数组，顺序播放
+- S2 会把方括号当成语气标签（如 `[whisper]`），合成时正文里的 `[` `]` 换成全角 `【` `】`；段落 key 仍按原文算
 - 「此处有代码，略过。」这类重复的提示只生成一次，指纹相同自然复用
 
 **音频包**
 
 ```text
 audio/<book-id>/            # 仓库根目录，不入库（与 backups/ 一样写进 .gitignore）
-├── manifest.json           # { bookId, voice: { provider, id, name }, params, chapters: { "<章节文件>": [[指纹…], …] } }
-└── <指纹>.mp3              # 64 kbps 单声道；一本 5 万字的书约 2.3 小时、65 MB
+├── manifest.json           # { version: 1, bookId, voice: { provider, id, name }, params, chapters: { "<章节文件>": [{ key, files: [指纹…] }, …] } }
+└── <指纹>.mp3              # 64 kbps 单声道；deepseek-harness 4.2 万字（按段落去掉代码、表格后）约 1.8 小时
 ```
 
 - 不放进 `books/`：音频体积是原文的几百倍，仓库是公开的，也不该让每次修订都带上二进制 diff
+- 清单的 schema 和匹配函数 `chapterAudio()` 在 `@shelf/spec` 的 `audio.ts`：本章段落数相同、每段 key 都逐条相同才返回各段的录音文件
+- 清单只收录音全部齐全的章节；中断（Ctrl-C）时也先写清单，App 不会拿到缺文件的章
 - 增量生成：修订书后重新运行，只有文字变了的段落指纹会变，只补生成这些段落；清单里不再引用的文件清理掉
 - 换音色或参数后所有指纹都变，等于整本重新生成
 
@@ -321,18 +324,19 @@ audio/<book-id>/            # 仓库根目录，不入库（与 backups/ 一样�
 **CLI**
 
 ```bash
-shelf-pack audio <book-dir> [--voice <id>] [--speed 1]   # 生成或增量更新 audio/<id>/
+shelf-pack audio <book-dir> [--voice <id>] [--speed 1] [--only 01,02] [-j 3] [--dry]   # 生成或增量更新 audio/<id>/
 shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送录音；设备上已有且清单相同的章节跳过
 ```
 
 - 密钥从钥匙串读取（`security find-generic-password -s fish-audio -w`），也可用环境变量 `FISH_API_KEY`，不进仓库
 - 调用 `POST https://api.fish.audio/v1/tts`，请求头 `model: s2.1-pro-free`，`format: mp3`、`mp3_bitrate: 64`，固定 `reference_id`（音色）；默认 3 路并发，429 / 5xx 退避重试，已生成的文件跳过，可以随时中断再续
-- 生成前打印段落数、字数和预计时长；`--dry` 只输出朗读稿，方便检查读法
+- 默认音色 `e0cbb35d7cc2420c87f2ea6ad623b61a`（「成熟男性讲故事」）；生成前打印段落数、字数、预计时长和本次要合成的数量；`--only` 只生成指定章节（文件名或序号前缀）；`--dry` 按段落输出朗读稿，方便检查读法
+- 合成先写 `.part` 再改名，中断后留下的都是完整文件；密钥无效这类不可重试的错误立刻停下，其余失败列出来，重跑同一命令补上
 
 **验证顺序**（每一步都能单独停下）
 
 1. 切段抽成 `render.ts` / `segment.ts`，CLI 与阅读器段落一致的测试通过（已完成）
-2. `shelf-pack audio` 生成一本书（先用 `deepseek-harness`），在电脑上抽听
+2. `shelf-pack audio` 生成一本书（先用 `deepseek-harness`），在电脑上抽听（命令已完成）
 3. App 播放引擎接口 + 录音引擎，先只支持前台播放，确认高亮、跳段、语速
 4. 真机验证锁屏、后台连续播放、耳机线控、来电打断，以及与 `now-playing` 模块的共存
 5. 音频包导入与 `push-audio`

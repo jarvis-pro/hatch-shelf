@@ -1,0 +1,23 @@
+id: computer-systems
+title: 计算机系统基础
+subtitle: 从比特到进程：写上层代码也该懂的底层
+category: 技术/基础
+tags: [computer-systems, os, memory, io, linking]
+level: intermediate
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-data-representation.md
+  - 02-cpu-execution.md
+  - 03-memory-hierarchy.md
+  - 04-virtual-memory.md
+  - 05-processes-threads.md
+  - 06-concurrency-sync.md
+  - 07-io-models.md
+  - 08-filesystem-durability.md
+  - 09-linking-loading.md
+next:
+  - id: linux-essentials
+    reason: 把进程、内存、磁盘这些概念落到服务器上的命令和排障
+  - id: ts-node-advanced
+    reason: 回到 Node 运行时，看事件循环、GC 和 Stream 怎么用上这些底层

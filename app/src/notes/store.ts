@@ -68,6 +68,16 @@ export async function countHighlights(bookId: string): Promise<number> {
   return row?.n ?? 0;
 }
 
+/** 多本书各自的笔记数（批量删除确认用）；没有笔记的书不在结果里 */
+export async function countHighlightsByBook(bookIds: string[]): Promise<Map<string, number>> {
+  if (bookIds.length === 0) return new Map();
+  const rows = await getDb().getAllAsync<{ book_id: string; n: number }>(
+    `SELECT book_id, COUNT(*) AS n FROM highlights WHERE book_id IN (${bookIds.map(() => '?').join(', ')}) GROUP BY book_id`,
+    ...bookIds,
+  );
+  return new Map(rows.map((r) => [r.book_id, r.n]));
+}
+
 export interface NotesSummary {
   bookId: string;
   highlights: number;

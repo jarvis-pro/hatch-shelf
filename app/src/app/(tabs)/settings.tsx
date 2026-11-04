@@ -5,6 +5,7 @@ import {
   DatabaseBackup,
   FolderInput,
   Info,
+  LibraryBig,
   RefreshCcw,
   ShieldCheck,
   SunMoon,
@@ -12,10 +13,12 @@ import {
   Type,
   type LucideIcon,
 } from 'lucide-react-native';
-import { Fragment, useEffect, useState, type ReactNode } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { Fragment, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndRestore, shareBackup } from '@/backup/store';
+import { listBooks } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
 import { rebuildIndex } from '@/library/index-books';
 import { SettingsSheet } from '@/reader/SettingsSheet';
@@ -33,6 +36,13 @@ export default function SettingsTab() {
   const [prefs, setPrefs] = useState<ReaderPrefs | null>(null);
   const [sheet, setSheet] = useState(false);
   const [rebuilding, setRebuilding] = useState(false);
+  const [bookCount, setBookCount] = useState<number | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      void listBooks().then((books) => setBookCount(books.length));
+    }, []),
+  );
 
   useEffect(() => {
     void loadReaderPrefs().then(setPrefs);
@@ -100,6 +110,7 @@ export default function SettingsTab() {
         </Group>
 
         <Group title="书库">
+          <Row icon={LibraryBig} label="书籍管理" value={bookCount !== null ? `${bookCount} 本` : undefined} onPress={() => router.push('/manage')} />
           <Row icon={FolderInput} label="从「文件」导入" onPress={() => void pickAndImport()} />
           <Row icon={RefreshCcw} label="重建索引" onPress={rebuilding ? undefined : () => void rebuild()}>
             {rebuilding && <ActivityIndicator size="small" color={t.fg3} />}

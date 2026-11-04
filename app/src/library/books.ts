@@ -16,14 +16,25 @@ export async function seedSamples() {
 
 /** 删除一本书：文件、索引和阅读进度一起删 */
 export async function deleteBook(id: string) {
-  const dir = bookDir(id);
-  if (dir.exists) dir.delete();
+  await deleteBooks([id]);
+}
+
+/** 批量删除（书籍管理页）：逐本删文件，数据库在一个事务里清理，最后只通知一次书架刷新 */
+export async function deleteBooks(ids: string[]) {
+  if (ids.length === 0) return;
+  for (const id of ids) {
+    const dir = bookDir(id);
+    if (dir.exists) dir.delete();
+  }
   const db = getDb();
   await db.withTransactionAsync(async () => {
-    await db.runAsync('DELETE FROM chapters WHERE book_id = ?', id);
-    await db.runAsync('DELETE FROM books WHERE id = ?', id);
-    await db.runAsync('DELETE FROM progress WHERE book_id = ?', id);
-    await db.runAsync('DELETE FROM highlights WHERE book_id = ?', id);
+    for (const id of ids) {
+      await db.runAsync('DELETE FROM chapters WHERE book_id = ?', id);
+      await db.runAsync('DELETE FROM search WHERE book_id = ?', id);
+      await db.runAsync('DELETE FROM books WHERE id = ?', id);
+      await db.runAsync('DELETE FROM progress WHERE book_id = ?', id);
+      await db.runAsync('DELETE FROM highlights WHERE book_id = ?', id);
+    }
   });
   notifyLibraryChanged();
 }

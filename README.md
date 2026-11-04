@@ -378,11 +378,11 @@ shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手
 一次性准备：在 App Store Connect 用 Bundle ID `com.jarvis.shelf` 建好 App；Xcode 的 Settings → Accounts 登录开发者账号（脚本用它签名和上传）。
 
 ```bash
-pnpm app testflight                  # 版本号升 patch → build:assets → prebuild → archive → 上传
+pnpm app testflight                  # 版本号升 patch → build:assets → prebuild → archive → 上传 → 提交、打 tag 并推送
 pnpm app testflight --version 1.1.0  # 指定新版本号（升 minor / major 时用）
 pnpm app testflight --no-upload      # 只导出 .ipa 到 app/ios/build/export，不改版本号
 ```
 
-- 只维护 `app.json` 的 `expo.version` 一个号：每次上传都是新版本，脚本自动升 patch（或用 `--version` 指定），失败时恢复原值；上传成功后脚本自动单独提交 `app.json`（`chore(release): v<版本>`）并打同名 tag `v<版本>`，不带上工作区的其他改动；`git log --oneline --decorate` 或 `git tag` 即可看到各版本节点（tag 需要 `git push --follow-tags` 才会推到远端）
+- 只维护 `app.json` 的 `expo.version` 一个号：每次上传都是新版本，脚本自动升 patch（或用 `--version` 指定），失败时恢复原值；上传成功后脚本自动单独提交 `app.json`（`chore(release): v<版本>`）并打同名 tag `v<版本>`，不带上工作区的其他改动，再用 `git push --follow-tags` 把这个提交和 tag 推到远端（当前分支需要已设上游；推送失败时提交和 tag 留在本地，按提示手动推）；`git log --oneline --decorate` 或 `git tag` 即可看到各版本节点
 - 构建号（`CFBundleVersion`）不设，用 Expo 默认的 1，不要在 `app.json` 或 `app.config.js` 里写 `ios.buildNumber`。同一版本只能上传一次，上传后处理失败也要升版本重传
 - 上传后 App Store Connect 处理 5～15 分钟，构建出现在 TestFlight 的内部测试组即可安装；内部测试不需要审核，构建 90 天后过期

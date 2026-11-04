@@ -2,7 +2,7 @@
 // 流程：app.json 的 expo.version 升 patch → build:assets → prebuild → xcodebuild archive → exportArchive 上传。
 // 构建号固定为 Expo 默认的 1，不单独维护。--version x.y.z 指定新版本号（升 minor / major 时用）。
 // 失败时把 app.json 恢复原样；上传成功后只把 app.json 单独提交为 `chore(release): v<版本>` 并打同名 tag，
-// 不带上工作区其他改动，git log 里就能看到每个版本节点。加 --no-upload 只导出 .ipa 到 ios/build/export，不改版本号、不上传。
+// 不带上工作区其他改动，git log 里就能看到每个版本节点；随后用 --follow-tags 把提交和 tag 一起推到远端。加 --no-upload 只导出 .ipa 到 ios/build/export，不改版本号、不上传。
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -106,5 +106,12 @@ try {
   run('git', ['tag', '-a', `v${version}`, '-m', `v${version}`]);
 } catch (err) {
   console.error(`\n自动提交或打 tag 失败，请手动补上：${err.message}`);
+  process.exit(1);
+}
+try {
+  // --follow-tags：推当前分支到上游，并带上指向已推提交的附注 tag
+  run('git', ['push', '--follow-tags']);
+} catch (err) {
+  console.error(`\n推送失败，提交和 tag 已在本地，请手动执行 git push --follow-tags：${err.message}`);
   process.exit(1);
 }

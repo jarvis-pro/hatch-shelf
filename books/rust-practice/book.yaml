@@ -1,0 +1,22 @@
+id: rust-practice
+title: Rust 实用入门
+subtitle: 写给 TS 开发者：所有权、CLI、Tauri 与 WASM
+category: 技术/Rust
+tags: [rust, cargo, tokio, clap, tauri, wasm, napi-rs]
+level: intermediate
+created: 2026-11-04
+updated: 2026-11-04
+chapters:
+  - 01-why-rust.md
+  - 02-ownership-borrowing.md
+  - 03-lifetimes.md
+  - 04-types-traits-generics.md
+  - 05-error-handling.md
+  - 06-collections-iterators-closures.md
+  - 07-concurrency-async.md
+  - 08-cli-clap.md
+  - 09-tauri.md
+  - 10-wasm-napi.md
+next:
+  - id: electron-desktop
+    reason: 写过 Tauri 再看 Electron，两种桌面方案的取舍会更具体

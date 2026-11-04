@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" width="360" height="420" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fdf"/></marker></defs>
+<rect x="0.5" y="0.5" width="359" height="419" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="32" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">let b = a 只复制栈上的三个字段</text>
+<text x="20" y="62" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">移动前</text>
+<text x="70" y="62" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">let a = String::from("hatch")</text>
+<text x="34" y="118" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">a</text>
+<rect x="46" y="74" width="50" height="26" fill="#dbe7fb" stroke="#d8dee4"/>
+<rect x="96" y="74" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="91" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">ptr</text>
+<text x="131" y="91" font-size="12" fill="#2f6fdf" text-anchor="middle" font-weight="normal">●</text>
+<rect x="46" y="100" width="50" height="26" fill="#dbe7fb" stroke="#d8dee4"/>
+<rect x="96" y="100" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="117" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">len</text>
+<text x="131" y="117" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">5</text>
+<rect x="46" y="126" width="50" height="26" fill="#dbe7fb" stroke="#d8dee4"/>
+<rect x="96" y="126" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="143" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">cap</text>
+<text x="131" y="143" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">5</text>
+<rect x="214" y="73" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="226" y="92" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">h</text>
+<rect x="238" y="73" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="250" y="92" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">a</text>
+<rect x="262" y="73" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="274" y="92" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">t</text>
+<rect x="286" y="73" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="298" y="92" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">c</text>
+<rect x="310" y="73" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="322" y="92" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">h</text>
+<text x="274" y="120" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">堆上 5 个字节</text>
+<line x1="158" y1="87" x2="210" y2="87" stroke="#2f6fdf" stroke-width="1.6" marker-end="url(#arr)"/>
+<line x1="20" y1="170" x2="340" y2="170" stroke="#d8dee4" stroke-dasharray="4 4"/>
+<text x="20" y="196" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">移动后</text>
+<text x="70" y="196" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">let b = a;</text>
+<text x="34" y="252" font-size="14" fill="#656d76" text-anchor="middle" font-weight="600">a</text>
+<rect x="46" y="208" width="50" height="26" fill="#e6e9ed" stroke="#d8dee4"/>
+<rect x="96" y="208" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="225" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">ptr</text>
+<text x="131" y="225" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">—</text>
+<rect x="46" y="234" width="50" height="26" fill="#e6e9ed" stroke="#d8dee4"/>
+<rect x="96" y="234" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="251" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">len</text>
+<text x="131" y="251" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">5</text>
+<rect x="46" y="260" width="50" height="26" fill="#e6e9ed" stroke="#d8dee4"/>
+<rect x="96" y="260" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="277" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">cap</text>
+<text x="131" y="277" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">5</text>
+<text x="178" y="240" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">a 已失效，</text>
+<text x="178" y="258" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">不能再用</text>
+<text x="34" y="342" font-size="14" fill="#1f2328" text-anchor="middle" font-weight="600">b</text>
+<rect x="46" y="298" width="50" height="26" fill="#dbe7fb" stroke="#d8dee4"/>
+<rect x="96" y="298" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="315" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">ptr</text>
+<text x="131" y="315" font-size="12" fill="#2f6fdf" text-anchor="middle" font-weight="normal">●</text>
+<rect x="46" y="324" width="50" height="26" fill="#dbe7fb" stroke="#d8dee4"/>
+<rect x="96" y="324" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="341" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">len</text>
+<text x="131" y="341" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">5</text>
+<rect x="46" y="350" width="50" height="26" fill="#dbe7fb" stroke="#d8dee4"/>
+<rect x="96" y="350" width="70" height="26" fill="#ffffff" stroke="#d8dee4"/>
+<text x="71" y="367" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">cap</text>
+<text x="131" y="367" font-size="12" fill="#1f2328" text-anchor="middle" font-weight="normal">5</text>
+<rect x="214" y="297" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="226" y="316" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">h</text>
+<rect x="238" y="297" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="250" y="316" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">a</text>
+<rect x="262" y="297" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="274" y="316" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">t</text>
+<rect x="286" y="297" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="298" y="316" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">c</text>
+<rect x="310" y="297" width="24" height="28" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="322" y="316" font-size="13" fill="#1f2328" text-anchor="middle" font-weight="normal">h</text>
+<text x="274" y="344" font-size="11" fill="#656d76" text-anchor="middle" font-weight="normal">数据没动，只有 b 指向它</text>
+<line x1="158" y1="311" x2="210" y2="311" stroke="#2f6fdf" stroke-width="1.6" marker-end="url(#arr)"/>
+<rect x="20" y="388" width="14" height="14" fill="#dbe7fb" stroke="#d8dee4"/>
+<text x="40" y="400" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">栈（变量本身）</text>
+<rect x="170" y="388" width="14" height="14" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="190" y="400" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">堆（字符串内容）</text>
+</svg>

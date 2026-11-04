@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 400" width="360" height="400" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fdf"/></marker></defs>
+<rect x="0.5" y="0.5" width="359" height="399" rx="10" fill="#ffffff" stroke="#d8dee4"/>
+<text x="180" y="32" font-size="15" fill="#1f2328" text-anchor="middle" font-weight="600">借用持续到最后一次使用</text>
+<text x="20" y="64" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">能编译</text>
+<text x="262" y="64" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">&amp;</text>
+<text x="312" y="64" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">&amp;mut</text>
+<rect x="20" y="76" width="224" height="26" rx="4" fill="#ffffff" stroke="#d8dee4"/>
+<text x="30" y="93" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">1  let first = &amp;books[0];</text>
+<rect x="20" y="106" width="224" height="26" rx="4" fill="#ffffff" stroke="#d8dee4"/>
+<text x="30" y="123" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">2  println!("{first}");</text>
+<rect x="20" y="136" width="224" height="26" rx="4" fill="#ffffff" stroke="#d8dee4"/>
+<text x="30" y="153" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">3  books.push(..);</text>
+<rect x="250" y="78" width="24" height="52" rx="6" fill="#dbe7fb" stroke="#2f6fdf"/>
+<rect x="300" y="138" width="24" height="22" rx="6" fill="#2f6fdf"/>
+<text x="20" y="182" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">第 2 行之后 first 不再使用，读借用结束</text>
+<line x1="20" y1="200" x2="340" y2="200" stroke="#d8dee4" stroke-dasharray="4 4"/>
+<text x="20" y="228" font-size="13" fill="#1f2328" text-anchor="start" font-weight="600">报错 E0502</text>
+<text x="262" y="228" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">&amp;</text>
+<text x="312" y="228" font-size="12" fill="#656d76" text-anchor="middle" font-weight="normal">&amp;mut</text>
+<rect x="20" y="240" width="224" height="26" rx="4" fill="#ffffff" stroke="#d8dee4"/>
+<text x="30" y="257" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">1  let first = &amp;books[0];</text>
+<rect x="20" y="270" width="224" height="26" rx="4" fill="#ffffff" stroke="#d8dee4"/>
+<text x="30" y="287" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">2  books.push(..);</text>
+<rect x="20" y="300" width="224" height="26" rx="4" fill="#ffffff" stroke="#d8dee4"/>
+<text x="30" y="317" font-size="12" fill="#1f2328" text-anchor="start" font-weight="normal">3  println!("{first}");</text>
+<rect x="250" y="242" width="24" height="82" rx="6" fill="#dbe7fb" stroke="#2f6fdf"/>
+<rect x="300" y="272" width="24" height="22" rx="6" fill="#2f6fdf"/>
+<rect x="244" y="268" width="88" height="30" rx="6" fill="none" stroke="#1f2328" stroke-dasharray="3 3"/>
+<text x="20" y="346" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">第 2 行修改时，读借用还要用到第 3 行</text>
+<rect x="20" y="368" width="14" height="14" rx="3" fill="#dbe7fb" stroke="#2f6fdf"/>
+<text x="40" y="380" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">不可变借用 &amp;</text>
+<rect x="170" y="368" width="14" height="14" rx="3" fill="#2f6fdf"/>
+<text x="190" y="380" font-size="12" fill="#656d76" text-anchor="start" font-weight="normal">可变借用 &amp;mut</text>
+</svg>

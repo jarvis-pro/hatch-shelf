@@ -2,7 +2,6 @@ import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, useWindowDimensions, View, type HostInstance } from 'react-native';
 import { useSafeAreaInsets, type EdgeInsets } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
 import type { BookRow } from '@/db/queries';
 import { BookCover, COVER_RATIO } from '@/shelf/BookCover';
 import { EASE_OUT_CUBIC, EASE_OUT_QUINT, isReduceMotion } from './motion';
@@ -10,7 +9,7 @@ import { useTheme } from './theme';
 
 /**
  * 长按 · 进详情过场（设计稿「长按 · 进详情过场」）：
- * ① 按下 0–300ms：触点外一圈进度环；② 抬起 300–420ms：封面弹到 1.15 倍，书架模糊变淡；
+ * ① 按下 0–300ms：封面缩小压暗；② 抬起 300–420ms：封面弹到 1.15 倍，书架模糊变淡；
  * ③ 展开：封面用弹簧飞到详情页的大封面；返回时按相反路径飞回书架原位。
  * 页面本身用淡入淡出切换；飞行的是根布局上的一份封面副本，两端的真封面在飞行期间隐藏。
  */
@@ -45,10 +44,6 @@ export const detailBottomInset = (insets: EdgeInsets) => Math.max(insets.bottom,
 export const FLIGHT_MS = 360;
 const LIFT_MS = 120;
 const LIFT_SCALE = 1.15;
-/** 进度环：按下 150ms 后才出现（普通点按不闪一下），到 300ms（长按触发）画满 */
-const HOLD_DELAY = 150;
-const HOLD_MS = 150;
-const RING = 56;
 /** 阻尼比 0.85 的弹簧 */
 const SPRING = { stiffness: 260, damping: 2 * 0.85 * Math.sqrt(260), mass: 1 };
 
@@ -65,7 +60,6 @@ interface Flight {
 type Hidden = string | null;
 
 let show: ((f: Flight) => void) | null = null;
-let hold: ((at: { x: number; y: number } | null) => void) | null = null;
 let hidden: Hidden = null;
 const hiddenListeners = new Set<(h: Hidden) => void>();
 /** 从书架进入详情时记下的封面，返回时重新测量，飞回它此刻的位置 */
@@ -88,18 +82,11 @@ export function useCoverHidden(id: string | undefined) {
   return !!id && h === id;
 }
 
-/** 按下封面：在触点外画进度环（窗口坐标）；松手或长按触发后收起 */
-export function startHold(x: number, y: number) {
-  if (!isReduceMotion()) hold?.({ x, y });
-}
-export const endHold = () => hold?.(null);
-
 const measure = (cover: HostInstance) =>
   new Promise<Rect>((resolve) => cover.measureInWindow((x, y, width, height) => resolve({ x, y, width, height })));
 
 /** 长按封面：测量位置，抬起后飞向详情页；navigate 在抬起结束、开始飞行时进行 */
 export function liftToDetail(book: CoverBook, cover: HostInstance | null, navigate: () => void) {
-  endHold();
   if (!cover || !show || isReduceMotion()) return navigate();
   void measure(cover).then((shelf) => {
     origins.set(book.id, { cover, rect: shelf });
@@ -128,15 +115,12 @@ export function CoverFlightHost() {
   const insets = useSafeAreaInsets();
   const screen = useWindowDimensions();
   const [flight, setFlight] = useState<Flight | null>(null);
-  const [ring, setRing] = useState<{ x: number; y: number } | null>(null);
   /** 0 = 在书架上，1 = 在详情页 */
   const [p] = useState(() => new Animated.Value(0));
   /** 抬起：0 = 原大，1 = 1.15 倍 */
   const [lift] = useState(() => new Animated.Value(0));
   /** 书架上的模糊遮罩 */
   const [veil] = useState(() => new Animated.Value(0));
-  const [ringP] = useState(() => new Animated.Value(0));
-  const [ringOpacity] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     // 先把起点设好再渲染副本，否则第一帧会停在上一次飞行的终点
@@ -146,22 +130,10 @@ export function CoverFlightHost() {
       veil.setValue(0);
       setFlight(f);
     };
-    hold = (at) => {
-      if (at) {
-        ringP.setValue(0);
-        ringOpacity.setValue(1);
-        setRing(at);
-        Animated.timing(ringP, { toValue: 1, duration: HOLD_MS, delay: HOLD_DELAY, useNativeDriver: false }).start();
-      } else {
-        ringP.stopAnimation();
-        Animated.timing(ringOpacity, { toValue: 0, duration: 120, useNativeDriver: false }).start(({ finished }) => finished && setRing(null));
-      }
-    };
     return () => {
       show = null;
-      hold = null;
     };
-  }, [p, lift, veil, ringP, ringOpacity]);
+  }, [p, lift, veil]);
 
   useEffect(() => {
     if (!flight) return;
@@ -203,28 +175,8 @@ export function CoverFlightHost() {
   // 副本按详情页尺寸绘制，放在详情页位置；在书架一端时缩小并平移过去
   const to = detailCoverRect(insets, screen);
   const from = flight?.shelf;
-  const c = Math.PI * (RING - 4);
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {ring && (
-        <Animated.View style={[styles.ring, { left: ring.x - RING / 2, top: ring.y - RING / 2, opacity: ringOpacity }]}>
-          <Svg width={RING} height={RING}>
-            <Circle cx={RING / 2} cy={RING / 2} r={RING / 2 - 2} stroke="#FFFFFFB3" strokeWidth={3} fill={`${t.accent}26`} />
-            <AnimatedCircle
-              cx={RING / 2}
-              cy={RING / 2}
-              r={RING / 2 - 2}
-              stroke={t.accent}
-              strokeWidth={3}
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={`${c} ${c}`}
-              strokeDashoffset={ringP.interpolate({ inputRange: [0, 1], outputRange: [c, 0] })}
-              transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
-            />
-          </Svg>
-        </Animated.View>
-      )}
       {flight?.direction === 'open' && (
         <Animated.View style={[StyleSheet.absoluteFill, { opacity: veil }]}>
           <BlurView intensity={18} tint={t.blurTint} style={StyleSheet.absoluteFill} />
@@ -255,9 +207,3 @@ export function CoverFlightHost() {
     </View>
   );
 }
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-const styles = StyleSheet.create({
-  ring: { position: 'absolute', width: RING, height: RING },
-});

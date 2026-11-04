@@ -6,6 +6,7 @@ import { describeRestore, parseBackup } from '@/backup/format';
 import { exportBackup, restoreBackup } from '@/backup/store';
 import { getBook, listBooks } from '@/db/queries';
 import { importFile, type ImportResult } from '@/import/pipeline';
+import { loadAudioManifest } from '@/library/audio';
 import { bookDir } from '@/lib/paths';
 import { bookNotesMarkdown, listNotesSummary } from '@/notes/store';
 import {
@@ -56,6 +57,7 @@ const uploadDir = new Directory(Paths.cache, 'lan-upload');
  * GET  /        上传页面
  * POST /upload  multipart/form-data，字段 file；PIN 放在 X-Pin 请求头或表单字段 pin
  * GET  /books   本地已有书籍（需要 X-Pin）
+ * GET  /audio/<id>  这本书在手机上的原声清单（需要 X-Pin），shelf-pack push-audio 据此跳过已有的章节
  * GET  /cover/<id>  书的封面 cover.png（需要 X-Pin），上传页用来在导入后显示封面
  * GET  /notes   每本有高亮的书导出的笔记 Markdown（需要 X-Pin），shelf-pack pull-notes 用来放回仓库的 notes/
  * GET  /backup  阅读数据备份 JSON（需要 X-Pin），shelf-pack backup 用来存到电脑
@@ -107,6 +109,13 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       return buildResponse(200, 'image/png', await cover.bytes());
     }
 
+    if (req.method === 'GET' && req.path.startsWith('/audio/')) {
+      if (!checkPin(req.headers['x-pin'])) return pinError();
+      const id = req.path.slice('/audio/'.length);
+      const manifest = SLUG_RE.test(id) ? await loadAudioManifest(id) : null;
+      return jsonResponse(200, { ok: true, manifest });
+    }
+
     if (req.method === 'GET' && req.path === '/books') {
       if (!checkPin(req.headers['x-pin'])) return pinError();
       const books = await listBooks();
@@ -153,6 +162,9 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       const result = await task;
       events.onUpload(result);
       if (!result.ok) return jsonResponse(422, { ok: false, error: result.error });
+      if (result.status === 'audio') {
+        return jsonResponse(200, { ok: true, bookId: result.bookId, status: 'audio', title: result.title, chapters: result.chapters, total: result.total });
+      }
       const book = await getBook(result.bookId);
       return jsonResponse(200, {
         ok: true,
@@ -165,7 +177,7 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       });
     }
 
-    if (['/', '/ping', '/books', '/notes', '/backup', '/restore', '/upload'].includes(req.path) || req.path.startsWith('/cover/')) {
+    if (['/', '/ping', '/books', '/notes', '/backup', '/restore', '/upload'].includes(req.path) || req.path.startsWith('/cover/') || req.path.startsWith('/audio/')) {
       return jsonResponse(405, { ok: false, error: '不支持的请求方法' });
     }
     return jsonResponse(404, { ok: false, error: '没有这个接口' });

@@ -1,10 +1,11 @@
-import { audioManifestSchema, chapterAudio, type AudioManifest } from '@shelf/spec';
+import { chapterAudio, type AudioManifest } from '@shelf/spec';
 import { setAudioModeAsync, setIsAudioActiveAsync } from 'expo-audio';
 import { File } from 'expo-file-system';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { AppState } from 'react-native';
 import { getSetting, setSetting, type ChapterRow } from '@/db/queries';
+import { loadAudioManifest } from '@/library/audio';
 import { audioDir, bookDir } from '@/lib/paths';
 import { addNowPlayingListener, clearNowPlaying, updateNowPlaying, type NowPlayingCommand } from '../../modules/now-playing';
 import type { ToReader } from './bridge';
@@ -43,18 +44,6 @@ const VOICE_KEY = 'speechVoice';
 /** 语音选「原声」时记下的值；本章不支持原声时用自动挑的系统语音 */
 export const ORIGINAL_VOICE = 'original';
 
-/** 本书的录音清单；没有原声或清单有误时为 null */
-function loadAudioManifest(bookId: string): Promise<AudioManifest | null> {
-  const f = new File(audioDir(bookId), 'manifest.json');
-  if (!f.exists) return Promise.resolve(null);
-  return f
-    .text()
-    .then((text) => {
-      const r = audioManifestSchema.safeParse(JSON.parse(text));
-      return r.success && r.data.bookId === bookId ? r.data : null;
-    })
-    .catch(() => null);
-}
 
 /** 可选的中文语音，按这个顺序分组 */
 export const VOICE_LANGUAGES = [

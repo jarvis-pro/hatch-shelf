@@ -1,3 +1,4 @@
+import type { AudioManifest } from '@shelf/spec';
 import { strToU8 } from 'fflate';
 
 export interface DeviceBook {
@@ -77,9 +78,19 @@ export async function pushRestore(to: string, pin: string, json: string): Promis
   return String(body.message);
 }
 
+/** 手机上这本书的原声清单；没有原声为 null */
+export async function fetchDeviceAudio(to: string, pin: string, bookId: string): Promise<AudioManifest | null> {
+  const { status, body } = await request(`${baseUrl(to)}/audio/${bookId}`, { headers: { 'X-Pin': pin } });
+  if (status === 404) throw new Error('手机上的 App 版本不支持原声，请先更新 App');
+  if (!body.ok) throw new Error(String(body.error ?? '获取原声清单失败'));
+  return (body.manifest as AudioManifest | null) ?? null;
+}
+
 export interface UploadResult {
   ok: boolean;
-  status?: 'added' | 'updated';
+  status?: 'added' | 'updated' | 'audio';
+  /** 原声包：本书现在有原声的章数 */
+  total?: number;
   error?: string;
   warnings?: string[];
 }

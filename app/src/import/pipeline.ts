@@ -1,6 +1,8 @@
-import { MAX_PACKAGE_BYTES, prepareImport, staleProgressFiles, type ImportInput } from '@shelf/spec';
+import { isAudioPackage, MAX_PACKAGE_BYTES, prepareAudioImport, prepareImport, staleProgressFiles, type ImportInput } from '@shelf/spec';
 import { Directory, File, Paths } from 'expo-file-system';
 import { getDb } from '@/db';
+import { getBook } from '@/db/queries';
+import { loadAudioManifest, writeAudioPackage } from '@/library/audio';
 import { notifyLibraryChanged } from '@/library/events';
 import { writeBookAtomically } from '@/library/fs';
 import { reindexBook } from '@/library/index-books';
@@ -9,6 +11,8 @@ import { createSerialQueue } from '@/lib/serial-queue';
 
 export type ImportResult =
   | { ok: true; status: 'added' | 'updated'; bookId: string; title: string; warnings: string[] }
+  /** 原声音频包（README 第 8.1 节）：chapters 为这次传来的章数，total 为本书现在有原声的章数 */
+  | { ok: true; status: 'audio'; bookId: string; title: string; chapters: number; total: number; warnings: string[] }
   | { ok: false; fileName: string; error: string };
 
 const stagingId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -40,7 +44,11 @@ async function importFileNow(uri: string): Promise<ImportResult> {
 
     const lower = fileName.toLowerCase();
     let input: ImportInput;
-    if (lower.endsWith('.zip')) input = { kind: 'zip', fileName, bytes: await staged.bytes() };
+    if (lower.endsWith('.zip')) {
+      const bytes = await staged.bytes();
+      if (isAudioPackage(bytes)) return await importAudio(bytes, fail);
+      input = { kind: 'zip', fileName, bytes };
+    }
     else if (lower.endsWith('.md') || lower.endsWith('.markdown')) input = { kind: 'md', fileName, text: await staged.text() };
     else return fail('只支持 .zip 和 .md 文件');
 
@@ -67,6 +75,24 @@ async function importFileNow(uri: string): Promise<ImportResult> {
     // iOS 把「用书巢打开」的文件拷到 Documents/Inbox/，用完即删；App 外的原文件不动
     if (source.exists && source.uri.startsWith(Paths.document.uri)) source.delete();
   }
+}
+
+/** 原声音频包：书必须已经在书架上；录音写到 audio/<id>/，不进 books/<id>/ */
+async function importAudio(bytes: Uint8Array, fail: (error: string) => ImportResult): Promise<ImportResult> {
+  const prepared = prepareAudioImport(bytes);
+  if (!prepared.ok) return fail(prepared.error);
+  const book = await getBook(prepared.bookId);
+  if (!book) return fail(`书架上还没有「${prepared.bookId}」，先导入书再传原声`);
+  const merged = writeAudioPackage(prepared, await loadAudioManifest(prepared.bookId));
+  return {
+    ok: true,
+    status: 'audio',
+    bookId: prepared.bookId,
+    title: book.title,
+    chapters: Object.keys(prepared.manifest.chapters).length,
+    total: Object.keys(merged.chapters).length,
+    warnings: [],
+  };
 }
 
 /** 同 id 更新：只保留仍然存在的章节的阅读进度 */

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { listBooks, type BookRow } from '@/db/queries';
+import { audioSizes } from '@/library/audio';
 import { deleteBooks } from '@/library/books';
 import { useLibraryChanged } from '@/library/events';
 import { formatBytes } from '@/library/size-format';
@@ -88,8 +89,15 @@ export default function ManageScreen() {
   );
 }
 
-function Content({ books, sizes, instant }: { books: BookRow[]; sizes: Map<string, number>; instant: boolean }) {
+function Content({ books, sizes: bookSizes, instant }: { books: BookRow[]; sizes: Map<string, number>; instant: boolean }) {
   const t = useTheme();
+  /** 原声录音不在 books/ 下，单独统计后加进每本书的大小 */
+  const audio = useMemo(() => audioSizes(books.map((b) => b.id)), [books]);
+  const sizes = useMemo(() => {
+    const total = new Map<string, number>();
+    for (const [id, bytes] of bookSizes) total.set(id, bytes + (audio.get(id) ?? 0));
+    return total;
+  }, [audio, bookSizes]);
   const insets = useSafeAreaInsets();
   const reduce = useReduceMotion();
   const [picked, setSelected] = useState<Set<string>>(new Set());
@@ -226,6 +234,11 @@ function Content({ books, sizes, instant }: { books: BookRow[]; sizes: Map<strin
                               <Text style={[styles.bookTitle, { color: t.fg }]} numberOfLines={1}>
                                 {b.title}
                               </Text>
+                              {revealed && audio.has(b.id) && (
+                                <View style={[styles.audioTag, { backgroundColor: t.accentSoft }]}>
+                                  <Text style={[styles.audioTagText, { color: t.accent }]}>原声 {formatBytes(audio.get(b.id)!)}</Text>
+                                </View>
+                              )}
                               {size !== undefined ? <Text style={[styles.num, { color: t.fg2 }]}>{formatBytes(size)}</Text> : <Skeleton t={t} pulse={pulse} />}
                             </View>
                             <View style={[styles.track, { backgroundColor: t.fill }]}>
@@ -324,6 +337,8 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 7 },
   rowLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bookTitle: { flex: 1, fontSize: 15 },
+  audioTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  audioTagText: { fontSize: 10, fontWeight: '500', fontVariant: ['tabular-nums'] },
   track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   bar: { height: 4, borderRadius: 2 },
   deleteWrap: { position: 'absolute', left: 20, right: 20 },

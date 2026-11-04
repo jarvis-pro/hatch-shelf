@@ -3,11 +3,13 @@
  * 输出到仓库根目录的 audio/<book-id>/（不入库）：manifest.json + 每个录音一个 <指纹>.mp3。
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { strToU8, zipSync } from 'fflate';
 import {
   AUDIO_FILE_RE,
   AUDIO_MANIFEST,
+  audioManifestSchema,
   paragraphKey,
   textHash,
   type AudioManifest,
@@ -213,4 +215,29 @@ export function writeAudioManifest(outDir: string, plan: AudioPlan): number {
   }
   writeFileSync(path.join(outDir, AUDIO_MANIFEST), `${JSON.stringify({ ...plan.manifest, chapters }, null, 2)}\n`);
   return Object.keys(chapters).length;
+}
+
+/** 读本地生成好的清单（audio/<id>/manifest.json） */
+export function readAudioManifest(outDir: string): AudioManifest {
+  const file = path.join(outDir, AUDIO_MANIFEST);
+  if (!existsSync(file)) throw new Error(`没有找到 ${file}，先运行 shelf-pack audio 生成原声`);
+  const r = audioManifestSchema.safeParse(JSON.parse(readFileSync(file, 'utf8')));
+  if (!r.success) throw new Error(`${file} 格式不对`);
+  return r.data;
+}
+
+/**
+ * 一章的音频包：清单只含这一章，加这一章用到的录音（不压缩，mp3 本来就压缩过）。
+ * 和其他章共用的提示语录音每个包里都带一份，App 按文件名去重
+ */
+export function buildChapterPackage(outDir: string, manifest: AudioManifest, chapter: string): Uint8Array {
+  const entries = manifest.chapters[chapter];
+  const part: AudioManifest = { ...manifest, chapters: { [chapter]: entries } };
+  const files: Record<string, [Uint8Array, { level: 0 }]> = {
+    [AUDIO_MANIFEST]: [strToU8(JSON.stringify(part)), { level: 0 }],
+  };
+  for (const fp of new Set(entries.flatMap((e) => e.files))) {
+    files[`${fp}.mp3`] = [readFileSync(path.join(outDir, `${fp}.mp3`)), { level: 0 }];
+  }
+  return zipSync(files);
 }

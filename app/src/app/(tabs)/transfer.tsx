@@ -520,7 +520,10 @@ function ReceivedItem({ r }: { r: Received }) {
   }
   const series = r.book && categoryLabel(r.book.category);
   const updated = r.status === 'updated';
-  const meta = [r.book && `${r.book.chapterCount} 章`, series].filter(Boolean).join(' · ');
+  const audio = r.status === 'audio';
+  const meta = audio
+    ? `原声 ${r.total} / ${r.book?.chapterCount ?? r.total} 章`
+    : [r.book && `${r.book.chapterCount} 章`, series].filter(Boolean).join(' · ');
   return (
     <Pressable onPress={() => openBook(r.bookId)} style={styles.item}>
       {r.book ? (
@@ -533,8 +536,10 @@ function ReceivedItem({ r }: { r: Received }) {
           {r.title}
         </Text>
         <View style={styles.itemMeta}>
-          <View style={[styles.tag, { backgroundColor: updated ? `${t.teal}1F` : t.accentSoft }]}>
-            <Text style={{ color: updated ? t.teal : t.accent, fontSize: 11, fontWeight: '600' }}>{updated ? '已更新' : '新书'}</Text>
+          <View style={[styles.tag, { backgroundColor: updated || audio ? `${t.teal}1F` : t.accentSoft }]}>
+            <Text style={{ color: updated || audio ? t.teal : t.accent, fontSize: 11, fontWeight: '600' }}>
+              {audio ? '原声' : updated ? '已更新' : '新书'}
+            </Text>
           </View>
           {meta.length > 0 && (
             <Text style={{ flex: 1, color: t.fg3, fontSize: 12 }} numberOfLines={1}>
@@ -661,7 +666,7 @@ function Toast({ item, onHide }: { item: Received; onHide(): void }) {
         {item.book && <BookCover book={item.book} width={28} radius={5} elevation={0} />}
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
-            {item.status === 'updated' ? '已更新' : '已添加'}《{item.title}》
+            {item.status === 'audio' ? '已收到原声' : item.status === 'updated' ? '已更新' : '已添加'}《{item.title}》
           </Text>
           {meta.length > 0 && <Text style={{ color: t.fg3, fontSize: 12 }}>{meta}</Text>}
         </View>

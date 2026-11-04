@@ -1,21 +1,23 @@
 #!/usr/bin/env -S npx tsx
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { MAX_PACKAGE_BYTES, prepareImport } from '@shelf/spec';
+import { audioPackageName, MAX_PACKAGE_BYTES, prepareImport, sameChapterAudio } from '@shelf/spec';
 import { Command } from 'commander';
 import {
+  buildChapterPackage,
   DEFAULT_PARAMS,
   DEFAULT_VOICE,
   estimateSeconds,
   fishApiKey,
   generateAudio,
   planAudio,
+  readAudioManifest,
   voiceName,
   writeAudioManifest,
 } from './audio';
 import { findBooks, groupByCategory, lint, packBook, readBook, sameNotes, type LocalBook } from './books';
 import { segmentChapter } from './segment';
-import { listDeviceBooks, PinError, pullBackup, pullDeviceNotes, pushRestore, upload } from './device';
+import { fetchDeviceAudio, listDeviceBooks, PinError, pullBackup, pullDeviceNotes, pushRestore, upload } from './device';
 
 const c = {
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,
@@ -284,6 +286,51 @@ program
       ),
     );
     process.exitCode = failed.length ? 1 : 0;
+  });
+
+program
+  .command('push-audio')
+  .argument('<book-id>', '书的 id（录音在 <dir>/<book-id>/）')
+  .requiredOption('--to <ip>', '手机传书页面上显示的 IP（可带 :端口）')
+  .requiredOption('--pin <pin>', '传书页面上显示的 PIN')
+  .option('-d, --dir <dir>', '录音根目录', 'audio')
+  .option('--all', '不对比手机上已有的原声，全部重推')
+  .description('按章把原声推送到手机；手机上已有且相同的章节跳过')
+  .action(async (bookId: string, opts: { to: string; pin: string; dir: string; all?: boolean }) => {
+    try {
+      const outDir = path.resolve(opts.dir, bookId);
+      const local = readAudioManifest(outDir);
+      const onDevice = await listDeviceBooks(opts.to, opts.pin);
+      if (!onDevice.some((b) => b.id === bookId)) throw new Error(`手机上还没有「${bookId}」，先用 shelf-pack push 推送这本书`);
+      const remote = opts.all ? null : await fetchDeviceAudio(opts.to, opts.pin, bookId);
+
+      let failed = 0;
+      let pushed = 0;
+      for (const chapter of Object.keys(local.chapters)) {
+        if (sameChapterAudio(remote, local, chapter)) {
+          console.log(`${c.dim('-')} ${chapter} ${c.dim('手机上已有，跳过')}`);
+          continue;
+        }
+        const data = buildChapterPackage(outDir, local, chapter);
+        if (data.length > MAX_PACKAGE_BYTES) {
+          failed += 1;
+          console.log(`${c.red('✗')} ${chapter} 超过 ${MAX_PACKAGE_BYTES / 1024 / 1024} MB，App 收不下`);
+          continue;
+        }
+        pushed += 1;
+        const res = await upload(opts.to, opts.pin, audioPackageName(bookId, chapter), data);
+        if (res.ok) console.log(`${c.green('↑')} ${chapter} ${c.dim(`${(data.length / 1024 / 1024).toFixed(1)} MB`)}`);
+        else {
+          failed += 1;
+          console.log(`${c.red('✗')} ${chapter} ${res.error}`);
+        }
+      }
+      if (pushed === 0 && failed === 0) console.log('手机上的原声已是最新');
+      process.exitCode = failed ? 1 : 0;
+    } catch (e) {
+      console.error(c.red(e instanceof PinError ? `${e.message}，已停止推送` : (e as Error).message));
+      process.exitCode = 1;
+    }
   });
 
 program.parse();

@@ -2,6 +2,7 @@ import { getDb } from '@/db';
 import { getSetting, setSetting } from '@/db/queries';
 import { bookDir } from '@/lib/paths';
 import { SAMPLE_BOOKS } from '@/samples.generated';
+import { deleteAudio } from './audio';
 import { notifyLibraryChanged } from './events';
 import { writeBookAtomically } from './fs';
 
@@ -14,7 +15,7 @@ export async function seedSamples() {
   await setSetting('samplesSeeded', true);
 }
 
-/** 删除一本书：文件、索引和阅读进度一起删 */
+/** 删除一本书：文件、原声、索引和阅读进度一起删 */
 export async function deleteBook(id: string) {
   await deleteBooks([id]);
 }
@@ -25,6 +26,7 @@ export async function deleteBooks(ids: string[]) {
   for (const id of ids) {
     const dir = bookDir(id);
     if (dir.exists) dir.delete();
+    deleteAudio(id, false);
   }
   const db = getDb();
   await db.withTransactionAsync(async () => {

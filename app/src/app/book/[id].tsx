@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { BookOpen, Check, ChevronRight, Ellipsis, NotebookPen, Share, Trash2, TriangleAlert } from 'lucide-react-native';
+import { AudioLines, BookOpen, Check, ChevronRight, Ellipsis, NotebookPen, Share, Trash2, TriangleAlert } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,8 @@ import {
   type BookRow,
   type ChapterRow,
 } from '@/db/queries';
+import { audioBytes, deleteAudio } from '@/library/audio';
+import { formatBytes } from '@/library/size-format';
 import { exportNotes, openBook, openNotes } from '@/shelf/actions';
 import { BookCover, useCoverUri } from '@/shelf/BookCover';
 import { DeleteDialog } from '@/shelf/DeleteDialog';
@@ -60,6 +62,8 @@ export default function BookDetailScreen() {
   const [menu, setMenu] = useState(false);
   const [toc, setToc] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  /** 本书原声占用的空间；没有原声为 0 */
+  const [audio, setAudio] = useState(0);
   // 封面在飞行时先藏起这里的封面
   const coverHidden = useCoverHidden(id);
 
@@ -69,6 +73,7 @@ export default function BookDetailScreen() {
         const [b, chs, all] = await Promise.all([getBook(id), getChapters(id), listBookProgress()]);
         const p = all.get(id);
         setBook(b);
+        setAudio(audioBytes(id));
         setChapters(chs);
         setProgress(p);
         setRead(await getReadChapters(id, p?.chapterIdx ?? 0));
@@ -84,6 +89,19 @@ export default function BookDetailScreen() {
   const inChapter = progress ? Math.min(1, Math.max(0, progress.ratio * book.chapterCount - progress.chapterIdx)) : 0;
   const updatedCount = chapters.filter((ch) => ch.updated).length;
   const state = !progress ? `${chapters.length} 章 · 新书` : progress.finished ? '已读完' : `已读 ${read.size} / ${chapters.length}`;
+
+  const confirmDeleteAudio = () =>
+    Alert.alert('删除本书原声？', `释放 ${formatBytes(audio)}。书和笔记都保留，听书改用系统语音。`, [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '删除',
+        style: 'destructive',
+        onPress: () => {
+          deleteAudio(id);
+          setAudio(0);
+        },
+      },
+    ]);
 
   const exportOrExplain = async () => {
     if (!(await exportNotes(id))) Alert.alert('还没有笔记', '阅读时长按选中文字，在菜单里选「高亮」或「笔记」。');
@@ -167,6 +185,9 @@ export default function BookDetailScreen() {
         onClose={() => setMenu(false)}
         items={[
           { label: '导出笔记', icon: Share, onPress: () => void exportOrExplain() },
+          ...(audio > 0
+            ? [{ label: '删除本书原声', detail: `${formatBytes(audio)} · 书和笔记都保留`, icon: AudioLines, destructive: true, onPress: confirmDeleteAudio }]
+            : []),
           { label: '从书架删除', icon: Trash2, destructive: true, onPress: () => setDeleting(true) },
         ]}
       />

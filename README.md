@@ -304,8 +304,10 @@ audio/<book-id>/            # 仓库根目录，不入库（与 backups/ 一样�
 **传到手机**
 
 - 按章分包推送（`<id>.audio.<章节>.zip`，每包 5–10 MB），不放宽第 5.2 节的 50 MB 上限：fflate 整包读进内存，一次 65 MB 以上在手机上不划算
-- 音频包同样走第 6 节的导入管线（新增一种包类型，校验路径、扩展名只放行 `.mp3` 和 `manifest.json`），写到 `documentDirectory/audio/<id>/`，**不放进 `books/<id>/`**：书更新时整目录原子替换，放在里面会被一起冲掉
-- 书更新后不必重推录音：指纹对得上的段落继续可用。删除书时一并删除录音；「书籍管理」页的占用空间把录音算进去
+- 音频包同样走第 6 节的导入管线：`isAudioPackage()` 看 zip 根目录有 `manifest.json`、没有 `book.yaml` 和 `.md`，就交给 `prepareAudioImport()`（只放行 `manifest.json` 和 `<指纹>.mp3`，路径不安全、多出别的文件或缺录音都拒绝）。AirDrop、「文件」、局域网上传都能导入。写到 `documentDirectory/audio/<id>/`，**不放进 `books/<id>/`**：书更新时整目录原子替换，放在里面会被一起冲掉
+- 书必须已经在书架上，否则提示先导入书。先写录音、最后写合并后的清单（`mergeAudioManifest()`：音色和参数相同按章覆盖，换了就整份替换），再删掉清单不再引用的录音
+- `push-audio` 先查 `/books` 确认手机上有这本书，再用 `GET /audio/<id>` 取手机上的清单，`sameChapterAudio()` 相同的章跳过；每章一个包，不压缩（mp3 本来就压缩过），和其他章共用的提示语录音每个包各带一份
+- 书更新后不必重推录音：指纹对得上的段落继续可用。删除书时一并删除录音；「书籍管理」页的占用空间把录音算进去，有原声的书标出「原声 xx MB」；书籍详情「···」里的「删除本书原声」先确认再删
 - `@shelf/spec` 的扩展名白名单不变（书包里仍然不允许 `.mp3`），音频包有自己的白名单，同样写在 `@shelf/spec`
 
 **播放**
@@ -341,7 +343,7 @@ shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送录音；
 2. `shelf-pack audio` 生成一本书（先用 `deepseek-harness`），在电脑上抽听（命令已完成）
 3. App 播放引擎接口 + 录音引擎，先只支持前台播放，确认高亮、跳段、语速（已完成，模拟器里验证了高亮跟随、跳段、暂停、切换语音、本章不支持时退回系统语音，以及系统语音章 → 原声章的自动换章）
 4. 真机验证锁屏、后台连续播放、耳机线控、来电打断，以及与 `now-playing` 模块的共存
-5. 音频包导入与 `push-audio`
+5. 音频包导入与 `push-audio`（已完成；模拟器里验证了从「文件」导入两章、合并清单、书籍管理的原声标签和删除本书原声。`push-audio` 走局域网，模拟器的 8080 端口当时被电脑上的其他程序占用，没有实测）
 
 **未决问题**
 
@@ -381,6 +383,8 @@ shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /b
 shelf-pack pull-notes [notes/] --to <ip> --pin <pin>     # 拉取手机上的全部笔记，写成 notes/<id>.notes.md
 shelf-pack backup  [backups/] --to <ip> --pin <pin>      # 备份阅读数据，写成 backups/shelf-backup-<日期>.json（不入库）
 shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手机
+shelf-pack audio <book-dir> [--only 01,02] [--dry]       # 生成原声录音到 audio/<id>/（见 8.1，不入库）
+shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送原声，手机上已有且相同的章节跳过
 ```
 
 理想流程：agent 写完一本书 → `shelf-pack push books/<id> --to ... --pin ...` → 手机上直接可读。

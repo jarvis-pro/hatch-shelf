@@ -1,9 +1,9 @@
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { audioManifestSchema, chapterAudio } from '@shelf/spec';
+import { audioManifestSchema, chapterAudio, prepareAudioImport, sameChapterAudio } from '@shelf/spec';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PARAMS, planAudio, requestText, splitPieces, writeAudioManifest } from './audio';
+import { buildChapterPackage, DEFAULT_PARAMS, planAudio, readAudioManifest, requestText, splitPieces, writeAudioManifest } from './audio';
 import { lint, readBook } from './books';
 import { segmentChapter } from './segment';
 
@@ -71,5 +71,23 @@ describe('planAudio', () => {
     expect(complete).toBeLessThanOrEqual(1 + rest.length);
     expect(readdirSync(dir)).not.toContain('0000000000000000.mp3');
     expect(readdirSync(dir)).not.toContain('abc.mp3.part');
+  });
+});
+
+describe('buildChapterPackage', () => {
+  it('builds a package the app accepts, with only that chapter', () => {
+    const book = readBook(path.resolve(import.meta.dirname, '../../../books/markdown-cheatsheet'));
+    const meta = lint(book).manifest!;
+    const plan = planAudio(book, meta, { provider: 'fish', id: 'v1' }, DEFAULT_PARAMS);
+    const dir = mkdtempSync(path.join(tmpdir(), 'shelf-audio-'));
+    for (const fp of plan.jobs.keys()) writeFileSync(path.join(dir, `${fp}.mp3`), fp);
+    writeAudioManifest(dir, plan);
+    const local = readAudioManifest(dir);
+    const chapter = meta.chapters[0];
+    const r = prepareAudioImport(buildChapterPackage(dir, local, chapter));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(Object.keys(r.manifest.chapters)).toEqual([chapter]);
+    expect(sameChapterAudio(r.manifest, local, chapter)).toBe(true);
   });
 });

@@ -62806,6 +62806,119 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "TvW6U",
+      "x": 4100,
+      "y": 13474,
+      "name": "封面 / DeepSeek Harness 入门",
+      "clip": true,
+      "width": 300,
+      "height": 428,
+      "fill": "#F3EEE4",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "j8qy2",
+          "name": "Top",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            26,
+            24,
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "mDO7U",
+              "name": "t",
+              "fill": "#2E4A9E",
+              "content": "书架文库 · 人工智能",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "text",
+              "id": "ZG3ix",
+              "name": "t",
+              "fill": "#1A1A1A",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "DeepSeek Harness 入门",
+              "lineHeight": 1.2,
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 30,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "cncSb",
+              "name": "t",
+              "fill": "#4A4640",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "一切皆插件的开源 Agent 运行时",
+              "fontFamily": "Noto Sans SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X5XKq9",
+          "name": "Illustration",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/cover-art-deepseek-harness.png",
+            "mode": "cover"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "nS4xv",
+          "name": "Imprint",
+          "width": "fill_container",
+          "height": 32,
+          "fill": "#2E4A9E",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "HHeP7",
+              "name": "t",
+              "fill": "#F3EEE4",
+              "content": "Jarvis",
+              "fontFamily": "Great Vibes",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "ellipse",
+              "id": "V1FkXo",
+              "name": "Mark",
+              "fill": "#F3EEE4",
+              "width": 10,
+              "height": 10
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {

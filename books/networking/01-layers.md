@@ -152,3 +152,23 @@ lsof -iTCP -sTCP:LISTEN -n -P
 - 以太网 MTU 通常 1500，TCP MSS 通常 1460；多一层封装可用 MTU 就变小，「小包通大包卡」要想到 MTU
 - 一次 HTTPS 请求依次经过 DNS → 路由 → TCP → TLS → HTTP，每一步的报错长得不一样
 - 服务「本机通外面不通」，先用 `ss -tlnp` 看监听地址是不是 `127.0.0.1`
+
+## 动手练习
+
+1. **按报错判断坏在哪一层**：依次执行 `curl -sS http://no-such-host.invalid/`、`curl -sS http://127.0.0.1:1/`、`curl -sS --connect-timeout 3 http://10.255.255.1/`，给每条报错标上层次。
+
+   验证：三条分别报 `Could not resolve host`、`Connection refused`（或 `Couldn't connect to server`）、超时（`timed out`）。
+
+   参考答案：第一条死在 DNS；第二条包到了本机但 1 号端口没人听，传输层回了 RST；第三条是一个不会回应的私网地址，SYN 发出去石沉大海，问题在网络层或防火墙。
+
+2. **监听地址决定谁能连**：在 Mac 上执行 `python3 -m http.server 8000 --bind 127.0.0.1`，另开终端用 `lsof -iTCP:8000 -sTCP:LISTEN -n -P` 看监听地址，再分别 `curl -sI http://127.0.0.1:8000/` 和 `curl -sI http://$(ipconfig getifaddr en0):8000/`；然后把 `--bind` 改成 `0.0.0.0` 重来。
+
+   验证：只听 `127.0.0.1` 时，第二个 `curl` 报 `Connection refused`；改成 `0.0.0.0` 后两个都返回 `HTTP/1.0 200 OK`。
+
+   参考答案：用局域网 IP 访问时目的地址是网卡地址，而进程只绑在回环地址上，内核找不到监听者就回 RST。
+
+3. **四元组让一个端口服务多个连接**：保持上题的服务在跑，另开两个终端各执行一次 `nc 127.0.0.1 8000`（连上后不输入），再执行 `lsof -iTCP:8000 -n -P`。
+
+   验证：除了 `LISTEN` 那一行，还有两对 `ESTABLISHED` 连接，服务端都是 `:8000`，客户端的端口号各不相同。
+
+   参考答案：连接由源 IP、源端口、目的 IP、目的端口共同确定，客户端每次连接由内核分配一个新的临时端口，所以服务端一个端口能同时接住很多连接。

@@ -235,3 +235,41 @@ jobs:
 - 让 agent 自己跑起来看：预览、模拟器、自制探针，要它拿出截图等证据
 - 评审用新上下文，给代码不给结论；`claude -p` 能把评审塞进脚本；你读 diff 时盯范围、删除、绕过、依赖、位置、硬编码和文案
 - 无人值守时先定权限基线：CI 用 `dontAsk` + 白名单，定时任务可用 `auto` + `--permission-prompts none`，`--bare` 让结果不受本机配置影响；GitHub Actions 用 `/install-github-app` 接入，`@claude` 触发或按 `prompt` 自动跑
+
+## 动手练习
+
+1. **测试先行地加一个校验函数**：照本章的提示让 Claude 给共享包加 `isValidChapterFile(name)`，先只写测试、跑一遍确认失败、停下来给你看。你核对用例后再让它实现。
+
+   验证：第一次 `pnpm test` 失败（函数还不存在或返回值不对）；实现后全绿。用例至少覆盖：`01-intro.md` 为真，`Intro.md`、`my intro.md`、`介绍.md`、`intro`、`intro.md.md` 为假。
+
+   参考答案：实现可以只有一行：
+
+   ```typescript
+   export const isValidChapterFile = (name: string) => /^[a-z0-9-]+\.md$/.test(name);
+   ```
+
+   你审的是测试列出的行为，而不是这一行正则；测试先红后绿，证明它确实测到了东西。
+
+2. **一条命令找出「改测试让它通过」**：写一个检查，扫当前分支相对 main 的测试文件改动，找出新增的 `.skip(` / `.only(` 和被删掉的 `it(` / `test(` / `expect(` 行。
+
+   ```bash
+   git diff main...HEAD -U0 -- '*.test.ts' '*.test.tsx' \
+     | grep -nE '^\+.*\.(skip|only)\(|^-([^-].*)?\b(it|test|expect)\(' || echo "没有可疑改动"
+   ```
+
+   验证：在一个测试分支上给某个用例加 `.skip`、再删掉一行 `expect`，提交后运行，两处都被列出来；改回去后输出「没有可疑改动」。
+
+   参考答案：这类改动在 diff 里很容易被大段新增淹没，用脚本先筛一遍，再决定要不要细看。
+
+3. **把评审塞进脚本，拿到结构化结果**（需要 API key 或已登录的 Claude Code）：在测试仓库里暂存一个埋了问题的改动（比如漏掉 `await`），运行：
+
+   ```bash
+   git diff --cached | claude -p "评审这段 diff，只报告正确性问题" \
+     --allowedTools "Read,Grep,Glob" --output-format json \
+     --json-schema '{"type":"object","properties":{"issues":{"type":"array","items":{"type":"string"}}},"required":["issues"]}' \
+     | jq '.structured_output.issues'
+   ```
+
+   验证：输出一个数组，至少有一条指出漏掉的 `await`；暂存一个没有问题的改动再跑，数组通常为空。
+
+   参考答案：结构化输出让后续脚本能判断「有没有问题」并决定是否拦下提交；模型拒绝时 `structured_output` 不存在，脚本里要先判断。

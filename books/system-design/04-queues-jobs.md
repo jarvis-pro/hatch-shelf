@@ -209,7 +209,7 @@ stateDiagram-v2
 - **pg-boss**：基于 Postgres 的 Node 任务队列库，思路和上面一样，功能齐全，不用加新服务
 - **BullMQ**：基于 Redis，吞吐更高、功能最丰富，代价是多一个 Redis
 
-具体 API 以各自官方文档为准。原则不变：只有 Postgres 的时候先用基于 Postgres 的方案。
+原则不变：只有 Postgres 的时候先用基于 Postgres 的方案。给手写版补上 LISTEN/NOTIFY 唤醒、完成任务的归档和表膨胀处理，以及 pg-boss 怎么接进 NestJS，见[《Redis 与后台任务》用 Postgres 做队列](../redis-jobs/06-postgres-queue.md)；BullMQ 见同书[第 5 章](../redis-jobs/05-bullmq.md)。
 
 ## 定时任务
 
@@ -361,3 +361,23 @@ services:
 - 定时任务用「过点且本周期没跑」判断，重启能补跑；`job_runs` 开始就落一行，唯一约束防重、区分没跑和跑挂了
 - 能顺手清理的就不起定时任务
 - 任务必须幂等、要小、只带 id、区分可重试错误、有次数上限；部署时优雅退出
+
+## 动手练习
+
+1. **看 `SKIP LOCKED` 怎么分活**：用 `docker run -d --name pgq -e POSTGRES_PASSWORD=pg postgres:17` 起一个 Postgres，在两个终端里各开 `docker exec -it pgq psql -U postgres`。先建表 `CREATE TABLE jobs (id int PRIMARY KEY, status text); INSERT INTO jobs VALUES (1, 'queued'), (2, 'queued');`，然后两边依次执行 `BEGIN; SELECT id FROM jobs WHERE status = 'queued' ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED;`，都先不提交。
+
+   验证：终端 A 拿到 1，终端 B 拿到 2。两边 `ROLLBACK` 后，把 B 的语句去掉 `SKIP LOCKED` 重做一遍：B 会卡住，直到 A 提交或回滚才返回。
+
+   参考答案：`SKIP LOCKED` 让 worker 跳过别人已锁住的行，不重复取也不互相等。做完 `docker rm -f pgq` 清理。
+
+2. **`job_runs` 防重跑**：在同一个库里建本章的 `job_runs` 表，执行两遍 `INSERT INTO job_runs (job, period) VALUES ('daily-check', '2026-11-04') ON CONFLICT (job, period) DO NOTHING RETURNING id;`。
+
+   验证：第一遍返回一行 id，末尾是 `INSERT 0 1`；第二遍返回 0 行，末尾是 `INSERT 0 0`。
+
+   参考答案：`tryStart` 就是看 `RETURNING` 有没有返回行。唯一约束在数据库里裁决，两个实例同时插也只有一个成功，所以这个写法加实例时不用改。
+
+3. **选队列**（分析题）：单实例 NestJS + Postgres，每天约 200 条下单后的短信通知，服务商偶尔 429，要求订单写成就一定发；另有每月一两次的整店导出，一次几分钟。各自选光谱上哪一档。
+
+   验证：说明每个选择满足了哪些需求（持久化、重试、和业务同事务），以及为什么不选更右边的一档。
+
+   参考答案：短信用 Postgres 表队列，入队和写订单同一个事务，退避重试处理 429；导出用进程内队列 + 库里记状态，低频、一次跑一家，重启时捡回没跑完的。如果短信要按服务商限速每秒几条、还要优先级，换 pg-boss；已经多实例且有 Redis、吞吐很高，才轮到 BullMQ。

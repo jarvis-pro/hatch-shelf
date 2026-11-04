@@ -478,3 +478,30 @@ asyncio.run(main())                   # 顶层没有 await，要用 asyncio.run 
 - 关键字参数是 Python API 的主流风格，`*` 之后的参数只能按名字传
 - 默认参数不要用可变对象；数据结构用 `dataclass`，校验外部数据用 Pydantic
 - 异步要显式用 `asyncio`，`asyncio.gather` 相当于 `Promise.all`
+
+## 动手练习
+
+1. **预测可变默认参数**：把[可变默认参数的坑](#可变默认参数的坑)里的 `add_item` 存成 `ex1.py`，在末尾写 `a = add_item(1)`、`b = add_item(2)`、`print(a, b, a is b)`，先写下你预测的输出，再用 `uv run ex1.py` 运行；然后改成 `add_item_ok` 的写法再跑一次。
+
+   验证：第一次输出是 `[1, 2] [1, 2] True`；改用 `None` 默认值后输出 `[1] [2] False`。
+
+   参考答案：默认值 `[]` 在 `def` 执行时只创建一次，两次调用拿到的是同一个列表对象，所以 `a` 和 `b` 是同一个东西。
+
+2. **把 filter / map 改写成推导式**：给定 `users = [{"id": 1, "name": "Ada", "active": True}, {"id": 2, "name": "Linus", "active": False}, {"id": 3, "name": "Grace", "active": True}]`，用推导式写出 TS 里 `users.filter(u => u.active).map(u => u.name.toUpperCase())` 和 `Object.fromEntries(users.map(u => [u.id, u.name]))` 的等价代码。顺便打印 `bool([])`、`bool({})`、`bool([0])`。
+
+   验证：输出 `['ADA', 'GRACE']`、`{1: 'Ada', 2: 'Linus', 3: 'Grace'}`，以及 `False False True`。
+
+   参考答案：
+
+   ```python
+   names = [u["name"].upper() for u in users if u["active"]]
+   by_id = {u["id"]: u["name"] for u in users}
+   print(names, by_id)
+   print(bool([]), bool({}), bool([0]))   # 空容器为假；有元素就为真，哪怕元素是 0
+   ```
+
+3. **量出 gather 的并发效果**：写一个 `async def fetch_one(i)`，里面 `await asyncio.sleep(1)`。在 `main` 里先用 `for` 循环逐个 `await` 三次，再用 `asyncio.gather` 同时跑三个，分别用 `time.perf_counter()` 计时；最后在 `main` 里直接调用 `fetch_one(99)` 而不 `await`。
+
+   验证：逐个 `await` 约 3.0 秒，`gather` 约 1.0 秒；最后一行会触发 `RuntimeWarning: coroutine 'fetch_one' was never awaited`，`sleep` 根本没有执行。
+
+   参考答案：逐个 `await` 是串行等待；`gather` 让三个协程在同一个事件循环里交替等待。协程函数调用后只得到一个协程对象，不像 JS 的 Promise 那样一创建就开始跑。

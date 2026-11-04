@@ -213,6 +213,26 @@ trivy image my-api:1.4.0
 - docker 组等于 root；Docker API 不对外；发布的端口绕过 ufw
 - 只用可信基础镜像，定期重建拿安全补丁，用扫描工具找高危且可修复的漏洞
 
+## 动手练习
+
+1. **root 和 capability**：分别执行 `docker run --rm node:22-alpine id`、`docker run --rm -u node node:22-alpine id`；再执行 `docker run --rm alpine chown nobody /tmp && echo ok` 和 `docker run --rm --cap-drop ALL alpine chown nobody /tmp`。
+
+   验证：前两条分别是 `uid=0(root)` 和 `uid=1000(node)`；默认能力下 `chown` 输出 `ok`，去掉全部 capability 后报 `Operation not permitted`。
+
+   参考答案：容器默认以 root 运行并保留一小组 capability（`CHOWN` 就在其中）。`USER node` 和 `cap_drop: [ALL]` 叠加后，即使应用被攻破，能做的事也少得多。
+
+2. **只读根文件系统**：执行 `docker run --rm --read-only alpine touch /x`，再执行 `docker run --rm --read-only --tmpfs /tmp alpine sh -c 'touch /tmp/x && echo ok'`。
+
+   验证：第一条报 `Read-only file system`；第二条输出 `ok`。
+
+   参考答案：根文件系统只读后，攻击者没法往容器里写后门或改代码；应用真正需要写的地方单独挂 tmpfs 或卷。开启前先确认应用和依赖不会在运行时往代码目录写东西。
+
+3. **挂了 docker.sock 的容器能看到什么**：只在本机练习环境里执行：`docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:cli docker ps`。
+
+   验证：这个容器里列出了宿主机上的全部容器，包括它自己。
+
+   参考答案：拿到 docker.sock 就能调用完整的 Docker API，下一步可以起一个 `--privileged` 并挂载宿主机 `/` 的新容器，等于宿主机 root。到这里就够了，不要在任何真实服务器上继续往下试。
+
 ## 接下来读什么
 
 这本书把一个 Node 服务装进了容器，并用 Compose 在单机上跑了起来。按导读的顺序，接下来可以读：

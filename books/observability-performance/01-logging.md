@@ -294,3 +294,39 @@ sum(count_over_time({container="api"} | json | level >= 50 [1m]))
 - `error` 只留给需要人处理的事，否则基于它的告警会失效
 - 不记密钥和个人敏感信息，`redact` 只是最后一道防线
 - 单机时 `docker compose logs | jq` 就够；多服务或需要长期保留时上 Loki + Alloy，并设好保留期
+
+## 动手练习
+
+1. **用 jq 查结构化日志**：新建 `app.log`，写入下面四行，然后用一条 `jq` 命令只取出 error 级别（`level >= 50`）的日志，输出请求 ID、消息和错误原因；再用另一条命令取出请求 `a1` 的全部日志。
+
+   ```text
+   {"level":30,"reqId":"a1","msg":"开始保存"}
+   {"level":50,"reqId":"a1","msg":"保存失败","err":{"message":"ECONNREFUSED"}}
+   {"level":30,"reqId":"b2","msg":"开始保存"}
+   {"level":40,"reqId":"b2","msg":"重试成功"}
+   ```
+
+   验证：第一条命令只输出一行 `{"reqId":"a1","msg":"保存失败","err":"ECONNREFUSED"}`；第二条输出两行，都是 `a1`。`b2` 的「重试成功」是 warn，不应出现在 error 结果里。
+
+   参考答案：`jq -c 'select(.level >= 50) | {reqId, msg, err: .err.message}' app.log` 和 `jq -c 'select(.reqId == "a1")' app.log`。这就是结构化日志相对文本日志的好处：按字段过滤，不用写正则。
+
+2. **验证 redact 生效**：在一个空目录里 `npm init -y && npm i pino`，写一个脚本用 pino 打一条带密码的日志，配置 `redact` 把所有 `password` 字段替换掉。
+
+   验证：`node log.mjs` 输出的 JSON 里能看到 `"password":"[已隐藏]"`，看不到原始密码。
+
+   参考答案：
+
+   ```js
+   // log.mjs
+   import pino from "pino";
+   const logger = pino({ redact: { paths: ["*.password"], censor: "[已隐藏]" } });
+   logger.info({ user: { name: "店长", password: "123456" } }, "登录");
+   ```
+
+   注意 `*.password` 只匹配一层嵌套：把密码挪到 `{ body: { user: { password } } }` 里再跑一次，会发现它没被替换。这正是本章说 redact 只是最后一道防线的原因。
+
+3. **运行时调日志级别**：用同一个 pino 实例，先以 `level: "info"` 打一条 `debug("第一条")`，再把 `logger.level` 改成 `"debug"`，打 `debug("第二条")`。
+
+   验证：输出里只有「第二条」，没有「第一条」。
+
+   参考答案：pino 的级别可以在运行时直接赋值修改，不需要重启进程。线上排查时留一个只有管理员能调用的接口做这件事，排查完再调回 `info`。

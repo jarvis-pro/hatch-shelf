@@ -244,3 +244,23 @@ drizzle-kit 生成的 SQL 有时和你以为的不一样：改名被识别成删
 - 软删除、EAV、多态关联都是用「灵活」换掉了数据库的约束能力，慎用
 - 钱用整数分，日期用 `date` 字符串，业务时区显式写出
 - 事务里不调外部服务，文件不进数据库，生成的迁移必须人工审
+
+## 动手练习
+
+1. **NOT IN 遇上 NULL**：在 `pg-lab` 里建 `create table items (id int); insert into items values (1), (2), (3); create table refs (item_id int); insert into refs values (1), (null);`，分别执行 `select count(*) from items where id not in (select item_id from refs);` 和 `select count(*) from items i where not exists (select 1 from refs r where r.item_id = i.id);`。
+
+   验证：`NOT IN` 返回 `0`；`NOT EXISTS` 返回 `2`。删掉 `refs` 里的 NULL 行后，`NOT IN` 也返回 `2`。
+
+   参考答案：`2 not in (1, null)` 展开成 `2 <> 1 and 2 <> null`，后半是「未知」，整体不为真，于是每一行都被排除。`NOT EXISTS` 只看有没有匹配的行，不受 NULL 影响。
+
+2. **OFFSET 与键集分页**：用第 2 章练习的 `sales` 表，建 `create index sales_page on sales (store_id, sale_date, id);` 并 `vacuum analyze sales;`。对店 7 分别跑 `explain (analyze, buffers)`：一条 `select id, sale_date from sales where store_id = 7 order by sale_date desc, id desc limit 20 offset 15000`，一条 `select id, sale_date from sales where store_id = 7 and (sale_date, id) < ('2025-06-01', 1000000) order by sale_date desc, id desc limit 20`。
+
+   验证：两条都可能用上 `sales_page`；OFFSET 那条的扫描节点 `actual rows` 是 15020 左右，键集那条只有 20，`Buffers` 和耗时差出一个数量级以上。
+
+   参考答案：`OFFSET` 要先产出前 15020 行再扔掉；行比较 `(sale_date, id) < (...)` 能直接进 `Index Cond`，从上一页最后一行之后开始读。`id` 是决胜列，保证排序键唯一。
+
+3. **RLS 和「谁会绕过它」**：建 `create table notes (store_id text, body text); insert into notes values ('s1', 'a'), ('s2', 'b');`，开 RLS 并加策略 `using (store_id = nullif(current_setting('app.store_id', true), ''))`。先用 `postgres`（超级用户）查 `select count(*) from notes;`；再 `create role app; grant select on notes to app; set role app;` 后查一次；然后 `begin; select set_config('app.store_id', 's1', true); select count(*) from notes; commit;`，提交后再查一次。
+
+   验证：超级用户看到 `2`；`app` 角色没设上下文时 `0`；事务里设了 `s1` 后 `1`；提交后又回到 `0`。
+
+   参考答案：超级用户和表的 owner 默认绕过 RLS，应用必须用另一个角色连接。`set_config(..., true)` 只在当前事务有效，提交后设置变回空字符串，`nullif` 把它抹成 NULL，于是一行都看不到。

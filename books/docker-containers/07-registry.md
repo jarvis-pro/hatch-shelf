@@ -204,3 +204,33 @@ docker system df
 - CI 凭证用长期有效的，缺失就让流水线失败；仓库不支持 attestation 时设 `provenance: false`
 - Mac 上构建的是 arm64，服务器多是 amd64：指定 `--platform` 或在 CI 上构建
 - 服务器用只读凭证；旧镜像留着回滚，定期按时间清理
+
+## 动手练习
+
+不需要注册任何云仓库，在本机起一个官方的 `registry` 镜像就够：`docker run -d --name reg -p 5001:5000 registry:2`。做完 `docker rm -f reg`。
+
+1. **只传缺少的层**：执行 `docker pull alpine:3.20 && docker tag alpine:3.20 localhost:5001/base:1 && docker push localhost:5001/base:1`；再构建一个在它上面加一层的镜像并推送：
+
+   ```bash
+   docker build -t localhost:5001/app:1 - <<'EOF'
+   FROM alpine:3.20
+   RUN echo hello > /hello.txt
+   EOF
+   docker push localhost:5001/app:1
+   ```
+
+   验证：第一次推送有一层 `Pushed`；第二次推送里 alpine 那层显示 `Mounted from base` 或 `Layer already exists`，只有新加的那一层是 `Pushed`。
+
+   参考答案：仓库按层的摘要去重，推送前先问「这个 sha256 你有没有」。依赖层稳定时，每次发版只传最上面那几层。
+
+2. **tag 会变，digest 不会**：记下 `docker inspect --format '{{index .RepoDigests 0}}' localhost:5001/app:1` 的值；把上题 Dockerfile 里的 `hello` 改成 `world`，用同一个 tag 重新构建并推送，然后执行 `docker rmi localhost:5001/app:1`，再分别 `docker run --rm localhost:5001/app:1 cat /hello.txt` 和 `docker run --rm <刚才记下的 名字@sha256:...> cat /hello.txt`。
+
+   验证：按 tag 拉到的输出 `world`；按旧 digest 拉到的仍然输出 `hello`。
+
+   参考答案：tag 是可以被覆盖的指针，digest 是内容地址。部署引用不会被覆盖的版本号 tag，需要绝对确定内容时用 digest。
+
+3. **看清你拉的是哪个架构**：执行 `docker buildx imagetools inspect node:22-alpine`，再分别执行 `docker run --rm alpine:3.20 uname -m` 和 `docker run --rm --platform linux/amd64 alpine:3.20 uname -m`。
+
+   验证：`imagetools` 列出 `linux/amd64`、`linux/arm64` 等多个平台；在 Apple Silicon 的 Mac 上第一条输出 `aarch64`，第二条输出 `x86_64`（通过模拟运行）。
+
+   参考答案：多架构镜像是一个索引，拉取时按本机平台选 manifest。Mac 上默认构建出的是 arm64，推到 amd64 服务器上就会 `exec format error`，构建时要加 `--platform linux/amd64` 或交给 CI。

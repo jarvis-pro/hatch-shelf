@@ -252,3 +252,28 @@ k6 运行结束时会打印一份汇总：
 - 不从服务器本机发压；数据量接近生产；第三方付费服务一律换成带延迟的桩
 - 压测时同时看服务端面板；`dropped_iterations` 大于 0 说明已过载
 - 记录拐点吞吐量、最先耗尽的资源、过载后能否恢复，和版本号一起存档
+
+## 动手练习
+
+下面两题都在本机跑，被测服务是一个故意做慢的小程序，不要对生产环境或别人的服务发压。先写好它：
+
+```js
+// slow.mjs：同一时刻只处理一个请求，每个耗时 100ms，所以上限是每秒 10 个
+import http from "node:http";
+let chain = Promise.resolve();
+http.createServer((req, res) => {
+  chain = chain.then(() => new Promise((r) => setTimeout(r, 100))).then(() => res.end("ok"));
+}).listen(3000);
+```
+
+1. **让阈值决定成败**：写一个 k6 脚本，`vus: 1`、`duration: "20s"`，请求 `http://localhost:3000/`，阈值设 `http_req_duration: ["p(95)<50"]`。运行后立刻 `echo $?`。
+
+   验证：汇总里 `http_req_duration` 那一行前面标着未通过，`echo $?` 输出非零（k6 用 `99` 表示阈值未通过）；把阈值改成 `p(95)<200` 再跑，退出码变成 `0`。
+
+   参考答案：单个 VU 时每个请求约 100ms，低于 200 但高于 50。`check` 失败不影响退出码，只有 `thresholds` 会，所以压测要进 CI 就必须写阈值。
+
+2. **亲眼看封闭模型掩盖过载**：同一个服务，先用封闭模型 `vus: 5, duration: "30s"` 跑一次；再用开放模型：`executor: "constant-arrival-rate"`、`rate: 20`、`timeUnit: "1s"`、`duration: "30s"`、`preAllocatedVUs: 20`、`maxVUs: 50`，跑一次。
+
+   验证：封闭模型下 `http_reqs` 约每秒 10 个，没有失败，中位延迟稳定在 500ms 左右，看起来一切正常；开放模型下延迟随时间越涨越高（最大值到几秒），并且出现 `dropped_iterations`。
+
+   参考答案：服务上限是每秒 10 个。封闭模型的 5 个用户都在等响应，请求速率被服务「拖」到了 10，压力自动减轻；开放模型按每秒 20 个到达，多出来的请求只能排队，VU 被占满后新的迭代被丢弃。真实用户的行为接近后者。

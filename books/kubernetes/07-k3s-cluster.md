@@ -308,3 +308,25 @@ kubectl get events -A --field-selector type=Warning --sort-by=.lastTimestamp
 - **6443 不暴露公网**，用 SSH 隧道访问；kubeconfig 等同 root 密码
 - 推荐新开机器迁移：演练一遍，凌晨切换，导入旧证书过渡，改 DNS，旧机器保留作退路
 - 日常：逐个小版本升级 k3s，备份重点永远是数据库，演练「从零重建」的完整路径
+
+## 动手练习
+
+不要在线上机器上做这些题。第 1 题用一台一次性虚拟机（比如 `multipass launch 24.04 --name k3s-lab --memory 4G --disk 20G`，做完 `multipass delete --purge k3s-lab`），后两题用本机的 k3d 练习集群，动手前先确认 `kubectl config current-context`。
+
+1. **按配置文件装一次 k3s**：在虚拟机里先写好正文那份 `/etc/rancher/k3s/config.yaml`（`tls-san` 可以删掉），再运行安装脚本。装完执行 `sudo ls -l /etc/rancher/k3s/k3s.yaml`、`sudo k3s secrets-encrypt status` 和 `sudo k3s kubectl get pods -A`。
+
+   验证：`k3s.yaml` 的权限是 `-rw-------`；`secrets-encrypt status` 显示加密已启用；`kube-system` 里 coredns、traefik、local-path-provisioner、metrics-server 陆续进入 `Running`。
+
+   参考答案：配置文件要在第一次启动前写好，之后再开 Secret 加密需要额外的重新加密步骤。顺手用 `free -m` 看看一台空集群已经吃掉多少内存，这就是正文说的固定开销。
+
+2. **requests 超出可分配就 Pending**：执行 `kubectl describe node | grep -A8 'Allocated resources'` 看当前已分配的内存 requests；再 `kubectl create deployment big --image=nginx:1.27-alpine` 并 `kubectl set resources deployment big --requests=memory=64Gi`，看 `kubectl get pods` 和新 Pod 的 `describe`。
+
+   验证：新 Pod 停在 `Pending`，Events 里有 `Insufficient memory`。做完 `kubectl delete deployment big`。
+
+   参考答案：调度看的是 requests 加总，不是实际用量。给每个组件写 requests 就是在做内存预算，预算超了新 Pod 就进不来。
+
+3. **先用旧证书过渡**：生成一张自签证书 `openssl req -x509 -newkey rsa:2048 -nodes -days 1 -keyout key.pem -out cert.pem -subj /CN=lab.localhost`，执行 `kubectl create secret tls lab-tls --cert=cert.pem --key=key.pem`；给[第 4 章练习](04-networking-ingress.md#动手练习)的 Ingress 加上 `tls: [{ hosts: [lab.localhost], secretName: lab-tls }]`，然后 `curl -kv --resolve lab.localhost:8443:127.0.0.1 https://lab.localhost:8443/ 2>&1 | grep -E 'subject|^web|^api'`。
+
+   验证：输出里证书的 subject 是 `CN=lab.localhost`（而不是 Traefik 的默认证书），响应正文是 `web`。
+
+   参考答案：Ingress 只认 Secret 的名字，里面的证书从哪来都行。切换时先导入旧机器的证书，DNS 指过来后再交给 cert-manager 接管，两者用的是同一个 Secret 名。

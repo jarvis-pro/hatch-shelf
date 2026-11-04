@@ -115,3 +115,33 @@ hatch-counter 让店主拍一张供货商的进货单照片，用视觉模型把
 - 训练费只是小头，数据、评测、部署、维护和机会成本才是大头
 - 有人工校正环节的业务（如 hatch-counter 的核单）天然产生高质量训练数据
 - 数据少时用 Instruct 版做底座，先用小尺寸跑通流程
+
+## 动手练习
+
+1. **先爬阶梯第 3 级**：准备 20 行形如「土豆 斤 30 2.5 75」的进货单文字，用 Ollama 上的一个 3B–4B 小模型把每行整理成 JSON（字段 `name`、`unit`、`qty`、`price`、`amount`）。先只用 prompt 跑一遍，再加上 `response_format: { type: "json_object" }` 跑一遍，各统计 `JSON.parse` 成功的行数。
+
+   ```typescript
+   import OpenAI from "openai";
+   const client = new OpenAI({ baseURL: "http://localhost:11434/v1", apiKey: "ollama" });
+   const lines = ["土豆 斤 30 2.5 75", "白菜 斤 20 1.8 36" /* …补到 20 行 */];
+   let ok = 0;
+   for (const line of lines) {
+     const res = await client.chat.completions.create({
+       model: "<小模型标签>",
+       messages: [{ role: "user", content: `把这一行整理成 JSON（name/unit/qty/price/amount）：${line}` }],
+       response_format: { type: "json_object" }, // 第一遍注释掉这一行
+     });
+     try { JSON.parse(res.choices[0].message.content ?? ""); ok++; } catch {}
+   }
+   console.log(`${ok}/${lines.length} 行能解析`);
+   ```
+
+   验证：加了 `response_format` 后能解析的行数应达到或接近 20/20；不加时可能夹杂代码块标记或说明文字导致解析失败。
+
+   参考答案：格式问题在第 3 级就能解决，不需要微调。剩下的错误如果是字段值错（数量和单价对调），先试 few-shot 和换大一点的模型，再考虑往上走。
+
+2. **判断该不该微调**：用[决策阶梯](#决策阶梯)和[值得微调的信号](#值得微调的信号)分析两个场景，各写出结论和依据：A. SaaS 客服机器人，产品功能每月更新，想通过微调「让模型知道新功能」；B. 工单分类，每天 50 万条，现在用大模型 API 加长 prompt 准确率令人满意，已有 3000 条人工复核过的标注和一份 300 条的评测集。
+
+   验证：A 和 B 各写出停在阶梯哪一级，以及满足或不满足哪几条信号。
+
+   参考答案：A 缺的是知识且变化频繁，停在第 4 级 RAG，微调既学不牢又要每月重训。B 任务窄且稳定、调用量大、有数据、有评测集，已经是「大模型 + 好 prompt 能做好」的状态，适合用这些数据微调一个小模型，并和现有 API 方案在同一评测集上对比。

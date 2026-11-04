@@ -264,3 +264,44 @@ ALTER TABLE stock_movements ADD COLUMN note text;
 - 多租户 + RLS 的表，索引以 `store_id` 开头
 - 线上建索引用 `CONCURRENTLY`，注意它不能在事务里执行，失败会留下 INVALID 索引
 - 正在发生的慢看 `pg_stat_activity` 和 `pg_blocking_pids`；迁移连接设 `lock_timeout` 防止堵死全站
+
+## 动手练习
+
+准备一个带 200 万行流水的一次性库，做完 `docker rm -f slow` 清理：
+
+```bash
+docker run -d --name slow -e POSTGRES_PASSWORD=x postgres:16-alpine \
+  -c shared_preload_libraries=pg_stat_statements -c track_io_timing=on
+sleep 5
+docker exec -i slow psql -U postgres <<'SQL'
+CREATE EXTENSION pg_stat_statements;
+CREATE TABLE stock_movements (id bigserial PRIMARY KEY, store_id int, occurred_at timestamptz, qty int);
+INSERT INTO stock_movements (store_id, occurred_at, qty)
+SELECT g % 100, now() - (g % 365) * interval '1 day', 1 FROM generate_series(1, 2000000) g;
+ANALYZE stock_movements;
+SQL
+```
+
+1. **缺索引的计划**：对 `SELECT * FROM stock_movements WHERE store_id = 7 AND occurred_at >= now() - interval '30 days' ORDER BY occurred_at DESC LIMIT 50;` 执行 `EXPLAIN (ANALYZE, BUFFERS)`，然后 `CREATE INDEX CONCURRENTLY ON stock_movements (store_id, occurred_at);`，再执行一次。
+
+   验证：第一次计划里有 `Seq Scan`（可能是 `Parallel Seq Scan`）和很大的 `Rows Removed by Filter`，执行时间是几百毫秒量级；第二次变成 `Index Scan Backward`，没有 Sort 节点，`Buffers` 只有几十到几百块，执行时间降到 1ms 上下。
+
+   参考答案：复合索引的列顺序与「等值条件 + 范围 / 排序」匹配，B 树可以反向扫描直接按 `occurred_at DESC` 取前 50 行。
+
+2. **迁移排队堵死全站**：开三个终端。A：`BEGIN; SELECT 1 FROM stock_movements LIMIT 1;`（不提交）。B：`ALTER TABLE stock_movements ADD COLUMN note text;`。C：`SELECT count(*) FROM stock_movements WHERE store_id = 1;`。再开第四个终端执行本章「正在发生的慢」那条查询（把 `datname` 改成 `postgres`）。
+
+   验证：B 和 C 都卡住；第四个终端里 B 的 `blocked_by` 是 A 的 pid，C 的 `blocked_by` 是 B 的 pid（可能同时含 A），两者 `wait_event_type` 都是 `Lock`。A 执行 `ROLLBACK` 后 B、C 依次完成。在 B 里先 `SET lock_timeout = '2s';` 重做一遍，B 两秒后报 `canceling statement due to lock timeout`，C 随即返回。
+
+   参考答案：`ALTER TABLE` 要排他锁，在锁队列里排在 A 后面，而后来的 C 又排在 B 后面，所以一个只读的长事务加一条迁移就能堵住所有读。`lock_timeout` 让迁移快速失败，把队列让出来。
+
+3. **总耗时比平均值更说明问题**：先 `SELECT pg_stat_statements_reset();`，用 pgbench 跑 2 万次按主键查询，再手动跑一次慢查询 `SELECT count(*) FROM stock_movements WHERE qty = 1;`，然后用本章「找出最该优化的查询」那条 SQL 看排名。
+
+   ```bash
+   echo '\set id random(1, 2000000)
+   SELECT * FROM stock_movements WHERE id = :id;' | docker exec -i slow sh -c 'cat > /tmp/q.sql'
+   docker exec slow pgbench -U postgres -n -c 4 -t 5000 -f /tmp/q.sql postgres
+   ```
+
+   验证：按主键的那条 `calls` 为 20000、`mean_ms` 很小；`count(*)` 那条 `calls` 为 1、`mean_ms` 大。比较两者的 `total_s`，看哪条排在前面。
+
+   参考答案：排名取决于你机器上的实际耗时，结论本身不重要，重要的是习惯：按 `total_exec_time` 排序能同时抓到「单次慢」和「单次快但次数极多」两类，只看平均值会漏掉后者。

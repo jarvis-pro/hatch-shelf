@@ -252,3 +252,42 @@ if (-f /srv/app/maintenance.on) {
 - `client_max_body_size` 默认 1m，要和后端的请求体上限对齐
 - 负载均衡默认轮询，耗时不均用 `least_conn`；开源版只有被动健康检查，非幂等请求默认不重试
 - 单实例发版可以用「标记文件 + 503 + Retry-After」的维护开关，开关不需要 reload
+
+## 动手练习
+
+环境同[第 1 章的练习](01-config-model.md#动手练习)。这里让同一个 nginx 再监听一个 9000 端口当「后端」，它把收到的路径和 `X-Forwarded-For` 原样报回来：
+
+```nginx
+server {
+    listen 9000;
+    location / { return 200 "uri=$request_uri xff=$http_x_forwarded_for\n"; }
+}
+server {
+    listen 80;
+    location /a/ { proxy_pass http://127.0.0.1:9000; }
+    location /b/ { proxy_pass http://127.0.0.1:9000/; }
+    location /c/ { proxy_pass http://127.0.0.1:9000/v2/; }
+    location /x/ {
+        proxy_pass http://127.0.0.1:9000;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+1. **斜杠规则**：先预测，再分别 `curl localhost:8080/a/users`、`/b/users`、`/c/users`。
+
+   验证：依次输出 `uri=/a/users`、`uri=/users`、`uri=/v2/users`。
+
+   参考答案：`proxy_pass` 只写到端口时原样转发；带了路径（哪怕只有 `/`），location 匹配到的前缀就被替换成这个路径。
+
+2. **伪造的 X-Forwarded-For**：执行 `curl -H 'X-Forwarded-For: 1.2.3.4' localhost:8080/x/`，再对 `/a/` 发同样的请求。
+
+   验证：`/x/` 输出 `xff=1.2.3.4, <某个地址>`，最后一段是 nginx 从连接上看到的来源（在 Docker Desktop 上一般是网关地址，不是 1.2.3.4）；`/a/` 输出 `xff=1.2.3.4`，客户端写什么后端就看到什么。
+
+   参考答案：`$proxy_add_x_forwarded_for` 只是在客户端给的值后面追加真实来源，所以后端只能信最后一段。没配这个头的 location，后端拿到的完全是客户端伪造的值或者空值。
+
+3. **1 MB 的默认上限**：执行 `head -c 2000000 /dev/zero | curl -s -o /dev/null -w '%{http_code}\n' --data-binary @- localhost:8080/a/`；然后在 `listen 80` 的 server 块里加 `client_max_body_size 3m;`，reload 后重试。
+
+   验证：第一次输出 `413`，加大上限后输出 `200`。
+
+   参考答案：请求体超过 `client_max_body_size`（默认 1m）时 nginx 自己回 413，请求根本到不了后端。上限要和后端的请求体限制设成一样。

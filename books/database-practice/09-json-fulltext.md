@@ -323,6 +323,38 @@ const rows =
 - 中文全文检索要么装分词扩展，要么用 trigram 做子串匹配；trigram 不支持少于 3 个字符的查询
 - FTS5 trigram 是本地搜索的好选择：用户输入包成短语，短查询退回转义过的 `LIKE`
 
+## 动手练习
+
+1. **json、jsonb 与三种 NULL**：在 `pg-lab` 里执行本章「json 和 jsonb」和「NULL 的三种样子」两节的 `select`。
+
+   验证：`jsonb` 列显示 `{"a": 3, "b": 1}`，`json` 列原样显示 `{"b":1, "a":2, "a":3}`；四个 NULL 判断依次是 `t`、`null`、`f`、`t`。
+
+   参考答案：`jsonb` 解析后键排序去重、重复键保留最后一个；`->` 取出的 JSON `null` 是一个 jsonb 值，不是 SQL `NULL`，`->>` 转成文本时才变成 SQL `NULL`。
+
+2. **GIN 只认操作符**：造一张 20 万行的表：
+
+   ```sql
+   create table members as
+     select g as id,
+            jsonb_build_object('payroll', case when g % 7 = 0 then 'edit' else 'view' end,
+                               'stock', 'view') as permissions
+     from generate_series(1, 200000) g;
+   create index members_perm_gin on members using gin (permissions jsonb_path_ops);
+   analyze members;
+   ```
+
+   分别 `explain` 查询 `where permissions @> '{"payroll":"edit"}'` 和 `where permissions->>'payroll' = 'edit'`；再建 `create index members_payroll_idx on members ((permissions->>'payroll'));` 后重看第二条。
+
+   验证：第一条用 `Bitmap Index Scan on members_perm_gin`；第二条在建表达式索引前是 `Seq Scan`（可能并行），建了之后换成 `members_payroll_idx` 上的索引扫描（多半是 Bitmap Index Scan）。用 `\di+` 对比两个索引的大小。
+
+   参考答案：GIN 服务的是 `@>`、`?` 这些操作符，同样意思写成 `->>` 比较就用不上；总查同一个键时用表达式索引，或者干脆升格成一列。
+
+3. **pg_trgm 的三字门槛**：执行 `create extension pg_trgm;`，先看 `select show_trgm('牛肉面');` 能否切出片段。再造 10 万行菜名，例如 `create table dishes as select g as id, case when g % 25 = 0 then '红烧牛肉面' else (array['番茄炒蛋','酸菜鱼','宫保鸡丁','清炒时蔬'])[g % 4 + 1] end || g as name from generate_series(1, 100000) g;`，建 `create index on dishes using gin (name gin_trgm_ops); analyze dishes;`，对比 `like '%牛肉面%'` 和 `like '%牛肉%'` 的计划。
+
+   验证：`show_trgm` 输出里能看到汉字片段（输出为空或只有空白片段，说明库的区域设置不把汉字当字母，后面的结果会不同）；三字查询（命中 4000 行）走 `Bitmap Index Scan`；两字查询回到 `Seq Scan`。
+
+   参考答案：两个字切不出完整的 trigram，索引筛不掉任何候选，优化器宁可顺序扫描。数据量大时对短查询要另想办法，比如前缀匹配或 bigram 索引表，hatch-shelf 在 SQLite 里的做法是退回 `LIKE`。
+
 ## 接下来读什么
 
 这本书讲的是「一个库」内部的事。接下来：

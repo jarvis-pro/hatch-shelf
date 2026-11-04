@@ -273,3 +273,50 @@ hatch-counter 没有 CI，规定提交前在本地跑四条：`pnpm format`、`p
 - 类型感知规则挑几条真能抓 bug 的；每个目录要指向正确的 tsconfig，漏了会静默失效
 - 用 `no-restricted-syntax`、`no-restricted-imports` 把项目约定变成机器检查
 - `--fix` 不是绝对安全，修完看 diff、跑 typecheck
+
+## 动手练习
+
+在空目录里 `pnpm add -D eslint typescript-eslint typescript`，写一个 `tsconfig.json`（`strict`、`jsx: "preserve"`、`include: ["src"]`）和下面这份配置：
+
+```js
+// eslint.config.mjs
+import tseslint from "typescript-eslint";
+export default tseslint.config(
+  { files: ["**/*.js"], rules: { "no-debugger": "error" } },
+  { files: ["**/*.js"], ignores: ["gen/**"], rules: { "no-console": "error" } },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    extends: [tseslint.configs.base],
+    languageOptions: { parserOptions: { project: "./tsconfig.json", tsconfigRootDir: import.meta.dirname } },
+    rules: { "@typescript-eslint/no-floating-promises": "error" },
+  },
+);
+```
+
+1. **漏掉的 await**：`src/a.ts`：
+
+   ```ts
+   async function save(): Promise<void> {}
+   export function onClick() {
+     save();
+     void save();
+   }
+   ```
+
+   运行 `pnpm eslint .`，预测报几条、在哪一行。
+
+   验证：只在第 3 行报 `@typescript-eslint/no-floating-promises`，提示 Promise 必须 await、加 `.catch` 或用 `void` 显式标记；第 4 行的 `void save()` 不报。把 `project` 那一行删掉再跑，ESLint 直接报错说这条规则需要类型信息。
+
+   参考答案：这条规则要靠编译器知道 `save()` 返回 Promise，所以必须给出 tsconfig。`void` 是「我知道它是 Promise，也确实不想等」的显式声明，和 hatch-shelf 的 CLAUDE.md 要求一致。
+
+2. **哪个 ignores 是全局的**：建 `gen/out.js`，内容只有一行 `debugger;`，运行 `pnpm eslint .`。然后把第二个对象整个换成 `{ ignores: ["gen/**"] }`（只剩 `ignores` 一个键），再运行。
+
+   验证：第一次 `gen/out.js` 报 `no-debugger`；第二次 `gen/out.js` 不再出现在输出里。
+
+   参考答案：和 `rules` 写在同一个对象里的 `ignores` 只把这个对象自己的作用范围排除掉，第一个对象仍然检查 `gen/`；只有「只含 `ignores`」的对象才是全局忽略。
+
+3. **把约定写成规则**：在第三个对象的 `rules` 里加上本章的 `no-restricted-syntax`（禁止 `<input type="date">`，`message` 写成你自己的替代建议），建 `src/form.tsx`：`export const F = () => <input type="date" />;`，再运行 `pnpm eslint .`；然后把 `type="date"` 改成 `type="text"` 再跑。
+
+   验证：第一次在 `form.tsx` 第 1 行报 `no-restricted-syntax`，错误信息就是你写的 `message`；改成 `text` 后不再报。
+
+   参考答案：AST 选择器只匹配「`input` 元素上 `type` 属性的值为 `date`」这一种结构。`message` 写清该用什么替代，比只写「不许」有用得多。

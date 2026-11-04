@@ -292,6 +292,47 @@ hatch-counter 的 `withStore()` 没有传这个参数，全部用默认的读已
 - 并发冲突重试的单位是整个事务，前提是回调里没有副作用；短信、推送、第三方调用放在提交之后，不能丢的用 outbox
 - 多条查询要看同一时刻的报表，用 `repeatable read` + `read only`
 
+## 动手练习
+
+1. **一条语句出错，整个事务作废**：在 PostgreSQL 容器的 `psql` 里执行 `create table tags (name text primary key);`，然后 `BEGIN; insert into tags values ('a'); insert into tags values ('a'); insert into tags values ('b');`，最后 `ROLLBACK;`。再试一遍，这次把第二条插入包在 `SAVEPOINT s1;` 和 `ROLLBACK TO SAVEPOINT s1;` 之间，并以 `COMMIT;` 结尾。
+
+   验证：第一遍第三条插入报 `current transaction is aborted, commands ignored until end of transaction block`；第二遍提交后 `select * from tags;` 有 `a` 和 `b` 两行。
+
+   参考答案：事务进入中止状态后只能回滚。想接住冲突接着写，要么用保存点，要么写 `on conflict do nothing` 让语句本身不出错。
+
+2. **SET 和 SET LOCAL**：用 postgres.js 建一个 `max: 1` 的连接池（保证两次用的是同一条连接），在 `.mjs` 里运行：
+
+   ```js
+   import postgres from "postgres";
+   const sql = postgres("postgres://postgres:pw@localhost:5432/postgres", { max: 1 });
+   await sql.begin((tx) => tx`select set_config('app.store_id', 'A', false)`);
+   const [r] = await sql`select current_setting('app.store_id', true) as v`;
+   console.log(JSON.stringify(r.v));
+   await sql.end();
+   ```
+
+   把 `false` 改成 `true` 再运行一次。
+
+   验证：`false` 时事务结束后仍打印 `"A"`；`true` 时拿不到 `A`（观察打印的是空串还是 `null`）。
+
+   参考答案：第三个参数为 `true` 等同于 `SET LOCAL`，只在当前事务内有效；为 `false` 时设置留在池化的连接上，被下一个请求捡到，就是跨租户泄露。
+
+3. **事务里借第二条连接，池子卡死**：还是 `max: 1` 的池，运行下面这段；然后把注释那一行的 `sql` 换成 `tx` 再运行。
+
+   ```js
+   const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("超时")), 3000));
+   const work = sql.begin(async (tx) => {
+     await tx`select 1`;
+     await sql`select 2`; // 事务外的连接
+   });
+   await Promise.race([work, timeout]).then(() => console.log("完成"), (e) => console.log(e.message));
+   process.exit();
+   ```
+
+   验证：用 `sql` 时 3 秒后打印 `超时`；换成 `tx` 后立刻打印 `完成`。
+
+   参考答案：唯一的连接被事务占着，事务又在等第二条连接，谁都走不下去。这正是本章说的测试办法：把池调到 1，任何在事务里再借连接的代码都会挂住。
+
 ## 接下来读什么
 
 这本书讲的是 NestJS 这一层。往下一层，hatch-counter 的很多关键设计（行级安全、触发器维护的版本号、迁移、事务与隔离级别）都在数据库里，接着读[《数据库原理与实战》](../database-practice/)。往上一层，幂等、缓存、实时推送、多租户这些跨越整个系统的问题，在[《软件架构与系统设计》](../system-design/)里有完整的讨论。认证和权限只是安全的一部分，[《应用安全》](../app-security/)会补上 OWASP Top 10、密钥管理和供应链安全，并给出一份可以逐项对照的自查清单。

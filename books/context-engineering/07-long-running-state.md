@@ -208,3 +208,38 @@ sequenceDiagram
 - 状态要明确（只有几种取值），共享状态只有一个写入者，写入范围互不重叠
 - 交接文档写给「什么都不知道的人」：目标、已知事实、文件路径、交回什么
 - 在一项工作完成的边界上，从进度文件重开通常比压缩更干净
+
+## 动手练习
+
+1. **给清单加一道校验**：本章说清单只允许改 `status`、`done` 不能退回。写一个脚本比较新旧两份 `tasks.json`，违反规则就以非零退出。
+
+   ```javascript
+   import { readFileSync } from "node:fs";
+   const [a, b] = process.argv.slice(2).map((f) => JSON.parse(readFileSync(f, "utf8")).items);
+   const errs = [];
+   if (b.length < a.length) errs.push(`条目从 ${a.length} 条变成 ${b.length} 条`);
+   for (const old of a) {
+     const now = b.find((x) => x.id === old.id);
+     if (!now) errs.push(`${old.id} 被删除`);
+     else if (now.desc !== old.desc) errs.push(`${old.id} 的描述被改写`);
+     else if (old.status === "done" && now.status !== "done") errs.push(`${old.id} 从 done 退回 ${now.status}`);
+   }
+   console.log(errs.length ? errs.join("\n") : "通过");
+   process.exitCode = errs.length ? 1 : 0;
+   ```
+
+   验证：只把某项从 `todo` 改成 `done` 时输出「通过」；改写某项的 `desc` 或把 `done` 改回 `todo` 时列出问题，退出码为 1。可以用 `git show HEAD:tasks.json > old.json` 拿到上一版来比较。
+
+   参考答案：模型改结构化文件时倾向于只动一个字段，但「倾向」不是保证；这道校验可以挂到 Stop hook 或 pre-commit 上。
+
+2. **专门跑一次「第一个会话」**：找一个需要五六步的小功能，用本章的指令让编码 agent 的第一个会话只做规划：写 `tasks.json`、`PROGRESS.md` 的目标与验收、记录怎么启动和测试，然后提交。再开第二个会话，按「开场读状态、先跑测试、只做一项、收尾更新并提交」做一项。
+
+   验证：第一个会话结束时 `git log --oneline` 只有一个规划提交、没有功能代码；第二个会话结束时清单里恰好多一项 `done`，`PROGRESS.md` 的「当前状态」和「下一步」更新了，多了一个提交。
+
+   参考答案：规划会话花的 token 会在后续每个会话里省回来；「一次只做一项」让每个会话都能在干净的状态下结束。
+
+3. **改写一份交接**：原交接是「导入有问题，好像跟文件名有关，继续修一下」。按本章「写给什么都不知道的人」的四点改写。
+
+   验证：改写后包含目标和完成标准、已知事实和已排除的可能、具体文件路径、要交回什么。
+
+   参考答案（示例）：「目标：文件名含空格的书能正常导入，补一条测试覆盖。已知：报错发生在 `packages/spec/src/manifest.ts` 的文件名校验，正则不允许空格；已排除 zip 解压问题（不含空格的同一本书能导入）。完成标准：`pnpm typecheck`、`pnpm test` 通过。交回：改了哪些文件、新测试的名字、拿不准的地方，十行以内。」

@@ -292,3 +292,30 @@ hatch-counter 的部署文档每一步末尾都有一句「应该看到」，这
 - 用 restic 做加密、去重的异地备份，**加密密码另存进密码管理器**；桶开版本控制，防止备份被一起删除
 - 用**心跳**而不是失败通知来发现备份的静默失败
 - 恢复演练分三级：每周校验、每月恢复到临时库、每半年到一年整机重建；**只看文档，不凭记忆**
+
+## 动手练习
+
+下面的数据库都用一次性的 Docker 容器，练完 `docker rm -f` 删掉即可，不要拿生产库做。
+
+1. **体会 pipefail 和空备份**：先在终端里跑 `bash -c 'false | cat; echo $?'` 和 `bash -c 'set -o pipefail; false | cat; echo $?'`。再起一个空库 `docker run -d --name pgtmp -e POSTGRES_PASSWORD=t postgres:16-alpine`，等几秒后 `docker exec pgtmp pg_dump -U postgres -Fc postgres > empty.dump`，看它多大。
+
+   验证：第一条打印 `0`，第二条打印 `1`；`ls -l empty.dump` 显示文件只有几 KB，远小于脚本里的 100000 字节阈值。
+
+   参考答案：没有 pipefail 时管道的退出码只看最后一个命令，`pg_dump` 失败也会被吞掉。空库照样能 dump 出一个合法文件，所以脚本要按库的实际大小设一个下限，挡住「备份了一个空库」。
+
+2. **restic 的去重和密码**：在本机（或一次性容器里）装 restic，`export RESTIC_PASSWORD=practice`，`restic init --repo /tmp/rr`，造一个 50 MB 的文件 `head -c 50000000 /dev/urandom > big.bin`，连续 `restic -r /tmp/rr backup big.bin` 两次，然后 `unset RESTIC_PASSWORD` 用一个错的密码再跑 `restic -r /tmp/rr snapshots`。
+
+   验证：第二次 backup 的输出里新增到仓库的数据接近 0；`restic -r /tmp/rr snapshots` 列出两个快照；密码错时命令失败，提示密码不对，拿不到任何内容。
+
+   参考答案：restic 按内容分块去重，没变的数据不会再传一遍。加密在客户端完成且没有后门，这就是本章要求把密码另存进密码管理器的原因。
+
+3. **只捞回一张表**：在 `pgtmp` 里建两张表并各插几行（`create table orders(id int); insert into orders select generate_series(1,100); create table shops(id int); insert into shops values (1),(2);`），`pg_dump -Fc` 导出到容器内 `/tmp/app.dump`，然后 `drop table orders;`，只用 `pg_restore` 把 `orders` 恢复回来。
+
+   验证：恢复后 `select count(*) from orders` 返回 `100`，`shops` 不受影响仍是 2 行。
+
+   参考答案：自定义格式的 dump 可以按表挑着恢复，这正是快照做不到的事。
+
+   ```bash
+   docker exec pgtmp pg_restore -U postgres -d postgres -t orders /tmp/app.dump
+   docker exec pgtmp psql -U postgres -c 'select count(*) from orders'
+   ```

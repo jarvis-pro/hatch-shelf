@@ -341,3 +341,23 @@ Argo CD 只能管 K8s。hatch-counter 现在的形态是一台机器上的 docke
 - 发版是 CI 往部署仓库提交新 tag；回滚是 `git revert`；迁移用 `PreSync` hook 保证先于新版本
 - 密钥用 Sealed Secrets 或 SOPS 插件，SOPS 文件仍是唯一真相
 - 不上 K8s 也能借鉴：期望版本进 Git、拉模式代理、`ansible-pull`、定期漂移检测
+
+## 动手练习
+
+1. **镜像 tag 只改一处**：照正文的目录结构，在本机建 `apps/counter-api/base/`（`deployment.yaml` 用正文那份，`kustomization.yaml` 里 `resources: [deployment.yaml]`）和 `overlays/prod/kustomization.yaml`（`resources: [../../base]`，暂不引用 `sealed-secret.yaml`，`images` 里 `newTag: "0.3.0"`）。在 overlay 目录执行 `kustomize edit set image registry.example.com/counter/api:0.3.1`，然后 `kubectl kustomize . | grep 'image:'`。不需要集群。
+
+   验证：`git diff`（或直接看文件）显示只有 overlay 的 `newTag` 从 `0.3.0` 变成了 `0.3.1`；渲染结果里是 `image: registry.example.com/counter/api:0.3.1`。
+
+   参考答案：base 里的镜像不带 tag，tag 只由 overlay 的 `images` 决定，所以发版和回滚都是这一行的提交。`kubectl kustomize` 用的是 kubectl 内置的 Kustomize，单独装的 `kustomize` 命令负责 `edit`。
+
+2. **手工改副本数，看 OutOfSync 和自愈**：用 kind 起一个一次性集群（`kind create cluster --name argo-lab`，做完 `kind delete cluster --name argo-lab`），按正文安装 Argo CD。创建一个 Application，`repoURL` 用公开的 `https://github.com/argoproj/argocd-example-apps.git`，`path: guestbook`，`syncPolicy.automated` 先不写 `selfHeal`。手动同步一次（`argocd app sync guestbook`，或在界面上点）后，执行 `kubectl scale deploy guestbook-ui --replicas=3`。然后在 Application 里加上 `selfHeal: true` 重新 apply。
+
+   验证：scale 之后不久，`kubectl -n argocd get application guestbook -o jsonpath='{.status.sync.status}'` 打印 `OutOfSync`，副本数停在 3；加上 `selfHeal` 后，`kubectl get deploy guestbook-ui` 的副本数回到清单里的 1，同步状态变回 `Synced`。
+
+   参考答案：Argo CD 一直在对比集群和 Git，发现差异就标 OutOfSync；只有开了 `selfHeal` 才会主动改回去。这个现象正是正文结尾提醒的：你排障时临时改的东西，也会被它改回去。
+
+3. **分析：迁移 Job 失败了会怎样**：场景是部署仓库刚提交了 `newTag: "0.4.0"`，而 0.4.0 的 `PreSync` 迁移 Job 因为一条 SQL 写错退出码为 1（`backoffLimit: 0`）。问：线上 Deployment 是哪个版本？Argo CD 上看到什么？该怎么恢复？
+
+   验证：对照正文「迁移怎么办」一节，写出你的判断后再看参考答案。
+
+   参考答案：`PreSync` 失败会中止整次同步，Deployment 不会被应用，线上继续跑 0.3.x，服务不中断。Argo CD 显示这次同步失败，应用仍是 OutOfSync，因为 Git 里已经是 0.4.0。恢复方式是 `git revert` 那次提交，或者提交修好迁移的新版本，不要在集群里手工改。另外要查清失败的迁移有没有执行了一半：迁移本身最好放在事务里。

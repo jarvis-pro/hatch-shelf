@@ -212,3 +212,47 @@ import { Activity } from "react";
 - `use(context)` 可以条件调用；React 19 起 `<Context>` 可直接作为 Provider
 - 从 effect 取数迁到 Suspense 牵涉缓存、失效、加载态和离线语义，是架构决定，通常借助数据请求库分步完成
 - React 19.2 的 `<Activity>` 隐藏子树但保留状态，是实现「离开再回来还在」的另一种方式
+
+## 动手练习
+
+1. **没缓存的 Promise 永远挂起**：
+
+   ```tsx
+   function Uncached() {
+     const v = use(new Promise<string>((r) => setTimeout(() => r("ok"), 10)));
+     return <b>{v}</b>;
+   }
+   // <Suspense fallback="loading"><Uncached /></Suspense>
+   ```
+
+   渲染后等几秒，看页面；再把 Promise 提到模块顶层（`const cached = new Promise(...)`，组件里 `use(cached)`）重试。
+
+   验证：第一种写法页面一直停在 `loading`；第二种 10 ms 后显示 `ok`。
+
+   参考答案：每次重试都会重新执行组件，又得到一个新的、尚未完成的 Promise，于是再次挂起。`use` 读的 Promise 必须在渲染之外创建，或由按 key 去重的缓存提供。
+
+2. **普通更新塌回 fallback，transition 不会**：用本章的 `load` 缓存写一个按页码取数的 `Page`（每页 `setTimeout` 500 ms 后返回 `第 n 页`），外面包 `<Suspense fallback="loading">`。加两个按钮：一个直接 `setN(n + 1)`，一个 `startTransition(() => setN(n + 1))`。各点一次，观察点击后的那 500 ms。
+
+   验证：直接 `setN` 时，旧页面立刻消失，显示 `loading`，然后出现新页（DOM 里旧内容还在，只是被设成了 `display: none`）；用 `startTransition` 时，旧页面一直留在屏幕上，500 ms 后直接换成新页。
+
+   参考答案：已显示内容的边界在普通更新里挂起，只能切回 fallback；在 transition 里挂起，React 保留旧内容等新内容准备好。这就是「fallback 服务首次加载，后续切换靠 transition」的依据。
+
+3. **Activity 隐藏时保留状态、卸载 effect**：
+
+   ```tsx
+   function Counter() {
+     const [c, setC] = useState(0);
+     useEffect(() => {
+       console.log("effect");
+       return () => console.log("cleanup");
+     }, []);
+     return <button onClick={() => setC(c + 1)}>{c}</button>;
+   }
+   // <Activity mode={visible ? "visible" : "hidden"}><Counter /></Activity>
+   ```
+
+   把计数点到 2，切到 hidden，再切回 visible（关掉 StrictMode 看得更清楚）。
+
+   验证：切到 hidden 时打印 `cleanup`，按钮在 DOM 里还在但 `style.display` 为 `none`；切回 visible 时打印 `effect`，按钮仍显示 `2`。如果改成条件渲染 `{visible && <Counter />}`，切回来时显示 `0`。
+
+   参考答案：`<Activity mode="hidden">` 不卸载组件，只隐藏 DOM、清理 effect；条件渲染会卸载组件，状态随 Fiber 一起丢掉。

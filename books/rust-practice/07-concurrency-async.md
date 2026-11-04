@@ -453,3 +453,36 @@ async fn hash_file(path: std::path::PathBuf) -> anyhow::Result<String> {
 - Rust 的 Future 是惰性的、运行时要自己选（tokio）、丢弃即取消
 - `join!` / `select!` / `timeout` / `JoinSet` / `Semaphore` 覆盖了常见的并发模式
 - async 任务里的 CPU 计算和阻塞调用用 `spawn_blocking`；不需要网络并发时不必用 async
+
+## 动手练习
+
+1. **Rc 过不了线程边界**：把 [Send 和 Sync](#send-和-sync编译器怎么知道线程安全) 一节的 `Rc` 例子放进项目，`cargo check` 看错误；然后把 `Rc` 换成 `std::sync::Arc`，并把 `thread::spawn(...)` 的返回值接住、末尾 `.join().unwrap()`。
+
+   验证：第一次报 `` error[E0277]: `Rc<Vec<i32>>` cannot be sent between threads safely ``；换成 `Arc` 后编译通过，运行输出 `3`。如果不 `join`，主线程可能先退出，有时什么都看不到。
+
+   参考答案：`Rc` 的引用计数不是原子操作，不实现 `Send`；`Arc` 用原子操作增减计数，可以跨线程。编译器靠 `spawn` 签名里的 `Send` 约束在编译期拦下这个问题。
+
+2. **忘了 drop(tx)**：把本章 channel 示例里的 `drop(tx);` 删掉，预测运行结果。
+
+   验证：三条「检查完毕」照常打印（顺序可能每次不同），但程序不会退出，要按 Ctrl-C 结束。恢复 `drop(tx)` 后程序正常结束。
+
+   参考答案：`for msg in rx` 只有在**所有**发送端都被丢弃后才结束。子线程里的 `tx` 克隆随线程结束而丢弃，但 `main` 里最初那个 `tx` 一直活着，接收端会永远等下去。
+
+3. **Future 是惰性的，join! 是并发的**：在 tokio 项目里用本章的 `work` 函数，分别测两种写法的用时：
+
+   ```rust
+   let t = std::time::Instant::now();
+   let a = work("a", 100).await;
+   let b = work("b", 50).await;
+   println!("顺序：{a} {b} {:?}", t.elapsed());
+
+   let t = std::time::Instant::now();
+   let (a, b) = tokio::join!(work("a", 100), work("b", 50));
+   println!("并发：{a} {b} {:?}", t.elapsed());
+   ```
+
+   再加一行 `let _f = work("c", 10);`（不 await）和一行去掉 `let _f =` 的 `work("c", 10);`，看编译器说什么。
+
+   验证：顺序版用时约 150ms，`join!` 版约 100ms。不接住也不 await 的那一行会收到 `unused` 警告，提示 futures 不 `.await` 就什么都不做；两种写法都不会打印或等待任何东西。
+
+   参考答案：`async fn` 调用只构造 Future，`.await` 才执行；顺序 await 等于串行。`join!` 在同一个任务里轮流推进两个 Future，总时间取决于最慢的那个。

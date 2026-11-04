@@ -135,6 +135,26 @@ flowchart TD
 - 唱片墙用 Electron 合理：核心价值在跨端共享的 TS 逻辑，体积对自用应用无意义
 - 只做 macOS 的小工具，别忘了 SwiftUI 这个选项
 
+## 动手练习
+
+1. **实测两个最小原型**：用 `pnpm create @quick-start/electron` 和 `pnpm create tauri-app`（需要先装 Rust 工具链）各建一个只显示「Hello」的项目，分别打出 macOS 的 `.app`（Electron 用 `electron-builder --mac --dir`，Tauri 用 `pnpm tauri build`），运行 `du -sh <App>.app`，再各自打开后在「活动监视器」里看相关进程的内存。
+
+   验证：记下两组体积和内存数字；Electron 的 `.app` 明显更大，`Contents/Frameworks/` 里能看到 `Electron Framework.framework`，Tauri 的包里没有它。
+
+   参考答案：差距来自「带不带浏览器」。具体数字取决于系统和版本，所以本章不引用网上的对比，以你自己测到的为准。
+
+2. **找一个引擎差异**：在 Electron 原型的页面里，和在 Safari 里分别打开同一个页面，执行 `[...new Set(['video/webm; codecs=vp9', 'audio/ogg; codecs=opus', 'audio/mp4; codecs=mp4a.40.2'])].map(t => [t, MediaSource.isTypeSupported?.(t)])`，比较结果。
+
+   验证：观察两边对某些格式给出不同的结果（具体哪一项不同取决于 macOS 和 Safari 版本）。
+
+   参考答案：Tauri 在 macOS 上用的是 WKWebView，媒体能力跟 Safari 走；依赖 Chromium 特有行为的界面（比如唱片墙的 `<audio>` 细节），换到 Tauri 要重新验证。
+
+3. **用决策流程走三个项目**（分析题）：A. 菜单栏里的剪贴板历史工具，打算收费，只做 macOS，没有现成 TS 代码；B. 已有 Next.js 网页版的协作白板，要出 Windows 和 macOS 桌面端，界面复杂；C. 一个需要在 Rust 里做音频转码的工具，界面只有几个按钮，以后想出手机版，目前没有 RN 端。
+
+   验证：每个项目沿着本章的决策流程图走一遍，写出在哪个菱形上做了决定。
+
+   参考答案：A 没有要复用的 TS 代码且只做 macOS，先考虑 SwiftUI；B 有大量 Web 界面、要求跨平台渲染一致，落在 Electron；C 后端本来就要 Rust、需要移动端，落在 Tauri。如果 A 改成「已有一套 React 界面要复用」，结论会转向 Tauri（体积是卖点）。
+
 ## 接下来读什么
 
 桌面端的主进程本质上是一个「本地后端」，下一步可以去读[《NestJS 后端架构》](../nestjs-backend/)，把同样的分层、校验、错误处理思路用到服务端。第 3 章的安全清单只覆盖了 Electron 特有的部分，更完整的认证、授权、密钥管理在[《应用安全》](../app-security/)里。等真要公开发布桌面应用，签名、公证、上传更新文件这些步骤值得做成流水线，那是[《部署与 CI/CD》](../deploy-release/)的内容。

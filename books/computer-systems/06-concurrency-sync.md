@@ -284,3 +284,23 @@ SELECT pg_try_advisory_xact_lock(hashtext('monthly-settlement'));
 - 信号量限制并发度，适合控制对外部服务的请求数；连接池就是一个信号量
 - 死锁靠统一加锁顺序避免；Postgres 会检测死锁并回滚其中一个事务
 - 多实例时把一致性交给数据库：条件 UPDATE 优先，其次行锁、乐观锁、咨询锁、SKIP LOCKED
+
+## 动手练习
+
+1. **忘了 finally 会怎样**：把本章的 `Mutex` 改成不用 `try/finally`，直接 `const r = await fn(); release(); return r;`。用它先跑一个会抛错的任务 A（`.catch` 打印错误），再跑一个只打印「B 执行了」的任务 B，最后 `await` B。
+
+   验证：只看到 A 的错误，「B 执行了」始终没有出现；Node 打印 `Warning: Detected unsettled top-level await` 后以退出码 13 结束。恢复 `finally` 后 B 正常执行。
+
+   参考答案：A 抛错时 `release()` 没被调用，`tail` 永远不会 resolve，B 一直在等前一个。事件循环里没有别的事可做，Node 发现顶层 `await` 永远等不到结果，就退出了；放在长期运行的服务里，表现是这把锁后面的请求全部挂起。
+
+2. **数一数到底有几个在跑**：用本章的 `Semaphore(3)` 跑 50 个任务，每个任务开始时 `active++` 并记录峰值 `peak = Math.max(peak, active)`，等 20 毫秒后 `active--`。把 `sem.run(job)` 换成直接 `job()` 再跑一次。
+
+   验证：用信号量时打印 `peak 3`；不用时 `peak 50`。
+
+   参考答案：信号量的 `release` 把名额直接交给下一个等待者，所以任何时刻在跑的都不超过 3 个。`Promise.all(items.map(...))` 不加限制时，所有任务会在同一轮里全部启动。
+
+3. **让 Postgres 判出死锁**：在 Docker 里起一个 Postgres（`docker run -d --name pg -e POSTGRES_PASSWORD=pw postgres:17`），建表 `stock(item_id text primary key, qty int)` 并插入 A、B 两行。开两个 `docker exec -it pg psql -U postgres` 会话，都先 `BEGIN;`，会话 1 更新 A、会话 2 更新 B，然后会话 1 更新 B、会话 2 更新 A。
+
+   验证：约 1 秒后其中一个会话报 `ERROR:  deadlock detected`，另一个的 UPDATE 随即完成；报错那边的事务已被回滚，需要 `ROLLBACK;` 后才能继续。
+
+   参考答案：两个事务按相反顺序加行锁，形成循环等待。改成两边都先更新 A 再更新 B 重做一遍，第二个会话只会等待第一个提交，不会报错。做完 `docker rm -f pg`。

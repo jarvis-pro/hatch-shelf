@@ -268,3 +268,25 @@ create table shifts (
 - 反范式只有两种正当理由：可重算的缓存、有业务语义的快照
 - 能写成约束的规矩写进库里；外键想清楚 `ON DELETE`，并给外键列建索引
 - 类型选择写成「存储约定」并记下理由，钱用整数分，日期和时间戳分开
+
+## 动手练习
+
+下面几章的 PostgreSQL 练习都在一次性容器里做：`docker run --rm -d --name pg-lab -e POSTGRES_PASSWORD=lab postgres:18-alpine`，再用 `docker exec -it pg-lab psql -U postgres` 进去；做完 `docker stop pg-lab`，容器连同数据一起删掉。
+
+1. **把「只有一行」写进库**：在 psql 里建本章的 `sms_config` 表（`id text primary key default 'sms' check (id = 'sms')`），先 `insert into sms_config(channel) values ('console');`，再分别执行 `insert into sms_config(channel) values ('sms');` 和 `insert into sms_config(id, channel) values ('sms2', 'x');`。
+
+   验证：第一条成功；第二条报 `duplicate key value violates unique constraint "sms_config_pkey"`；第三条报 `violates check constraint "sms_config_id_check"`。
+
+   参考答案：默认值让每次插入都撞同一个主键，`CHECK` 堵住了换个 id 再插的路，两道约束合起来才是「只有一行」。
+
+2. **部分唯一索引**：建表 `employees (store_id int, phone text, status text)` 和本章的 `employees_active_phone` 部分唯一索引。依次插入：一个 `left` 的 `13800000000`、一个 `active` 的同号码、再一个 `active` 的同号码。
+
+   验证：前两条成功，第三条报 `duplicate key value violates unique constraint "employees_active_phone"`；把第二个人 `update ... set status = 'left'` 之后，第三条就能插进去。
+
+   参考答案：索引只收录 `where status = 'active'` 的行，离职的人不进索引，也就不参与唯一性判断。
+
+3. **18 的虚拟生成列**：在 18 的容器里建 `create table inv (amount_cents int, total_cents int generated always as (amount_cents * 106 / 100));`，插入一行后查 `total_cents`，再试 `create index on inv (total_cents);`，最后把列定义改成带 `stored` 的版本重建表再建一次索引。
+
+   验证：查询能读到算好的值；不带 `stored` 时建索引报错，带 `stored` 时成功。用 `\d inv` 观察两种列定义的显示差别。
+
+   参考答案：18 里省略 `STORED` 就是 `VIRTUAL`，读时现算、不落盘，18 还不支持给它建索引。从 16 的资料里抄来的建表语句，省略 `STORED` 在 16 上会直接报错，在 18 上则悄悄变成了另一种列。

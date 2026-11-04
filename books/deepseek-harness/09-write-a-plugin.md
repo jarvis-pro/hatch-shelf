@@ -292,3 +292,23 @@ dsh demo
 - 配置用 Schemastery 定义，默认值写在 schema 上，非法配置让加载失败
 - `tools/pre-execute` 上的门禁不调 `next()` 就是拒绝，不相关的调用必须 `return next()`；字符串匹配挡不住故意绕过，真正的边界仍是沙箱和审批
 - 打包成带 `dsh.bundle` 的 npm 包，用 `dsh plugin --profile <名字> add` 安装，用 `engines.dsh` 锁定兼容版本
+
+## 动手练习
+
+1. **先在 DSH 外面测工具逻辑**：把第二步 `execute` 里的正则和建议算法抽成一个普通函数，用 `DeepSeek_Harness`、`rag-systems`、`AI 数学`、`a--b`、`数学` 五个输入测一遍。
+
+   验证：只有 `rag-systems` 合法；建议值依次是 `deepseek-harness`、（合法，无需建议）、`ai`、`a-b`、`my-book`。
+
+   参考答案：`AI 数学` 的汉字被整段替换成短横线后又被裁掉，只剩 `ai`，这个建议对用户帮助不大。可以在返回文本里补一句「中文书名请自拟英文 id」。工具的业务逻辑先写成纯函数测透，再包进 `defineTool`，调试时就不必每次都花一次模型请求。
+
+2. **试着绕过门禁**：把第四步的判断 `JSON.stringify(exec.arguments).includes('git push')` 单独拿出来，对这些命令求值：`git push origin main`、`git  push`（两个空格）、`git -C . push`、`g=git; $g push`、`git pushx`。再换成正则 `/\bgit\s+(-\S+\s+)*push\b/` 测一遍。
+
+   验证：原写法只拦住第一条，还误拦了 `git pushx`；正则版本拦住前两条、放过 `git pushx`，但 `git -C . push` 和 `g=git; $g push` 仍然漏过。
+
+   参考答案：字符串和正则只能挡住「不小心」，挡不住「故意」。必须拦死的事交给沙箱（例如不给网络或不给凭据）和审批；门禁的价值是给模型一个清楚的 `reason`，让它改变做法。
+
+3. **在真实循环里看门禁生效**（需要 API key）：按第一步的方式用 `--patch` 同时加载 `no-git-push` 和 `tool-logger` 两个插件，在一个练手仓库里让 agent「把当前分支推到远程」。
+
+   验证：终端里 `tool-logger` 打印出一行 `bash -> ...`，内容是拒绝信息；Trajectory 里这次 `bash` 调用的结果带着 `git push is not allowed; ask the user to push.`；agent 随后的回复是请你自己推送，而不是反复换写法重试。
+
+   参考答案：如果它换着写法反复尝试，说明 `reason` 写得还不够明确，可以在 `reason` 里直接告诉它「不要尝试其他推送方式」。也可以对照第 8 章的练习想一想：`tool-logger` 监听的是 `tools/result`，被门禁拒绝的调用仍然有结果，所以它能看到。

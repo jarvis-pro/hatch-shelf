@@ -354,3 +354,25 @@ NestJS 官方有一个缓存模块，提供 `CacheInterceptor` 和 `@CacheKey` /
 - 失效优先用粗粒度版本键，一次 `INCR` 作废一组；删除放在事务提交之后
 - 缓存 DTO 不缓存实体；加载函数用到的每个参数都要进键名
 - 两层缓存用 Pub/Sub 广播失效，本地 TTL 要短；`CacheInterceptor` 默认不分租户
+
+## 动手练习
+
+环境：`docker run --rm -d --name r2 -p 6379:6379 redis:7.4-alpine`，把本章的 `CacheService` 去掉 Nest 装饰器，改成一个普通类在 Node 脚本里用。
+
+1. **合并并发加载**：给 `getOrLoad` 传一个会 `await` 200ms 再返回、并对调用次数计数的 `load`，同时发起 50 个对同一个键的 `getOrLoad`。然后把 `inflight` 相关的三行注释掉再跑一次。
+
+   验证：有 `inflight` 时计数是 `1`；注释掉后计数接近 `50`。
+
+   参考答案：第一个未命中把 Promise 放进 `inflight`，其余请求在 `load` 完成前都拿到同一个 Promise；去掉后每个请求都看到未命中，各自查一次。
+
+2. **Redis 挂了只变慢**：用 `commandTimeout: 200` 的连接跑一个循环，每秒调一次 `getOrLoad` 并打印耗时和结果；运行中执行 `docker pause r2`，十几秒后 `docker unpause r2`。
+
+   验证：暂停期间日志出现「缓存读取失败，直接查库」，结果照常返回，每次耗时大致在几百毫秒内（命令超时加上 `load` 的时间）；恢复后耗时回到个位数毫秒、警告消失。
+
+   参考答案：`safeGet` / `safeSet` 吞掉超时错误后走 `load`，请求不报错；`commandTimeout` 决定了单次最多被拖慢多久。如果去掉 `commandTimeout`，暂停期间请求会一直挂住，可以对比看看。
+
+3. **版本键一次作废一组**：用「做法一」的写法为同一家店缓存 3 个分类，`redis-cli --scan --pattern 'cache:store:42:*'` 看键名；再调 `onMenuChanged(42)`，重新读这 3 个分类。
+
+   验证：第二次扫描出现 6 个键，`menu@0` 和 `menu@1` 各 3 个；`TTL` 查看 `@0` 的键仍在倒计时，不再被读到。
+
+   参考答案：版本号进了键名，`INCR` 之后读路径拼出的是新键，全部未命中重新加载；旧键没人读，靠 TTL 自然消失。

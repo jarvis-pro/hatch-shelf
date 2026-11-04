@@ -195,3 +195,30 @@ export function parseModelJson(text: string): unknown | null {
 - schema 是 prompt 的一部分：可能缺失的字段设为 nullable，分类用枚举并留 `other`，结构保持扁平，`.describe()` 写字段级规则
 - 约束只管语法不管语义，后面要接业务校验：交叉验证、规范化、带警告交给人确认
 - 没有约束解码的接口用「prompt 要求 + 宽容解析 + 类型校验 + 重试一次」兜底
+
+## 动手练习
+
+1. **nullable 是诚实的出口**：用 Zod 定义 `z.object({ quantity: z.number() })` 和 `z.object({ quantity: z.number().nullable() })`，分别 `safeParse({ quantity: null })`，打印 `.success`。
+
+   验证：前者输出 `false`，后者输出 `true`。
+
+   参考答案：非 nullable 的数字字段没有表达「读不出来」的合法取值，约束解码下模型只能填一个数，也就是编一个。可能缺失的字段都应设为 nullable。
+
+2. **写一个宽容解析**：实现本章的 `repairJson`，至少处理中文逗号、中文引号和末尾多余的逗号，再配合 `parseModelJson` 解析下面这段模型回复。
+
+   ````text
+   好的，结果如下：
+   ```json
+   {"lines": [{"name": "白菜", "amount": 12.5,},]}
+   ```
+   ````
+
+   验证：解析结果是对象，`lines.length` 为 1，`lines[0].name` 为 `白菜`；直接 `JSON.parse` 原文则抛出 `SyntaxError`。
+
+   参考答案：先剥掉代码块标记和前后说明文字，再用正则把 `,}`、`,]` 里的逗号去掉，把全角标点换成半角后重试解析。
+
+3. **业务校验别用浮点比较**：写一个 `checkLine(quantity, unitPrice, amount)`，在数量×单价≠金额时返回警告。用数量 3、单价 0.1、金额 0.3 测试。
+
+   验证：`node -p "3 * 0.1 === 0.3"` 输出 `false`，直接比较会产生误报；改成以分为单位的整数比较（`Math.round(unitPrice * 100) * quantity === Math.round(amount * 100)`）后不再报警。
+
+   参考答案：这就是本章提到 hatch-counter 用 `parseLooseCents` 把金额统一成「分」的原因，钱的计算和比较都用整数。

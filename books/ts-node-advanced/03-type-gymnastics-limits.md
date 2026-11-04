@@ -188,3 +188,33 @@ Vitest 自带 `expectTypeOf`（配合 `vitest --typecheck`），写法更友好�
 - 报错信息的可读性是类型设计的一部分，`never` 报错基本等于没报错
 - 运行时数据用 schema 校验，不用类型体操；一处有注释的断言比一百行类型便宜
 - 复杂类型要有类型测试：`Equal` + `@ts-expect-error`，或 Vitest 的 `expectTypeOf`
+
+## 动手练习
+
+1. **把非尾递归改成尾递归**：本章的 `Build` 在 48 层报 TS2589。把它改成累加器形式，让递归调用直接作为条件分支的结果：
+
+   ```ts
+   type Build<N extends number, Acc extends unknown[] = []> =
+     Acc["length"] extends N ? Acc : Build<N, [...Acc, Acc["length"]]>;
+   export type A = Build<48>["length"];
+   export type B = Build<999>["length"];
+   export type C = Build<1000>["length"];
+   ```
+
+   预测哪一行报错，再 `npx tsc --strict --noEmit a.ts`。
+
+   验证：48 和 999 都能通过，只有第 5 行（`Build<1000>`）报 `TS2589: Type instantiation is excessively deep and possibly infinite.`（在 TypeScript 6.0.3 上测得，其他版本可能不同）。
+
+   参考答案：原写法要把递归结果展开进外层元组，不是尾位置；改成「把元素先放进 `Acc`、递归调用就是结果」之后，编译器的尾递归优化生效，上限从几十层变成约一千层。
+
+2. **类型的成本看得见**：准备两个文件，一个只有 `export const y = 1;`，另一个是本章的 `Four` 联合再加一行 `export const x: Four = "1234";`。分别运行 `npx tsc --noEmit --extendedDiagnostics <文件>`，对比 `Types` 一行。
+
+   验证：空文件的 `Types` 约三万（全部来自标准库），`Four` 那个文件多出约一万个类型；具体数字随版本变化，记下你自己的两组值。把 `Four` 换成 `Five` 会直接报 `TS2590`。
+
+   参考答案：模板字面量的笛卡尔积每个成员都是一个类型对象，`10^4` 个成员就是一万个类型；`--extendedDiagnostics` 能让「这个类型很贵」从感觉变成数字。
+
+3. **故意弄坏一个类型，看类型测试抓不抓得到**：用本章「类型也要测试」的 `Equal` 和 `expectType`，把 `Params` 第一个分支的 `N | Params<\`/${R}\`>` 改成只有 `N`（去掉递归），再在末尾多写一条 `// @ts-expect-error` 加上一条本来就成立的断言 `expectType<Equal<Params<"/books/:id">, "id">>();`，运行 `tsc --strict --noEmit`。
+
+   验证：多段路由那条测试报 `TS2344: Type 'false' does not satisfy the constraint 'true'.`；末尾那条报 `TS2578: Unused '@ts-expect-error' directive.`。
+
+   参考答案：去掉递归后只取到第一个参数名，`Equal` 返回 `false`，不满足 `T extends true`。`@ts-expect-error` 在下一行没有错误时自己会报错，所以「期望失败」的断言也被检查着，不会悄悄失效。

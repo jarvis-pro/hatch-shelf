@@ -267,3 +267,45 @@ volumes:
 - 键名就是 schema：冒号分层、租户 id 进键名、带版本号、除队列外都带 TTL；生产不用 `KEYS`
 - Node 客户端用 ioredis，监听 `error`；缓存连接要快速失败，队列连接另开
 - Redis 只在内网可达，必须设密码
+
+## 动手练习
+
+环境：`docker run --rm -d --name r1 -p 6379:6379 redis:7.4-alpine redis-server --enable-debug-command yes`（第 3 题要用 `DEBUG POPULATE`，7.0 起默认禁用 `DEBUG`），再用 `docker exec -it r1 redis-cli` 进命令行。
+
+1. **INCR 不丢更新**：写一个 Node 脚本，用 ioredis 并发 1000 次「`GET` 计数 → 加 1 → `SET` 回去」，再并发 1000 次 `INCR`，分别打印最终值。
+
+   验证：`INCR` 那一组的结果正好是 1000；读改写那一组明显小于 1000（每次运行数字不同）。
+
+   参考答案：读改写分两次往返，多个请求读到同一个旧值后各自写回，更新被覆盖；`INCR` 在服务端单线程里一步完成。
+
+   ```typescript
+   import Redis from "ioredis";
+   const r = new Redis();
+   await r.del("c1", "c2");
+   await Promise.all(Array.from({ length: 1000 }, async () => {
+     const v = Number((await r.get("c1")) ?? 0);
+     await r.set("c1", v + 1);
+   }));
+   await Promise.all(Array.from({ length: 1000 }, () => r.incr("c2")));
+   console.log(await r.get("c1"), await r.get("c2"));
+   r.disconnect();
+   ```
+
+2. **最近 100 条**：对 `recent:store:42` 依次 `LPUSH` 150 条，每次之后接 `LTRIM recent:store:42 0 99`：
+
+   ```bash
+   for i in $(seq 1 150); do
+     docker exec r1 redis-cli LPUSH recent:store:42 "order:$i" > /dev/null
+     docker exec r1 redis-cli LTRIM recent:store:42 0 99 > /dev/null
+   done
+   ```
+
+   验证：`LLEN recent:store:42` 返回 `100`，`LINDEX recent:store:42 0` 是 `order:150`，`LINDEX recent:store:42 -1` 是 `order:51`。
+
+   参考答案：`LPUSH` 从头部插入，`LTRIM 0 99` 只保留头部 100 个，最老的 50 条被裁掉。
+
+3. **SCAN 代替 KEYS**：用 `DEBUG POPULATE 200000 cache:item` 造 20 万个键，再用 `redis-cli --scan --pattern 'cache:item:1999*'` 找键，同时在另一个终端执行 `redis-cli --latency`。
+
+   验证：`--scan` 能列出 `cache:item:1999`、`cache:item:19990` 等键；扫描过程中 `--latency` 的最大值没有明显跳高。再执行一次 `KEYS *`，观察它返回前的停顿和 `--latency` 的 max 变化。
+
+   参考答案：`SCAN` 每次只遍历一小批槽位、多次往返完成，不会长时间占住唯一的命令线程；`KEYS` 一次遍历全部键，期间其他客户端都在排队。

@@ -179,6 +179,37 @@ flowchart TB
 - 每次修改后跑固定样例集，专门包含压缩之后的行为
 - 上下文是需要定期维护的代码
 
+## 动手练习
+
+1. **从日志里算出账本**：把下面三行存成 `usage.jsonl`（它们是三轮调用的 `usage`），用 jq 算出轮数、平均每轮上下文长度和缓存命中率。
+
+   ```text
+   {"usage":{"input_tokens":50,"cache_read_input_tokens":0,"cache_creation_input_tokens":3000,"output_tokens":200}}
+   {"usage":{"input_tokens":50,"cache_read_input_tokens":3000,"cache_creation_input_tokens":2000,"output_tokens":300}}
+   {"usage":{"input_tokens":50,"cache_read_input_tokens":5000,"cache_creation_input_tokens":2000,"output_tokens":100}}
+   ```
+
+   ```bash
+   jq -s 'map(.usage) | (map(.input_tokens + .cache_read_input_tokens + .cache_creation_input_tokens)) as $ctx
+     | {turns: length, avg_ctx: ($ctx | add / length), hit: ((map(.cache_read_input_tokens) | add) / ($ctx | add) * 1000 | round / 1000)}' usage.jsonl
+   ```
+
+   验证：输出 `turns` 为 3、`avg_ctx` 为 5050、`hit` 为 0.528。换成你自己 agent 的 `loggedCreate` 日志，同一条命令就是一张周账本。
+
+   参考答案：每轮上下文长度是三项输入之和；命中率要用缓存读取除以全部输入，只看 `input_tokens` 会严重低估上下文。
+
+2. **制造一次缓存失效再找到它**（需要 API key）：在 system prompt 末尾加一行 `当前时间：${new Date().toISOString()}`，连续跑三轮，看每轮的 `cache_read_input_tokens` 和 `cache_creation_input_tokens`；去掉这一行再跑三轮。system 要长过模型的最小可缓存长度。
+
+   验证：带时间戳时每轮 `cache_read_input_tokens` 都是 0、`cache_creation_input_tokens` 很大；去掉后从第二轮起读取变大、写入变小。
+
+   参考答案：时间戳让前缀每轮都不同，缓存永远命中不了。日期这种信息放进 user 消息，精确到天就够。
+
+3. **对 CLAUDE.md 做一次消融**：挑 `CLAUDE.md` 里你怀疑没用的一节，先准备三个会用到它的小任务，在保留和删掉这一节的两种情况下各跑一遍（每种开新会话），记录行为差异。
+
+   验证：得到一张三行两列的对照表；行为没有差别的那一节可以删，有差别的保留，并把这三个任务加进你的样例集。
+
+   参考答案：上下文会自然膨胀，消融是反方向的力量。判断依据是行为是否改变，而不是「这条看起来很重要」。
+
 ## 接下来读什么
 
 这本书讲的是「给模型看什么」。上下文里有一大块内容是工具定义和工具返回的结果，它们的设计直接决定了上下文的质量。按导读的顺序，下一本是[《工具设计与 MCP》](../tools-and-mcp/)：好工具的标准、描述与参数怎么写、错误怎么返回，以及怎么写一个 MCP server。

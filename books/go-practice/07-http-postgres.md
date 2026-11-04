@@ -570,3 +570,48 @@ Gin、Echo 也很流行，但它们有自己的 `Context` 类型，和标准库�
 - handler 写完错误响应要 `return`；限制请求体大小；列表返回空切片而不是 nil
 - 中间件是 `func(http.Handler) http.Handler`；`slog` 输出结构化日志
 - `main` 只调用 `run`；`http.Server` 必须设超时；启动时 Ping 数据库；`Shutdown` 实现优雅退出
+
+## 动手练习
+
+1. **忘了 return 会怎样**：不需要数据库，写一个最小服务：
+
+   ```go
+   func list(w http.ResponseWriter, r *http.Request) {
+   	id, err := strconv.ParseInt(r.PathValue("storeID"), 10, 64)
+   	if err != nil {
+   		http.Error(w, "storeID 不是数字", http.StatusBadRequest)
+   	}
+   	fmt.Fprintf(w, "store %d\n", id)
+   }
+
+   func main() {
+   	mux := http.NewServeMux()
+   	mux.HandleFunc("GET /stores/{storeID}/entries", list)
+   	_ = http.ListenAndServe(":18080", mux)
+   }
+   ```
+
+   运行后执行 `curl -i localhost:18080/stores/abc/entries`，预测状态码和响应体。
+
+   验证：状态码是 `400 Bad Request`，但响应体有两行：`storeID 不是数字` 和 `store 0`。在 `http.Error` 后面加上 `return`，响应体只剩第一行。
+
+   参考答案：`http.Error` 只是写响应，不会结束 handler；代码继续往下跑，又往同一个响应里写了一次。状态码已经发出去，后面的写入只能追加到 body 里。
+
+2. **方法不匹配的自动处理**：对上面的服务执行 `curl -i -X DELETE localhost:18080/stores/1/entries` 和 `curl -I localhost:18080/stores/1/entries`，预测两次的状态行。
+
+   验证：DELETE 得到 `405 Method Not Allowed`，并带 `Allow: GET, HEAD` 头；`-I`（HEAD）得到 `200 OK`。再注册一个 `POST` 模式后重试 DELETE，`Allow` 里会多出 `POST`。
+
+   参考答案：Go 1.22 起 `ServeMux` 知道每个路径注册了哪些方法，路径对、方法不对时返回 405 并列出允许的方法；注册了 `GET` 的模式自动响应 `HEAD`。
+
+3. **null 还是 []**：运行下面两行，预测输出，然后对照本章 `list` handler 里 `if list == nil` 那段判断。
+
+   ```go
+   var list []Entry
+   a, _ := json.Marshal(list)
+   b, _ := json.Marshal([]Entry{})
+   fmt.Println(string(a), string(b))
+   ```
+
+   验证：输出 `null []`。
+
+   参考答案：nil 切片和空切片 `len` 都是 0，但 `encoding/json` 把 nil 切片编码成 `null`。前端对 `null` 调 `.map` 会报错，所以返回列表前把 nil 换成空切片。

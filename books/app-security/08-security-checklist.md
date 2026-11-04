@@ -187,6 +187,41 @@ flowchart TD
 - 有意不做的条目写下理由，把疏忽变成决策
 - 每次事故都让清单多一条，或让一条人工检查变成自动测试
 
+## 动手练习
+
+1. **拿清单审一个小接口**：下面是一个练习用的 Express 登录服务（`db`、`sha256`、`auth` 是假定的辅助函数）。不运行它，只拿本章的「认证」「授权」「输入与输出」「密码与密钥」「日志」五张表逐条对照，列出你找到的问题，每条注明对应清单里的哪一项。
+
+   ```js
+   app.use(cors({ origin: '*', credentials: true }));
+   app.use(morgan(':method :url :req[authorization]'));
+   const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret';
+   app.post('/login', async (req, res) => {
+     const u = await db.get(`select * from users where email = '${req.body.email}'`);
+     if (!u) return res.status(404).json({ error: '账号不存在' });
+     if (sha256(req.body.password) !== u.pw) return res.status(401).json({ error: '密码错误' });
+     res.json({ token: jwt.sign({ sub: u.id, role: u.role }, JWT_SECRET, { expiresIn: '30d' }) });
+   });
+   app.get('/orders/:id', auth, async (req, res) =>
+     res.json(await db.get('select * from orders where id = ?', req.params.id)));
+   app.use((err, req, res, next) => res.status(500).json({ error: err.stack }));
+   ```
+
+   验证：至少找出 8 处，并且每处都能对上清单里的一行。
+
+   参考答案：CORS 全开且带凭证（第 3 章 A02）；请求日志记了 `Authorization` 头（日志）；缺省回落到开发密钥，生产不会拒绝启动（密码与密钥）；登录查询拼接 SQL（输入与输出）；「账号不存在」和「密码错误」分开提示（认证）；密码用 SHA-256 存且用 `!==` 比较（密码与密钥）；令牌里放了角色、寿命 30 天、没有 `aud`（认证）；登录接口没有限流（认证）；订单按 ID 取却不带归属条件，IDOR（授权）；未处理异常把堆栈回给客户端（输入与输出）。
+
+2. **季度复查：扫一遍仓库历史里的密钥**：新建一个练习仓库，`git init`，提交一个 `config.js`，里面写一个假的 GitHub 令牌：`ghp_` 后面跟 36 个随机大小写字母和数字（自己随手敲，不要用任何真实令牌）。再提交一次，把这行删掉。然后用 gitleaks 扫这个仓库（`brew install gitleaks`，或用它的官方 Docker 镜像；扫 git 历史的子命令在不同版本里叫 `detect` 或 `git`，以 gitleaks 的 README 为准）。
+
+   验证：gitleaks 报出一条发现，规则与 GitHub 令牌有关，并指向第一次提交；命令以非零状态退出（`echo $?` 查看）。只看当前工作区的文件是找不到这串字符的。
+
+   参考答案：删掉那一行并不会把它从历史里抹掉，真实场景下要按第 4 章「泄露了怎么办」先换钥匙，而不是先改历史。把这条命令加进季度复查，或者配成 pre-commit 钩子，就把清单里的一条人工检查变成了自动检查。
+
+3. **用威胁三问过一个新功能**：你准备加一个功能：用户在设置页填一个图片 URL，服务端下载后存成头像。按本章「设计新功能时」那张表回答三问，再回答追加的一问，写出你会采取的措施。
+
+   验证：每一问至少一条具体答案，并且措施里出现了本章「输入与输出」表中 SSRF 那一行的至少三项。
+
+   参考答案：谁能调：只限登录用户，按账号和 IP 限流。怎么被滥用：SSRF 打本机和云元数据地址、当作开放代理、拉超大文件耗流量和存储。出错时：超时、不是图片、超过大小上限一律拒绝。追加的一问答案是「会」：解析后拒绝内网地址、不跟随重定向、只收 `image/*`、限制大小，不转发客户端的任何头。更省事的替代方案是让客户端直接上传文件，服务端根本不去请求外部 URL。
+
 ---
 
 到这里，这本书就结束了。安全没有终点，但你已经有了一张地图和一份清单。

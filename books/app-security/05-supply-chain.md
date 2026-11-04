@@ -313,3 +313,25 @@ pnpm why 被投毒的包名
 - CI 里第三方 Action 固定到提交哈希，默认只读权限，最高权限的凭证留在本机
 - 发布 npm 包用 trusted publishing，不在 CI 里存令牌；发布工作流单独设 environment 并手动批准，来源证明只说明在哪构建、不说明有没有被授权
 - 确认装过被投毒的版本时，假设那台机器和那条流水线上的所有凭证都已泄露
+
+## 动手练习
+
+以下练习在一个新建的空目录里做，装的都是普通公开包或你自己打的本地包，不要往 npm 上发布任何东西。
+
+1. **装一个旧版本，看 audit 怎么说**：`pnpm init`，`pnpm add lodash@4.17.20`，运行 `pnpm audit`；再 `pnpm remove lodash && pnpm add -D lodash@4.17.20`，分别运行 `pnpm audit` 和 `pnpm audit --prod`。
+
+   验证：前两次都能看到 lodash 的漏洞条目（修复版本写的是 4.17.21 或更高）；`--prod` 那次不再列出 lodash。用 `pnpm why lodash` 能看到它是被谁引进来的。
+
+   参考答案：同一个漏洞，在 `dependencies` 里要尽快处理，在 `devDependencies` 里优先级低得多，这就是本章「先看是否进生产」的判断顺序。
+
+2. **安装脚本到底跑没跑**：在 `evil/` 目录写一个包，`package.json` 里 `"name": "evil-demo"`、`"version": "1.0.0"`，`"scripts": { "postinstall": "node -e \"require('fs').writeFileSync('RAN', '')\"" }`，运行 `npm pack` 得到 `evil-demo-1.0.0.tgz`。再到另一个目录 `pnpm init && pnpm add ../evil/evil-demo-1.0.0.tgz`，看 `ls node_modules/evil-demo/RAN` 是否存在。然后按你所用 pnpm 版本把它加进放行名单（pnpm 11 起 `allowBuilds`，pnpm 10 是 `onlyBuiltDependencies`，都写在 `pnpm-workspace.yaml`），删掉 `node_modules` 重装。
+
+   验证：pnpm 9 下 `RAN` 直接出现；pnpm 10 下没有 `RAN`，安装输出提示有构建脚本被忽略；pnpm 11 及以上安装直接失败。加入放行名单后重装，`RAN` 出现。具体提示文字随版本不同，以实际输出为准。
+
+   参考答案：这个脚本只是写了一个空文件，真实的投毒脚本在同样的位置读 `~/.npmrc` 和环境变量。默认不跑、按名单放行，是把「信任」从隐式变成了显式。
+
+3. **锁文件闸门**：`pnpm add is-number@7.0.0` 后，把 `package.json` 里的版本手工改成 `^6.0.0`，运行 `pnpm install --frozen-lockfile`。
+
+   验证：安装失败，报错码是 `ERR_PNPM_OUTDATED_LOCKFILE`。不带 `--frozen-lockfile` 再装一次，锁文件被改写，`git diff`（如果你 `git init` 过）能看到 is-number 的版本变了。
+
+   参考答案：CI 和 Dockerfile 里加 `--frozen-lockfile`，锁文件以外的版本一个都进不来；锁文件的变化只能由你本地主动产生，并在提交里被看见。

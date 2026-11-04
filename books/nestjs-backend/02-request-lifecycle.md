@@ -219,3 +219,23 @@ app.useGlobalFilters(new AppExceptionFilter(app.get(OpsService)));
 - 全局拦截器按注册顺序由外到里套叠，跨模块注册时顺序由 `imports` 排列决定
 - `next.handle()` 返回冷 Observable，AsyncLocalStorage 之类的上下文要包在订阅外面
 - 用了 `@Res()` 就要自己发回包；只想设响应头用 `passthrough: true`
+
+## 动手练习
+
+1. **把七站的顺序打出来**：在 `nest new` 的项目里各加一个只打日志的扩展点：`main.ts` 里 `app.use((req, res, next) => { console.log("middleware"); next(); })`；全局守卫 `canActivate` 里打 `guard`；全局拦截器在 `next.handle()` 前打 `interceptor before`、用 `tap` 打 `interceptor after`；给 `getHello(@Query("q", LogPipe) q: string)` 挂一个打 `pipe` 的管道；处理函数里打 `handler`。然后 `curl "localhost:3000/?q=1"`。
+
+   验证：日志依次是 `middleware`、`guard`、`interceptor before`、`pipe`、`handler`、`interceptor after`。
+
+   参考答案：这就是本章的管线顺序。守卫在拦截器之前，所以守卫看不到拦截器装进去的任何东西；管道在拦截器前半段之后，所以拦截器拿到的是校验前的原始参数。
+
+2. **守卫拒绝，后面全不跑**：把上一题的守卫改成 `return req.headers["x-pass"] === "1"`，分别带和不带这个头请求。
+
+   验证：不带头时 `curl -i` 看到 `403`，回包是 `{"message":"Forbidden resource","error":"Forbidden","statusCode":403}`，日志里只有 `middleware` 和 `guard`；带上 `-H "x-pass: 1"` 后六行都在。
+
+   参考答案：守卫返回 `false`，Nest 抛 `ForbiddenException`，直接交给异常过滤器，拦截器、管道、处理函数都不会执行。
+
+3. **过滤器接不住请求体超限**：注册一个 `@Catch()` 全局过滤器，`catch()` 里先 `console.log("filter")` 再回 JSON；加一个 `@Post()` 端点。用 `node -e 'process.stdout.write(JSON.stringify({s:"x".repeat(200000)}))' > big.json` 造一个约 200KB 的请求体，`curl -i -X POST localhost:3000 -H "content-type: application/json" --data-binary @big.json`。
+
+   验证：状态码是 413，日志里没有 `filter`。观察回包的 `Content-Type` 和内容，它不是你过滤器写的那个 JSON。
+
+   参考答案：请求体解析是 express 层的中间件，在路由和 Nest 管线之前，它的错走 express 的错误处理。要给 413 一句人话，得像本章那样单独挂一个 express 错误中间件。

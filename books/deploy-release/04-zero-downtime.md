@@ -201,3 +201,29 @@ hatch-counter 的规则写得很直白：加列、加表、加索引随便；删
 - 优雅退出三件事：`enableShutdownHooks()`、compose `init: true`、exec 形式的 CMD
 - 新旧代码会同时连同一个库，所以迁移必须兼容上一版：expand / contract，删列和改名拆成多次发版
 - 真需要停机的操作用显式的维护模式，挑时段、提前说
+
+## 动手练习
+
+1. **看清 `ln -sfn` 和 `mv -T` 各用了哪些系统调用**：在一次性 Linux 容器里做（`docker run --rm -it ubuntu:24.04 bash`，进去后 `apt update && apt install -y strace`）。建好 `a/`、`b/` 两个目录和指向 `a` 的软链 `current`，然后分别运行：
+
+   ```bash
+   strace -f -e trace=unlink,unlinkat,symlink,symlinkat,rename,renameat,renameat2 ln -sfn b current
+   ln -sfn a .current.next
+   strace -f -e trace=unlink,unlinkat,symlink,symlinkat,rename,renameat,renameat2 mv -Tf .current.next current
+   ```
+
+   验证：`mv -Tf` 那次只有一条 `rename` 类调用；记下 `ln -sfn` 那次出现了哪些调用、是一步还是先删后建（不同 coreutils 版本的实现不同，以你看到的为准）。
+
+   参考答案：判断「切换是否原子」只看最后是不是单个 `rename(2)`：它在同一文件系统里一步替换目录项，读者任何时刻都看到完整的旧链或新链。先建临时链再 `mv -T` 的写法不依赖 `ln` 的实现细节。
+
+2. **Node 当 1 号进程时收不到 SIGTERM**：运行 `docker run -d --name t1 node:22-alpine node -e "setInterval(()=>{},1000)"`，再 `time docker stop t1`；然后加上 `--init` 起一个 `t2` 重做一遍。做完 `docker rm t1 t2`。
+
+   验证：`t1` 的 `docker stop` 大约要 10 秒（等满默认宽限期后被 SIGKILL），`docker inspect -f '{{.State.ExitCode}}' t1` 是 `137`；`t2` 几乎立即停下。
+
+   参考答案：PID 1 上没有注册处理函数的信号会被内核忽略，Node 默认没有为 SIGTERM 注册处理函数；`--init`（compose 里的 `init: true`）让 tini 当 1 号进程，把信号转给 Node，Node 按默认行为退出。真实服务里还要用 `enableShutdownHooks()` 把在途请求处理完。
+
+3. **回滚那一刻的 500 是怎么来的**：起一个一次性 Postgres（`docker run --rm -d --name pg -e POSTGRES_PASSWORD=x postgres:16-alpine`），`docker exec -it pg psql -U postgres` 里建表 `create table users(id int, name text); insert into users values (1,'a');`，模拟新版迁移 `alter table users rename column name to display_name;`，再执行旧版代码的查询 `select name from users;`。
+
+   验证：最后一条报 `ERROR:  column "name" does not exist`。
+
+   参考答案：迁移退不回去，回滚后的旧镜像对着新表结构，每个用到 `name` 的请求都会失败。按 expand / contract 拆：先加 `display_name` 并双写，旧列留到确认不再回滚的那一版之后才删。做完 `docker stop pg`。

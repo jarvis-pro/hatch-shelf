@@ -43,7 +43,7 @@ hatch-counter 的实现值得逐条看，每一条都是踩过的坑：
 - 用户改了内容再点提交，就是新的一次，**换新 key**
 - 401 续令牌后自动重发的请求，用同一个 key（生成 key 的位置在续期重发那层外面）
 
-把 key 和「这次提交」绑定，而不是和「这个请求」绑定，这是最容易搞错的地方。每次发请求都生成新 key，等于没有幂等。
+把 key 和「这次提交」绑定，而不是和「这个请求」绑定，这是最容易搞错的地方。每次发请求都生成新 key，等于没有幂等。客户端代码和对外的接口约定见[《API 设计》重复提交与 Idempotency-Key](../api-design/05-concurrency-idempotency.md#重复提交与-idempotency-key)。
 
 ### 服务端的规矩
 
@@ -79,58 +79,19 @@ flowchart TD
 
 ### 表和拦截器的骨架
 
-```sql
-CREATE TABLE idempotent_requests (
-  store_id     uuid        NOT NULL,
-  device_id    text        NOT NULL,
-  key          text        NOT NULL,
-  fingerprint  text        NOT NULL,          -- 方法 + 路径 + 请求体的摘要
-  status_code  int,                            -- NULL 表示还在跑
-  response     jsonb,
-  created_at   timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (store_id, device_id, key)
-);
-```
+落到代码上，是一张按 `(store_id, device_id, key)` 做主键的表，`status_code` 为空表示还在跑；外加一个全局拦截器，核心只有三个分支：
 
 ```typescript
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
-import { Observable, catchError, from, mergeMap, of, throwError } from "rxjs";
-
-// AppError、hash、statusCodeFor、IdempotencyRepo 是项目里自己的东西，这里只看骨架
-@Injectable()
-export class IdempotencyInterceptor implements NestInterceptor {
-  constructor(private repo: IdempotencyRepo) {}
-
-  async intercept(ctx: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
-    const req = ctx.switchToHttp().getRequest();
-    const key = req.headers["idempotency-key"];
-    if (req.method === "GET" || !key) return next.handle();
-
-    const scope = { storeId: req.storeId, deviceId: req.deviceId, key };
-    const fingerprint = hash(`${req.method} ${req.path} ${JSON.stringify(req.body)}`);
-
-    const existing = await this.repo.claim(scope, fingerprint); // 短事务：插入或读出已有行
-    if (existing) {
-      if (existing.fingerprint !== fingerprint) throw new AppError("同一个提交换了内容", 422);
-      if (existing.statusCode === null) throw new AppError("还在处理，等几秒", 409);
-      ctx.switchToHttp().getResponse().status(existing.statusCode);
-      return of(existing.response);
-    }
-
-    return next.handle().pipe(
-      // 成功：记回包（另一个短事务）
-      mergeMap(async (body) => {
-        await this.repo.complete(scope, statusCodeFor(req), body);
-        return body;
-      }),
-      // 失败：删掉占的行，让下次重试真跑
-      catchError((err) => from(this.repo.release(scope)).pipe(mergeMap(() => throwError(() => err)))),
-    );
-  }
+const existing = await repo.claim(scope, fingerprint); // 短事务：插入或读出已有行
+if (existing) {
+  if (existing.fingerprint !== fingerprint) throw new AppError("同一个提交换了内容", 422);
+  if (existing.statusCode === null) throw new AppError("还在处理，等几秒", 409);
+  return of(existing.response); // 原样返回第一次的回包
 }
+// 没有记录：执行业务，成功 complete() 记回包，失败 release() 删掉占的行
 ```
 
-`statusCodeFor(req)` 这个细节也有坑：在拦截器里读 `res.statusCode` 拿到的还是默认的 200，Nest 回包时才按 `@HttpCode()` 定（没标的 POST 是 201）。要按同一条规则自己算出来。
+完整的建表语句、NestJS 拦截器，以及拦截器里拿状态码的坑，见[《API 设计》服务端：拦截器骨架](../api-design/05-concurrency-idempotency.md#服务端拦截器骨架)。
 
 ## 重试
 
@@ -252,6 +213,8 @@ WHERE id = $2 AND version = $3;
 -- 影响 0 行，说明别人先改了：返回 409，让用户刷新后再改
 ```
 
+在 HTTP 接口上，这个版本号通常以 ETag 暴露，客户端用 `If-Match` 带回来，对不上回 412；完整的接口约定和 Nest 实现见[《API 设计》ETag 与条件请求](../api-design/05-concurrency-idempotency.md#etag-与条件请求)。
+
 recordwall 的曲库用的是 HTTP 层面的同一个思路。手机和电脑都能往曲库里加歌，目录是几份 JSON 文件，读-改-写会互相覆盖。所以 Worker 的 `PUT` 认两种条件：
 
 - `If-Match: <etag>`：桶里还是这一版才写（交给 R2 原子地判断）
@@ -289,3 +252,41 @@ async function updateCatalog(mutate: (c: Catalog) => Catalog) {
 - 单库事务能解决的就用事务；事务外的副作用先做可撤销的，宁可留孤儿文件不留悬空引用
 - 数据库写成了必须通知外部时用 outbox，接收方要幂等
 - 并发编辑用版本号条件写；写接口回包带新版本号，解决读自己的写
+
+## 动手练习
+
+1. **两个并发请求打幂等接口**：把下面的代码存成 `idem.mjs` 运行（处理一次要 1 秒），然后在另一个终端同时发两个带同一个 key 的请求：`for i in 1 2; do curl -s -X POST -H 'Idempotency-Key: k1' localhost:8788/records & done; wait`。
+
+   ```javascript
+   import http from "node:http";
+   const seen = new Map();
+   let count = 0;
+   http.createServer(async (req, res) => {
+     const key = req.headers["idempotency-key"];
+     if (key && seen.has(key)) {
+       const done = seen.get(key);
+       return res.writeHead(done ? 200 : 409).end(done ?? "still running\n");
+     }
+     if (key) seen.set(key, null); // 占行
+     await new Promise((r) => setTimeout(r, 1000));
+     const body = `recorded #${++count}\n`;
+     if (key) seen.set(key, body); // 记回包
+     res.writeHead(201).end(body);
+   }).listen(8788);
+   ```
+
+   验证：两个请求一个返回 `recorded #1`，另一个返回 `still running`；过一秒再用 `k1` 请求，仍然返回 `recorded #1`。去掉请求头再并发发两次，会得到 `#2` 和 `#3`。
+
+   参考答案：没有 key 时服务端无法分辨「重试」和「新的一次」。这个演示的回执只在内存里，进程重启就丢；真实实现要像本章那样落表、按「店 + 设备 + key」唯一、校验请求摘要、失败时删掉占的行。
+
+2. **哪些该重试**（分析题）：一个调用短信服务商和视觉模型的服务遇到这几种错误：A. 短信接口返回 429；B. 模型接口返回 401，提示 key 无效；C. 上传的图片太大，模型接口返回 413；D. `ECONNRESET`；E. 模型返回的内容不是约定的 JSON。逐个给出处置。
+
+   验证：每一个都回答「再试一次，结果可能不同吗」。
+
+   参考答案：A、D 是暂时性的，退避加抖动后重试同一家；B 不重试，记下原因换下一家或告警；C 整条链停下，让用户换图；E 不重试同一家，可以换一家试。如果 E 的原因查明是 prompt 写错了，那换谁都一样，就和 C 一样该直接停。
+
+3. **乐观锁影响 0 行**：在任意一个 Postgres（例如 `docker run -d --name pgv -e POSTGRES_PASSWORD=pg postgres:17` 后 `docker exec -it pgv psql -U postgres`）里建表 `CREATE TABLE items (id int PRIMARY KEY, name text, version int NOT NULL DEFAULT 1); INSERT INTO items VALUES (1, '拿铁', 1);`。模拟两个人都在 version 为 1 时打开了编辑页，先后执行 `UPDATE items SET name = '冰拿铁', version = version + 1 WHERE id = 1 AND version = 1;` 和 `UPDATE items SET name = '热拿铁', version = version + 1 WHERE id = 1 AND version = 1;`。
+
+   验证：第一条输出 `UPDATE 1`，第二条输出 `UPDATE 0`；`SELECT * FROM items` 看到的是「冰拿铁」、version 为 2。
+
+   参考答案：影响 0 行就是冲突信号，接口应回 409（或配合 `If-Match` 回 412），让后来者刷新后再改。没有 `AND version = 1` 时两条都会成功，后者悄悄覆盖前者。

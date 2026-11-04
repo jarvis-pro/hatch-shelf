@@ -335,3 +335,23 @@ stateDiagram-v2
 - 每天的对账结果和手续费汇总落表，后台首页显示最近几天的状态
 - 发票和订单多对多，抬头存快照；可开金额在锁住订单后计算，防止并发多开
 - 退款时检查已开发票并走红冲；开票先手动、量大再接 API，状态流转不变
+
+## 动手练习
+
+1. **跑一遍对账比对**：把本章的 `reconcile` 存成脚本（去掉类型），输入渠道账单 `A 8800`、`B 9900` 和本地记录 `B 9800`、`C 5000`（都是微信支付的 `payment`），先写下你预期的差异，再运行。
+
+   验证：输出三条差异：`A` 是 `missing_local`，`B` 是 `amount_mismatch`，`C` 是 `missing_channel`。
+
+   参考答案：`A` 是漏单，自动查单补入；`B` 金额不一致，人工查；`C` 先去前后一天的账单里找，排除日期边界后仍找不到，就是有一条入账路径绕过了校验，不能自动处理。
+
+2. **`SKIP LOCKED` 怎么分活**：在 Docker 里的 Postgres 建一张只有 `id bigserial` 和 `status text DEFAULT 'pending'` 的 `payment_events`，插入 3 行。开两个 `psql` 窗口，都 `BEGIN;`，窗口 A 执行 `SELECT id FROM payment_events WHERE status = 'pending' ORDER BY id LIMIT 2 FOR UPDATE SKIP LOCKED;`，窗口 B 再执行同一句。之后两个窗口都 `ROLLBACK;`，把 B 的语句去掉 `SKIP LOCKED` 重做一遍。
+
+   验证：有 `SKIP LOCKED` 时，A 拿到 1 和 2，B 立即拿到 3；去掉之后，B 卡住，直到 A 结束事务。
+
+   参考答案：`SKIP LOCKED` 让多个处理器各取未被锁住的行，互不等待、也不重复处理；普通的 `FOR UPDATE` 会排队等锁。
+
+3. **两层去重各挡什么**：支付宝依次送来三条通知：`notify_id = n1` 的 `TRADE_SUCCESS`、因你应答超时而重发的 `n1`、几天后 `notify_id = n2` 的 `TRADE_FINISHED`。说出 `payment_events` 里最终有几行、`settlePayment` 真正履约几次，各由哪一层保证。可以在 Postgres 里用带 `UNIQUE (channel, dedupe_key)` 的表和 `INSERT ... ON CONFLICT DO NOTHING` 验证第一层。
+
+   验证：三次插入的结果依次是 `INSERT 0 1`、`INSERT 0 0`、`INSERT 0 1`。
+
+   参考答案：事件表 2 行，重发的 `n1` 被唯一约束挡掉；`n2` 是一条不同的通知，会进 `settlePayment`，但支付单已经是 `succeeded`，直接返回，到期日只顺延一次。

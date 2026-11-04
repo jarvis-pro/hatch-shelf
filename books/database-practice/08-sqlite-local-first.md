@@ -280,3 +280,23 @@ hatch-shelf 的高亮用「原文 + 前后文」定位，而不是存字符偏�
 - 改约束、改类型要重建表；索引表可以直接删了重建
 - 整体替换索引用独占事务，写入都经过事务对象；「有则改无则插」用 `ON CONFLICT`
 - 要跨设备同步，先定谁是真相；UUID、版本号、墓碑和变更日志是同步的前提
+
+## 动手练习
+
+1. **类型亲和性与 STRICT**：运行 `sqlite3 :memory:`，执行本章的 `CREATE TABLE loose (n INTEGER); INSERT INTO loose VALUES ('abc'), ('12'), (3.5); SELECT n, typeof(n) FROM loose;`，再建 `CREATE TABLE strict_t (n INTEGER) STRICT;` 并插入 `'abc'`。
+
+   验证：第一段输出 `abc|text`、`12|integer`、`3.5|real`；第二段报 `cannot store TEXT value in INTEGER column strict_t.n`。macOS 自带的 sqlite3 版本低于 3.37 时 `STRICT` 会报语法错误，用 `sqlite3 --version` 确认，必要时用 Homebrew 装新版。
+
+   参考答案：普通表的列类型只是亲和性，能转就转、转不了原样存；`STRICT` 表才真正按声明的类型拒绝写入。
+
+2. **迁移和 user_version 同进退**：在一个临时文件上执行 `sqlite3 /tmp/uv.db "CREATE TABLE p (id INTEGER); PRAGMA user_version = 1;"`，再执行 `sqlite3 /tmp/uv.db "BEGIN; ALTER TABLE p ADD COLUMN note TEXT; PRAGMA user_version = 2; ROLLBACK; PRAGMA user_version; PRAGMA table_info(p);"`。
+
+   验证：输出的 `user_version` 是 `1`，`table_info` 只列出 `id` 一列。
+
+   参考答案：SQLite 的 DDL 和 `user_version` 都在事务里，迁移执行到一半失败时，表结构和版本号一起回滚，下次启动从同一条迁移重来。所以本章的迁移循环把每条迁移和版本号的更新放在同一个事务里。
+
+3. **UPSERT 而不是先查再写**：在 `sqlite3 :memory:` 里建 `CREATE TABLE progress (book_id TEXT, chapter_file TEXT, ratio REAL, PRIMARY KEY (book_id, chapter_file));`，用 `INSERT ... ON CONFLICT (book_id, chapter_file) DO UPDATE SET ratio = excluded.ratio` 先后写入同一章的 `0.2` 和 `0.6`，查 `SELECT count(*), max(ratio) FROM progress;`；再不带 `ON CONFLICT` 插入同一章一次。
+
+   验证：查询结果是 `1|0.6`；不带 `ON CONFLICT` 的插入报 `UNIQUE constraint failed: progress.book_id, progress.chapter_file`。
+
+   参考答案：`ON CONFLICT` 靠主键判断冲突，`excluded` 是本来要插入的那一行。一条语句完成「有则改、无则插」，没有先 `SELECT` 再决定时那段可以被别人插进来的空隙。

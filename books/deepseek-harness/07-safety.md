@@ -152,3 +152,34 @@ flowchart TD
 - 界面上的权限预设把两者打包：默认 `workspace-write`；完全放开和 `auto` 只适合可丢弃的环境
 - 写在提示词里的禁令只是建议，真正的边界只有沙箱和审批
 - 插件和 mod 运行在 DSH 进程里，不受沙箱约束；装插件等于运行别人的代码
+
+## 动手练习
+
+1. **沙箱只管文件**（需要 API key）：在默认的 `workspace-write` 预设下，在一个练手仓库里让 DSH 依次执行三条命令：`curl -sI https://example.com | head -1`、`touch ./sandbox-ok.txt`、`touch ~/dsh-sandbox-test.txt`。顺便在设置或 Trajectory 里找到沙箱的强制程度是 `full` 还是 `partial`。
+
+   验证：第一条拿到了 HTTP 状态行（网络没被拦）；第二条在工作区里建了文件；第三条要么被沙箱拒绝、要么弹出审批（拒绝它）。做完删掉 `./sandbox-ok.txt`，并确认家目录里没有留下测试文件。
+
+   参考答案：沙箱约束的是文件写入，网络照样能出去，所以「读外部内容 + 能联网」的组合要靠审批和你的警觉兜底。强制程度是 `partial` 时，第三条也可能成功，这正是要先确认 `full` 的原因。
+
+2. **写一个失败即关闭的判定函数**：写 `decide(answer)`，只有当 `answer` 恰好是 `{ decision: "allow-once" }` 时返回 `true`，其余一律 `false`。用这些输入测它：`undefined`、`null`、`{}`、`{ decision: "deny" }`、`{ decision: "ALLOW-ONCE" }`、`"allow-once"`，以及一个调用时会抛错的应答函数。
+
+   验证：除了那一个精确匹配，其余全部返回 `false`；应答函数抛错时，判定结果也是 `false`，而不是让异常冒出去变成「没拦住」。
+
+   参考答案：
+
+   ```js
+   async function decide(ask) {
+     try {
+       const a = await ask();
+       return a?.decision === "allow-once";
+     } catch {
+       return false; // 应答者崩了，按无人应答处理
+     }
+   }
+   ```
+
+3. **装插件前先读代码**：挑一个你打算装的 DSH 插件（比如本书提到的 `@deepseek-ai/dsh-mcp-client`），在一个新建的空目录里 `npm pack <包名>` 下载压缩包，解压后用 `grep -rnE "process\.env|child_process|fetch\(|https?\.request" package/` 看它在哪里读环境变量、起子进程、发网络请求。
+
+   验证：你能为每一处命中说出它的用途（比如 MCP 客户端起子进程是为了启动 stdio 服务器）；说不出用途的命中，就是装之前该去源码仓库问清楚的地方。
+
+   参考答案：插件运行在 DSH 进程里，不受沙箱约束，这些调用都以你的权限执行。只读、不执行解压出来的任何文件；看完删掉整个目录。

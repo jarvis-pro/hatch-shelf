@@ -433,3 +433,23 @@ fn main() {
 - 默认用泛型（静态分发），需要异构集合时用 `Box<dyn Trait>`（动态分发）
 - `Display`、`FromStr`、`From` / `Into` 是最常手写的几个标准 trait
 - serde 从类型派生解析，只管形状；业务规则要在反序列化后自己校验
+
+## 动手练习
+
+1. **newtype 挡住了误传**：把[名义类型](#名义类型形状相同也不是同一个类型)一节的 `BookId`、`ChapterFile`、`open_book` 放进项目，取消 `open_book(&file);` 的注释，预测 `cargo check` 的结果；再改成正确的调用。
+
+   验证：报 `error[E0308]: mismatched types`，说明期望 `&BookId`、拿到的是 `&ChapterFile`。改成 `open_book(&BookId("rust-practice".to_string()))` 后通过，运行输出 `打开 rust-practice`。
+
+   参考答案：Rust 按名字区分类型，两个都只包了一个 `String` 也不能混用。这在 TS 里要靠 branded type 才能做到。
+
+2. **撞上孤儿规则**：在 `main.rs` 里写 `impl std::fmt::Display for str { ... }`（方法体随便写），预测结果；再改成给自己定义的 `struct Title(String);` 实现 `Display`。
+
+   验证：第一次报 `error[E0117]`，说明只能为本 crate 定义的类型实现外部 trait；改成 `Title` 后通过，`println!("{}", Title("Rust".into()))` 能按你写的格式输出。
+
+   参考答案：trait 和类型至少要有一个属于当前 crate。`Display` 和 `str` 都来自标准库，不允许，否则两个库可能给同一个类型做出冲突的实现。
+
+3. **异构集合需要 dyn**：把本章的 `Lint`、`SingleH1`、`FenceLanguage`、`run_lints` 拷进项目。先把 `main` 里那行改成 `let lints = vec![SingleH1, FenceLanguage];`，预测编译结果；改回 `Vec<Box<dyn Lint>>` 后，预测运行输出有几行。
+
+   验证：第一次报 `error[E0308]: mismatched types`（`vec!` 的元素类型由第一个元素决定）。改回后运行只输出一行：`[fence-language] demo.md:3：代码块没有标注语言`。
+
+   参考答案：`Vec` 只能装一种类型，两个规则是两个不同的结构体，要用 `Box<dyn Lint>` 抹成同一种 trait 对象。示例文本只有一个 H1，`single-h1` 不报问题；第 3 行的代码块开头没写语言，被 `fence-language` 抓到。

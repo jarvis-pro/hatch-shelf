@@ -255,3 +255,49 @@ kill -USR2 <pid>
 - Electron 案例：preload 订阅接口不返回取消函数，页面 effect 不清理，每次进页面挂两个监听器
 - `MaxListenersExceededWarning` 不是噪音；`heapUsed` 平稳而 `rss` 涨要看原生内存
 - 生产环境拍快照会暂停进程并占用额外内存，低峰时做
+
+## 动手练习
+
+1. **复现监听器泄漏**：下面的脚本模拟「每进一次页面挂一个监听器」。用 `node --expose-gc leak.mjs` 运行，看每轮 GC 后的 `heapUsed` 和监听器数量。
+
+   ```javascript
+   import { EventEmitter } from "node:events";
+   const bus = new EventEmitter();
+   function openPage() {
+     const rows = new Array(100_000).fill(Math.random());
+     bus.on("store-changed", () => rows.length);
+   }
+   for (let round = 1; round <= 5; round++) {
+     for (let i = 0; i < 20; i++) openPage();
+     globalThis.gc();
+     const mb = (process.memoryUsage().heapUsed / 1048576).toFixed(0);
+     console.log(`第 ${round} 轮 heapUsed=${mb}MB listeners=${bus.listenerCount("store-changed")}`);
+   }
+   ```
+
+   验证：每轮 `heapUsed` 涨十几 MB、`listeners` 依次是 20、40、60……；stderr 里出现 `MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 store-changed listeners added`。
+
+   参考答案：让 `openPage` 返回 `() => bus.off("store-changed", listener)`，每轮结束时调用这些取消函数，`heapUsed` 就会停在同一水平、`listeners` 回到 0。GC 后的低点不再抬高，才算修好。
+
+2. **三快照找到嫌疑对象**：把练习 1 改成每轮之间 `await new Promise((r) => setTimeout(r, 5000))`，用 `node --inspect --expose-gc leak.mjs` 运行，在 `chrome://inspect` 里连上，按本章的三快照法在第 1、2、3 轮之后各拍一张。
+
+   验证：在快照 3 里选「Objects allocated between Snapshot 1 and Snapshot 2」，能看到数量是 20 的整数倍的 `(closure)` 和 `Array`；点开一个闭包，Retainers 一路通到 `EventEmitter` 的 `_events`。
+
+   参考答案：数量是操作次数的整数倍，是最强的信号；Retainers 那条链就是泄漏的完整解释，和本章 `ipcRenderer` 的链条形状一样。
+
+3. **区分 JS 堆和原生内存**：运行下面的脚本（`node --expose-gc native.mjs`），看三个数字各自怎么变。
+
+   ```javascript
+   const keep = [];
+   for (let i = 1; i <= 5; i++) {
+     keep.push(Buffer.alloc(50 * 1048576, 1));
+     globalThis.gc();
+     const m = process.memoryUsage();
+     const f = (x) => (x / 1048576).toFixed(0);
+     console.log(`heapUsed=${f(m.heapUsed)}MB external=${f(m.external)}MB rss=${f(m.rss)}MB`);
+   }
+   ```
+
+   验证：`heapUsed` 一直只有几 MB，`external` 和 `rss` 每次涨约 50 MB。
+
+   参考答案：Buffer 的内容在 V8 堆外，堆快照里只看得到一个很小的包装对象。只看 `heapUsed` 会以为没有泄漏；`rss` 涨而 `heapUsed` 平稳，就要去查 Buffer、原生模块、图片解码这类原生内存。

@@ -210,4 +210,71 @@ hatch-counter 用 nginx 补上了防嵌套：每个 location 都加了 `X-Frame-
 - CSP 是 XSS 的最后防线；内联脚本用构建时计算的哈希放行，开发环境不挂
 - meta 方式的 CSP 不支持 `frame-ancestors`，用响应头补上
 
+## 动手练习
+
+1. **用 curl 看预检**：写一个只给白名单源放行的服务（`cors.mjs`）：
+
+   ```js
+   import { createServer } from "node:http";
+   const allow = new Set(["http://localhost:5178"]);
+   createServer((req, res) => {
+     const origin = req.headers.origin;
+     if (origin && allow.has(origin)) {
+       res.setHeader("access-control-allow-origin", origin);
+       res.setHeader("access-control-allow-credentials", "true");
+       res.setHeader("vary", "Origin");
+       if (req.method === "OPTIONS") res.setHeader("access-control-allow-methods", "GET, PUT");
+     }
+     if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
+     res.writeHead(200, { "content-type": "application/json" });
+     res.end('{"ok":true}');
+   }).listen(3000);
+   ```
+
+   `node cors.mjs` 后分别用两个 Origin 模拟预检：
+
+   ```bash
+   curl -s -i -X OPTIONS localhost:3000/v1/items -H 'Origin: http://localhost:5178' -H 'Access-Control-Request-Method: PUT'
+   curl -s -i -X OPTIONS localhost:3000/v1/items -H 'Origin: http://evil.test' -H 'Access-Control-Request-Method: PUT'
+   ```
+
+   验证：两次都是 `204`；第一次带 `access-control-allow-origin: http://localhost:5178` 和 `access-control-allow-methods: GET, PUT`，第二次没有任何 `access-control-*` 头。
+
+   参考答案：服务端并不「拒绝」请求，它只是不给出许可头；是浏览器看到缺少许可，才不发真正的 PUT、也不把响应交给脚本。curl 不是浏览器，不受同源策略约束，所以 CORS 挡不住非浏览器的调用方，接口本身的认证仍然必不可少。
+
+2. **CSP 拦下内联脚本，哈希放行**：写一个页面：
+
+   ```html
+   <!doctype html>
+   <meta http-equiv="Content-Security-Policy" content="script-src 'self'" />
+   <body>
+     <script>document.body.dataset.ok = "1";</script>
+   </body>
+   ```
+
+   用 `npx serve .` 打开，看控制台和 `document.body.dataset.ok`。然后算出这段脚本的哈希：
+
+   ```bash
+   printf 'document.body.dataset.ok = "1";' | openssl dgst -sha256 -binary | openssl base64
+   ```
+
+   把结果写成 `script-src 'self' 'sha256-<结果>'` 再刷新；最后在脚本里多加一个空格再刷新。
+
+   验证：第一次控制台报 `Refused to execute inline script because it violates the following Content Security Policy directive`，`dataset.ok` 为 `undefined`（报错里还会给出这段脚本应有的 `sha256-...` 值，和你算出来的应当一致，本例是 `BnF1qrcc92ZE0oFwZjcF9Bl94EIovTwJuE//HggHYts=`）；加上哈希后脚本执行，`dataset.ok` 为 `"1"`；多一个空格后又被拦截。
+
+   参考答案：哈希只认一字不差的内容，攻击者注入的脚本对不上；这也是 hatch-counter 要在构建的最后一步自动计算哈希的原因，手写的哈希一改脚本就失效。
+
+3. **读不到的响应头**：在练习 1 的服务里给 GET 响应加一个 `x-app-version: 1.2.3` 头。在 `http://localhost:5178` 起一个页面（`npx serve -l 5178 .`），控制台运行：
+
+   ```js
+   const r = await fetch("http://localhost:3000/v1/items", { credentials: "include" });
+   console.log(r.status, r.headers.get("x-app-version"));
+   ```
+
+   然后在服务端加上 `access-control-expose-headers: x-app-version` 再试；最后把 `allow` 里的源改成 `http://localhost:9999` 再试一次。
+
+   验证：第一次打印 `200 null`，Network 面板里却能看到这个响应头；加了 `Expose-Headers` 后打印 `200 1.2.3`；改掉白名单后 `fetch` 直接抛出 `TypeError: Failed to fetch`，控制台出现 `blocked by CORS policy` 的报错。
+
+   参考答案：跨源响应默认只把少数安全头交给脚本，自定义头要显式 expose；源不在白名单里时，整个响应都不交给脚本。这类「请求明明成功了却读不到」的问题，换成同源架构就不会出现。
+
 前端工程这一侧到这里讲完了。往下读有两个方向：想弄清 React 本身怎么渲染、为什么重渲染、并发特性和 Compiler 怎么帮你优化，读[《React 19 原理与模式》](../react-internals/)；想把本章的安全话题扩展到认证方案、OWASP Top 10 和供应链安全，读[《应用安全》](../app-security/)。

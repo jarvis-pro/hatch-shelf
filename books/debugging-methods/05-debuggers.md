@@ -252,3 +252,23 @@ hatch-counter 的桌面端是 Electron。排查「点了没反应」这类问题
 - React Native DevTools 在 Metro 终端按 `j` 打开，调试的是 Hermes 上的 JS；原生层用 Xcode
 - Electron 主进程用 inspector，渲染进程用窗口里的 DevTools；IPC 问题三处下断点
 - 时序问题、长时间运行、线上环境，用日志而不是暂停断点
+
+## 动手练习
+
+1. **条件断点停在第 3000 次**：写一个 `loop.mjs`，对 0 到 4999 的每个数算 `Math.sqrt(i) * 2` 并累加，最后打印总和。用 `node --inspect-brk loop.mjs` 启动，在 Chrome 的 `chrome://inspect` 里连上，在循环体那一行加条件断点 `i === 3000`，然后继续运行。
+
+   验证：程序只停一次，Scope 面板里 `i` 是 `3000`；把断点改成日志断点 `i={i}` 后（DevTools 的日志断点表达式写法以当前版本为准），程序不停下，控制台出现输出。
+
+   参考答案：条件断点让你跳过前 2999 次；日志断点等于不改代码的 `console.log`，不会被误提交。
+
+2. **对运行中的进程打开 inspector**：运行 `node -e 'setInterval(() => {}, 1000)' &`，记下 PID，再执行 `kill -USR1 <pid>`（macOS 或 Linux）。
+
+   验证：进程的终端输出里出现 `Debugger listening on ws://127.0.0.1:9229/...`，`chrome://inspect` 的 Remote Target 里出现这个进程。用完 `kill <pid>`。
+
+   参考答案：进程启动时没加 `--inspect` 也能事后打开，默认只监听回环地址；要调试服务器上的进程，用 `ssh -L 9229:127.0.0.1:9229` 转过来，不要让它监听公网。
+
+3. **找到被吞掉的错误**：写一个函数，对一组字符串逐个 `JSON.parse`，失败时 `catch` 后返回 `null`，其中有一个字符串是坏的。在 DevTools 的 Sources 面板勾选「Pause on caught exceptions」再运行。
+
+   验证：调试器停在抛错的 `JSON.parse` 那一行，Scope 里能看到当时是哪个字符串；取消勾选后程序安静地跑完，只多了一个 `null`。
+
+   参考答案：异常断点在错误被抛出的那一刻停下，不管它后来被谁 catch。第三方库内部频繁抛错时，把 `node_modules` 加进忽略列表。

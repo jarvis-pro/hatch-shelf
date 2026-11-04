@@ -336,3 +336,31 @@ switch (p.code) {
 - 校验错误放 `errors` 数组，用 JSON Pointer 指位置，文案写中文
 - 500 说得少记得全：只给引用号，完整 cause 链进日志
 - 客户端要兜住不是你回的错误：网关的 HTML 页、断网
+
+## 动手练习
+
+1. **给错误码定粒度**：一个预约 App 有这些失败场景：手机号格式错、验证码错、验证码过期、时段已被别人约走、时段已过去、商家暂停营业、商家已注销、每天预约次数达上限。按「客户端需要不同处置吗」把它们归成错误码，写出码名和状态码。
+
+   验证：自查每两个码之间，客户端的处置是否真的不同；处置相同的应该已经合并。
+
+   参考答案：手机号格式错 → `invalid_input`（400，字段标红）；验证码错和过期可合成 `code_invalid`（表单提示重输或重发，若 UI 要对过期直接出「重发」按钮再分开）；时段被约走和已过去合成 `slot_unavailable`（409，刷新时段列表）；商家暂停 `store_suspended` 与注销 `store_closed` 分开（一个「稍后再来」，一个从列表移除）；次数上限 `quota_exceeded`（429）。
+
+2. **写 JSON Pointer 转义**：把本章的 `zodToErrors` 拷出来，对 schema `z.object({ "a/b": z.number(), lines: z.array(z.object({ qty: z.number().int() })) })` 解析 `{"a/b":"x","lines":[{"qty":1},{"qty":1.5}]}`，打印结果。
+
+   验证：输出两项，`pointer` 分别是 `#/a~1b` 和 `#/lines/1/qty`。
+
+   参考答案：JSON Pointer 里 `/` 要转成 `~1`、`~` 转成 `~0`，并且先转 `~` 再转 `/`，否则 `~1` 会被二次转义。数组下标从 0 开始，所以第二行是 `1`。
+
+3. **兜住网关的 HTML 错误页**：用 `npx http-server` 之类起一个静态服务，放一个 `502.html`，或直接 `node -e` 写一个总回 `502` 和 HTML 的服务；用本章的 `toProblem` 去请求它，再请求一个不存在的端口。
+
+   验证：第一种情况得到 `code: "unknown"`、`status: 502`、`detail` 是「服务器暂时有点问题」；第二种 `fetch` 抛错，把 `res` 传 `null` 时得到 `code: "network"`、`status: 0`。
+
+   参考答案：
+
+   ```javascript
+   require("node:http").createServer((_, res) => {
+     res.writeHead(502, { "content-type": "text/html" }).end("<h1>Bad Gateway</h1>");
+   }).listen(8502);
+   ```
+
+   `toProblem` 先看 `content-type` 是否含 `json`，不是就走兜底，所以不会在 `res.json()` 上崩掉。

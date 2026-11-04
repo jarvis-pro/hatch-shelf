@@ -390,7 +390,7 @@ pnpm --filter shelf-agent test
 
 ## 一笔成本账
 
-每轮都重发整个历史，单轮输入随轮数线性增长，累计输入按二次方增长（《Agent 原理与设计》第 2 章算过 token 数）。换成钱，再看缓存的作用：
+每轮都重发整个历史，单轮输入随轮数线性增长，累计输入按二次方增长，token 数的推导见[《上下文工程》第 1 章](../context-engineering/01-scarce-window.md#稀缺之一钱)。换成钱，再看缓存的作用：
 
 ![20 轮任务的累计输入成本：不开缓存时约 1.76 美元，开自动缓存后约 0.28 美元](assets/cache-cost.svg)
 
@@ -406,3 +406,49 @@ pnpm --filter shelf-agent test
 - 工具异常变成 `is_error` 结果交还模型，循环不崩
 - 用剧本式的假模型测试循环逻辑，快、免费、确定；模型能力留给评测
 - agent 的累计输入按二次方增长，自动缓存能把输入成本降到几分之一
+
+## 动手练习
+
+1. **测轮数上限**：在 `loop.test.ts` 里加一个用例：假模型每一轮都要求调用 `list_books`，`maxTurns` 设为 3。
+
+   ```typescript
+   it("一直调工具就停在 maxTurns", async () => {
+     const call = reply([{ tool: "list_books", input: {} }]);
+     const model = scriptedModel([call, call, call]);
+     const r = await runAgent({ model, system: "s", tools: [echo], task: "x", maxTurns: 3 });
+     expect(r).toMatchObject({ stop: "max_turns", turns: 3 });
+     expect(model.requests).toHaveLength(3);
+   });
+   ```
+
+   验证：`pnpm --filter shelf-agent test` 通过；把 `maxTurns` 改成 4 再跑，测试报错「脚本只有 3 步，模型被调用了第 4 次」。
+
+   参考答案：轮数上限是循环自己的保险丝，和模型说什么无关，所以用假模型就能完全验证。
+
+2. **截断的回复不能执行**：造一条带工具调用、但 `stop_reason` 是 `max_tokens` 的回复，断言工具一次都没被执行。
+
+   ```typescript
+   it("max_tokens 截断时不执行工具", async () => {
+     let ran = 0;
+     const spy: AgentTool = { ...echo, run: async () => (ran++, "x") };
+     const model = scriptedModel([reply([{ tool: "list_books", input: {} }], "max_tokens")]);
+     const r = await runAgent({ model, system: "s", tools: [spy], task: "x" });
+     expect(r.stop).toBe("max_tokens");
+     expect(ran).toBe(0);
+   });
+   ```
+
+   验证：测试通过；如果把循环里 `case "max_tokens"` 那两行删掉，测试失败（循环落到 `default` 被当成 `done`）。
+
+   参考答案：被截断的回复里可能只有半个工具调用，参数不完整，执行它比停下来更危险。逐个处理 `stop_reason` 就是为了不让这类情况悄悄滑进「正常结束」。
+
+3. **自己算一遍缓存账**：按本章的假设（system 加工具 3000 token，每轮新增 2000 token，输入 4 美元/百万，缓存写入 5 美元/百万，缓存读取 0.2 美元/百万）算 20 轮的累计输入成本。
+
+   ```bash
+   node -e 'let w=0,r=0; for(let n=1;n<=20;n++){ const prev=n===1?0:3000+2000*(n-2), total=3000+2000*(n-1); w+=total-prev; r+=prev }
+   console.log(((w*5+r*0.2)/1e6).toFixed(2), (440000*4/1e6).toFixed(2))'
+   ```
+
+   验证：输出 `0.28 1.76`，和本章的图一致。
+
+   参考答案：开缓存后每轮只有新增的 2000 token 按写入价计费，之前的前缀都按读取价；前提是前缀一个字节都不变，所以历史只追加、system 和工具定义在会话内不变。

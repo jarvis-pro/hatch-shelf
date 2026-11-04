@@ -320,3 +320,23 @@ go test -race ./...
 - `gofmt` 没有配置项；`go vet` 误报很少，一定要跑
 - golangci-lint v2 配置要写 `version: "2"`，默认不排除任何报错，按需打开预设排除
 - 项目内工具用 `go get -tool` 管理，任务脚本用 Makefile
+
+## 动手练习
+
+1. **internal 是编译器管的**：`go mod init example.com/demo`，建 `a/internal/secret/s.go`（`package secret`，导出一个 `func Hi() string`），再建 `b/main.go` 导入 `example.com/demo/a/internal/secret` 并调用它。预测 `go build ./...` 的结果。
+
+   验证：构建失败，报错里有 `use of internal package example.com/demo/a/internal/secret not allowed`。把 `b/` 挪到 `a/b/` 下（导入路径不变），再构建就能通过。
+
+   参考答案：`internal/` 下的包只能被它父目录（这里是 `a/`）树里的代码导入，`b/` 不在 `a/` 下面，所以被拒绝。这条限制在编译期强制执行，不靠约定。
+
+2. **vet 抓到的，编译器放过了**：用本章 `go vet` 一节的例子（`fmt.Printf("共 %s 本书\n", n)`，`n` 是 `int`），先 `go run`，再 `go vet ./...`，比较两者。
+
+   验证：`go run` 能运行，输出 `共 %!s(int=3) 本书`；`go vet` 报 `fmt.Printf format %s has arg n of wrong type int` 并以非 0 退出。把 `%s` 改成 `%d` 后 vet 不再报错。
+
+   参考答案：格式串和参数类型不匹配在语法上合法，编译器不管；运行时 `fmt` 把错误写进输出（`%!s(...)`），而 vet 在运行之前就能发现。这就是 vet 要进 CI 的原因。
+
+3. **让格式检查在 CI 里失败**：新建一个用 4 个空格缩进的 `main.go`，运行本章 CI 脚本的第一行 `test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }`。然后 `gofmt -w .` 再跑一次。
+
+   验证：第一次打印出 `main.go` 并以状态 1 退出（`echo $?` 看到 `1`）；`gofmt -w .` 之后没有输出，退出状态为 0，文件里的缩进变成了 Tab。
+
+   参考答案：`gofmt -l` 只列出格式不对的文件、不改内容，输出非空就说明有人没格式化；`test -z` 在字符串非空时返回失败。

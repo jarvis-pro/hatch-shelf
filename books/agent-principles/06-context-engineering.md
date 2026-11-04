@@ -128,3 +128,33 @@ agent 表现不佳时，先别急着换模型，按这个清单检查上下文�
 - system prompt 要说明理由、高度适中、结构清晰、避免过度强调
 - 长任务把状态放在文件里，上下文只是易失的工作区
 - 完整的方法论见《上下文工程》
+
+## 动手练习
+
+1. **清理旧的工具结果**：写一个函数，把 `messages` 里除最近 `keep` 条以外的 `tool_result` 内容替换成一句占位，再用一组假数据（比如 10 条各含 5000 字的工具结果）比较清理前后的体积。
+
+   ```javascript
+   export function clearOldResults(messages, keep = 3) {
+     const idx = messages.flatMap((m, i) =>
+       Array.isArray(m.content) && m.content.some((b) => b.type === "tool_result") ? [i] : []);
+     const old = new Set(idx.slice(0, -keep));
+     return messages.map((m, i) => !old.has(i) ? m : { ...m, content: m.content.map((b) =>
+       b.type === "tool_result" ? { ...b, content: "[旧的工具结果已清理，需要时重新读取]" } : b) });
+   }
+   ```
+
+   验证：`JSON.stringify(messages).length` 清理后明显变小；最近 3 条工具结果原样保留，`tool_use_id` 都还在。
+
+   参考答案：`tool_use_id` 必须保留，否则和 `tool_use` 配不上对，API 会报错；只替换内容，模型需要时可以重新读取。
+
+2. **用检查清单诊断一次失败**：一个长任务里，agent 在第 5 轮试过用 `moment` 处理时区，发现包体积超标后放弃；第 30 轮（中间做过一次压缩）它又开始引入 `moment`。按本章的检查清单，问题出在哪、怎么改？
+
+   验证：说出对应清单里的哪一行，以及至少一个具体的修法。
+
+   参考答案：对应「它反复犯同一个错」：失败的尝试和原因被压缩掉了。修法是让摘要保留「已否决的方案及原因」，或者把这类决定写进进度文件，压缩后读回来。
+
+3. **改写一段过度强调的 system prompt**：原文是「IMPORTANT！！！绝对不要使用 any！务必务必写测试！不要联网！」。按本章的写法要点改写。
+
+   验证：改写后每条规则带一句理由，没有连续的「务必」「绝对」，并且能让模型推断出没写到的情况。
+
+   参考答案（示例）：「类型尽量写具体，不用 `any`，因为类型检查是我们发现错误的主要手段；新增逻辑要配测试，完成前跑 `pnpm test`；App 运行时不发起网络请求，用户可能在没有网络的环境下使用，需要数据时从本地读取。」

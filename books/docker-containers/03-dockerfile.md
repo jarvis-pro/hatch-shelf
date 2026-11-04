@@ -281,3 +281,31 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD \
 - `CMD` 用 exec 形式直接执行 node，否则 `SIGTERM` 传不到应用；NestJS 要开 `enableShutdownHooks`
 - 会派生子进程的服务加 `init: true`（tini）回收僵尸
 - `HEALTHCHECK` 要探真正依赖数据库的接口，不只是端口
+
+## 动手练习
+
+1. **shell 形式收不到 SIGTERM**：建一个目录，`app.js` 写 `process.on('SIGTERM', () => { console.log('graceful'); process.exit(0); }); setInterval(() => {}, 1000);`。Dockerfile 用 `FROM node:22-alpine`、`WORKDIR /app`、`COPY app.js .`，最后一行先写成 shell 形式 `CMD echo starting && node app.js`，构建成 `sig-shell`；再改成 `CMD ["node", "app.js"]` 构建成 `sig-exec`。分别 `docker run -d --name t <镜像>`，然后 `time docker stop t`、`docker logs t`、`docker rm t`。
+
+   验证：`sig-shell` 停止大约耗时 10 秒，日志里只有 `starting`；`sig-exec` 一秒内停下，日志里有 `graceful`。
+
+   参考答案：shell 形式的 PID 1 是 `/bin/sh`，它不把 SIGTERM 转给子进程，只能等超时被 SIGKILL；exec 形式下 Node 就是 PID 1，自己注册的处理函数会执行。
+
+2. **ARG 会留在历史里**：用下面的 Dockerfile 构建 `docker build --build-arg TOKEN=abc123 -t arg-leak .`，然后执行 `docker history --no-trunc arg-leak | grep -c abc123`。
+
+   ```dockerfile
+   FROM alpine:3.20
+   ARG TOKEN
+   RUN echo "using $TOKEN" > /dev/null
+   ```
+
+   再把后两行换成 `RUN --mount=type=secret,id=tok cat /run/secrets/tok > /dev/null`，执行 `echo abc123 > tok.txt && docker build --secret id=tok,src=tok.txt -t secret-ok .`，对 `secret-ok` 做同样的检查。
+
+   验证：`arg-leak` 的计数大于 `0`；`secret-ok` 的计数是 `0`。
+
+   参考答案：`ARG` 的值会进入使用它的 `RUN` 的构建记录，能拉到镜像的人就能看到；secret 挂载只在那条 `RUN` 执行期间存在，不进任何层和历史。
+
+3. **unhealthy 不会触发重启**：执行 `docker run -d --name hc --restart always --health-cmd 'exit 1' --health-interval 2s --health-retries 2 alpine sleep 600`，等十秒后执行 `docker ps --filter name=hc` 和 `docker inspect -f '{{.State.Health.Status}} {{.RestartCount}}' hc`。
+
+   验证：`docker ps` 的状态里带 `(unhealthy)`；`inspect` 输出 `unhealthy 0`。做完 `docker rm -f hc`。
+
+   参考答案：`restart` 策略只看主进程是否退出，健康状态是给 Compose 的 `depends_on`、`up --wait` 和部署脚本用的。想要「不健康就重启」，要由编排工具或脚本来做。

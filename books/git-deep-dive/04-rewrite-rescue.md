@@ -285,3 +285,28 @@ git push --force --tags origin
 - 修补旧提交用 `commit --fixup` 加 `rebase --autosquash`；`rebase -i --exec` 保证每个提交都能构建
 - 改写全部历史用 `git filter-repo`：在新克隆里做，做完重新加远程、强推，所有旧克隆重新 clone
 - 大操作前打一个备份标签
+
+## 动手练习
+
+1. **退过头再回来**：在练习仓库连续做 3 个提交，执行 `git reset --hard HEAD~2`，然后不看 `git log`、只用 reflog 回到 reset 之前。
+
+   验证：`git log --oneline` 重新出现 3 个提交，`git status` 干净。
+
+   参考答案：`git reflog show main` 第二条就是 reset 前的位置，`git reset --hard 'main@{1}'` 一步回去。
+
+2. **捞回 drop 掉的 stash**：改一个已跟踪文件，`git stash`，紧接着 `git stash drop`。用本章的 fsck 管道把它找出来并应用回去。
+
+   验证：管道输出里有一行 `WIP on main: ...`（另一行 `index on main` 是暂存区快照，不用管）；`git stash apply <WIP 那个 ID>` 后 `git diff` 重新显示你的改动。
+
+   参考答案：stash 是带两个 parent 的合并提交，drop 后变成不可达提交，`git fsck --no-reflogs --unreachable` 能列出它，在 gc 清理之前都能 apply。
+
+3. **把修补归位**：在 `feat` 分支上依次提交 `feat: a`（新建文件 a）、`feat: b`、`feat: c`，然后给 a 追加一行，用 `--fixup` 和 `--autosquash` 把这处修补并进 `feat: a`。
+
+   验证：`git log --oneline main..` 仍是 3 个提交、没有 `fixup!` 开头的；`git show --stat HEAD~2` 的消息是 `feat: a`，且包含对 a 的全部改动。
+
+   参考答案：
+
+   ```bash
+   git add a && git commit --fixup=':/feat: a'
+   git rebase --autosquash main
+   ```

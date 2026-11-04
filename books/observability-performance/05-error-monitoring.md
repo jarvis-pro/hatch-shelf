@@ -226,3 +226,23 @@ GlitchTip 对 source map 上传的支持程度和配置方式与 Sentry 官方�
 - 前端上传 source map 后删除本地 `.map`；DSN 可以公开，上传令牌不能
 - 移动端用 `@sentry/react-native`；客户端上报要在隐私政策里说明；本身不联网的 App 用本地诊断导出代替
 - 只为新问题、回归、激增发通知，`release` 必须和发版版本号一致
+
+## 动手练习
+
+1. **亲手还原一次压缩后的堆栈**：在空目录里写 `src.js`，让第 3 行访问 `undefined.qty`；用 `npx esbuild src.js --bundle --minify --platform=node --sourcemap --outfile=out.js` 打包，分别用 `node out.js` 和 `node --enable-source-maps out.js` 运行。
+
+   验证：第一次堆栈指向 `out.js:1:` 加一个列号；第二次指向 `src.js:3`。
+
+   参考答案：source map 记录了压缩后位置到源码位置的映射，错误监控平台做的就是 `--enable-source-maps` 这件事，只不过在服务端做。
+
+2. **确认 .map 没有被公开引用**：把上一题的 `--sourcemap` 换成 `--sourcemap=external` 再打包一次，比较两次产物末尾。
+
+   验证：`tail -c 100 out.js` 在第一次能看到 `//# sourceMappingURL=out.js.map`，第二次没有这一行，但 `out.js.map` 文件仍然生成了。
+
+   参考答案：这和 Vite 的 `sourcemap: "hidden"` 是同一个意思：生成 map 供上传，但产物里不指向它。上传后再删掉本地 `.map`，线上就拿不到源码。
+
+3. **判断哪些该上报**：下面六个异常，哪些应该 `captureException`？(a) 表单校验失败回 400；(b) 令牌过期回 401；(c) 触发限流回 429；(d) `TypeError: Cannot read properties of undefined (reading 'qty')`；(e) 数据库 `ECONNREFUSED` 导致回 500；(f) 第三方识别接口第一次超时、重试后成功。
+
+   验证：对照本章「只上报真正的 bug」的原则，答案应该只有两项。
+
+   参考答案：只报 (d) 和 (e)。(a)(b)(c) 是预期内的业务结果；(f) 已经自愈，记一条 warn 日志即可，持续失败要靠指标里的失败率发现。另外，错误消息里如果写成「用户 42 不存在」，每个 ID 会被分成一组，变量要放进上下文字段。

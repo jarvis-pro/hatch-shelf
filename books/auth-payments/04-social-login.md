@@ -380,3 +380,36 @@ export async function unbindIdentity(tx: Tx, accountId: string, identityId: stri
 - Apple 的名字只给一次，客户端失败重试时要带上；首次登录就用 `authorizationCode` 换 `refresh_token` 加密存好，注销时撤销
 - 不把令牌放进 URL，跳转式登录用一次性短码交回客户端
 - 解绑要保证至少留一种登录方式，并锁住身份行防并发
+
+## 动手练习
+
+1. **算一次 PKCE challenge**：用本章 `startOidc` 里的写法，对 RFC 7636 附录里的示例 verifier `dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk` 计算 `code_challenge`。
+
+   验证：`node -e 'console.log(require("crypto").createHash("sha256").update("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk").digest("base64url"))'` 输出 `E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM`，和 RFC 里的值一致。
+
+   参考答案：challenge 是 verifier 的 SHA-256 再做 base64url（不带 `=` 填充）。授权码被截获的人拿不到 verifier，换不了令牌。
+
+2. **ID Token 的哪些校验会失败**：`npm i jose`，在本地生成一对 ES256 密钥，签一个 `iss=https://idp.test`、`aud=client-a`、`nonce=n1`、两分钟后过期的 JWT，然后用 `jwtVerify` 分别以 `audience: "client-b"`、`issuer: "https://other.test"` 验证，最后用正确参数验证并比对 `nonce`。
+
+   验证：前两次抛出异常，`err.code` 是 `ERR_JWT_CLAIM_VALIDATION_FAILED`，`err.claim` 分别是 `aud` 和 `iss`；第三次通过，`payload.nonce === "n1"`。
+
+   参考答案：签名对、但发给别的应用的令牌，靠 `aud` 挡掉；`nonce` 不在 `jwtVerify` 的选项里，要自己比。
+
+   ```javascript
+   import { generateKeyPair, SignJWT, jwtVerify } from "jose";
+   const { publicKey, privateKey } = await generateKeyPair("ES256");
+   const jwt = await new SignJWT({ nonce: "n1" }).setProtectedHeader({ alg: "ES256" })
+     .setIssuer("https://idp.test").setAudience("client-a").setSubject("u1")
+     .setExpirationTime("2m").sign(privateKey);
+   for (const opts of [{ audience: "client-b" }, { issuer: "https://other.test" }]) {
+     try { await jwtVerify(jwt, publicKey, opts); } catch (e) { console.log(e.code, e.claim); }
+   }
+   const { payload } = await jwtVerify(jwt, publicKey, { issuer: "https://idp.test", audience: "client-a" });
+   console.log(payload.nonce);
+   ```
+
+3. **堵住开放重定向**：写一个 `isSafeReturnTo(s)`，用 `/orders?id=1`、`//evil.com`、`https://evil.com`、`/\evil.com`、`javascript:alert(1)` 测试它。
+
+   验证：只有 `/orders?id=1` 返回 `true`。
+
+   参考答案：只接受以单个 `/` 开头、第二个字符不是 `/` 或 `\` 的相对路径。浏览器会把 `//evil.com` 当成协议相对地址，部分浏览器还会把 `\` 当成 `/`。更稳的写法是 `new URL(s, "https://app.test")` 之后检查 `origin` 仍是 `https://app.test`。

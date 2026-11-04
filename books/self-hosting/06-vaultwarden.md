@@ -205,3 +205,31 @@ Bitwarden 的命令行工具 `bw` 也能连 Vaultwarden，偶尔写脚本时可�
 - SQLite 不能边写边复制：备份钩子停几秒、打包、再启动；恢复时用 dump 目录里的包
 - 每月导出一份加密 JSON 放在工具机之外；打印一张应急包，写上主密码、恢复码和 restic 密码，并演练一次
 - 人用的密码进密码库；能解开一切的根密钥进密码库和应急包；机器运行时的密钥走生产机生成或 SOPS，不靠复制粘贴
+
+## 动手练习
+
+只用一次性的测试实例和编出来的测试条目，不要把真实的密码库或主密码拿来练习。
+
+1. **HTTPS 要求和关闭注册**：执行 `docker run -d --name vw -p 8000:80 -e SIGNUPS_ALLOWED=true -v vw-lab:/data vaultwarden/server:<从官方发布页选的版本号>`。在浏览器里打开 `http://localhost:8000` 注册一个测试账号并存一条假密码；再用本机的局域网地址 `http://<局域网 IP>:8000` 打开同一个网页。然后 `docker rm -f vw`，把 `SIGNUPS_ALLOWED` 改成 `false` 重新起容器（卷不变），用无痕窗口再注册一个新账号。
+
+   验证：`localhost` 下网页版能正常使用；用局域网 IP 访问时网页版提示需要安全上下文或无法使用加密功能。关闭注册后原账号仍能登录，新账号注册失败。
+
+   参考答案：浏览器只在 HTTPS 或 `localhost` 这类安全上下文里提供 Web Crypto，所以真实部署必须有 HTTPS。注册开关只影响新账号，数据都在卷里，重建容器不丢。
+
+2. **停、打包、起，再恢复一次**：照正文的备份钩子，对 `vw-lab` 卷做一次停机打包：`docker stop vw`，`docker run --rm -v vw-lab:/data:ro -v "$PWD":/out alpine tar -C /data -czf /out/vw.tar.gz .`，`docker start vw`。然后把它恢复到一个新卷，起第二个实例：
+
+   ```bash
+   docker volume create vw-restore
+   docker run --rm -v vw-restore:/data -v "$PWD":/in alpine tar -C /data -xzf /in/vw.tar.gz
+   docker run -d --name vw2 -p 8001:80 -v vw-restore:/data vaultwarden/server:<同一个版本号>
+   ```
+
+   验证：打开 `http://localhost:8001`，用测试账号登录能看到那条假密码。做完 `docker rm -f vw vw2 && docker volume rm vw-lab vw-restore`。
+
+   参考答案：SQLite 停机后复制才是一致的；能在另一个实例里登录看到数据，才说明这份备份有用。备份里的条目是用主密码派生的密钥加密的，服务端和备份都没有明文。
+
+3. **这些东西放哪**：把下面几项归到正文表格的四类里：阿里云主账号密码、restic 仓库密码、生产库的 `DATABASE_URL`、Forgejo runner 推镜像用的仓库密码、SOPS 的 age 私钥、域名注册商的两步验证恢复码。
+
+   验证：每一项都归到一类，并说出它最终存放的位置。
+
+   参考答案：云账号密码进密码库（人用的）；restic 密码和 age 私钥是根密钥，进密码库加应急包；`DATABASE_URL` 是机器运行时用的，在生产机上生成或用 SOPS 加密进仓库；runner 的仓库密码放 Forgejo 的 Actions Secrets；两步验证恢复码进密码库，并在应急包里写明存在哪。

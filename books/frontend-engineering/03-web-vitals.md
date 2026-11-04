@@ -178,3 +178,46 @@ hatch-counter 网页端有 manifest、能「安装到桌面」，但没有用 Se
 - CLS 靠预留空间：图片写尺寸、骨架占位、文案先占行、用系统字体
 - `no-cache` 是「每次验证」不是「不缓存」；带哈希的资源缓存一年，`index.html` 每次验证
 - 长时间开着的页签需要单独的「有新版」机制；部署时保留旧哈希资源
+
+## 动手练习
+
+1. **在 Network 面板里看两种缓存**：用 Node 写一个最小服务（`cache.mjs`）：
+
+   ```js
+   import { createServer } from "node:http";
+   const html = "<!doctype html><script src=/assets/app-abc123.js></script><h1>v1</h1>";
+   createServer((req, res) => {
+     if (req.url.startsWith("/assets/")) {
+       res.writeHead(200, { "content-type": "text/javascript", "cache-control": "max-age=31536000, immutable" });
+       return res.end("console.log('app loaded')");
+     }
+     if (req.headers["if-none-match"] === '"v1"') { res.writeHead(304, { etag: '"v1"' }); return res.end(); }
+     res.writeHead(200, { "content-type": "text/html", "cache-control": "no-cache", etag: '"v1"' });
+     res.end(html);
+   }).listen(8080);
+   ```
+
+   `node cache.mjs` 后用 Chrome 打开 `localhost:8080`，DevTools 的 Network 面板取消勾选 Disable cache，刷新两次。也可以先用 curl 验证：`curl -s -o /dev/null -w "%{http_code}\n" -H 'If-None-Match: "v1"' localhost:8080/`。
+
+   验证：curl 那条输出 `304`。浏览器第二次刷新时，文档请求的状态是 `304`；`app-abc123.js` 那一行不再发请求，Size 列显示 `(memory cache)` 或 `(disk cache)`。
+
+   参考答案：`no-cache` 的 HTML 每次都去验证，`ETag` 对得上就回一个空的 304；带哈希、`immutable` 的资源在新鲜期内连请求都不发。
+
+2. **测一次布局偏移**：页面顶部放一张不写尺寸、延迟 1 秒才插入 `src` 的图片（`setTimeout(() => img.src = "big.jpg", 1000)`），下面放几段文字。在 Console 里先运行：
+
+   ```js
+   new PerformanceObserver((l) => l.getEntries().forEach((e) => console.log("shift", e.value.toFixed(3))))
+     .observe({ type: "layout-shift", buffered: true });
+   ```
+
+   然后给 `<img>` 写上 `width` 和 `height`（或 `style="aspect-ratio: 16 / 9; width: 100%"`）重试。
+
+   验证：不写尺寸时，图片加载出来那一刻控制台打印一条 `shift`，数值大于 0，文字被顶下去；写了尺寸后不再打印（或数值为 0），文字从一开始就在最终位置。DevTools Rendering 面板勾选 Layout Shift Regions，不写尺寸时位移区域会闪蓝。
+
+   参考答案：浏览器在图片下载之前不知道它多高，只能先按 0 排版；写了尺寸就能先把空间留出来。
+
+3. **制造一个差的 INP**：页面上放一个按钮，点击处理里忙等 300 ms（`const end = performance.now() + 300; while (performance.now() < end);`）再改文字。打开 Performance 面板录一次点击；然后把它改成先改按钮文字为「处理中」，再 `setTimeout` 把忙等推到下一个任务，重录。
+
+   验证：第一种写法在 Interactions 轨道上这次点击约 300 ms 以上，按钮文字要等忙等结束才变；第二种写法交互那一段只剩几毫秒，「处理中」立刻出现，300 ms 的长任务被挪到了下一帧之后。
+
+   参考答案：INP 量的是从输入到下一帧绘制的时间。把重活挪到下一帧之后，用户先看到反馈，INP 就只包含那一小段处理。真正的计算量没有变，所以重活本身仍值得拆小或挪进 Worker。

@@ -255,3 +255,37 @@ await SourceMapConsumer.with(raw, null, (consumer) => {
 - 用户输入能触发的错误应该是 4xx，不是 500
 - source map 必须和构建一一对应，在发版构建时归档；Node 用 `--enable-source-maps`，前端用 hidden source map
 - 写日志时记事实、带 id、带完整错误对象，排查时才读得动
+
+## 动手练习
+
+1. **用 source map 还原压缩后的位置**：写一个 `scroll.ts`，用 esbuild 打包压缩并生成 source map，分别用 `node out.js` 和 `node --enable-source-maps out.js` 运行，对比堆栈。
+
+   ```typescript
+   type Page = { el: { scrollTop: number } | null };
+
+   export function restore(page: Page, top: number) {
+     page.el!.scrollTop = top;
+   }
+
+   restore({ el: null }, 120);
+   ```
+
+   ```bash
+   npx esbuild scroll.ts --bundle --minify --sourcemap --platform=node --outfile=out.js
+   ```
+
+   验证：不加参数时第一帧是 `at p (.../out.js:1:<几百>)`，函数名被压缩成单个字母；加上 `--enable-source-maps` 后变成 `at restore (.../scroll.ts:4:12)`。
+
+   参考答案：两次运行的产物完全一样，差别只在 Node 是否读取旁边的 `out.js.map`。改一行 `scroll.ts` 重新打包但不更新 map，再用旧 map 还原，位置就对不上了，这就是「map 必须和那次构建一一对应」。
+
+2. **读出错误码**：用一次性容器起一个 Postgres（`docker run --rm -d --name pg -e POSTGRES_PASSWORD=dev postgres:17`），进 `docker exec -it pg psql -U postgres`，先执行 `\set VERBOSITY verbose`，再依次执行 `select '2026-02-30'::date;` 和 `select 'latest'::uuid;`。
+
+   验证：两条报错分别以 `ERROR:  22008:` 和 `ERROR:  22P02:` 开头，消息里带着出问题的原值。用完 `docker stop pg`。
+
+   参考答案：这两个就是本章案例里漏到数据库的两类输入。全局异常过滤器按 SQLSTATE 的 `22` 类别把它们映射成 400，比匹配消息文字可靠，因为消息会随版本和语言设置变。
+
+3. **让驱动错误带上你的帧**：写一个脚本，在 `try` 里 `JSON.parse("{bad")`，在 `catch` 里 `throw new Error("解析 book.yaml 失败", { cause: err })`，用 `node` 运行。
+
+   验证：输出先是 `Error: 解析 book.yaml 失败` 和它的堆栈，后面有一段 `[cause]: SyntaxError: ...`，两层都在。
+
+   参考答案：外层错误的堆栈是在你的代码里创建的，带业务含义；原始错误原样保留在 `cause` 里。接日志库时检查它序列化错误时是否保留了 `cause`。

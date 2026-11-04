@@ -184,3 +184,28 @@ hatch-counter 曾经让网页端去读服务端返回的「最新版本」头，
 - 发版前预检：工作区干净、在 main、和 origin 同步、tag 不存在；当心本地残留的已删除 tag
 - Conventional Commits + 按路径归属自动收 changelog；提交信息写给用户看，内部改动用 `chore:`
 - 版本号要在运行时可见：请求头带版本、最低客户端版本、网页端轮询 `version.json`
+
+## 动手练习
+
+1. **复现「删掉的远端 tag 还留在本地」**：用一个本地裸仓库当 origin，克隆出 A、B 两份。在 A 里打 `web-v1.0.0` 并推送；在 B 里 `git fetch --tags` 后用 `git push origin :refs/tags/web-v1.0.0` 删掉远端 tag。回到 A，依次运行 `git fetch --tags origin && git tag`、`git fetch --prune --prune-tags origin && git tag`。
+
+   验证：第一次 `git tag` 仍列出 `web-v1.0.0`；第二次不再列出；`git ls-remote --tags origin` 始终没有它。
+
+   参考答案：普通 fetch 只增不删本地 tag，只有 `--prune-tags` 会按远端清理。这时在 A 里跑 `git push --tags`，这个 tag 会重新出现在远端，这就是本章说别手敲它的原因。
+
+2. **按路径收 changelog**：建一个测试仓库，目录有 `apps/web`、`apps/api`、`packages/core`。先提交一次并打 `web-v1.0.0`，之后依次提交四条：`feat: api 新接口`（只改 `apps/api`）、`fix: core 金额取整`（只改 `packages/core`）、`chore: web 注释`（只改 `apps/web`）、`feat: web 新页面`（只改 `apps/web`）。运行：
+
+   ```bash
+   git log web-v1.0.0..HEAD --format=%s -- apps/web packages/core \
+     | grep -E '^(feat|fix|perf)(\(.+\))?!?:'
+   ```
+
+   验证：输出恰好两行，`feat: web 新页面` 和 `fix: core 金额取整`；api 那条和 chore 那条都不在。
+
+   参考答案：路径过滤决定「属于谁」，前缀过滤决定「进不进日志」。共享包 `packages/core` 要显式加进路径列表，否则依赖它的修复会从网页端的日志里漏掉。
+
+3. **找出 `bump` 的边界 bug**：把本章的 `bump` 去掉类型写成 `bump.mjs`，打印 `bump("1.4.2","minor")`、`bump("1.4.2-beta.1","patch")`、`bump("v1.4.2","patch")` 三个结果。
+
+   验证：第一个是 `1.5.0`；第二个出现 `NaN`（`1.4.NaN`）；第三个是 `NaN.4.3`。
+
+   参考答案：`Number("2-beta")` 和 `Number("v1")` 都是 `NaN`。修法是在入口用正则 `/^(\d+)\.(\d+)\.(\d+)$/` 校验，不匹配就抛错，而不是让一个畸形版本号一路流到 tag 和商店里。

@@ -91,20 +91,7 @@ sudo ufw status verbose
 
 ### Docker 会绕过 ufw
 
-这是 Docker 部署最著名的陷阱：**用 `ports:` 发布的容器端口，不受 ufw 规则约束**。Docker 为了实现端口映射，会直接往 iptables 里插入自己的规则，转发到容器的流量在 ufw 的规则生效之前就被放行了。你以为 `ufw` 没开 5432，实际上 `"5432:5432"` 已经把数据库暴露在公网上。
-
-最可靠的防法是**发布端口时绑定 127.0.0.1**，只给本机的 nginx 用。hatch-counter 的线上 compose 就是这么写的，注释里写得很直白：绑 `0.0.0.0` 等于把一个没有 TLS 的接口直接挂在公网上；数据库则干脆不发布端口，只在 compose 内网里用服务名访问。
-
-```yaml
-services:
-  api:
-    ports:
-      - "127.0.0.1:3000:3000"   # 只给宿主机上的 nginx
-  postgres:
-    # 不写 ports：只有同一个 compose 网络里的容器能连
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-```
+**用 `ports:` 发布的容器端口不受 ufw 约束**：Docker 直接往 iptables 里插转发规则，在 ufw 之前生效，`"5432:5432"` 等于把数据库挂到公网。防法是数据库不发布端口、应用只绑 `127.0.0.1`，原理和 hatch-counter 的写法见[《容器技术》Docker 会绕过防火墙](../docker-containers/05-network-storage.md#docker-会绕过防火墙)。这里只补两件网络层面的事：怎么在不开端口的前提下连库，以及怎么验证到底暴露了什么。
 
 需要临时用 psql 时，用 `docker compose exec postgres psql ...` 进去，或者用 SSH 隧道转发到本地，而不是开端口：
 
@@ -187,3 +174,23 @@ ping -D -s 1472 -c 3 203.0.113.10
 - **Docker 发布的端口绕过 ufw**：绑 `127.0.0.1`，数据库不发布端口
 - conntrack 表满会造成间歇性超时；MTU 问题用不分片的 ping 验证，不要禁掉全部 ICMP
 - 按排查清单从内到外一层层验证，最后用 tcpdump 定位
+
+## 动手练习
+
+1. **丢弃和拒绝的区别**：改防火墙规则要在一次性容器里做：`docker run --rm -it --cap-add NET_ADMIN python:3.12-slim bash`，进去后 `apt-get update && apt-get install -y iptables curl`，后台起 `python -m http.server 8000 &`。先加 `iptables -A INPUT -p tcp --dport 8000 -j DROP`，执行 `curl -sS --connect-timeout 3 http://127.0.0.1:8000/`；再 `iptables -F` 清掉，改加 `iptables -A INPUT -p tcp --dport 8000 -j REJECT --reject-with tcp-reset`，重试。
+
+   验证：DROP 时等满 3 秒报超时；REJECT 时立刻报 `Connection refused`。
+
+   参考答案：安全组和大多数防火墙默认静默丢弃，客户端只能等超时；回 RST 的表现和「端口没人听」一样。所以超时指向防火墙，refused 指向监听。
+
+2. **你在 NAT 后面吗**：在家里或公司的电脑上执行 `ipconfig getifaddr en0`（Linux 用 `ip -4 addr`），再执行 `dig +short myip.opendns.com @resolver1.opendns.com` 看外部看到的地址；如果能登录路由器，再看 WAN 口地址。
+
+   验证：本机地址落在 `192.168.0.0/16`、`10.0.0.0/8` 或 `172.16.0.0/12`，外部看到的是另一个公网地址。
+
+   参考答案：两者不同说明经过了 NAT。路由器 WAN 口地址如果也是私网或 `100.64.x.x`，说明还在运营商的 CGNAT 后面，在自家路由器上做端口转发不会有用。
+
+3. **找路径 MTU**：在 Mac 上执行 `ping -D -s 1472 -c 3 1.1.1.1`，再把 `-s` 改成 `1473`（Linux 用 `ping -M do -s ...`）；连上 VPN 或手机热点后再试一次，逐步减小大小找能通过的最大值。
+
+   验证：普通以太网或 Wi-Fi 下 1472 能通、1473 不通（本机直接报 `Message too long` 或收不到回应）；走 VPN 时能通过的最大值通常更小。
+
+   参考答案：1472 加 8 字节 ICMP 头和 20 字节 IP 头正好 1500。走隧道多一层封装，可用 MTU 就变小，这是「小包通、大包卡」的验证方法。

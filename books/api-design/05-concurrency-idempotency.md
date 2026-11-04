@@ -179,7 +179,7 @@ ETag 解决的是「两个人改同一个东西」，幂等键解决的是「同
 
 ### 接口约定
 
-服务端的实现细节（占行、记回包、指纹比较）见 system-design 那一章，这里列出接口层面要对外说清的约定：
+服务端为什么要占行、记回包、比指纹，以及进程死在中间那个缝怎么办，是设计层面的取舍，见[《软件架构与系统设计》服务端的规矩](../system-design/06-idempotency-consistency.md#服务端的规矩)；落到 Nest 的代码在[下面](#服务端拦截器骨架)。先列出接口层面要对外说清的约定：
 
 | 约定 | 推荐 |
 |---|---|
@@ -195,6 +195,65 @@ ETag 解决的是「两个人改同一个东西」，幂等键解决的是「同
 | 第一次失败了 | 不记录，同一个 key 重试会真正执行 |
 
 「加响应头标明这是重放」的做法来自 Stripe（`Idempotent-Replayed: true`），它让客户端和你自己排查问题时能分清「这次真的执行了」还是「这是第一次的结果」。
+
+### 服务端：拦截器骨架
+
+hatch-counter 用一张表记每个 key 的处理结果，按「店 + 设备 + key」唯一：
+
+```sql
+CREATE TABLE idempotent_requests (
+  store_id     uuid        NOT NULL,
+  device_id    text        NOT NULL,
+  key          text        NOT NULL,
+  fingerprint  text        NOT NULL,          -- 方法 + 路径 + 请求体的摘要
+  status_code  int,                            -- NULL 表示还在跑
+  response     jsonb,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (store_id, device_id, key)
+);
+```
+
+拦截器把上面的约定逐条落地。占行、记回包各是一个短事务，和业务事务分开：
+
+```typescript
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
+import { Observable, catchError, from, mergeMap, of, throwError } from "rxjs";
+
+// AppError、hash、statusCodeFor、IdempotencyRepo 是项目里自己的东西，这里只看骨架
+@Injectable()
+export class IdempotencyInterceptor implements NestInterceptor {
+  constructor(private repo: IdempotencyRepo) {}
+
+  async intercept(ctx: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
+    const req = ctx.switchToHttp().getRequest();
+    const key = req.headers["idempotency-key"];
+    if (req.method === "GET" || !key) return next.handle();
+
+    const scope = { storeId: req.storeId, deviceId: req.deviceId, key };
+    const fingerprint = hash(`${req.method} ${req.path} ${JSON.stringify(req.body)}`);
+
+    const existing = await this.repo.claim(scope, fingerprint); // 短事务：插入或读出已有行
+    if (existing) {
+      if (existing.fingerprint !== fingerprint) throw new AppError("同一个提交换了内容", 422);
+      if (existing.statusCode === null) throw new AppError("还在处理，等几秒", 409);
+      ctx.switchToHttp().getResponse().status(existing.statusCode);
+      return of(existing.response);
+    }
+
+    return next.handle().pipe(
+      // 成功：记回包（另一个短事务）
+      mergeMap(async (body) => {
+        await this.repo.complete(scope, statusCodeFor(req), body);
+        return body;
+      }),
+      // 失败：删掉占的行，让下次重试真跑
+      catchError((err) => from(this.repo.release(scope)).pipe(mergeMap(() => throwError(() => err)))),
+    );
+  }
+}
+```
+
+`statusCodeFor(req)` 这个细节也有坑：在拦截器里读 `res.statusCode` 拿到的还是默认的 200，Nest 回包时才按 `@HttpCode()` 定（没标的 POST 是 201）。要按同一条规则自己算出来。
 
 ### 客户端：key 跟着提交走
 
@@ -303,3 +362,32 @@ Content-Type: application/json
 - key 在用户点提交时生成，跟着这次提交重试；离线 App 把 key 和操作一起持久化
 - 新建记录可以让客户端生成 UUID v7 id，用 PUT 加唯一约束实现天然幂等
 - 长任务回 202 和一个操作资源，客户端轮询
+
+## 动手练习
+
+1. **在 SQL 里复现丢失更新和条件写**：在一次性 Postgres 容器里建 `products(id text primary key, price int, stock_alert int, version int)` 并插入 `('prd_01', 1800, 10, 12)`。开两个 psql 会话，都先 `SELECT`，然后 A 执行 `UPDATE products SET price=2000, version=version+1 WHERE id='prd_01' AND version=12 RETURNING *;`，B 再执行同样带 `version=12` 条件的 `UPDATE products SET stock_alert=5, ...`。
+
+   验证：A 返回 1 行、`version` 变成 13；B 显示 `UPDATE 0`、返回 0 行。去掉 `AND version=12` 再让 B 整行写回 `price=1800` 时，A 的改价被悄悄覆盖。
+
+   参考答案：版本比较和更新在同一条语句里，原子完成；0 行时服务端再查一次，存在就回 412，不存在回 404。
+
+2. **用 curl 观察 ETag 和 304**：写一个 ≤15 行的 Node 服务，`GET /catalog` 返回固定 JSON 并设 `ETag: "abc"`，请求头 `If-None-Match` 等于它时回 304。用 `curl -i localhost:3000/catalog`，再用 `curl -i -H 'If-None-Match: "abc"' localhost:3000/catalog`。
+
+   验证：第一次 `HTTP/1.1 200`、有正文；第二次 `HTTP/1.1 304 Not Modified`、没有正文。
+
+   参考答案：
+
+   ```javascript
+   require("node:http").createServer((req, res) => {
+     const etag = '"abc"';
+     if (req.headers["if-none-match"] === etag) return res.writeHead(304, { ETag: etag }).end();
+     res.writeHead(200, { ETag: etag, "Content-Type": "application/json" });
+     res.end(JSON.stringify({ items: ["拿铁", "美式"] }));
+   }).listen(3000);
+   ```
+
+3. **找出幂等键的 bug**：下面的重试函数有什么问题？`async function send(body) { for (let i = 0; i < 3; i++) { try { return await fetch("/expenses", { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body }); } catch {} } }`
+
+   验证：在服务端打印收到的 `Idempotency-Key`，让第一次请求在服务端处理完后故意断开连接（例如处理完再 `req.socket.destroy()`），观察三次请求的 key 是否相同、记录是否重复。
+
+   参考答案：key 在循环里生成，每次重试都是新 key，服务端无法认出是同一次提交，开支会记多笔。key 要在用户点提交时生成一次，作为参数传进来。

@@ -186,3 +186,46 @@ flowchart TD
 - GQA 让多个 query 头共享 K、V，MLA 缓存低维潜向量，都是在压缩 $n_{kv} \times d_k$
 - PagedAttention 用分块和块表消除碎片、共享前缀；跨请求的前缀复用就是 API 的 prompt caching
 - 投机解码用草稿模型猜、大模型并行验证，接受—拒绝规则保证输出分布不变
+
+## 动手练习
+
+1. **估算一台机器能撑几个并发**：某模型 48 层、8 个 KV 头、$d_k=128$，BF16 缓存。用本章公式算 32K 上下文、8 条并发时 KV Cache 占多少 GiB；如果权重占 30 GB，放在 80 GB 显存的卡上，还剩多少给缓存，最多能同时服务几条 32K 的序列（不计激活和框架开销）。
+
+   验证：8 条并发共 48 GiB（每条 6 GiB）；剩余约 50 GB（约 46.6 GiB），最多 7 条。
+
+   参考答案：$2\times48\times8\times128\times32768\times2$ 字节 = 6 GiB/条。实际部署还要给激活、CUDA 上下文留余量，vLLM 启动日志会打印它算出来的可用 KV 块数，可以拿来和手算对照。
+
+2. **手写 KV Cache 并验证等价**：写一个单头因果注意力 `full(X)` 一次算完 8 个位置；再写一个逐 token 版本：每来一个 $x_t$，只算它的 $q,k,v$，把 $k,v$ 追加到列表，用 $q$ 对列表里所有 key 做注意力。比较两者输出。
+
+   验证：`np.allclose(full(X), np.array(outs))` 打印 `True`。
+
+   参考答案：逐 token 版本的核心循环如下，它每步只做一次新 token 的投影，这就是 KV Cache 把总计算量从平方降到线性的原因。
+
+   ```python
+   Kc, Vc, outs = [], [], []
+   for x in X:
+       Kc.append(x @ Wk); Vc.append(x @ Wv)
+       s = np.array(Kc) @ (x @ Wq) / np.sqrt(d)
+       a = np.exp(s - s.max()); a /= a.sum()
+       outs.append(a @ np.array(Vc))
+   ```
+
+3. **模拟投机解码的接受—拒绝**：设大模型分布 $p=[0.6,0.3,0.1]$、草稿分布 $q=[0.2,0.5,0.3]$。重复 10 万次：从 $q$ 抽 $x$，以 $\min(1,p_x/q_x)$ 接受，否则从归一化的 $\max(0,p-q)$ 重新抽。统计最终 token 的频率和接受率。
+
+   验证：频率接近 `[0.6, 0.3, 0.1]`，接受率接近 0.6。
+
+   参考答案：接受率等于 $\sum_x \min(p_x, q_x) = 0.2+0.3+0.1 = 0.6$；拒绝时的修正分布恰好补上差额，所以输出分布与 $p$ 完全一致。$q$ 越接近 $p$，接受率越高，加速越明显。
+
+   ```python
+   rng = np.random.default_rng(0)
+   p, q = np.array([0.6, 0.3, 0.1]), np.array([0.2, 0.5, 0.3])
+   r = np.maximum(0, p - q); r /= r.sum()
+   out, acc = [], 0
+   for _ in range(100_000):
+       x = rng.choice(3, p=q)
+       if rng.random() < min(1, p[x] / q[x]):
+           out.append(x); acc += 1
+       else:
+           out.append(rng.choice(3, p=r))
+   print(np.bincount(out) / len(out), acc / 100_000)
+   ```

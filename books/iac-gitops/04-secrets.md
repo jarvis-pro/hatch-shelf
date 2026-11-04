@@ -302,3 +302,25 @@ Ansible 自带的 `ansible-vault` 也能加密变量文件，不需要额外工�
 - OpenTofu 用 `sops exec-env` 注入环境变量，云 AccessKey 用专用子账号
 - age 私钥是**信任的根**，存在体系之外并定期演练；泄露时要轮换的是所有实际密钥
 - Vault 适合需要动态密钥、审计、多人授权的场景，一个人通常是过度设计
+
+## 动手练习
+
+在一个临时目录里做，钥匙也生成在这个目录里，不要动 `~/.config/sops/age/keys.txt` 里的日常钥匙。
+
+1. **只用备份钥匙解密**：`age-keygen -o laptop.txt`、`age-keygen -o backup.txt`、`age-keygen -o stranger.txt` 生成三把钥匙。写 `.sops.yaml`，规则 `path_regex: .*\.sops\.yaml$`，接收者填前两把的公钥（`age-keygen -y laptop.txt` 可以从私钥文件打印公钥）。写一个明文的 `secrets.sops.yaml`（两行：`db_password: abc123` 和 `jwt_secret: def456`），`sops encrypt -i secrets.sops.yaml`。然后分别用 `SOPS_AGE_KEY_FILE=backup.txt` 和 `SOPS_AGE_KEY_FILE=stranger.txt` 执行 `sops decrypt secrets.sops.yaml`。
+
+   验证：用 backup.txt 时打印出原来的两行明文；用 stranger.txt 时报错、退出码非 0，提示拿不到解密数据密钥。
+
+   参考答案：数据密钥分别用每个接收者的公钥加密了一份，备份钥匙解得开它那一份，就能解开整个文件；不在接收者列表里的钥匙什么也解不开。这就是「笔记本丢了还能用备份钥匙」的依据。
+
+2. **改坏密文，看 MAC 拦住它**：接上题，用文本编辑器直接打开加密后的 `secrets.sops.yaml`（不要用 `sops edit`），整行删掉 `jwt_secret: ENC[...]`，保存后用 `SOPS_AGE_KEY_FILE=laptop.txt` 执行 `sops decrypt secrets.sops.yaml`。
+
+   验证：解密失败，报错里有 `MAC mismatch`。用 `git diff` 或 `diff` 对比改动前后的文件，能看到键名是明文的，值是密文。
+
+   参考答案：文件末尾的 `mac` 覆盖了所有键和值，任何绕开 SOPS 的增删改都会让校验失败。键名明文方便审查，但改结构必须经过 SOPS。
+
+3. **提交前检查抓住明文**：`git init` 一个仓库，把正文的 `check-encrypted.sh` 存进去（`git ls-files` 那行改成 `git ls-files '*.sops.yaml'`）。新建一个没加密的 `plain.sops.yaml` 并 `git add`，运行脚本；再对它执行 `sops encrypt -i plain.sops.yaml` 后重新 `git add`，再运行。
+
+   验证：第一次输出 `未加密：plain.sops.yaml`，`echo $?` 是 `1`；加密后没有输出，退出码是 `0`。
+
+   参考答案：脚本只检查已被 Git 跟踪的文件里有没有 `sops:` 段和 `ENC[`，所以要先 `git add`。挂到 pre-commit 或 CI 上，就能在明文进入历史之前拦住它。一旦明文进了历史，删文件不够，要按正文的泄露流程轮换里面的每个密钥。

@@ -253,3 +253,23 @@ agent 怎么在 worktree 里并行干活，见[《编码 Agent 实战》的并�
 - 变基是逐个 cherry-pick 造新提交；不要变基别人已经基于它工作的提交
 - `--onto` 搬一段、`--update-refs` 带上叠着的分支、`range-diff` 核对变基前后
 - 一个人的默认组合：`pull.rebase true`，功能分支变基后快进合并
+
+## 动手练习
+
+1. **看见三个阶段**：新仓库里文件 `f` 内容为 `percent`；分支 `feat` 把它改成 `ratio`，main 把它改成 `percent anchor`。在 `feat` 上执行 `git -c merge.conflictStyle=zdiff3 rebase main`。
+
+   验证：`git ls-files -s f` 有阶段号 1、2、3 三行；`cat f` 里出现 `|||||||` 段，中间是原来的 `percent`。
+
+   参考答案：三行分别是共同祖先、ours、theirs，zdiff3 多显示的那段就是阶段 1。看完 `git rebase --abort`。
+
+2. **变基时 ours 是谁**：在上一题的冲突里执行 `git checkout --ours f && cat f`，先预测结果。
+
+   验证：输出是 `percent anchor`，也就是 main 的版本，而不是你在 feat 上写的 `ratio`。
+
+   参考答案：变基是在 main 末端重放 feat 的提交，HEAD 此时在 main 那条线上，所以 ours 是 main。合并时则相反。
+
+3. **压缩合并之后搬一段**：main 上分出 `feat/a`（提交 a1、a2），再从 `feat/a` 分出 `feat/b`（提交 b1）；在 main 上 `git merge --squash feat/a && git commit -m 'squash a'`。先看 `git log --oneline main..feat/b` 有几行，再把 `feat/b` 正确搬到 main 上。
+
+   验证：搬之前是 3 行（a1、a2、b1 都算「main 没有」）；执行 `git rebase --onto main feat/a feat/b` 后只剩 `b1` 一行。
+
+   参考答案：squash 生成的是新提交，a1、a2 对 main 来说仍是陌生提交，直接 `git rebase main` 会重放它们。`--onto` 用 `feat/a` 作旧基底，只搬 `feat/a..feat/b` 这一段。

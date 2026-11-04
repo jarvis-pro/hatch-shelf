@@ -405,3 +405,40 @@ CREATE TABLE admin_sessions (
 - 会话挂在设备上：踢人、重放检测、版本统计都按台算；设备 ID 只是分组键，不做授权依据
 - 并发续期是最常见的误伤：客户端合并续期（共享 Promise、Web Locks），服务端留十秒左右的并发窗口
 - 退出接口总是成功；敏感操作要求最近再验证一次；纯网页后台可以用带空闲和绝对超时的服务端 Session
+
+## 动手练习
+
+1. **用秒表探测账号**：写一个最小的登录函数，账号存在时用 `crypto.scrypt` 验证密码，账号不存在时直接返回失败。分别对存在和不存在的账号各调用 20 次，记录平均耗时；再加上 `DUMMY_HASH` 的处理重测一次。
+
+   验证：第一版两组耗时相差一个数量级以上（不存在的账号接近 0 ms）；第二版两组耗时接近。
+
+   参考答案：慢哈希就是那道时间差的来源，账号不存在时也跑一次同样参数的哈希，差距就消失了。
+
+   ```javascript
+   import { scryptSync, randomBytes } from "node:crypto";
+   const salt = randomBytes(16);
+   const users = { alice: scryptSync("right", salt, 64, { N: 2 ** 15, maxmem: 64 << 20 }) };
+   const DUMMY = scryptSync("x", salt, 64, { N: 2 ** 15, maxmem: 64 << 20 });
+   function login(name, pw, useDummy) {
+     const hash = users[name] ?? (useDummy ? DUMMY : null);
+     if (!hash) return false;
+     return scryptSync(pw, salt, 64, { N: 2 ** 15, maxmem: 64 << 20 }).equals(hash) && !!users[name];
+   }
+   for (const dummy of [false, true]) for (const name of ["alice", "nobody"]) {
+     const t = performance.now();
+     for (let i = 0; i < 20; i++) login(name, "wrong", dummy);
+     console.log(dummy, name, ((performance.now() - t) / 20).toFixed(1), "ms");
+   }
+   ```
+
+2. **一次性链接被并发使用**：在 Docker 里的 Postgres 建本章的 `password_resets` 表（可以去掉外键），插入一行 `used_at` 为空、`expires_at` 为一小时后的记录。开两个 `psql` 窗口，都 `BEGIN;` 后执行 `UPDATE password_resets SET used_at = now() WHERE token_hash = 'h1' AND used_at IS NULL RETURNING id;`，先提交 A。
+
+   验证：A 返回一行（`UPDATE 1`）；B 一直卡到 A 提交，然后返回 `UPDATE 0`。改成两个窗口先各自 `SELECT ... WHERE used_at IS NULL` 再更新，两个窗口的 `SELECT` 都能看到那一行。
+
+   参考答案：条件更新会在行锁释放后重新检查 `WHERE`，所以「检查」和「占用」是一步；分成 `SELECT` 再 `UPDATE` 就给并发留下了两次都通过检查的空隙。
+
+3. **合并并发续期**：把本章的 `getFreshAccessToken` 拿出来，`doRefresh` 换成一个计数加一、等 100 ms 再返回新字符串的假函数。同时发起 5 次 `getFreshAccessToken()`，等它们全部完成后再调用一次。
+
+   验证：前 5 次拿到同一个令牌，计数是 1；第 6 次计数变成 2。
+
+   参考答案：`??=` 让后来的调用直接复用路上那个 Promise，`finally` 把它清空，下一轮过期才会真正再续一次。去掉 `finally` 的话，第 6 次会拿到旧令牌，计数仍是 1。

@@ -226,3 +226,29 @@ hatch-shelf 的项目说明里写着「改了 `reader-web/` 后要重新 `build:
 - 每一步写下来，防止绕圈子，也方便交接和复盘
 - 动脑之前先过一遍便宜检查：跑的是不是新代码、连的是哪个环境
 - 修复先写失败的测试，再找同一根因的其他出现位置
+
+## 动手练习
+
+1. **看见没 await 的写入**：在一个空目录里写 `atomic.mjs`，用 Node 22/24 运行 `node atomic.mjs`，记下两行输出；再把 `void writeFile(...)` 换成 `node:fs` 的 `writeFileSync`，重跑一次。
+
+   ```javascript
+   import { mkdirSync, rmSync, readdirSync, statSync } from "node:fs";
+   import { writeFile } from "node:fs/promises";
+   rmSync("out", { recursive: true, force: true });
+   mkdirSync("out");
+   const files = ["book.yaml", "01-a.md", "02-b.md", "03-c.md"];
+   for (const f of files) void writeFile(`out/${f}`, "x".repeat(1_000_000));
+   const done = () => readdirSync("out").filter((f) => statSync(`out/${f}`).size === 1_000_000);
+   console.log("循环结束时写完的：", done());
+   setTimeout(() => console.log("500ms 后写完的：", done()), 500);
+   ```
+
+   验证：改之前第一行是空数组 `[]`，第二行列出全部四个文件；改成 `writeFileSync` 后两行都列出四个文件。
+
+   参考答案：`writeFile` 返回 Promise，循环只是把写入发出去，紧接着的代码看到的是还没写完的目录。本章案例里紧接着的是 `move`，于是哪个文件「不存在」取决于调度。这个实验就是 H3 的做法：直接看关键时刻的真实状态。
+
+2. **把假设改写到能被证伪**：场景是「升级依赖后，阅读器有时打开一章是白屏」。先写出三个「不好的假设」，再把每个改成能在几分钟内验证的具体假设，各配一个实验，按可能性和成本排好序。
+
+   验证：每个假设都能回答「什么结果会推翻它」；每个实验只改一个条件。
+
+   参考答案：例如「WebView 有问题」改成「升级后 `build:assets` 没重跑，App 里还是旧的阅读器 HTML」（实验：对比打包进去的 HTML 的修改时间或内容哈希，成本最低，先做）；「渲染慢」改成「某章含 Mermaid 时初始化抛错，页面停在空白」（实验：Safari Web Inspector 看控制台，换一章不含图的对照）；「内存不够」改成「WebView 内容进程被系统回收」（实验：只在后台放久后出现吗）。判断要点：先排除便宜的「跑的是不是新代码」，再按「有图 / 无图」这样的单变量对照。

@@ -145,3 +145,23 @@ npx expo-doctor
 - **Fabric** 是新渲染器，支持同步布局读取和 React 并发特性；**TurboModules** 懒加载、靠 Codegen 类型化
 - Expo SDK 55 起新架构**始终开启**，SDK 58 上没有旧架构可选；运行模式是 Bridgeless
 - 同步能力不等于可以在 JS 线程做重活；选库先确认新架构支持，用 `expo-doctor` 做第一道检查
+
+## 动手练习
+
+1. **确认跑在 Bridgeless 上**：用 `pnpm app ios` 装好 dev client，Metro 里按 `j` 打开 React Native DevTools，在 Console 里执行 `global.RN$Bridgeless`。
+
+   验证：输出 `true`。
+
+   参考答案：SDK 58 上新架构始终开启，运行模式就是 Bridgeless，这个全局标记由 RN 在 Bridgeless 模式下设置。
+
+2. **关掉新架构试试**：在一个练习用的 Expo 项目（`npx create-expo-app@latest`）的 `app.json` 里加 `"newArchEnabled": false`，执行 `npx expo prebuild --clean` 后重新构建，再重复第 1 题。
+
+   验证：输出仍是 `true`，App 行为没有变化。
+
+   参考答案：Expo SDK 55 起这个字段会被忽略，没有旧架构可选。练完把这一行删掉，免得以后的人误以为它有作用。
+
+3. **堵住 JS 线程**：在一个页面上放一个长 `ScrollView` 和一个按钮，按钮的 `onPress` 里写一个跑 3 秒的忙循环（`const t = Date.now(); while (Date.now() - t < 3000) {}`）。点按钮后立刻滑动列表、再点其他按钮。
+
+   验证：3 秒内列表仍能滑动，其他按钮点了没反应，3 秒后它们的回调一次性补上。
+
+   参考答案：滚动由 UI 主线程处理，按钮回调在 JS 线程排队，对应本章「线程模型」那张表的前两行。JSI 让同步调用成为可能，但 JS 线程仍然只有一个。

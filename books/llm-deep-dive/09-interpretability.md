@@ -176,6 +176,53 @@ Anthropic 2023 年的《Towards Monosemanticity》在一个单层小模型上验
 - 稀疏自编码器用重建损失加 L1 惩罚把残差流分解成可解释的特征；放大特征能因果地改变模型行为
 - 归因图揭示了多步推理、提前规划和事后合理化等内部机制；这个领域仍很年轻，但已经改变了我们讨论模型能力的方式
 
+## 动手练习
+
+1. **换几个提示跑 logit lens**：在本章 logit lens 代码的基础上（需要 `pip install torch transformers`，首次运行会从 Hugging Face 下载约 500 MB 的 GPT-2 权重，CPU 即可），把提示换成 `"The capital of Japan is"`、`"1, 2, 3, 4,"` 和一句你自己写的，记录每个提示从第几层开始输出与最后一层相同的 token。
+
+   验证：13 行输出里，最后一行是模型的最终预测；观察前几层多是复述输入或无关词，答案在中后层的某一层「锁定」后就不再变。
+
+   参考答案：不同提示锁定的层数不同：数数这种局部模式通常锁得早，需要事实知识的通常锁得晚。中间层的结果只供参考，因为那里的表示空间未必和最后一层对齐，这正是 tuned lens 要修正的。
+
+2. **用重复的随机序列看归纳头**（环境同上）：随机抽 50 个 token id，把这串序列重复两遍喂给 GPT-2，分别统计前一半和后一半位置上「预测下一个 token」的平均交叉熵。
+
+   验证：后一半的平均损失远低于前一半。
+
+   参考答案：前一半是随机 token，谁也预测不了；后一半每个位置都满足「前文见过 `[A][B]`，现在又遇到 `[A]`」，归纳头直接把 `B` 复制出来。这是 Olsson 等人检测归纳头的标准做法。
+
+   ```python
+   import torch
+   from transformers import AutoModelForCausalLM
+   model = AutoModelForCausalLM.from_pretrained("gpt2").eval()
+   torch.manual_seed(0)
+   r = torch.randint(1000, 10000, (1, 50))
+   ids = torch.cat([r, r], dim=1)
+   with torch.no_grad():
+       logits = model(ids).logits
+   loss = torch.nn.functional.cross_entropy(logits[0, :-1], ids[0, 1:], reduction="none")
+   print(loss[:49].mean().item(), loss[50:].mean().item())
+   ```
+
+3. **叠加为什么依赖稀疏**：在 $d=256$ 维里放 $m=1024$ 个随机单位向量当「特征」。每次随机激活 $k$ 个特征，把它们的向量相加得到 $x$，再用所有特征向量和 $x$ 的点积取最大的 $k$ 个，看能读回多少个真正被激活的。$k$ 取 1、5、20、100，各重复 200 次求平均。
+
+   验证：$k=1$ 和 $5$ 时几乎 100% 读对；$k=20$ 时约 0.83；$k=100$ 时降到约 0.5。
+
+   参考答案：特征数是维度的 4 倍，靠的是「同时激活的很少」；一旦同时激活的特征多了，近似正交方向之间的小干扰累加起来，就分不清谁是谁。这就是叠加只适用于稀疏特征的原因。
+
+   ```python
+   import numpy as np
+   rng = np.random.default_rng(0)
+   d, m = 256, 1024
+   V = rng.standard_normal((m, d)); V /= np.linalg.norm(V, axis=1, keepdims=True)
+   for k in [1, 5, 20, 100]:
+       hits = 0
+       for _ in range(200):
+           on = rng.choice(m, k, replace=False)
+           top = np.argsort(-(V @ V[on].sum(0)))[:k]
+           hits += len(set(top) & set(on)) / k
+       print(k, round(hits / 200, 3))
+   ```
+
 ## 接下来读什么
 
 这本书把大模型从注意力公式一路讲到了内部机制。按导读的「想真正搞懂大模型」路线，下一步建议：

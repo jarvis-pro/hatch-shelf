@@ -4,9 +4,7 @@
 
 ## 放权分四级
 
-不要一开始就问「能不能让 agent 管服务器」，而是问「这一类操作放到第几级」：
-
-![运维操作的四级放权：越往右 agent 越自主，适用的操作越少](assets/autonomy-ladder.svg)
+不要一开始就问「能不能让 agent 管服务器」，而是问「这一类操作放到第几级」。通用的人机协作分级见[《AI 认知进阶》第 4 章](../ai-cognition/04-human-ai-division.md#自主程度的阶梯)，落到运维上是四级，越往下 agent 越自主、适用的操作越少：
 
 | 级别 | agent 做什么 | 人做什么 | 适合的操作 |
 |---|---|---|---|
@@ -166,3 +164,29 @@ agent 可以帮你准备这些操作：查文档、写好命令、列出回滚�
 - 排查时要求 agent 先列假设、再用证据逐个验证，结论附日志原文
 - 部署文档写成「照着做的」；按路径加载的规则不会被纯命令操作触发，要显式要求先读
 - 比约束 agent 更根本的是系统设计：钥匙不外放、动作做窄、配置不被覆盖、不可逆的放最后、回滚一条命令
+
+## 动手练习
+
+1. **试着从诊断入口钻出去**：把本章的 `ops-diag` 存成文件，在一台 Linux 机器上（本机即可，不需要 sudo）分别运行 `bash ops-diag mem`、`bash ops-diag 'mem; id'`、`bash ops-diag disk --help`。
+
+   验证：第一条输出内存和负载；第二条只打印用法并退出码 2，没有执行 `id`；第三条和 `disk` 的输出一样，多出的参数被忽略。
+
+   参考答案：`case` 只把第一个参数和固定字符串比较，整个参数不会被 shell 再解析一遍，后面的参数也不往下传，所以拼不出别的命令。macOS 上没有 `free`，`mem` 会报命令找不到，这一题在 Linux 上做。
+
+2. **亲眼看 docker 组等于 root**：只在一次性的云服务器或虚拟机里做。新建用户 `opsread` 并加进 `docker` 组，切换到这个用户后运行 `docker run --rm -v /:/host alpine head -1 /host/etc/shadow`。
+
+   验证：一个没有 sudo 权限的普通用户读出了 `/etc/shadow` 的第一行（root 的密码哈希）。
+
+   参考答案：容器以 root 运行并挂载了宿主机根目录，能读就能写。做完删除这台机器，或至少 `gpasswd -d opsread docker`。改用本章的包装脚本 + sudoers 后，同一个用户只能运行那几个固定子命令。
+
+3. **先列假设再下结论**：下面是一次 5xx 升高时三个子命令的关键输出，按本章的方法给出结论和建议命令。
+
+   ```text
+   api-logs:  Error: connect ETIMEDOUT postgres:5432
+   db-logs:   PANIC: could not write to file "pg_wal/xlogtemp.31": No space left on device
+   disk:      /dev/vda1  40G  40G  0  100% /
+   ```
+
+   验证：结论指向磁盘满而不是「数据库挂了」，并且每个结论都引用了上面对应的一行作证据。
+
+   参考答案：API 超时是结果，数据库写不进 WAL 是中间环节，根因是磁盘 100%。建议的第一条命令应是只读的 `du -sh /var/lib/docker /var/log` 找出谁占满了，清理动作（如 `docker image prune`、截断日志）标为有风险、由人执行。

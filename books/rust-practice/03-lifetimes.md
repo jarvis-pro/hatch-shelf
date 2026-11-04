@@ -278,3 +278,41 @@ fn main() {
 - 结构体里放引用要标 `'a`，适合零拷贝解析这类性能敏感的场景
 - `'static` 表示活到程序结束；`T: 'static` 约束表示 T 不借用局部数据，常见于 spawn
 - 先用拥有所有权的类型，生命周期报错改不动时加一次 `clone()`，不丢人
+
+## 动手练习
+
+1. **把 println 移出内层作用域**：用本章 `longer` 的调用示例，把内层作用域里的 `println!("{result}");` 删掉，打开外面那行被注释的 `println!`，预测 `cargo check` 的结果。
+
+   验证：报 `` error[E0597]: `b` does not live long enough ``，并标出 `b` 在内层 `}` 处被释放、`result` 在外面又被使用。
+
+   参考答案：签名 `fn longer<'a>(a: &'a str, b: &'a str) -> &'a str` 告诉编译器返回值可能借自 `b`，所以 `result` 的有效期不能超过 `b`。编译器只看签名，即使这次运行实际返回的是更长的 `a` 也一样。
+
+2. **只和一个参数有关时**：写一个函数，返回值只来自第一个参数，先不写生命周期：
+
+   ```rust
+   fn pick(a: &str, _b: &str) -> &str {
+       a
+   }
+
+   fn main() {
+       let a = String::from("所有权与借用");
+       let r;
+       {
+           let b = String::from("生命周期");
+           r = pick(&a, &b);
+       }
+       println!("{r}");
+   }
+   ```
+
+   先预测错误码，再改成 `fn pick<'a>(a: &'a str, _b: &str) -> &'a str`，预测 `main` 能否通过。
+
+   验证：第一次报 `error[E0106]: missing lifetime specifier`；改完后编译通过，打印 `所有权与借用`。
+
+   参考答案：两个输入引用时省略规则推不出输出跟谁走。只把 `'a` 标在 `a` 上，等于声明返回值和 `b` 无关，`b` 先释放也不影响 `r`。和练习 1 对照，可以看出标注描述的是关系，标得越准，调用方越自由。
+
+3. **返回指向局部变量的引用**：把本章 `headings` 和 `Heading` 拷进项目，再加上「结构体里放引用」一节末尾的 `load_headings`，`cargo check`。然后改成返回 `Vec<OwnedHeading>`（用本章的 `to_owned_headings`）。
+
+   验证：第一次报 `` error[E0515]: cannot return value referencing local variable `chapter` ``；改成拥有所有权的版本后通过。
+
+   参考答案：`chapter` 在函数结束时释放，`Heading` 里的 `text` 都指向它。写成 `'static` 也救不了，正确的改法是让返回值拥有自己的数据。

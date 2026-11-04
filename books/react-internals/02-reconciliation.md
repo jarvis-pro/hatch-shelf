@@ -198,3 +198,67 @@ if (shownKey !== memoKey) {
 - **bailout** 的前提是 props 引用相同、context 没变、自身无更新；父组件渲染时子组件默认跟着渲染
 - 提升性能的三层手段：`children` 传入内容、`memo` + 稳定引用、数据层结构共享（如 `replaceEqualDeep`）
 - 改 key 是重置组件的正规方式；只需调整部分状态时可以在渲染期 setState（要有条件守卫）
+
+## 动手练习
+
+在第 1 章建的 Vite 项目里做。为了让计数不受 StrictMode 双调用干扰，可以暂时去掉 `main.tsx` 里的 `<StrictMode>`。
+
+1. **index 当 key 的张冠李戴**：
+
+   ```tsx
+   function Row({ name }: { name: string }) {
+     const [first] = useState(name); // 只在挂载时取一次
+     return <li>{name}:{first}</li>;
+   }
+
+   export default function App() {
+     const [items, setItems] = useState(["A", "B"]);
+     return (
+       <>
+         <button onClick={() => setItems((xs) => ["Z", ...xs])}>头部插入</button>
+         <ul>{items.map((n, i) => <Row key={i} name={n} />)}</ul>
+       </>
+     );
+   }
+   ```
+
+   点一次按钮前，先写下三行会显示什么；再把 `key={i}` 改成 `key={n}` 重新试。
+
+   验证：`key={i}` 时显示 `Z:A`、`A:B`、`B:B`；`key={n}` 时显示 `Z:Z`、`A:A`、`B:B`。
+
+   参考答案：按 index 认身份，原来第 0 个实例（state 是 `A`）现在拿到了 `Z` 的 props，状态和数据错位；只有第 2 个是新挂载的。用来自数据的稳定 key，每个实例跟着自己的数据走。
+
+2. **在组件里定义组件**：
+
+   ```tsx
+   export default function App() {
+     const [tick, setTick] = useState(0);
+     function Counter() {
+       const [c, setC] = useState(0);
+       return <button onClick={() => setC(c + 1)}>计数 {c}</button>;
+     }
+     return (
+       <>
+         <Counter />
+         <button onClick={() => setTick(tick + 1)}>父组件重渲染 {tick}</button>
+       </>
+     );
+   }
+   ```
+
+   先把「计数」点到 2，再点一次「父组件重渲染」，预测计数显示什么；然后把 `Counter` 挪到 `App` 外面重试。
+
+   验证：定义在里面时计数回到 `0`；挪到外面后保持 `2`。
+
+   参考答案：每次 `App` 渲染 `Counter` 都是新函数，`type` 不相等，React 按「类型不同就重建」销毁旧实例。`eslint-plugin-react-hooks` 的 `static-components` 规则会在编辑器里直接标出这种写法。
+
+3. **children 让子树跳过渲染**：写一个在函数体里 `console.log("Expensive render")` 的 `Expensive` 组件，再写一个有折叠状态的 `Layout`，比较两种写法下点两次「切换」后打印了几次：
+
+   ```tsx
+   // 写法 A：<Layout><Expensive /></Layout>，Layout 里渲染 {children}
+   // 写法 B：Layout 里直接写 <Expensive />
+   ```
+
+   验证：写法 A 只有挂载时的 1 次；写法 B 共 3 次（挂载 1 次、每次切换 1 次）。
+
+   参考答案：写法 A 里 `<Expensive />` 元素由 `App` 创建，`Layout` 自己 setState 时这个元素引用没变，满足 bailout 条件；写法 B 每次 `Layout` 渲染都生成新元素，props 是新对象，只能跟着重渲染。

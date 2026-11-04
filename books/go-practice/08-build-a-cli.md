@@ -519,3 +519,33 @@ Go CLI 的分发方式比 Node CLI 多，也简单：
 - 用 `fs.FS` 而不是路径作为参数，生产用 `os.DirFS`，测试用 `fstest.MapFS`
 - 并发检查、按下标收集、顺序输出；stdout 放结果，stderr 放诊断
 - Go CLI 的优势是零依赖分发和几乎为零的启动时间；重写已有工具前先算清维护两份实现的代价
+
+## 动手练习
+
+1. **RE2 不认环视**：从 JS 搬一条带否定前瞻的正则过来，运行前预测结果：
+
+   ```go
+   _, err := regexp.Compile(`^(?!draft-)[a-z-]+$`)
+   fmt.Println(err)
+   ```
+
+   验证：输出以 `error parsing regexp: invalid or unsupported Perl syntax` 开头，后面指出出问题的是 `(?!`。如果用的是 `regexp.MustCompile`，程序会在启动时 panic。改写成「先 `slugRe.MatchString(id)`，再 `!strings.HasPrefix(id, "draft-")`」两步判断即可。
+
+   参考答案：Go 的 `regexp` 是 RE2，为了保证线性时间不支持环视和反向引用；需要这类逻辑时拆成几次普通匹配加字符串函数。
+
+2. **预测 LintChapter 的报告**：把本章 `lint.go` 前半部分拼起来（`LintChapter` 和 `Problem`），在 `main` 里对下面两段文本各调用一次，`assets` 传 `map[string]bool{"assets/a.svg": true}`，预测会打印哪几条问题。
+
+   ```go
+   text1 := "# 第一章\n\n```\n# 不是标题\n```\n\n![图](./assets/a.svg)\n\n`![x](y.png)`\n"
+   text2 := "# 第一章\n\n````markdown\n```go\nx\n```\n````\n# 第二章\n"
+   ```
+
+   验证：第一段只有 `01.md:3 代码块没有标注语言`；第二段只有 `有 2 个 H1，每章只能有一个`。
+
+   参考答案：代码块里的 `# 不是标题` 不算 H1；`./assets/a.svg` 经 `path.Clean` 后是 `assets/a.svg`，存在；行内代码里的图片语法先被 `inlineRe` 去掉了。第二段用四个反引号的外层围栏包住三个反引号的内层，内层那一行长度不够，不会结束外层代码块，所以 `go` 那一行不触发检查；真正的两个 H1 都在代码块外。
+
+3. **flag 在第一个位置参数处停下**：用 `flag.NewFlagSet(..., flag.ContinueOnError)` 定义 `-j`，解析失败时 `os.Exit(2)`，最后打印 `*jobs` 和 `fs.Args()`。依次运行 `./cli -j abc`、`./cli -j=3 books`、`./cli books -j 3`，预测三次结果。
+
+   验证：第一次打印 `invalid value "abc" for flag -j: parse error` 和用法说明，`echo $?` 为 `2`；第二次输出 `3 [books]`；第三次输出 `4 [books -j 3]`（4 是默认值）。
+
+   参考答案：标准库 `flag` 遇到第一个非选项参数就停止解析，后面的 `-j 3` 被当成普通参数。这和很多 Node CLI 库的习惯不同，选项要写在位置参数前面；需要任意位置的选项时换 cobra。

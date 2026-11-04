@@ -228,3 +228,44 @@ flowchart TB
 - 多用户系统里用户身份由代码注入、不经过模型，用当前用户的权限执行，防止混淆代理
 - 预算（轮数、花费、频率、影响范围、时长）也是权限，触顶时停下并汇报
 - 授权要有时效：令牌过期、会话级批准、定期复查
+
+## 动手练习
+
+1. **给路径和 URL 策略写测试**：把本章的 `policy/rules.ts` 存成 `rules.ts`，设 `AGENT_WORKSPACE` 为一个空目录，先预测下面每个输入的结果，再运行验证。
+
+   ```typescript
+   import { checkWritePath, checkFetchUrl } from './rules.ts';
+   for (const p of ['src/a.ts', '../x', 'src/../.git/hooks/pre-commit', '.claude/settings.json', 'config/.env.local'])
+     console.log(p, checkWritePath(p).ok);
+   for (const u of ['https://nodejs.org/api', 'https://nodejs.org.evil.example/x', 'http://nodejs.org/', 'https://u:p@nodejs.org/'])
+     console.log(u, checkFetchUrl(u).ok);
+   ```
+
+   验证：路径只有 `src/a.ts` 是 `true`；URL 只有 `https://nodejs.org/api` 是 `true`。
+
+   参考答案：`src/../.git/hooks/...` 先被解析成绝对路径才判断，所以绕不过；`nodejs.org.evil.example` 用 `URL` 解析出完整主机名后不在集合里。如果用字符串 `startsWith('https://nodejs.org')` 判断，这一条就会被放过。
+
+2. **在数据库里验证只读角色和行级安全**：用 Docker 起一个 PostgreSQL（`docker run -d --name pg -e POSTGRES_PASSWORD=pw postgres:17`），用超级用户建表、角色和策略：
+
+   ```sql
+   CREATE TABLE purchase_orders (id int, store_id text, amount int);
+   INSERT INTO purchase_orders VALUES (1, 'A', 100), (2, 'B', 200);
+   CREATE ROLE agent_readonly LOGIN;
+   GRANT SELECT ON purchase_orders TO agent_readonly;
+   ALTER ROLE agent_readonly SET default_transaction_read_only = on;
+   ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY iso ON purchase_orders FOR SELECT TO agent_readonly
+     USING (store_id = current_setting('app.store_id'));
+   ```
+
+   然后用 `docker exec -it pg psql -U agent_readonly -d postgres` 登录，依次执行：不设变量直接 `SELECT * FROM purchase_orders;`；`SELECT set_config('app.store_id', 'A', false);` 后再查；`INSERT INTO purchase_orders VALUES (3, 'A', 1);`；最后把变量改成 `'B'` 再查。
+
+   验证：第一次查询报 `unrecognized configuration parameter "app.store_id"`；设为 A 后只返回 id 为 1 的行；INSERT 报错（只读事务或权限不足）；改成 B 后返回 id 为 2 的行。
+
+   参考答案：最后一步就是本章说的漏洞：会话变量由被约束的一方自己就能改。所以门店 id 只能由工具代码在事务里设置，不能让模型写 SQL。用完 `docker rm -f pg`。
+
+3. **找出混淆代理**：一个多门店助手的工具定义是 `query_orders({ storeId: string, from: string, to: string })`，description 写着「storeId 填当前用户的门店」。指出问题并给出改法。
+
+   验证：改完后，工具的 `input_schema` 里不再出现任何身份字段。
+
+   参考答案：门店 id 由模型填写，一次注入或误判就能查到别的门店。改成 `query_orders({ from, to })`，执行层从登录态取出 storeId 注入，数据库侧再用行级安全兜底。

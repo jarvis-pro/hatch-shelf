@@ -294,3 +294,23 @@ docker logs --since 10m <容器名>
 - logrotate 轮转文本日志，轮转后要通知程序重新打开文件，否则它会继续写旧 inode
 - Docker 的 json-file 日志默认不限大小，务必配 `max-size` / `max-file`
 - 应用日志写 stdout、用 JSON、带请求 ID、不记密钥
+
+## 动手练习
+
+1. **改名后还在写旧文件**：在一个临时目录里执行 `bash -c 'exec >>app.log; while sleep 1; do date; done' &`，几秒后 `mv app.log app.log.1`，再等几秒。
+
+   验证：`ls` 里没有新的 `app.log`；隔几秒执行两次 `wc -l app.log.1`，行数还在增长。做完 `kill %1`。
+
+   参考答案：进程持有的文件描述符指向 inode，改名不影响它。这就是 logrotate 需要 `postrotate` 通知程序重新打开文件，或者退而用 `copytruncate` 的原因。
+
+2. **stderr 会记成 err 级别**：在带 systemd 的一次性虚拟机里（如 `multipass launch 24.04 --name lab`）执行 `sudo systemd-run --unit=logtest bash -c 'echo to-stdout; echo to-stderr >&2'`，然后分别看 `journalctl -u logtest -o cat` 和 `journalctl -u logtest -p err -o cat`。
+
+   验证：第一条两行都有；加了 `-p err` 只剩 `to-stderr`。
+
+   参考答案：journald 把服务的 stdout 记为 info（6），stderr 记为 err（3）。应用把真正的错误写 stderr，`-p err` 就能快速筛出来。
+
+3. **给容器日志封顶**：执行 `docker run -d --name chatty --log-opt max-size=1m --log-opt max-file=2 alpine sh -c 'while true; do echo 0123456789abcdef0123456789abcdef; done'`，过半分钟执行几次 `docker logs chatty 2>/dev/null | wc -c`。
+
+   验证：数字涨到某个不超过 2MB 的值后就不再上涨，只在这附近波动（磁盘上的文件是 JSON 包装过的，比纯文本内容大）。做完 `docker rm -f chatty`。
+
+   参考答案：json-file 驱动按 `max-size` 切文件、只保留 `max-file` 个，总量封顶。不加这两个参数，同样的容器会一直写下去，直到占满磁盘。

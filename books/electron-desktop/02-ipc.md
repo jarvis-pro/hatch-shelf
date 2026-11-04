@@ -220,3 +220,23 @@ IPC 适合小消息。要在进程间搬大块数据：
 - 按**业务能力**设计 IPC，参数用枚举和 ID，路径由主进程拼
 - 跨进程的 ID 要有唯一发号方；进度推送要节流；推送监听要能解绑，别把 `event` 透传给页面
 - 大块数据走自定义协议或 `MessagePort`，不走普通 IPC
+
+## 动手练习
+
+1. **抛错过桥会变形**：主进程写 `ipcMain.handle('boom', () => { const e = new Error('not here'); (e as any).code = 'E_NOT_FOUND'; throw e; })`，preload 暴露 `boom: () => ipcRenderer.invoke('boom')`，页面里 `try { await window.api.boom() } catch (e) { console.log(e.message, e.code) }`。
+
+   验证：`message` 带上了 `Error invoking remote method 'boom'` 前缀，`code` 是 `undefined`。
+
+   参考答案：错误过桥时被重新包装，自定义字段丢失。要让页面区分错误类型，改成返回 `{ ok: false, code }` 这样的判别联合。
+
+2. **什么过不了桥**：让一个 handler 分别返回 `{ at: new Date(), bytes: new Uint8Array([1, 2]) }`、`{ fn: () => 1 }` 和一个自定义类的实例 `new Point(1, 2)`，在页面里打印结果和 `instanceof`。
+
+   验证：第一个原样到达（`Date` 和 `Uint8Array` 类型保留）；第二个调用失败，报错说对象无法克隆；第三个到达后是普通对象，属性还在、方法没了。
+
+   参考答案：IPC 走结构化克隆，函数不能克隆，类实例会丢掉原型。这就是 `Response`、`AbortSignal` 要拆成「线上格式」的原因。
+
+3. **监听器泄漏**：preload 暴露一个**不返回取消函数**的 `onTick(cb)`（内部 `ipcRenderer.on('tick', (_e, n) => cb(n))`），主进程每秒 `win.webContents.send('tick', n++)`。在一个 React 组件的 `useEffect` 里注册并 `console.log`，保存文件触发几次热更新。然后按本章写法改成返回取消函数，在 effect cleanup 里调用。
+
+   验证：改之前，每秒打印的行数随热更新次数增加（开发模式下 StrictMode 一开始就是两行）；改之后稳定为每秒一行。
+
+   参考答案：`ipcRenderer.on` 注册的监听不会随组件卸载自动移除，必须由 preload 返回解绑函数，并且只把数据而不是 `event` 交给页面。

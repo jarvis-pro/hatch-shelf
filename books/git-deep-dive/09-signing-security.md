@@ -231,3 +231,28 @@ gitleaks git --redact --no-banner .
 - 签名证明「持有私钥的人做的」，不证明内容没问题
 - 密钥泄露的顺序：作废轮换 → 评估暴露窗口 → 修复使用方 → 视情况清理历史 → 加防线
 - 改写历史不能让泄露的密钥变安全；防线是 `.gitignore` 先行、提交前扫描、推送保护和 CI 兜底
+
+## 动手练习
+
+1. **只在练习仓库里签名**：在临时目录用 `ssh-keygen -t ed25519 -N '' -f key` 生成一把实验密钥，在新仓库里用**本地**配置（不加 `--global`）设置 `gpg.format ssh`、`user.signingkey`、`commit.gpgsign true` 和指向临时 allowed signers 文件的 `gpg.ssh.allowedSignersFile`。提交一次，再用 `-c commit.gpgsign=false` 提交一次。
+
+   验证：`git log --format='%h %G? %s'` 两行分别是 `G` 和 `N`。
+
+   参考答案：allowed signers 里那一行的邮箱要和 `user.email` 一致，否则状态是 `U` 而不是 `G`。用本地配置是为了不影响你真实的全局签名设置。
+
+2. **篡改一个已签名的提交**：把上一题签了名的提交原样取出、只改消息，写成一个新对象，再验证它。
+
+   验证：`git log -1 --format=%G? <新 ID>` 输出 `B`；`git verify-commit <新 ID>` 报 `incorrect signature`，退出码 1。
+
+   参考答案：签名覆盖整个提交对象，`gpgsig` 头原样保留但内容变了，验证必然失败：
+
+   ```bash
+   git cat-file commit HEAD~1 | sed 's/^signed$/signed!/' \
+     | git hash-object -t commit -w --stdin
+   ```
+
+3. **算暴露窗口**：在练习仓库提交一个内容为 `KEY=AKIAABCDEFGHIJKLMNOP` 的 `.env`（假值），下一个提交再 `git rm` 它。用本章第二步的两条命令找出它进入和离开历史的提交。
+
+   验证：`git log --all -S AKIAABCDEFGHIJKLMNOP --format='%h %ad %s' --date=iso` 输出两行：加入它的提交和删除它的提交；最新的工作区里已经没有 `.env`，但 `git show <加入它的提交>:.env` 仍能读出这个值。
+
+   参考答案：两行之间的时间（如果推送过，从第一次推送算起）就是暴露窗口。删掉文件只是让后续快照不再包含它，所以第一步永远是作废密钥。

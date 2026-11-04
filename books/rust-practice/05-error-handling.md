@@ -376,3 +376,30 @@ fn check_book(dir: &Path) -> Result<CheckedBook, LoadError> {
 - 自定义错误 = 枚举 + `Display` + `std::error::Error` + `From`；thiserror 用派生宏生成这些样板
 - 库用 thiserror 暴露可 `match` 的具体错误，应用用 anyhow 加 `context` 一路传到顶层
 - 致命问题用 `Err` 中断，可收集的问题作为数据返回，一次报告给用户
+
+## 动手练习
+
+1. **在 main 里用 ?**：从下面的代码开始，预测 `cargo check` 的结果，再把 `main` 的签名改成 `fn main() -> Result<(), Box<dyn std::error::Error>>`、末尾加 `Ok(())`，然后 `cargo run; echo $?`。
+
+   ```rust
+   fn main() {
+       let n: u32 = "4x".parse()?;
+       println!("{n}");
+   }
+   ```
+
+   验证：第一次报 `error[E0277]`，说明 `?` 只能用在返回 `Result` 或 `Option` 的函数里。改完后编译通过，运行输出 `Error: ParseIntError { kind: InvalidDigit }`，`echo $?` 是 `1`。
+
+   参考答案：`?` 失败时要从当前函数返回错误，`main` 默认返回 `()`，没地方放。`main` 返回 `Err` 时，Rust 用错误的 `Debug` 格式打印并以退出码 1 结束；要更友好的输出，改用 anyhow。
+
+2. **组合子链的四种输入**：把本章的 `concurrency()` 放进 `main` 打印出来，分别用 `cargo run`、`SHELF_JOBS=8 cargo run`、`SHELF_JOBS=abc cargo run`、`SHELF_JOBS=0 cargo run` 运行，先写下四个预测值。
+
+   验证：依次输出 `4`、`8`、`4`、`4`。
+
+   参考答案：没设变量时 `.ok()` 得到 `None`；`abc` 解析失败，`.and_then(|s| s.parse().ok())` 得到 `None`；`0` 能解析但被 `.filter(|&n| n > 0)` 过滤掉；只有 `8` 一路走到最后。整条链没有一个 `match`，也不会 panic。
+
+3. **context 到底加了什么**：`cargo add anyhow serde --features serde/derive` 和 `cargo add serde_yaml`，把本章 anyhow 一节的 `count_chapters` 和 `main` 放进项目（`BookManifest` 用第 4 章的定义），在一个没有 `books/` 目录的地方运行。然后删掉读文件那一行的 `.with_context(...)` 再运行一次。
+
+   验证：第一次输出 `Error: 读取 books/rust-practice/book.yaml 失败`，下面有 `Caused by:` 和 `No such file or directory (os error 2)`；删掉 context 后只剩 `Error: No such file or directory (os error 2)`，看不出是哪个文件。
+
+   参考答案：`io::Error` 本身不带路径，`with_context` 在错误链上加了一层说明。应用代码里每个 `?` 前面都值得想一下：出错时用户需要知道什么。

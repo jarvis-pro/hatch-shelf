@@ -265,3 +265,23 @@ flowchart TD
 - workflow 基本功：`--frozen-lockfile`、最小 `permissions`、`concurrency`、`timeout-minutes`、composite action 复用安装步骤
 - 发版流水线：不可逆的事（tag、推 main）排在最后；所有 job 钉同一个 SHA；验证痕迹而不是信退出码；关键凭证缺失必须红
 - 能不把生产机的 ssh 私钥放进 CI 就不放，拉模式部署是一个人也负担得起的替代方案
+
+## 动手练习
+
+1. **`--frozen-lockfile` 拦下没提交的依赖变更**：在一个 pnpm 小项目里先 `pnpm install` 生成 lockfile，然后手动编辑 `package.json`，在 `dependencies` 里加一行 `"ms": "^2.1.3"`（不跑 install），再运行 `pnpm install --frozen-lockfile; echo "exit=$?"`。
+
+   验证：报 `ERR_PNPM_OUTDATED_LOCKFILE`，`exit` 非 0，`pnpm-lock.yaml` 没有被改动（`git diff --stat` 里没有它）。
+
+   参考答案：CI 装的必须是本机测过的那套依赖；不加这个参数时 pnpm 会顺手更新 lockfile，CI 测的就变成了一份你没见过的依赖组合。
+
+2. **看痕迹：用 `git ls-remote --exit-code` 判断 tag 在不在**：用本地裸仓库代替 GitHub：`git init --bare /tmp/origin.git`，在一个测试仓库里 `git remote add origin /tmp/origin.git`、提交一次并 `git push origin HEAD:main`，打一个 `api-v0.1.0` 只在本地不推送。分别运行 `git ls-remote --exit-code --tags origin refs/tags/api-v0.1.0; echo $?`，推送 tag 后再运行一次。
+
+   验证：推送前退出码是 `2`、没有输出；推送后打印一行 `<sha>	refs/tags/api-v0.1.0`，退出码 `0`。
+
+   参考答案：`--exit-code` 让「远端没有匹配的引用」变成非 0 退出码，正好用来替代「相信上一步的退出码」。把本章那段 `if ! git ls-remote ...` 放进脚本，在推送前后各跑一次，应该一次红一次绿。
+
+3. **最便宜的 CI：pre-push 钩子**：在上一题的测试仓库里 `pnpm add -D lefthook`，写本章的 `lefthook.yml`（`test` 改成一条必然失败的命令，如 `run: exit 1`），`pnpm exec lefthook install` 后 `git push origin HEAD:main`，再用 `git push --no-verify origin HEAD:main` 推一次。
+
+   验证：第一次推送被钩子拦下，输出里能看到 `test` 那条命令失败，远端 main 没变（`git ls-remote origin main` 的 sha 没变）；加 `--no-verify` 后推送成功。
+
+   参考答案：钩子在本机执行，能被 `--no-verify` 跳过，所以它是提醒不是保证；一旦有别人或后台 agent 往仓库推代码，就需要 GitHub 那侧的检查来兜底。

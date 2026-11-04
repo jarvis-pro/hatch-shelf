@@ -222,3 +222,34 @@ PostgreSQL 的表是**堆**：行按插入的先后放，所有索引（包括�
 - 覆盖索引能免掉回表，但依赖 VACUUM 维护的可见性映射，而且不能去重、体积大
 - 每个索引都有写入代价；随机 UUID 比递增键让索引更大
 - 条件里别对列做运算，先改写成范围；改写不了再用表达式索引
+
+## 动手练习
+
+1. **联合索引的列顺序**：在 `pg-lab` 容器里造一张 100 万行的简化销售表，然后对「店 7 三月合计」分别在无索引、`(store_id, sale_date)`、`(sale_date, store_id)` 三种情况下跑 `explain (analyze, buffers)`（每换一种，先 `drop index` 上一个）。
+
+   ```sql
+   create table sales as
+     select g as id, (g % 50) as store_id,
+            date '2025-01-01' + (g / 50) % 600 as sale_date,
+            (random() * 6000)::int as amount_cents
+     from generate_series(1, 1000000) g;
+   analyze sales;
+   explain (analyze, buffers) select sum(amount_cents) from sales
+   where store_id = 7 and sale_date between '2026-03-01' and '2026-03-31';
+   ```
+
+   验证：无索引时是 `Seq Scan`（可能在 `Gather` 下并行）；有 `(store_id, sale_date)` 时出现 `Bitmap Index Scan on ...`，`Buffers` 里的页数明显下降。换成 `(sale_date, store_id)` 后，对比 `Index Cond` 和 Bitmap Index Scan 那一行的 `Buffers`，看索引部分读了多少页。
+
+   参考答案：等值列在前时命中的是一段连续的叶子；范围列在前时，三月里每一天都要在叶子里跳到店 7 那一小段，索引页读得更多。
+
+2. **Heap Fetches 和 VACUUM**：在上一题的表上建 `create index sales_cover on sales (store_id, sale_date) include (amount_cents);`，执行 `vacuum analyze sales;` 后再跑同一条 `explain (analyze, buffers)`。然后 `update sales set amount_cents = amount_cents + 1 where store_id = 7;`，不做 VACUUM，再跑一次；最后 `vacuum sales;` 再跑一次。
+
+   验证：第一次是 `Index Only Scan using sales_cover`，`Heap Fetches: 0`；更新之后 `Heap Fetches` 变成一个不小的数（或者计划换成了别的扫描）；再 VACUUM 后回到 0。
+
+   参考答案：仅索引扫描要靠可见性映射确认表页「全部可见」才能跳过回表，刚被更新过的页失去了这个标记，VACUUM 之后才恢复。
+
+3. **函数包住列**：确保表上有以 `(store_id, sale_date)` 开头的索引（第 2 题的 `sales_cover` 也可以），对比 `where store_id = 7 and to_char(sale_date, 'YYYY-MM') = '2026-03'` 和 `where store_id = 7 and sale_date >= '2026-03-01' and sale_date < '2026-04-01'` 的计划。
+
+   验证：前者的 `Index Cond` 里只有 `store_id`，日期条件出现在 `Filter` 里，并有一行很大的 `Rows Removed by Filter`；后者两个条件都在 `Index Cond` 里，没有 `Rows Removed by Filter`。
+
+   参考答案：索引按 `sale_date` 本身排序，不按 `to_char(...)` 的结果排序，所以被函数包住的条件只能取出行后再过滤。改写成对列本身的半开区间即可。

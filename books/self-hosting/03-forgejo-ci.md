@@ -307,3 +307,30 @@ job 容器里要能执行 `docker build`，需要能连上 dind。这一点在 r
 - runner 用独立的 Docker-in-Docker，不挂宿主机的 docker.sock；工具机上同时只跑一个 job
 - 境内 runner 推镜像走同地域的内网地址，发版流水线不再受跨境网络影响
 - 搬迁分两步：先并行跑 CI，再迁发版；GitHub 的工作流禁用而不删除，作为后备
+
+## 动手练习
+
+1. **环境变量会写进 app.ini**：在本机起一个一次性的 Forgejo（用内置 SQLite 即可）：`docker run -d --name fj -p 3000:3000 -e FORGEJO__service__DISABLE_REGISTRATION=true -e FORGEJO__service__REQUIRE_SIGNIN_VIEW=true codeberg.org/forgejo/forgejo:<从官方发布页选的版本号>`。打开 `http://localhost:3000` 完成安装向导并创建管理员，然后执行 `docker exec fj grep -A3 '^\[service\]' /data/gitea/conf/app.ini`，再用浏览器的无痕窗口打开 `http://localhost:3000/user/sign_up`。
+
+   验证：`app.ini` 的 `[service]` 节里有 `DISABLE_REGISTRATION = true` 和 `REQUIRE_SIGNIN_VIEW = true`；注册页提示注册已关闭。做完 `docker rm -f fj`。
+
+   参考答案：`FORGEJO__节__键` 形式的变量在容器启动时写进 `app.ini`，配置留在 compose 里，换机器时不用进容器改文件。（配置文件路径沿用了 Gitea 的目录名，不同版本可能调整，找不到时用 `docker exec fj find /data -name app.ini`。）
+
+2. **dind 看不到宿主机的容器**：保持上题的 `fj` 容器运行。先执行 `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:cli docker ps --format '{{.Names}}'`；再起一个独立的 dind：
+
+   ```bash
+   docker network create ci
+   docker run -d --privileged --name dind --network ci -e DOCKER_TLS_CERTDIR= docker:dind
+   sleep 5
+   docker run --rm --network ci -e DOCKER_HOST=tcp://dind:2375 docker:cli docker ps --format '{{.Names}}'
+   ```
+
+   验证：挂 socket 的那条列出了 `fj` 等宿主机上的全部容器；连 dind 的那条什么都没有。做完 `docker rm -f dind && docker network rm ci`。
+
+   参考答案：CI 任务拿到宿主机的 socket 就能操作工具机上的所有服务；连独立的 dind，它只能看到自己起的容器。练习里为了省事关了 dind 的 TLS，正文的配置是开着的。
+
+3. **主副本挂了时的后备 remote**：用两个本地裸仓库模拟 Forgejo 和 GitHub：`git init --bare /tmp/fj.git && git init --bare /tmp/gh.git`；在一个新仓库里 `git remote add origin /tmp/fj.git && git remote add github /tmp/gh.git`，提交一次并推到两边。然后 `mv /tmp/fj.git /tmp/fj.down` 模拟工具机故障，再提交一次，`git push origin main` 和 `git push github main` 各试一次；最后 `mv /tmp/fj.down /tmp/fj.git` 恢复，再 `git push origin main`。
+
+   验证：故障期间推 `origin` 失败、推 `github` 成功；恢复后推 `origin` 成功，`git ls-remote origin main` 和 `git ls-remote github main` 输出的提交哈希相同。
+
+   参考答案：保留一个指向异地副本的 remote，工具机坏的那几天照常工作；恢复后再推回主副本，两边就对齐了。真实环境里这一步由 Forgejo 的推送镜像自动完成。

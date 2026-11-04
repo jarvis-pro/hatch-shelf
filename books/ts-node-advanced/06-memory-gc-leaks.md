@@ -269,3 +269,32 @@ services:
 - 高发模式：无上限缓存、不移除的监听器、不清理的定时器、闭包捕获、永不结束的 Promise
 - 排查：确认趋势 → 三次堆快照 → Comparison 视图找增量 → Retainers 找引用链
 - 容器里显式设置 `--max-old-space-size`，为堆外内存留余量
+
+## 动手练习
+
+1. **从 --trace-gc 里认出泄漏**：用本章的 `leak.mjs`，分别运行 `node --trace-gc leak.mjs leak` 和 `node --trace-gc leak.mjs ok`，只看 `Scavenge` 行里 `->` 后面的数字。
+
+   验证：`ok` 模式下每次回收后都回到 3–4 MB 左右；`leak` 模式下回收前后几乎一样，而且一路涨到七十多 MB。两次运行最后打印的 `samples` 数组和本章的图一致。
+
+   参考答案：正常的临时对象在新生代就死了，回收后内存回落；泄漏的对象一直被 `cache` 引用，回收也收不掉。判断泄漏看的是「回收后的值」，不是峰值。
+
+2. **让泄漏撞墙**：运行 `node --max-old-space-size=32 leak.mjs leak`，再运行 `node --max-old-space-size=32 leak.mjs ok`。
+
+   验证：`leak` 模式在打印出 `samples` 之前崩溃，stderr 里有 `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory`；`ok` 模式正常打印一串 4 左右的数字。
+
+   参考答案：堆上限压低后，泄漏几秒钟就能复现成一次明确的崩溃。复现长时间才出现的泄漏时，压低上限是加快反馈的好办法；生产里设对 `--max-old-space-size` 也是为了得到这种明确的错误，而不是被内核悄悄杀掉。
+
+3. **修好监听器泄漏**：运行本章的 `listeners.ts`，确认看到 `MaxListenersExceededWarning` 和 `listeners: 20`。然后改成每个请求结束时移除自己的监听器：
+
+   ```ts
+   function handleRequest(id: number) {
+     const onChange = () => console.log(`request ${id} sees new config`);
+     bus.on("config-changed", onChange);
+     return () => bus.off("config-changed", onChange); // 请求结束时调用
+   }
+   for (let i = 0; i < 20; i++) handleRequest(i)();
+   ```
+
+   验证：警告消失，输出 `listeners: 0`。
+
+   参考答案：`off` 要拿到同一个函数引用，所以监听器要先存进变量。只想响应一次的用 `once`；要批量取消时用 `AbortSignal` 配合 `events.on` / `addEventListener` 一类支持 `signal` 的接口（`EventEmitter.prototype.on` 本身不接受 `signal` 选项）。

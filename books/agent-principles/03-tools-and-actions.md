@@ -132,3 +132,46 @@ sequenceDiagram
 - 通用工具（bash）覆盖面广，专用工具更可控、更可观测，两者搭配使用
 - 按副作用给工具分级：只读、可逆写、难逆、外部可见、不可逆，分级决定权限策略
 - 工具过多时要按需加载；深入的工具设计见《工具设计与 MCP》
+
+## 动手练习
+
+1. **用工具 schema 约束结构化输出**（需要 API key）：定义一个 `submit_receipt` 工具，参数是 `items` 数组（每项含 `name`、`qty`、`price`），用 `tool_choice` 强制模型调用它，输入一段文字进货单「可乐 24 瓶 每瓶 2.5 元；薯片 10 包 每包 6 元」。
+
+   ```typescript
+   const res = await client.messages.create({
+     model: process.env.MODEL!, max_tokens: 1024,
+     tools: [{ name: "submit_receipt", description: "提交识别出的进货明细",
+       input_schema: { type: "object", required: ["items"], properties: { items: { type: "array",
+         items: { type: "object", required: ["name", "qty", "price"], properties: {
+           name: { type: "string" }, qty: { type: "number" }, price: { type: "number" } } } } } } }],
+     tool_choice: { type: "tool", name: "submit_receipt" },
+     messages: [{ role: "user", content: "可乐 24 瓶 每瓶 2.5 元；薯片 10 包 每包 6 元" }],
+   });
+   console.log(JSON.stringify(res.content.find((b) => b.type === "tool_use")?.input));
+   ```
+
+   验证：打印出的 JSON 有两项，`qty` 和 `price` 是数字而不是字符串。
+
+   参考答案：schema 是模型每轮都看到的约束，比在 prompt 里描述 JSON 格式更可靠；程序拿到的是已经结构化的参数。
+
+2. **给工具输出加截断**：写一个 `readLog(path, offset = 0)`，默认只返回最后 200 行，并在开头告诉模型总行数和如何翻页。用 `seq 1 50000 > big.log` 造一个测试文件。
+
+   ```javascript
+   import { readFileSync } from "node:fs";
+   export function readLog(path, offset = 0) {
+     const lines = readFileSync(path, "utf8").trimEnd().split("\n");
+     const end = lines.length - offset, start = Math.max(0, end - 200);
+     return `共 ${lines.length} 行，显示第 ${start + 1}-${end} 行；用 offset 参数向前翻页。\n`
+       + lines.slice(start, end).join("\n");
+   }
+   ```
+
+   验证：`readLog("big.log")` 第一行是「共 50000 行，显示第 49801-50000 行…」，最后一行是 `50000`；`offset = 200` 时最后一行是 `49800`。
+
+   参考答案：控制体积并告诉模型还有多少、怎么拿，模型就不会被一次性灌满上下文，也知道下一步该怎么做。
+
+3. **给命令标副作用等级**：按本章的五级分类，给这些操作分级：`git status`、`pnpm test`、`sed -i` 改一个已提交的文件、`git reset --hard`、`git push`、`npm publish`、向 Slack webhook 发一条 POST。
+
+   验证：写出每项的等级和默认策略，再对照本章表格。
+
+   参考答案：`git status`、`pnpm test` 只读（测试会写缓存，但不改源码）；`sed -i` 改已提交文件是本地可逆写；`git reset --hard` 本地难逆，会丢未提交的改动；`git push` 和 Slack POST 外部可见；`npm publish` 接近不可逆外部（已发布的版本号不能复用），应严格人工审批。

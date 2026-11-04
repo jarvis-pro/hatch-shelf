@@ -259,3 +259,23 @@ const res = await client.messages.create({
 - 新一代 Claude 不支持强制工具调用，改用 prompt 指示 + 检查结果
 - 工具结果精简、可读、错误可操作；写操作分级，危险操作要人确认，写类工具要幂等
 - 能用固定流程解决的就不要上 Agent
+
+## 动手练习
+
+1. **模型填不了门店 ID**：用本章的 `QueryStockIn` schema 解析一个带了额外字段的输入：`{ item: "白菜", from: "2026-11-01", to: "2026-11-07", storeId: "隔壁店" }`，打印结果。
+
+   验证：输出里只有 `item`、`from`、`to` 三个键，没有 `storeId`。
+
+   参考答案：Zod 的 `z.object` 默认丢弃未声明的键，`executeTool` 里的门店 ID 只能来自 `currentStoreId()`。想让多余字段直接报错，可以改用 `z.strictObject`，再观察 `parse` 抛出的错误。
+
+2. **最大步数兜底**（需要 API key）：把 `executeTool` 改成永远返回「数据还在同步，请稍后再查一次」，`MAX_STEPS` 设为 3，问「上周白菜进了多少斤？」，在每轮循环里打印 `stop_reason`。
+
+   验证：观察模型是否连续发起 `tool_use`。如果三轮都在调用，函数抛出「工具调用超过 3 步仍未结束」；如果模型中途放弃并直接回答，打印出的最后一个 `stop_reason` 是 `end_turn`。
+
+   参考答案：无论模型怎么表现，上限都保证请求不会无休止地调用下去。生产代码里还要把触顶次数记进日志，它往往意味着工具设计或描述有问题。
+
+3. **给工具分级**：下面五个工具分别属于本章「读写分离」表里的哪一级？`list_suppliers`（列出供货商）、`create_draft_order`（生成进货草稿）、`send_staff_notice`（给员工发通知）、`delete_receipt`（删除一张单据）、`get_today_sales`（查今日营业额）。
+
+   验证：对照本章的三级表格，每个工具都能说出「直接执行」「执行后可撤销」「先给用户确认」中的一个，并说出理由。
+
+   参考答案：`list_suppliers`、`get_today_sales` 只读；`create_draft_order` 是可撤销的写；`send_staff_notice` 发出去收不回，`delete_receipt` 不可撤销，两者都要先返回待确认操作，由人点确认后再执行。

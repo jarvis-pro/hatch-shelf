@@ -233,3 +233,30 @@ mlx_lm.server --model mlx-community/<模型名>-4bit --port 8081   # OpenAI 兼�
 - Ollama 的 API 没有鉴权，暴露到局域网或服务器前要加防护
 - llama.cpp 用 `-c`、`-ngl`、`-np`、`-fa` 精细控制，用 `llama-bench` 测速
 - 18 GB 的 Mac 上 8B 是舒适档，14B 是上限；内存不够就降一档模型
+
+## 动手练习
+
+1. **复现静默截断**：用下面的脚本生成一份约 1 万字的长文，暗号放在最开头。写一个 Modelfile（`FROM qwen3:8b` 加 `PARAMETER num_ctx 2048`），`ollama create short-ctx -f Modelfile`，把 `long.txt` 的内容加上问题「文中的暗号是什么？」发给它；再把 `num_ctx` 改成 16384 重建一次，问同样的问题。
+
+   ```python
+   filler = "今天门店照常营业，进货单已核对完毕。" * 600
+   text = "暗号是：青柠檬七号。\n" + filler
+   open("long.txt", "w", encoding="utf-8").write(text)
+   print(len(text), "字")
+   ```
+
+   验证：`num_ctx 2048` 时模型答不出暗号或胡编一个，且请求没有任何报错；改成 16384 后能答出「青柠檬七号」。
+
+   参考答案：超出上下文的开头部分被截掉了，模型从未看到暗号。这就是正文说的第一大坑：长文档场景一定显式设置 `num_ctx`，再用 `ollama ps` 确认模型仍全部在 GPU 上。
+
+2. **同一段代码切两个后端**：把正文的 TypeScript 示例改成从环境变量读 `BASE_URL` 和 `MODEL`，先连 Ollama（`http://localhost:11434/v1`），再用 `llama-server -hf <仓库>-GGUF:Q4_K_M --port 8080` 起一个服务、把 `BASE_URL` 换成 `http://localhost:8080/v1` 再跑一次。
+
+   验证：两次都打印出中文回答，代码本身一行没改，只换了环境变量。
+
+   参考答案：两者都是 OpenAI 兼容接口，`baseURL` 和 `model` 是仅有的差异。`apiKey` 对两者都只是占位（llama-server 没加 `--api-key` 时不校验）。
+
+3. **测一测 GPU 层数的影响**：对同一个 GGUF 文件运行 `llama-bench -m <文件> -ngl 0,99`（逗号分隔表示分别测两组）。
+
+   验证：输出表里有 `-ngl 0` 和 `-ngl 99` 两组 `pp` 和 `tg` 数字，`-ngl 0`（全部在 CPU 上）的 `pp` 明显更低。
+
+   参考答案：预填充是计算密集的，CPU 上慢得多；生成速度也会下降，降多少取决于你的机器。这就是「部分层卸载到 CPU 速度明显下降」的直观版本。

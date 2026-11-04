@@ -219,3 +219,36 @@ echo | openssl s_client -connect api.example.com:443 -servername api.example.com
 - 80 端口块保留 `/.well-known/acme-challenge/`，其余 301 到 HTTPS
 - 发行版自带的老 nginx 不认 `http2 on;`，统一用 `listen 443 ssl http2` 更稳
 - 续期靠 certbot 定时器，**deploy hook 里 reload nginx** 是必需的一步；再加一层外部到期监控
+
+## 动手练习
+
+不需要域名，也不向真实 CA 申请：用自签证书在本机容器里练 TLS 配置。在[第 1 章的练习](01-config-model.md#动手练习)目录里生成证书，并多映射一个 443 端口重新起容器：
+
+```bash
+cd ~/nginx-lab && mkdir -p certs acme/.well-known/acme-challenge
+openssl req -x509 -newkey rsa:2048 -nodes -days 30 -keyout certs/key.pem -out certs/cert.pem \
+  -subj /CN=localhost -addext subjectAltName=DNS:localhost
+docker rm -f ng 2>/dev/null
+docker run --rm -d --name ng -p 8080:80 -p 8443:443 -v "$PWD/conf.d:/etc/nginx/conf.d:ro" \
+  -v "$PWD/certs:/etc/nginx/certs:ro" -v "$PWD/acme:/var/www/certbot:ro" nginx:1.27-alpine
+```
+
+系统自带的 openssl 不认 `-addext` 时，换用 Homebrew 装的 openssl。
+
+1. **配一个 443 server 块**：写一个 `listen 443 ssl;` 的 server，`ssl_certificate` 和 `ssl_certificate_key` 指向 `/etc/nginx/certs/` 下的两个文件，`location /` 里 `return 200 "tls ok\n";`。reload 后执行 `curl --cacert certs/cert.pem https://localhost:8443/`；再把 `listen 443 ssl;` 里的 `ssl` 去掉，reload 后重试。
+
+   验证：第一次输出 `tls ok`；去掉 `ssl` 后 curl 报 TLS 层的错误（常见字样是 `wrong version number`）。
+
+   参考答案：`listen` 不带 `ssl` 时这个端口说的是明文 HTTP，客户端用 TLS 去握手，读到的是一段 HTTP 文本，于是报版本号不对。
+
+2. **80 端口只做两件事**：写一个 80 端口的 server 块，`location /.well-known/acme-challenge/ { root /var/www/certbot; }`，其余 `return 301 https://$host$request_uri;`。执行 `echo token-abc > acme/.well-known/acme-challenge/t1`，然后 `curl -s localhost:8080/.well-known/acme-challenge/t1` 和 `curl -sI localhost:8080/foo`。
+
+   验证：第一条输出 `token-abc`；第二条状态码 `301`，`Location: https://localhost/foo`。
+
+   参考答案：挑战路径直接在 80 上服务，CA 不用跟随跳转；其余流量都去 HTTPS。`root` 加上 URI 才是磁盘路径，所以 webroot 目录下要有 `.well-known/acme-challenge/` 这一层。
+
+3. **换了证书不 reload 等于没换**：先记下当前证书的序列号 `openssl s_client -connect localhost:8443 -servername localhost </dev/null 2>/dev/null | openssl x509 -noout -serial`，然后用同样的 `openssl req` 命令重新生成 `certs/` 下的两个文件，再查一次；最后 `docker exec ng nginx -s reload` 后再查。
+
+   验证：重新生成后第二次查到的序列号和第一次相同；reload 之后才变成新的。
+
+   参考答案：nginx 启动和 reload 时把证书读进内存，磁盘上的文件换了它并不知道。这就是续期后必须用 deploy hook reload 的原因。

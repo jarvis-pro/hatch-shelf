@@ -240,3 +240,47 @@ describe('日志不泄露凭证', () => {
 - 审计日志和调试日志是两回事：固定字段、和动作同一个事务、长期保存
 - 被拒绝的请求往往是最好的攻击信号；记了要变成告警
 - 用测试断言日志里不出现令牌，把规矩交给机器守
+
+## 动手练习
+
+1. **pino 的 redact 能匹配到哪一层**：`pnpm add pino`，运行下面这段，看两行日志。
+
+   ```js
+   import pino from 'pino';
+   const log = pino({ redact: { paths: ['req.headers.authorization', '*.password'], censor: '[REDACTED]' } });
+   log.info({ req: { headers: { authorization: 'Bearer abc' } }, body: { password: 'p1' } });
+   log.info({ body: { user: { password: 'p2' } } });
+   ```
+
+   验证：第一行里 `authorization` 和 `password` 都是 `[REDACTED]`；第二行的 `p2` 原样出现。
+
+   参考答案：`*` 只匹配一层，`*.password` 管不到 `body.user.password`。这就是本章说的「`redact` 只是兜底」：换一种写法、多嵌一层就漏，主要防线是默认不记请求体。
+
+2. **找出 `scrub` 的漏网之鱼**：把本章的 `scrub` 抄下来，用 `node:test` 给它写测试，喂下面三条，断言输出里不再含有 `abc`、`ssword` 或 `dXNlcjpwYXNz`：
+   - `https://api.example.com/v1?access_token=abc`
+   - `postgres://u:pa@ssword@db/app`（密码里带 `@`）
+   - `Authorization: Basic dXNlcjpwYXNz`
+
+   验证：三条测试都失败。第一条原样输出；第二条输出 `postgres://u:***@ssword@db/app`，密码的后半截漏了出来；第三条原样输出。
+
+   参考答案：正则只认 `t`、`token`、`key`、`sig` 这几个参数名，只认 `Bearer`，并且在第一个 `@` 处就停了。可以补规则让测试变绿，但每补一条都提醒你：清洗靠枚举，枚举总有漏的，所以要先做到「不把秘密放在会被打印的地方」。
+
+3. **访问日志不记查询参数**：在一次性容器里起 nginx，配置如下，存成 `nginx.conf`，运行 `docker run --rm -d --name ng -p 8080:80 -v "$PWD/nginx.conf:/etc/nginx/nginx.conf:ro" nginx`。
+
+   ```nginx
+   events {}
+   http {
+     log_format no_query '$remote_addr - [$time_local] "$request_method $uri" $status';
+     server {
+       listen 80;
+       access_log /var/log/nginx/full.log combined;
+       location /v1/img { access_log /var/log/nginx/img.log no_query; return 200 "ok\n"; }
+     }
+   }
+   ```
+
+   分别 `curl 'http://127.0.0.1:8080/v1/img?t=SECRET123'` 和 `curl 'http://127.0.0.1:8080/other?t=SECRET123'`，再 `docker exec ng cat /var/log/nginx/img.log /var/log/nginx/full.log`。
+
+   验证：`img.log` 里只有 `GET /v1/img`，没有 `SECRET123`；`full.log` 里 `/other` 那一行带着完整的 `?t=SECRET123`。用完 `docker stop ng`。
+
+   参考答案：`$request` 是完整请求行，含查询参数；`$uri` 不含。只给认 URL 令牌的那一条路换日志格式，其余路径保持完整日志方便排障。

@@ -190,7 +190,7 @@ Claude Code 自己也会把每个会话的完整转录保存在 `~/.claude/proje
 ```bash
 # 找出 taint 之后出现 deny 的会话
 jq -r 'select(.event.type == "taint" or (.event.type == "decision" and .event.decision == "deny"))
-       | [.session, .event.type] | @tsv' audit.jsonl \
+       | [.session, (.event.decision // .event.type)] | @tsv' audit.jsonl \
   | awk '$2 == "taint" { t[$1] = 1 } $2 == "deny" && t[$1] { print $1 }' \
   | sort -u
 ```
@@ -289,3 +289,42 @@ flowchart TD
 - 从日志里找信号：污染后被拒、大量 deny、脱敏命中、出站拒绝、工具定义变化
 - 回放用录下来的工具结果重新驱动 agent，用来验证修复和做策略的反事实测试；有价值的录像进回归集
 - 出事后先止损再调查，假设机密已泄露，找的是失效的防线而不只是入口
+
+## 动手练习
+
+1. **篡改日志，看哈希链报警**：把本章的 `audit/events.ts`、`audit/redact.ts`、`audit/log.ts` 存进一个 `"type": "module"` 的目录，用 `AuditLog` 写三条 `tool_call` 事件，`verify` 一次；然后分别把第 2 行里的参数改一个字、删掉第 2 行，再 `verify`。`log.ts` 用了参数属性和不带扩展名的导入，用 `npx tsx` 运行，不要用 `node` 直接跑。
+
+   ```bash
+   npx tsx write3.ts && cp audit.jsonl audit.bak
+   sed -i.orig '2s/f2/f9/' audit.jsonl && npx tsx verify.ts
+   cp audit.bak audit.jsonl && sed -i.orig '2d' audit.jsonl && npx tsx verify.ts
+   ```
+
+   验证：完好时输出 `null`；改内容后输出「第 2 行：内容被修改」；删行后输出「第 2 行：prev 与上一行的 hash 不一致（有记录被删除或插入）」。
+
+   参考答案：每条记录的 `prev` 指向上一条的哈希，删改都会让链断开。但能改日志的人也能重算整条链，所以链头哈希要存到 agent 碰不到的地方。
+
+2. **给脱敏规则找漏网之鱼**：用本章的 `redact` 处理这几行：`TOKEN=abc123`、`DATABASE_URL=postgres://u:p@db:5432/app`、`api_key: abcdefghijklmnop1234`、`export OPENAI_API_KEY=xyz`。找出没被替换的，再补一条规则。
+
+   验证：原规则下后两行原样输出；补上规则后四行都被替换，而 `name: keyboard` 这样的普通行不受影响。
+
+   参考答案：环境变量那条规则要求行首就是大写变量名、用 `=` 连接，所以带 `export` 前缀的、YAML 写法的小写键都漏了。可以加一条：
+
+   ```typescript
+   [/^(\s*(?:export\s+)?[A-Za-z0-9_]*(?:secret|token|password|key)[A-Za-z0-9_]*\s*[=:]\s*).+$/gim, '$1[REDACTED]'],
+   ```
+
+3. **从审计日志里找「污染后被拒」**：把下面六行存成 `audit.jsonl`，用本章的查询找出「先被污染、之后又有调用被拒绝」的会话。
+
+   ```text
+   {"session":"s1","event":{"type":"tool_call","tool":"read_file"}}
+   {"session":"s2","event":{"type":"decision","decision":"deny"}}
+   {"session":"s2","event":{"type":"taint","source":"fetch"}}
+   {"session":"s3","event":{"type":"taint","source":"fetch"}}
+   {"session":"s3","event":{"type":"decision","decision":"deny"}}
+   {"session":"s1","event":{"type":"taint","source":"issue"}}
+   ```
+
+   验证：只输出 `s3`。
+
+   参考答案：s2 是先被拒、后被污染，顺序不对；s1 被污染后没有拒绝。注意 awk 比较的第二列必须是 `deny` 而不是 `decision`，所以 jq 输出时用 `.event.decision // .event.type` 取值。

@@ -247,3 +247,47 @@ AutoTokenizer.from_pretrained(BASE).save_pretrained("out/merged")
 - 看验证 loss 和评测集选检查点，不看训练 loss
 - 先在 Mac 上用 mlx-lm 和小模型跑通，再租 GPU 用 TRL + PEFT 训练目标尺寸；框架 API 变化快，对照所装版本的文档
 - 合并适配器要在 BF16 底座上做
+
+## 动手练习
+
+1. **验证「约 4000 万可训练参数」**：Llama 3 8B 有 32 层，隐藏维度 4096，K、V 投影输出 1024（8 个 KV 头 × 128），FFN 中间维度 14336。给每层 7 个线性层（q、k、v、o、gate、up、down）都加 `r=16` 的 LoRA，算出可训练参数总数和占 80 亿参数的比例。
+
+   验证：结果是 41,943,040，约 0.52%。
+
+   参考答案：一个 $d_{in} \times d_{out}$ 的线性层加 LoRA 后多出 $r(d_{in} + d_{out})$ 个参数。
+
+   ```python
+   r, h, kv, ffn = 16, 4096, 1024, 14336
+   shapes = [(h, h), (h, kv), (h, kv), (h, h), (h, ffn), (h, ffn), (ffn, h)]
+   per_layer = sum(r * (a + b) for a, b in shapes)
+   total = per_layer * 32
+   print(f"{total:,}", f"{total / 8.03e9:.2%}")
+   ```
+
+2. **在 Mac 上跑通一次 MLX 微调**：用下面的脚本生成 200 条训练、20 条验证样本（格式同[流程一](#流程一在-mac-上用-mlx)），选 mlx-community 里一个 0.5B–1.5B 的 4bit 模型，按正文命令训练 200 步，再分别带和不带 `--adapter-path` 对「茄子 斤 12 3.5 42」生成一次。
+
+   ```python
+   import json, random
+   from pathlib import Path
+   items = ["土豆", "白菜", "茄子", "黄瓜", "番茄", "洋葱", "青椒", "冬瓜"]
+   Path("data").mkdir(exist_ok=True)
+   for name, n in [("train", 200), ("valid", 20)]:
+       with open(f"data/{name}.jsonl", "w", encoding="utf-8") as f:
+           for _ in range(n):
+               it, q, p = random.choice(items), random.randint(1, 99), random.choice([1.5, 2.5, 3.5])
+               ans = {"name": it, "unit": "斤", "qty": q, "price": p, "amount": round(q * p, 2)}
+               msgs = [{"role": "system", "content": "把进货单的一行整理成 JSON。"},
+                       {"role": "user", "content": f"{it} 斤 {q} {p} {ans['amount']}"},
+                       {"role": "assistant", "content": json.dumps(ans, ensure_ascii=False)}]
+               f.write(json.dumps({"messages": msgs}, ensure_ascii=False) + "\n")
+   ```
+
+   验证：启动时打印可训练参数比例（远小于 1%），训练中训练 loss 和验证 loss 都下降；带适配器时输出是和训练数据同样结构的单行 JSON，不带时多半是一段解释或格式不一。
+
+   参考答案：这一步的目的是在零成本下确认数据格式、chat template、`--mask-prompt` 都没问题，之后再租 GPU 上目标尺寸。
+
+3. **制造一次过拟合**：只保留 20 条训练数据，把 `--iters` 加到 1000、学习率提到 5e-4，观察日志里的验证 loss。
+
+   验证：训练 loss 一路降到很低，验证 loss 先降后升。
+
+   参考答案：数据少、步数多、学习率大，模型在背训练集。按[看懂 loss 曲线](#看懂-loss-曲线)的处理：减少步数或 epoch、降学习率、加数据，选验证 loss 最低处的检查点。

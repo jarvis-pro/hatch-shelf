@@ -238,3 +238,46 @@ sudo nginx -T | less             # 打印合并后的完整配置（含所有 in
 - location 匹配：`=` 精确最先；前缀取最长；最长前缀带 `^~` 就停；否则正则按书写顺序，第一个命中的胜出
 - `index`、`try_files`、`error_page` 会触发内部重定向，请求可能最终落在另一个 location
 - 改配置永远是 `nginx -t` 通过后再 `reload`；`nginx -T` 看合并后的真实配置
+
+## 动手练习
+
+本书的练习都在一次性容器里做，不碰服务器上的 nginx。准备一个目录，配置放在 `conf.d/` 下，整个目录挂进容器（挂目录而不是单个文件，编辑器保存时换掉文件也不影响）：
+
+```bash
+mkdir -p ~/nginx-lab/conf.d && cd ~/nginx-lab
+# 写好 conf.d/default.conf 之后：
+docker run --rm -d --name ng -p 8080:80 -v "$PWD/conf.d:/etc/nginx/conf.d:ro" nginx:1.27-alpine
+# 改完配置：
+docker exec ng nginx -t && docker exec ng nginx -s reload
+```
+
+用 `return 200 "..."` 让每个 location 报出自己的名字，就不需要真正的后端。做完 `docker rm -f ng`。
+
+1. **先预测，再验证 location 匹配**：`conf.d/default.conf` 写成下面这样，先在纸上写出 `/v1/health`、`/v1/health/db`、`/assets/a.js`、`/x/a.js`、`/v1/a.JS` 各自命中哪一段，再逐个 `curl localhost:8080<路径>`。
+
+   ```nginx
+   server {
+       listen 80;
+       location = /v1/health { return 200 "exact\n"; }
+       location /v1/         { return 200 "prefix /v1/\n"; }
+       location ^~ /assets/  { return 200 "^~ /assets/\n"; }
+       location ~* \.js$     { return 200 "regex js\n"; }
+       location /            { return 200 "root\n"; }
+   }
+   ```
+
+   验证：依次输出 `exact`、`prefix /v1/`、`^~ /assets/`、`regex js`、`regex js`。
+
+   参考答案：`/assets/a.js` 的最长前缀带 `^~`，不再试正则；`/v1/a.JS` 的最长前缀 `/v1/` 是普通前缀，于是继续试正则，`~*` 不区分大小写，正则胜出。
+
+2. **add_header 的继承陷阱**：在 server 层加 `add_header X-Frame-Options SAMEORIGIN always;`，在 `^~ /assets/` 里加 `add_header Cache-Control "public, immutable";`，reload 后分别 `curl -sI localhost:8080/` 和 `curl -sI localhost:8080/assets/a.js`。
+
+   验证：`/` 的响应有 `X-Frame-Options`；`/assets/a.js` 的响应只有 `Cache-Control`，没有 `X-Frame-Options`。
+
+   参考答案：location 里只要出现一条 `add_header`，上层的就全部不继承。要保留，就在这个 location 里再写一遍，或抽成 snippet 一起 include。
+
+3. **没匹配上的域名落到哪**：把配置换成两个 server 块，`server_name a.test` 返回 `"a\n"`、`server_name b.test` 返回 `"b\n"`，都 `listen 80`。执行 `curl -H 'Host: c.test' localhost:8080`；再在最前面加一个 `listen 80 default_server; server_name _; return 444;` 的块，重试。
+
+   验证：第一次输出 `a`（第一个 server 块兜底）；加了兜底块后 curl 报 `Empty reply from server`。
+
+   参考答案：`server_name` 都不匹配时用该端口的 `default_server`，没标就是第一个。显式的 `return 444` 块让陌生域名和直接用 IP 访问拿不到任何站点。

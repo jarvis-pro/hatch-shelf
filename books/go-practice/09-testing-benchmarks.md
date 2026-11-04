@@ -591,3 +591,47 @@ PASS
 - 1.25 起用 `testing/synctest` 测和时间有关的代码，假时钟自动快进
 - 基准用 `b.Loop()`（1.24 起）；先 pprof 找热点，改完用 benchstat 做统计比较
 - 模糊测试适合解析器和校验器，发现的问题自动变成回归用例
+
+## 动手练习
+
+1. **Errorf 和 Fatalf 的区别**：写一个测试，里面两个独立的检查都会失败：
+
+   ```go
+   func TestTwo(t *testing.T) {
+   	if 1+1 != 3 {
+   		t.Errorf("first")
+   	}
+   	if 2+2 != 5 {
+   		t.Errorf("second")
+   	}
+   }
+   ```
+
+   运行 `go test -run TestTwo`，然后把第一个 `t.Errorf` 改成 `t.Fatalf` 再跑。
+
+   验证：第一次 `--- FAIL: TestTwo` 下面有 `first` 和 `second` 两行；改成 `Fatalf` 后只剩 `first`。
+
+   参考答案：`Errorf` 记录失败后继续执行，一次能看到多个问题；`Fatalf` 立即结束当前测试（它调用 `runtime.Goexit`），适合后续步骤依赖这一步的情况。
+
+2. **假时钟算错了会怎样**：把本章 `retry.Do` 和 `TestDoBackoff` 拷进一个包，把断言里的 `7*time.Second` 改成 `6*time.Second`，运行 `go test -v`，注意失败信息和测试用时。
+
+   验证：失败信息是 `elapsed = 7s, want 6s`，而 `--- FAIL: TestDoBackoff` 后面的用时是 `(0.00s)`。
+
+   参考答案：在 `synctest` 气泡里，所有 goroutine 都阻塞在计时器上时时间直接快进，所以 1s + 2s + 4s 的等待被精确记成 7s，却不花真实时间。断言写错一秒也能被准确抓到。
+
+3. **让 fuzz 找出字节截断**：被测函数取字符串的「首字」，但写成了按字节截取：
+
+   ```go
+   func Initial(s string) string {
+   	if s == "" {
+   		return ""
+   	}
+   	return s[:1]
+   }
+   ```
+
+   写一个 `FuzzInitial`，种子是 `f.Add("hatch")`，性质是「输入是合法 UTF-8 时，输出也必须是合法 UTF-8」（用 `utf8.ValidString`）。先只跑 `go test`，再跑 `go test -run '^$' -fuzz FuzzInitial -fuzztime 20s`。
+
+   验证：普通 `go test` 通过（种子是 ASCII）；开启 fuzz 后通常几秒内失败，输出 `Failing input written to testdata/fuzz/FuzzInitial/...`，之后普通的 `go test` 也会失败，直到修好函数。
+
+   参考答案：多字节字符被截成了半个字节序列。修法是按 rune 取：`r, size := utf8.DecodeRuneInString(s); _ = r; return s[:size]`。保存在 `testdata/fuzz` 里的输入从此成为回归用例。

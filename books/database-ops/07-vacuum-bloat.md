@@ -202,3 +202,31 @@ hatch-counter 这样的业务量，一天可能也就几万到几十万个事务
 - 用 `pg_stat_user_tables` 看趋势，`pgstattuple` 测实际膨胀；索引膨胀用 `REINDEX CONCURRENTLY`
 - 高频写入又定期删除的表最容易膨胀：分批删除，或按时间分区后 `DROP` 旧分区
 - 事务 ID 回卷靠 VACUUM 冻结来防，监控 `age(datfrozenxid)`
+
+## 动手练习
+
+在一次性容器里做，做完 `docker rm -f vac` 清理：
+
+```bash
+docker run -d --name vac -e POSTGRES_PASSWORD=x postgres:16-alpine
+sleep 5
+docker exec -it vac psql -U postgres
+```
+
+1. **VACUUM 不还空间，VACUUM FULL 还**：建表并关掉这张表的 autovacuum（仅为了让实验可控，生产上不要这样做）：`CREATE TABLE t (id int, v text) WITH (autovacuum_enabled = false); INSERT INTO t SELECT g, 'x' FROM generate_series(1, 1000000) g;`。记下 `SELECT pg_size_pretty(pg_relation_size('t'));`，然后执行两次 `UPDATE t SET v = v || 'y';`，依次在 `VACUUM t;` 和 `VACUUM FULL t;` 之后再看大小。
+
+   验证：两次 `UPDATE` 后表明显变大（两到三倍，取决于页内清理复用了多少）；`VACUUM` 之后大小基本不变，但 `pg_stat_user_tables` 里 `n_dead_tup` 归零；`VACUUM FULL` 之后回到接近原始大小。
+
+   参考答案：`UPDATE` 写新版本、旧版本变成死元组；普通 VACUUM 只把空间登记为可复用，`VACUUM FULL` 重写整张表才缩小文件，代价是全程排他锁。再执行一次 `UPDATE`，会看到普通 VACUUM 过的表几乎不再变大，因为空洞被复用了。
+
+2. **长事务挡住清理**：终端 A 执行 `BEGIN ISOLATION LEVEL REPEATABLE READ; SELECT count(*) FROM t;`，保持不提交。终端 B 执行 `UPDATE t SET v = 'z';` 和 `VACUUM (VERBOSE) t;`，并跑本章「什么会挡住清理」那条查询。然后 A 执行 `COMMIT`，B 再 `VACUUM (VERBOSE) t;` 一次。
+
+   验证：第一次 VACUUM 的输出里，`tuples:` 一行显示 `0 removed`，以及约 100 万个 `are dead but not yet removable`；挡路者查询里 A 的那一行 `xmin_age` 明显最大。A 提交后第二次 VACUUM 显示约 100 万行 `removed`。
+
+   参考答案：A 持有的快照可能还要看到旧版本，全局 xmin horizon 停在 A 开始的时刻，VACUUM 只能跳过。用读已提交级别时语句结束就释放快照，所以这里用可重复读来模拟一个长事务。在 A 的会话里先 `SET idle_in_transaction_session_timeout = '10s';` 重做，A 会在空闲 10 秒后被断开，挡路自动解除。
+
+3. **算一算触发阈值**：一张 300 万行、每天更新 5 万行的表，按 16 的默认参数，autovacuum 大约几天触发一次？把 `autovacuum_vacuum_scale_factor` 设成 0.01 之后呢？
+
+   验证：用 `SELECT 50 + 0.2 * 3000000, 50 + 0.01 * 3000000;` 算出两个阈值，再除以每天 5 万。
+
+   参考答案：默认阈值 600,050，约 12 天才清理一次，期间死元组一直堆着；调到 0.01 后阈值 30,050，不到一天一次。热表按表单独调比例，写进迁移文件。

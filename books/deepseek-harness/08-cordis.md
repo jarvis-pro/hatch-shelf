@@ -224,3 +224,30 @@ Web profile 默认开启热重载（HMR）：修改配置后，受影响的插�
 - 事件有五种分发方式，`waterfall` 是主要的拦截机制：观察者必须调 `next()`，只有决策者可以短路
 - 每项可替换能力是一个接缝：定义、提供方、使用方三种角色
 - 应用由组合包 → profile 补丁 → 全局补丁 → 命令行补丁逐层叠成，`--dump-config` 是排查配置的第一工具
+
+## 动手练习
+
+1. **手写一个 waterfall**：用十来行 JavaScript 实现本章的 `waterfall`：每个监听器拿到参数和 `next`，调用 `next()` 交给下一层，不调用就短路。注册一个只记录日志的观察者和一个遇到 `rm -rf` 就返回「拒绝」的门禁，分别用 `[观察者, 门禁]` 和 `[门禁, 观察者]` 两种顺序处理 `pnpm test` 和 `rm -rf /tmp/x`。
+
+   验证：`pnpm test` 走到最终的执行；`rm -rf` 两种顺序都被拒绝；但门禁排在前面时，观察者的日志里没有这条 `rm -rf`。
+
+   参考答案：短路会让排在后面的监听器全都看不到这次调用，所以「只观察」的插件必须调 `next()`，并且要清楚自己可能看不到被前面短路掉的事件。
+
+   ```js
+   function waterfall(listeners, arg, final) {
+     const run = (i, a) => (i === listeners.length ? final(a) : listeners[i](a, (b = a) => run(i + 1, b)));
+     return run(0, arg);
+   }
+   ```
+
+2. **看清你的插件树**：运行 `dsh --profile web --dump-config`，找出 `llm-deepseek`、会话存储和 `bash` 工具对应的行，记下它们分别由哪个文件提供；再运行 `--dump-default-config`，对比两者差在哪里。
+
+   验证：`--dump-config` 里能看到每行的来源标注；两份输出的差别恰好就是你在 profile 补丁和全局补丁里改过的东西（没改过就没有差别）。
+
+   参考答案：这两条命令都不启动应用。以后遇到「配置没生效」，先看这里有没有你那一行、是哪个文件最后改了它。
+
+3. **让一个插件卡在 PENDING**：照本章写两个插件文件：只 `inject: ['greeter']` 并打印问候语的 `consumer.ts`，和提供 `greeter` 服务的 `greeter.ts`。先写一个只插入 `consumer` 的补丁文件，用 `dsh web --patch` 启动；再把 `greeter` 也插进补丁，重启。插件路径写绝对路径（第 9 章有完整的加载步骤）。
+
+   验证：第一次终端里看不到问候语，也没有报错；第二次出现 `Hello, world!`。在补丁里把两行的顺序对调，结果不变。
+
+   参考答案：缺依赖时插件停在 PENDING 静静等待，这是「我的插件怎么没反应」最常见的原因；`inject` 让启动顺序由依赖决定，与配置里的先后无关。

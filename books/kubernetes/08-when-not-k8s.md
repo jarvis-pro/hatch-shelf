@@ -130,6 +130,50 @@ YAML 行数本身不代表难度，但每一行都是一个以后可能要理解
 - 编码 agent 能快速生成 YAML，但理解和排障仍然靠你；不要把生产 kubeconfig 交给 agent
 - 学 K8s 的价值在于读懂生态、为增长留路、具备交付能力，而不一定是现在就用它
 
+## 动手练习
+
+1. **三个场景，该不该上**：A 是一个人做的 SaaS，一台 4GB 云服务器，API 加 Postgres，每周发版两次；B 是三个人的团队，十几个服务分在四台机器上，各有各的部署脚本，上个月一台机器宕机后手动恢复花了半天；C 是一人公司做 B2B，最大的客户要求把产品私有化部署到他们自己的 K8s 集群。分别给出建议。
+
+   验证：每个场景给出结论，并引用本章至少一条「该」或「不该」的信号。
+
+   参考答案：A 不上，单机、服务少、一个人值班，精力花在备份恢复演练和监控上；B 可以考虑，多机、服务多到失控、有团队，托管 K8s 能减轻控制面负担；C 不一定要自己跑 K8s，但必须能交付一个靠谱的 Helm chart，并在练习集群里持续验证。
+
+2. **审一份 agent 生成的清单**：下面是某个 agent 生成的片段，找出至少四处问题，然后把它（补全成能 apply 的样子）在本机练习集群里用 `kubectl apply --dry-run=server -f` 验证其中能被 API 发现的那几处。
+
+   ```yaml
+   apiVersion: v1
+   kind: ConfigMap
+   metadata: { name: api-config }
+   data: { PORT: 3000, DEBUG: false }
+   ---
+   apiVersion: extensions/v1beta1
+   kind: Ingress
+   metadata: { name: api }
+   # Deployment 里：livenessProbe 打 /v1/health（会查数据库），没有 preStop
+   # Postgres 的 PVC：storageClassName: local-path
+   ```
+
+   验证：`dry-run` 对 ConfigMap 报值类型不对，对 Ingress 报这个 API 版本不存在；另外两处 API 不会报错，要靠人看出来。
+
+   参考答案：ConfigMap 的值要加引号；Ingress 要用 `networking.k8s.io/v1`；liveness 不能查依赖，否则数据库一抖全部重启；缺 preStop 会在滚动发布时有零星失败；数据库 PVC 用默认 Delete 回收策略，删 PVC 即删数据。最后两类恰恰是最需要人审的。
+
+3. **把 K8s 的好想法带回 Compose**：给一个 compose 服务加上内存上限和停机宽限期：
+
+   ```yaml
+   name: backport
+   services:
+     api:
+       image: nginx:1.27-alpine
+       stop_grace_period: 30s
+       deploy: { resources: { limits: { memory: 512M } } }
+   ```
+
+   执行 `docker compose up -d`，然后 `docker inspect -f '{{.HostConfig.Memory}} {{.Config.StopTimeout}}' backport-api-1`。
+
+   验证：输出 `536870912 30`。做完 `docker compose down`。
+
+   参考答案：内存上限对应 K8s 的 `limits.memory`，`stop_grace_period` 对应 `terminationGracePeriodSeconds`。不上 K8s，这些保护照样能有。
+
 ## 接下来读什么
 
 这本书把一套单机 Compose 部署迁进了 K8s，又认真讨论了什么时候不该这么做。按导读的顺序，接下来可以读：

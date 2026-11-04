@@ -250,3 +250,25 @@ systemd、journald 以及本书其余大部分内容在两大家族上是通用�
 - 第三方源用独立 keyring 加 `signed-by` 绑定，不要用已废弃的 `apt-key`
 - 开启 unattended-upgrades 自动打安全补丁；看到 `reboot-required` 挑低峰手动重启
 - 宿主机尽量保持干净，运行时放进 Docker 镜像是单机部署的好选择
+
+## 动手练习
+
+装包会改系统，下面的题都在一次性容器 `docker run --rm -it ubuntu:24.04 bash` 里做，退出即丢弃。
+
+1. **没有 update 就装不上**：容器一启动就执行 `apt-get install -y curl`；再执行 `apt-get update && apt-get install -y curl`。
+
+   验证：第一次报 `Unable to locate package curl`；第二次装好，`tail /var/log/apt/history.log` 里有一段 `Install: curl` 的记录。
+
+   参考答案：官方镜像为了减小体积删掉了 `/var/lib/apt/lists`，本地没有索引，apt 根本不知道有 curl 这个包。`update` 下载索引后才找得到。
+
+2. **文件属于哪个包**：执行 `dpkg -S /usr/bin/ls` 和 `dpkg -S "$(readlink -f /bin/sh)"`，再用 `dpkg -L dash | head` 看这个包装了什么。
+
+   验证：第一条输出以 `coreutils:` 开头，第二条以 `dash:` 开头。
+
+   参考答案：`dpkg -S` 按文件路径反查包名。第二条顺便印证了第 1 章说的 `/bin/sh` 在 Ubuntu 上是 dash。
+
+3. **版本从哪来、怎么锁住**：装好 curl 后执行 `apt-cache policy curl`，再 `apt-mark hold curl` 和 `apt-mark showhold`。
+
+   验证：`policy` 输出里有 `Installed:` 和 `Candidate:` 两行，下面列出版本来自哪个源地址；`showhold` 输出 `curl`。
+
+   参考答案：`apt-cache policy` 告诉你 apt 会从哪个源选哪个版本，加了第三方源后用它排查装错版本的问题；`hold` 让 `apt upgrade` 跳过这个包，`apt-mark unhold curl` 解除。

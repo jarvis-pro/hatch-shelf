@@ -258,3 +258,23 @@ API key 等于钱。几条硬规矩：
 - **每次都记录 `usage`**，它是成本核算的唯一依据
 - Anthropic 新 API 已不接受 temperature 等采样参数，用 effort 和结构化输出控制结果；其他厂商仍有这些旋钮
 - 所有调用经过一个薄封装，密钥只放在服务端
+
+## 动手练习
+
+1. **content 不是字符串**：在本章的 `llm-demo` 目录里新建 `blocks.ts`，写一行 `const t = response.content[0].text;`（`response` 的类型标成 `Anthropic.Message`），运行 `pnpm tsc --noEmit blocks.ts`。
+
+   验证：类型检查报 `TS2339`，提示 `text` 在联合类型的某个成员上不存在；改成先按 `type === "text"` 过滤后，类型检查通过。
+
+   参考答案：`content` 是 `text`、`thinking`、`tool_use` 等块的联合数组，只有文本块有 `text` 字段。照本章 `ask()` 里的写法用类型守卫过滤再拼接。
+
+2. **API 没有记忆**（需要 API key）：先只发一条 `{ role: "user", content: "我叫什么？" }`，再按本章「API 是无状态的」一节带上前两轮历史重发一次，两次都打印 `usage.input_tokens`。
+
+   验证：第一次模型说不知道你的名字，第二次答出「小林」；第二次的 `input_tokens` 明显大于第一次。
+
+   参考答案：模型只看到这一次请求里的内容，「记忆」完全来自你重发的历史，多出来的输入 token 就是这段历史的代价。
+
+3. **复现截断**（需要 API key）：用 `max_tokens: 30` 让模型「列出 20 种常见蔬菜并各写一句介绍」，打印 `stop_reason`；再用本章的 `ask()` 封装调同样的请求。
+
+   验证：第一次打印出 `max_tokens`，文本在半句处断掉；`ask()` 抛出「输出被截断」的错误，而不是把半截文本当结果返回。
+
+   参考答案：截断不会让 HTTP 请求失败，只体现在 `stop_reason` 上，所以封装层要主动检查并转成错误。

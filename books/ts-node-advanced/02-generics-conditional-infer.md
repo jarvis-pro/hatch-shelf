@@ -259,3 +259,30 @@ const wide: Record<ThemeMode, string> = background; // 也能当宽类型用
 - `infer` 是模式匹配，可以加 `extends` 约束，也能在模板字面量里拆字符串
 - 映射类型 + `as` 重映射 + 条件类型覆盖了几乎所有类型派生需求
 - 能让值做唯一真相时就这么做：`as const`、`z.infer`、`satisfies`
+
+## 动手练习
+
+1. **IsNever 的两种写法**：存成 `a.ts`，运行 `npx tsc --strict --noEmit a.ts`，先预测哪一行报错。
+
+   ```ts
+   type IsNever<T> = T extends never ? true : false;
+   type IsNever2<T> = [T] extends [never] ? true : false;
+   export const n1: IsNever<never> = true;
+   export const n2: IsNever2<never> = true;
+   ```
+
+   验证：只有第 3 行报 `error TS2322: Type 'true' is not assignable to type 'never'.`。
+
+   参考答案：裸类型参数遇到联合会分配，`never` 是空联合，分配后什么都不剩，`IsNever<never>` 就是 `never`；包进元组后不再分配，按整体比较，得到 `true`。
+
+2. **去掉 NoInfer 看推断被放宽**：在本章 `pick` 旁边写一个 `pickLoose`，唯一区别是 `fallback: T`（没有 `NoInfer`），各调用一次 `(["light", "dark"], "sepia")` 并导出结果。用 `npx tsc --strict --declaration --emitDeclarationOnly --outDir dts b.ts` 生成声明文件，看两个返回值的类型。
+
+   验证：`pick` 那一行报 `TS2345: Argument of type '"sepia"' is not assignable to parameter of type '"light" | "dark"'`；`pickLoose` 不报错。`dts/b.d.ts` 里 `pickLoose` 的结果类型是 `"light" | "dark" | "sepia"`。
+
+   参考答案：没有 `NoInfer` 时 `fallback` 也是推断来源，`T` 取所有候选的联合，错误被「推断」吞掉了；`NoInfer` 让这个位置只做检查。
+
+3. **协议加一员，处理表跟着报错**：用本章「消息处理表」的 `Handlers<U>`，定义一个只有 `ready`、`link`、`close` 三员的 `FromReader`，`handlers` 只写 `ready` 和 `link` 两项，运行 `tsc --strict --noEmit`。
+
+   验证：报 `error TS2741: Property 'close' is missing in type ...`，并且错误信息里能看到 `link` 的参数已被推断为 `{ type: "link"; href: string; }`。补上 `close: () => {}` 后通过。
+
+   参考答案：映射类型以 `U["type"]` 的每一员为键，缺哪个键就报缺哪个属性；`Extract<U, { type: K }>` 让每个处理函数的参数自动收窄到对应那一员。

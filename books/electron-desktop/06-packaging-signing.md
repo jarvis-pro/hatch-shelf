@@ -230,3 +230,23 @@ Windows 证书的获取方式、价格和 SmartScreen 信誉规则近几年变�
 - 公证凭据走环境变量，推荐 App Store Connect API Key
 - 用 `codesign --verify`、`spctl --assess`、`stapler validate` 验证每一步
 - 证书费用、变量名、平台规则都会变，以官方文档为准
+
+## 动手练习
+
+1. **包里不该有 node_modules**：在练习工程里配上本章的 `files: [out/**, "!out/**/*.map"]` 和 `identity: "-"`、`hardenedRuntime: false`、`target: dir`，打包后运行 `npx @electron/asar list <App>.app/Contents/Resources/app.asar | grep -c node_modules`，并用本章的 `du -sh` 几条命令看体积分布。然后把 `files` 改回默认（删掉这一项）、把 `react` 挪进 `dependencies` 重新打包，再看一次。
+
+   验证：第一次计数为 `0`，`Electron Framework.framework` 占体积的绝大部分；第二次计数大于 `0`，`app.asar` 明显变大。
+
+   参考答案：没有原生模块时，三份产物已经把依赖打进去了，运行时不需要 `node_modules`；asar 意外变大，先查 `files` 和 `dependencies`。
+
+2. **亲手弄坏一个签名**：对上题 ad-hoc 签名的 `.app` 先跑 `codesign --verify --deep --strict --verbose=2 <App>.app`；再复制一份，用 `plutil -replace CFBundleShortVersionString -string 9.9.9 <副本>.app/Contents/Info.plist` 改一个字段后重跑；最后 `codesign --force --deep -s - <副本>.app` 重签再验证。
+
+   验证：第一次显示 `valid on disk` 和 `satisfies its Designated Requirement`；改过之后验证失败，报签名与内容不符；重签后再次通过。`codesign -dv` 能看到 `Signature=adhoc`。
+
+   参考答案：签名封住了整个包的内容，任何改动都会让它失效。这就是 electron-builder 改完 `Info.plist`、塞进 `app.asar` 之后必须重新签名的原因。
+
+3. **给三个场景选签名方案**（分析题）：A. 只在自己的 MacBook 上用的番茄钟；B. 发给五个朋友试用两周的笔记工具，朋友都会按说明操作；C. 要在官网卖、带自动更新的剪贴板工具。每个场景说出签名方式、要不要 hardened runtime、产物 target。
+
+   验证：对照本章「一人公司的建议路径」表格，并说清每个选择的理由。
+
+   参考答案：A 用 ad-hoc + 关 hardened runtime + `dir`；B 仍可 ad-hoc，附上「到隐私与安全性里放行」的说明，嫌麻烦就上证书；C 必须 Developer ID + hardened runtime + 公证，产物 `dmg` 和 `zip`（自动更新要 zip），需要付费的开发者账号。条件翻转点：一旦需要自动更新或面向陌生用户，ad-hoc 就不够了。

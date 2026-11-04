@@ -427,3 +427,37 @@ func main() {
 - 切片是「指针 + 长度 + 容量」，可能共享底层数组；`append` 必须接住返回值
 - 只有 `for` 一种循环，`switch` 不 fall-through，没有三元运算符
 - 多返回值 + `error` 是错误处理的基础；首字母大写即导出；`defer` 做清理
+
+## 动手练习
+
+1. **append 覆盖了谁**：新建 `main.go`，写入下面的代码。运行前先预测三行输出里 `arr` 的第 4 个元素是多少，再 `go run main.go`。
+
+   ```go
+   package main
+
+   import "fmt"
+
+   func main() {
+   	arr := []int{0, 1, 2, 3, 4, 5}
+   	s := arr[1:3]
+   	t := append(s, 99)
+   	t[0] = -1
+   	fmt.Println(arr, s, t)
+   }
+   ```
+
+   验证：输出是 `[0 -1 2 99 4 5] [-1 2] [-1 2 99]`。然后把 `s := arr[1:3]` 改成 `s := slices.Clone(arr[1:3])`（补上 `import "slices"`），再跑一次，`arr` 应保持 `[0 1 2 3 4 5]`。
+
+   参考答案：`s` 的容量是 5，`append` 不需要扩容，直接把 99 写进底层数组下标 3 的位置，`t` 和 `s`、`arr` 共享同一块内存，所以 `t[0] = -1` 也改到了 `arr[1]`。`Clone` 后 `s` 有自己的底层数组，两边互不影响。
+
+2. **编译器比 ESLint 严格**：在一个能跑的程序里加一行 `total := 0` 但不使用它，预测 `go run` 的结果；再把它改成 `_ = total` 试一次。
+
+   验证：第一次编译失败，报错形如 `./main.go:6:2: declared and not used: total`，程序不会运行；加上 `_ = total` 后正常运行。对未使用的 `import` 做同样的实验，会看到 `"xxx" imported and not used`。
+
+   参考答案：未使用的局部变量和导入在 Go 里是编译错误，不是警告；`_` 是空白标识符，赋给它就算「用过了」，只适合调试时临时用。
+
+3. **nil map 能读不能写**：写一个程序，先 `var m map[string]int`，打印 `m["a"]` 和 `len(m)`，再执行 `m["a"] = 1`。预测哪一步出问题，然后把声明改成 `m := map[string]int{}` 再跑。
+
+   验证：读和 `len` 正常输出 `0 0`，写入时程序崩溃，输出以 `panic: assignment to entry in nil map` 开头；改用字面量初始化后不再 panic。
+
+   参考答案：map 的零值是 `nil`，读取返回值类型的零值，写入则 panic。需要可写的 map 时用 `make` 或字面量创建。

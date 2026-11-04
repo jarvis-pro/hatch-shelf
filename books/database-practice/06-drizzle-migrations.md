@@ -308,3 +308,26 @@ HINT:  New enum values must be committed before they can be used.
 - RLS、触发器、授权、种子数据 Drizzle 不知道，手写在迁移里并用测试守住
 - 不兼容的改动用扩展—回填—切换—收缩；注意哪些 DDL 会锁表、重写表
 - `CREATE INDEX CONCURRENTLY` 进不了迁移事务；新枚举值提交前不能用
+
+## 动手练习
+
+> [!WARNING]
+> 第 1 题按 drizzle-orm 0.45 / drizzle-kit 0.31 的行为编写；装到 v1 时目录结构不同（见上文「Drizzle v1 改了什么」）。以 Drizzle 官方文档为准。
+
+1. **看 drizzle-kit 生成了什么**：在一个空目录里 `pnpm init`，`pnpm add drizzle-orm@0.45 && pnpm add -D drizzle-kit@0.31`，写一个只含一张表（`id` uuid 主键、`name` text）的 `src/schema.ts`，以及写明 `dialect: "postgresql"`、`schema: "./src/schema.ts"`、`out: "./drizzle"` 的 `drizzle.config.ts`，运行 `pnpm exec drizzle-kit generate --name init`。再给表加一列 `note: text("note").notNull()`，生成第二份；最后把 `name` 列改名成 `title`，再生成一次。
+
+   验证：`drizzle/` 下出现 `0000_init.sql` 和 `meta/_journal.json`，账本里每条有 `idx`、`when`、`tag`；第二份 SQL 是一条 `ALTER TABLE ... ADD COLUMN "note" text NOT NULL`；改名那次，终端停下来问你是新建列还是改名。`generate` 不需要连接数据库。
+
+   参考答案：第二份迁移在有数据的表上会直接失败（非空列没有默认值），这正是「本地空库跑得通、生产跑不通」的典型。改名提问需要终端交互，CI 和 agent 环境里会卡住，所以改名和删建不要混在一份 diff 里。
+
+2. **CONCURRENTLY 进不了事务**：在 `pg-lab` 里执行 `create table t2 (qty int);`，再执行 `begin; create index concurrently t2_idx on t2 (qty);`。
+
+   验证：报 `ERROR:  CREATE INDEX CONCURRENTLY cannot run inside a transaction block`；`rollback` 后不加 `begin` 单独执行同一句，成功。
+
+   参考答案：Drizzle 0.45 把所有待跑的迁移包在一个事务里，所以这句写进迁移文件必然失败，要在迁移之外手动执行，再用 `IF NOT EXISTS` 补进迁移。
+
+3. **新枚举值提交前不能用**：执行 `create type kind as enum ('a', 'b');`，然后 `begin; alter type kind add value 'c'; select 'c'::kind;`。
+
+   验证：最后一句报 `unsafe use of new value "c" of enum type kind`，附 `HINT:  New enum values must be committed before they can be used.`；`rollback` 后把 `alter type` 单独执行（自动提交），再 `select 'c'::kind;` 成功。
+
+   参考答案：这就是「一份迁移加枚举值、下一份迁移用它」上线时一起跑会失败的原因：两份迁移在同一个事务里。

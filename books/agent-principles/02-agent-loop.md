@@ -23,80 +23,29 @@ flowchart TD
 
 ## 一个最小实现
 
-下面用 Anthropic 的 TypeScript SDK（`@anthropic-ai/sdk`）写一个最小 agent，只有一个工具：读文件。Messages API 的工具调用协议多年来保持稳定，但具体模型名请以官方文档为准，这里从环境变量读取。
+去掉类型和错误处理，循环的核心只有十几行（以 Anthropic Messages API 的协议为例）：
 
 ```typescript
-import Anthropic from "@anthropic-ai/sdk";
-import { readFile } from "node:fs/promises";
+const messages = [{ role: "user", content: task }];
+for (let turn = 0; turn < MAX_TURNS; turn++) {
+  const res = await client.messages.create({ model, system, tools, messages });
+  messages.push({ role: "assistant", content: res.content }); // 整条回复原样放回历史
 
-const client = new Anthropic(); // 从 ANTHROPIC_API_KEY 读密钥
-const MODEL = process.env.MODEL!; // 例如官方文档列出的最新 Sonnet 模型
-const MAX_TURNS = 20;
+  if (res.stop_reason !== "tool_use") return textOf(res); // 不再调工具：模型认为完成了
 
-const tools: Anthropic.Tool[] = [
-  {
-    name: "read_file",
-    description: "读取仓库内一个文本文件的完整内容。路径相对于仓库根目录。",
-    input_schema: {
-      type: "object",
-      properties: { path: { type: "string", description: "如 app/src/reader/bridge.ts" } },
-      required: ["path"],
-    },
-  },
-];
-
-async function runTool(name: string, input: any): Promise<string> {
-  if (name === "read_file") {
-    try {
-      return await readFile(input.path, "utf8");
-    } catch (e) {
-      return `读取失败：${(e as Error).message}`;
-    }
+  const results = [];
+  for (const call of res.content.filter((b) => b.type === "tool_use")) {
+    const output = await runTool(call.name, call.input); // 失败也返回错误文字，不抛异常
+    results.push({ type: "tool_result", tool_use_id: call.id, content: output });
   }
-  return `未知工具：${name}`;
+  messages.push({ role: "user", content: results }); // 工具结果作为一条 user 消息
 }
-
-export async function agent(task: string): Promise<string> {
-  const messages: Anthropic.MessageParam[] = [{ role: "user", content: task }];
-
-  for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const res = await client.messages.create({
-      model: MODEL,
-      max_tokens: 4096,
-      system: "你是一个代码助手。需要信息时先用工具查看，不要猜测文件内容。",
-      tools,
-      messages,
-    });
-
-    // 模型的整条回复（可能同时包含文字和多个工具调用）原样放回历史
-    messages.push({ role: "assistant", content: res.content });
-
-    if (res.stop_reason !== "tool_use") {
-      // 没有工具调用：模型认为任务完成
-      return res.content
-        .filter((b): b is Anthropic.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join("\n");
-    }
-
-    // 执行本轮所有工具调用，结果作为一条 user 消息返回
-    const results: Anthropic.ToolResultBlockParam[] = [];
-    for (const block of res.content) {
-      if (block.type === "tool_use") {
-        results.push({
-          type: "tool_result",
-          tool_use_id: block.id,
-          content: await runTool(block.name, block.input),
-        });
-      }
-    }
-    messages.push({ role: "user", content: results });
-  }
-  return "达到最大轮数，任务未完成。";
-}
+return "达到最大轮数，任务未完成。";
 ```
 
-不到 70 行，但已经具备了 agent 的全部要素：循环、工具、模型决定何时停止。几个值得注意的细节：
+能跑的完整版本（工具定义、逐个处理停止原因、用量统计、用假模型测试）见[《动手构建 Agent》第 1 章](../build-your-agent/01-minimal-loop.md#第一版循环)。
+
+这十几行已经具备了 agent 的全部要素：循环、工具、模型决定何时停止。几个值得注意的细节：
 
 - **工具结果走 `user` 角色**：从协议角度看，工具执行结果是「环境」给模型的输入，和用户输入同属外部信息
 - **`tool_use_id` 必须对上**：模型一轮可以并行发起多个工具调用，结果要逐一按 id 回填
@@ -121,7 +70,7 @@ export async function agent(task: string): Promise<string> {
 
 ![一个 20 轮任务中，每轮输入 token 随历史增长、累计输入 token 呈二次方上升](assets/context-growth.svg)
 
-假设 system 加工具定义占 3000 token，每轮新增约 2000 token（模型输出加工具结果），第 $n$ 轮的输入约为 $3000 + 2000(n-1)$，20 轮累计输入约 44 万 token。**单轮成本线性增长，总成本按二次方增长**。这就是为什么长任务一定要关心上下文管理（第 6 章），也是 prompt 缓存对 agent 格外重要的原因：前缀不变的部分可以命中缓存，大幅降低重复部分的成本。
+**单轮成本线性增长，总成本按二次方增长**：一个 20 轮的任务，累计输入可以到几十万 token，具体算法和 prompt 缓存能省多少见[《上下文工程》第 1 章](../context-engineering/01-scarce-window.md#稀缺之一钱)。这就是为什么长任务一定要关心上下文管理（第 6 章），也是 prompt 缓存对 agent 格外重要的原因。
 
 ## 停止条件
 
@@ -156,7 +105,7 @@ agent 能自我纠错，前提是环境给出了**有信息量的反馈**。对�
 
 ## 循环之外的复杂度
 
-真实产品中的 agent loop 当然比上面的 70 行复杂，但多出来的部分基本都在循环**周围**，而不是改变循环本身：
+真实产品中的 agent loop 当然比上面的十几行复杂，但多出来的部分基本都在循环**周围**，而不是改变循环本身：
 
 ```mermaid
 flowchart TD
@@ -191,3 +140,27 @@ flowchart TD
 - 必须有轮数和预算上限；「模型说完成了」不可靠，要用测试等**客观判据**定义完成
 - 工具返回的反馈越具体，agent 自我纠错能力越强；有「编译器」的领域最适合 agent
 - 产品级 agent 的复杂度主要在循环周围：流式、权限、hooks、压缩、持久化
+
+## 动手练习
+
+1. **看着上下文长大**（需要 API key）：把[《动手构建 Agent》第 1 章](../build-your-agent/01-minimal-loop.md#第一版循环)的完整循环跑起来，仿照那里的 `list_books` 再加一个 `read_file` 工具（`run` 里用 `readFile` 读模型给的路径），在每次调用模型之后加一行 `console.log(turn, res.usage.input_tokens)`，然后给它任务「依次读 package.json、README.md、tsconfig.json，告诉我这个项目用什么包管理器」。
+
+   验证：每轮打印的 `input_tokens` 单调增加，相邻两轮的差值大致等于上一轮工具结果（文件内容）加模型输出的大小。
+
+   参考答案：每次调用都重发完整的 `messages`，所以读进来的每个文件都会在之后每一轮重复计费。
+
+2. **算出二次方增长**：沿用[《上下文工程》第 1 章](../context-engineering/01-scarce-window.md#稀缺之一钱)的假设（system 加工具定义 3000 token，每轮新增 2000 token），用一行 Node 算出 20 轮和 40 轮的累计输入 token。
+
+   ```bash
+   node -e 'for (const N of [20, 40]) { let s = 0; for (let n = 1; n <= N; n++) s += 3000 + 2000 * (n - 1); console.log(N, s) }'
+   ```
+
+   验证：输出 `20 440000` 和 `40 1680000`。
+
+   参考答案：轮数翻倍，累计成本约变成 3.8 倍，而不是 2 倍；这就是长任务必须做上下文管理和 prompt 缓存的原因。
+
+3. **错误也是结果**（需要 API key）：沿用上一题加了 `read_file` 的完整循环，给它一个不存在的路径，任务写成「读 app/src/nope.ts 并总结」。再把循环里执行工具的 `try/catch` 去掉重跑一次。
+
+   验证：保留 `try/catch` 时，模型收到含 `ENOENT` 的错误结果后会说明文件不存在或尝试别的路径；去掉后整个进程抛出未捕获的异常退出。
+
+   参考答案：把错误作为 `tool_result` 返回，模型才有机会自我纠错；抛异常则直接打断了循环。

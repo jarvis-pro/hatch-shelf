@@ -209,3 +209,23 @@ sequenceDiagram
 - 参数**只传标识不传数据**；开启 `typedRoutes`，路径拼错在编译期报错
 - `+native-intent` 的 `redirectSystemPath` 在路由匹配前改写系统传入的 URL，书架用它把 `file://` 导回首页
 - SDK 58：原生标签页改从 `expo-router/native-tabs` 导入；iOS 26 以上导航栏默认透明
+
+## 动手练习
+
+1. **让类型化路由报错**：在书架 App 的书架首页里把一处 `router.push({ pathname: '/read/[id]', ... })` 临时改成 `pathname: '/raed/[id]'`，在仓库根目录运行 `pnpm typecheck`。
+
+   验证：`tsc` 报错，错误位置指向刚改的那一行；改回后检查通过。
+
+   参考答案：`typedRoutes` 根据 `src/app/` 的文件生成路径的联合类型，不存在的路径不在联合类型里。
+
+2. **从外部打开一个深链接**：模拟器里装好 dev client 后，在 Mac 终端运行 `xcrun simctl openurl booted "<scheme>://read/rn-expo"`（`<scheme>` 换成 `app.json` 里的 `scheme`），再试一个不存在的路径 `<scheme>://nope`。
+
+   验证：第一个直接打开《RN 新架构》的阅读页；第二个落到 404（或 `+not-found`）页面。
+
+   参考答案：深链接是目录结构自动带来的，不需要像 React Navigation 那样单独配映射；匹配不到时才走 `+not-found`。
+
+3. **在模态里直接 push**：在练习项目里仿照书架做一个 `presentation: 'modal'` 的信息页，按钮先用「`router.back()` 再 `router.push` 阅读页」的写法，再改成只 `router.push`。两种写法下都从阅读页按返回。
+
+   验证：第一种返回回到书架首页；第二种返回回到模态信息页，阅读页是叠在模态上面的。
+
+   参考答案：push 压进的是当前所在的栈。想让阅读页成为主栈上的页面，就要先关掉模态。

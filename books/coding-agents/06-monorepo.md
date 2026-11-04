@@ -174,3 +174,31 @@ monorepo 大了以后，上下文会成为瓶颈：
 - 命令要无歧义：根上挂短名、完成标准用 `pnpm -r` 全仓检查、安装依赖指定命令和目录
 - 跨包改动先列影响范围（适合 plan 模式），再改共享包、逐个改调用方、全仓检查
 - 大仓库按包分层写说明，指向文档而非复制文档，调研交给子 agent
+
+## 动手练习
+
+1. **让边界测试抓到违规，再找它的漏洞**：把本章的 `boundary.test.ts` 放进一个包里，新建 `a.ts` 写 `import { readFileSync } from "node:fs"`，跑测试；再把这行改成 `const fs = await import("node:fs")` 或 `const p = require("path")` 重跑。
+
+   验证：第一次测试失败，失败用例名是「a.ts 不依赖 Node 或 RN 专有模块」；第二次测试却通过了。
+
+   参考答案：原正则只认 `from '...'`，动态 `import()`、`require()` 和裸 `import "node:fs"` 都漏了。改成下面这样能覆盖这几种，同时不误伤 `./path`、`pathe` 这类名字：
+
+   ```typescript
+   const FORBIDDEN = /(?:from|import|require)\s*\(?\s*['"](node:[^'"]+|fs|path|os|child_process|react-native[^'"]*|expo[^'"]*)['"]/;
+   ```
+
+2. **列出一个共享包的所有下游**：在 monorepo 根运行 pnpm 的依赖方选择器。
+
+   ```bash
+   pnpm --filter "...@shelf/spec" exec pwd
+   ```
+
+   验证：输出共享包自己的目录，以及所有依赖它的包的目录（在 hatch-shelf 里是 `packages/spec`、`app`、`app/reader-web`、`tools/shelf-pack`）。
+
+   参考答案：`...<包名>` 选中这个包和依赖它的所有包。改共享包之前用它确认影响范围，改完用 `pnpm --filter "...@shelf/spec" typecheck` 只检查受影响的包，最后再跑一次全仓检查。
+
+3. **用 plan 模式先列影响范围**：选一个被多处调用的共享函数，切到 plan 模式（`Shift+Tab`），让 Claude「我想给这个函数加一个必填参数，先列出所有调用处和需要改的文件，不要动手」。然后自己用 `grep -rn "<函数名>(" --include=*.ts --include=*.tsx .` 对一遍。
+
+   验证：它列出的调用处和 grep 的结果一致；`git status` 显示工作区干净。
+
+   参考答案：跨包改动最容易漏的是第一步；让它先交出影响范围，你核对后再放它动手，比改完再找漏掉的调用方便宜得多。

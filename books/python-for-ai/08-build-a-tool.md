@@ -462,6 +462,39 @@ slip2csv --help
 - 有副作用的部分做薄，纯逻辑用 pytest 测；ruff 和 pyright 把关代码质量
 - `uv tool install .` 把自己的项目装成全局命令
 
+## 动手练习
+
+1. **测退出码 1**：在 `tests/` 里加一个测试，用 pytest 的 `tmp_path` 建一个只有 `readme.txt` 的目录，断言 `main([str(tmp_path)]) == 1`。然后 `uv run pytest -q`。
+
+   验证：测试通过，加上本章原有的 4 个测试一共 `5 passed`；不需要 API key，也不会发出任何请求。
+
+   参考答案：`main` 接受 `argv` 参数，测试里可以直接调用；目录里没有图片时它在调模型之前就返回 1。
+
+2. **测缓存命中**：写一个测试，往 `tmp_path / "a.jpg"` 写入几个字节当作图片，用 `cache_path` 算出缓存文件位置，提前写入一份 `PurchaseSlip(...).model_dump_json()`，再用一个假 key 的客户端调用 `extract_one`。
+
+   ```python
+   def test_cache_hit_skips_api(tmp_path: Path) -> None:
+       image = tmp_path / "a.jpg"
+       image.write_bytes(b"fake image bytes")
+       cache = tmp_path / "cache"
+       cache.mkdir()
+       slip = PurchaseSlip(supplier="老王蔬菜", slip_date="2026-07-01", items=[])
+       cache_path(cache, image).write_text(slip.model_dump_json(), encoding="utf-8")
+       client = anthropic.AsyncAnthropic(api_key="not-used")
+       got = asyncio.run(extract_one(client, "claude-opus-5-5", image, cache))
+       assert got.supplier == "老王蔬菜"
+   ```
+
+   验证：测试通过。再加一个断言：两个文件名不同、内容相同的图片，`cache_path` 返回同一个路径。
+
+   参考答案：命中缓存时 `extract_one` 在第一个 `if` 就返回了，假 key 从未被使用；缓存键来自图片内容的 SHA-256，和文件名无关。`uv run pyright` 对这段测试也应是 `0 errors`。
+
+3. **看缓存省下的调用**（需要 API key）：找一张进货单或收据照片放进空目录，运行两次 `uv run slip2csv 目录 --limit 1`，每次前面加 `time`。
+
+   验证：第一次运行后 `.slip-cache/` 里出现 1 个 `.json` 文件；第二次的耗时明显短于第一次，CSV 内容完全相同。
+
+   参考答案：第二次直接读缓存，不发请求也不计费。想重新识别，删掉对应的缓存文件即可；这也是批量任务中途崩溃后可以放心重跑的原因。
+
 ## 接下来读什么
 
 这本书给了你读写 Python、处理数据和调用模型的基本功。按书架导读的 AI 原理线，下一本是[《动手学深度学习》](../deep-learning-basics/)：用 PyTorch 从感知机一路写到一个能生成文字的 mini-GPT，第 4 章的形状、轴和广播会在那里天天用到。如果你更想把模型用进产品，可以回到工程线：[《多模态应用》](../multimodal-ai/)会深入讲视觉模型和单据识别，[《RAG 与知识系统》](../rag-systems/)和《评测与质量》分别讲检索和评测，它们的示例代码里同样大量用到这本书讲的 Python 工具。

@@ -235,3 +235,34 @@ sudo wg show                                          # 看最近一次握手时
 - 端口绑内网地址时，让 Docker 等 Tailscale 拿到地址再启动，改完重启一次验证
 - 撤下公网 SSH 前，先确认云控制台的远程连接能用，并写进应急文档
 - Headscale 是关键服务，不能放在依赖它的工具机上；设备少且固定时，原生 WireGuard 也够用
+
+## 动手练习
+
+1. **用两个容器搭一条 WireGuard 隧道**：改网络配置要在一次性容器里做：
+
+   ```bash
+   docker network create wglab
+   for n in a b; do
+     docker run -d --name wg-$n --network wglab --cap-add NET_ADMIN alpine:3.20 sleep 3600
+     docker exec wg-$n apk add -q wireguard-tools
+     docker exec wg-$n sh -c 'wg genkey > /k && wg pubkey < /k'   # 打印公钥，记下来
+   done
+   ```
+
+   在 `wg-a` 里执行 `ip link add wg0 type wireguard && wg set wg0 private-key /k listen-port 51820 peer <B 的公钥> allowed-ips 10.66.0.2/32 && ip addr add 10.66.0.1/24 dev wg0 && ip link set wg0 up`；在 `wg-b` 里做对称的配置：地址 `10.66.0.2/24`，peer 是 A 的公钥，`allowed-ips 10.66.0.0/24 endpoint wg-a:51820 persistent-keepalive 25`。然后 `docker exec wg-b ping -c 2 10.66.0.1` 和 `docker exec wg-a wg show`。
+
+   验证：ping 通；`wg show` 里 peer 下面有 `latest handshake` 和收发字节数。如果建接口时报 `Unknown device type`，说明虚拟机的内核没有 WireGuard 模块，改在一台 Linux 虚拟机里做。做完 `docker rm -f wg-a wg-b && docker network rm wglab`。
+
+   参考答案：中心节点只需要知道每个 peer 的公钥和它的内网地址；在 NAT 后面的一方主动连中心，并用 keepalive 维持映射。每加一台设备都要改中心的配置，这就是设备多了以后换 Tailscale 的原因。
+
+2. **端口绑在还不存在的地址上**：执行 `docker run -d --name early -p 10.99.99.99:8080:80 nginx:alpine`，看输出和 `docker ps -a --filter name=early`。
+
+   验证：启动失败，报错里有 `cannot assign requested address` 一类字样，容器状态是 `Created` 而不是 `Up`。做完 `docker rm -f early`。
+
+   参考答案：本机还没有这个地址时，绑定直接失败。机器重启后 Docker 如果先于 Tailscale 拿到内网地址就启动，绑内网地址的容器就会这样起不来，所以要让 Docker 等 Tailscale，并重启一次验证。
+
+3. **读一份访问策略**：按本章的策略（个人设备访问一切；`tag:prod` 只能访问 `tag:tools:443`；`tag:tools` 只能访问 `tag:prod:45876`），判断这几条连接是否放行：生产机访问工具机的 443、生产机访问工具机的 22、工具机访问生产机的 5432、你的手机访问 NAS 的 8384、NAS 访问工具机的 443。
+
+   验证：五条依次是放行、拒绝、拒绝、放行、拒绝。
+
+   参考答案：没写到的一律拒绝。生产机被入侵时，攻击者在内网里只能碰到工具机的 443，碰不到 SSH 和其他服务；NAS 没有任何服务器方向的规则，它从云端拉备份走的是公网。

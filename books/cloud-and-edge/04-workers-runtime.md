@@ -248,3 +248,46 @@ async function sameSecret(a: string, b: string): Promise<boolean> {
 - 限制和计费围绕 **CPU 时间**，I/O 等待不算；流式转发既省内存也省钱
 - binding 读 R2 **不走边缘缓存**，`fetch` 子请求会；要不要自己加缓存，看取用形状
 - 曲库 Worker 的几条可复用设计：顶层兜底、无令牌时 503、定长比较、写令牌用 TOTP 换、代理用白名单并摘掉敏感头
+
+## 动手练习
+
+本章和后面两章的练习都在同一个本地项目 `edge-lab` 里做，只用 `wrangler dev`，不需要 Cloudflare 账号。先搭起来：
+
+```bash
+mkdir edge-lab && cd edge-lab && pnpm init && pnpm add -D wrangler @cloudflare/workers-types
+mkdir src && printf 'name = "edge-lab"\nmain = "src/index.ts"\ncompatibility_date = "2026-09-18"\n' > wrangler.toml
+```
+
+1. **全局变量会共享，也会丢**：把本章「全局变量」一节的计数器写进 `src/index.ts`，`pnpm exec wrangler dev` 起服务后连续请求几次；然后随便改一下源文件保存，再请求。
+
+   验证：`for i in 1 2 3; do curl -s localhost:8787; echo; done` 本地通常输出递增的 `1 2 3`；保存文件触发重载后，下一次请求又从 `1` 开始。
+
+   参考答案：本地只有一个 isolate，所以看起来像个可靠的计数器；重载等于 isolate 被回收，状态就没了。线上请求会分散到不同节点的不同 isolate，还会被随时回收，所以不能把它当存储。
+
+2. **没配令牌就拒绝服务**：实现一个最小的鉴权：两把令牌都没配时返回 503，令牌不对返回 401，对了返回 200，比较用 SHA-256 摘要后逐字节异或。
+
+   验证：不建 `.dev.vars` 时 `curl -s -o /dev/null -w '%{http_code}\n' localhost:8787` 输出 `503`；写入 `READ_TOKEN=dev-read-token` 到 `.dev.vars` 并重启 dev 后，不带头输出 `401`，带 `-H 'Authorization: Bearer dev-read-token'` 输出 `200`。
+
+   参考答案：关键是「没配」时走拒绝分支，而不是让 `undefined` 参与比较。
+
+   ```ts
+   const sha = async (s: string) =>
+     new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
+   async function same(a: string, b: string) {
+     const [x, y] = await Promise.all([sha(a), sha(b)]);
+     let d = 0; for (let i = 0; i < 32; i++) d |= x[i]! ^ y[i]!; return d === 0;
+   }
+   export default {
+     async fetch(req: Request, env: { READ_TOKEN?: string }) {
+       if (!env.READ_TOKEN) return new Response("no token configured", { status: 503 });
+       const got = (req.headers.get("authorization") ?? "").replace(/^bearer\s+/i, "");
+       return (await same(got, env.READ_TOKEN)) ? new Response("ok") : new Response("no", { status: 401 });
+     },
+   };
+   ```
+
+3. **转发接口不能变成开放代理**：加一条 `/fwd?url=<地址>` 路由：只放行 `https:` 和白名单里的 `httpbin.org`，转发前删掉 `authorization` 头。
+
+   验证：`curl -s -o /dev/null -w '%{http_code}\n' 'localhost:8787/fwd?url=https://example.com/'` 和 `url=http://httpbin.org/get` 都被拒（比如 403）；`curl -s -H 'Authorization: Bearer secret' 'localhost:8787/fwd?url=https://httpbin.org/headers'` 返回的 JSON 里没有 `Authorization` 字段。
+
+   参考答案：先 `new URL()` 解析再比 `protocol` 和 `hostname`，不要用字符串前缀匹配（`https://httpbin.org.evil.com` 能绕过前缀检查）；转发时 `new Headers(req.headers)` 后 `delete("authorization")`。

@@ -201,3 +201,36 @@ hatch-counter 用 alpine，因为服务端依赖里没有需要原生编译的�
 - `.dockerignore` 放在构建上下文根目录，既提速又防止 `.env` 被烤进镜像
 - tag 可变、digest 不可变；部署引用不可覆盖的版本号 tag，不用 `latest`
 - alpine 用 musl，原生模块可能有兼容问题；拿不准时用 slim
+
+## 动手练习
+
+1. **后面的 rm 不会让镜像变小**：分别构建两个镜像，再比较大小：
+
+   ```bash
+   docker build -t layers-a - <<'EOF'
+   FROM alpine:3.20
+   RUN head -c 50000000 /dev/urandom > /big
+   RUN rm /big
+   EOF
+   docker build -t layers-b - <<'EOF'
+   FROM alpine:3.20
+   RUN head -c 50000000 /dev/urandom > /big && rm /big
+   EOF
+   docker image ls 'layers-*'
+   ```
+
+   验证：`layers-a` 比 `layers-b` 大约 50MB；`docker history layers-a` 里有一层 `50MB` 左右，紧跟着一层 `0B` 的 `rm`。
+
+   参考答案：每个 `RUN` 是一层，删除只是在上层加白障，下层的字节还在。创建和清理写在同一个 `RUN` 里，临时文件才不会留在镜像里。
+
+2. **缓存从第一个变化开始失效**：建一个目录，放 `package.json`（`{"dependencies":{"ms":"2.1.3"}}`）和 `index.js`（`console.log(require('ms')(60000))`）。Dockerfile 先写成 `FROM node:22-alpine`、`WORKDIR /app`、`COPY . .`、`RUN npm install`、`CMD ["node","index.js"]`，构建一次；改一下 `index.js` 的内容，用 `docker build --progress=plain -t cache-demo .` 再构建，看 `npm install` 那一步。然后把 Dockerfile 改成先 `COPY package.json ./`、`RUN npm install`，再 `COPY . .`，重复一遍。
+
+   验证：第一种写法改了 `index.js` 后 `npm install` 重新执行；第二种写法同一步标着 `CACHED`。`docker run --rm cache-demo` 输出 `1m`。
+
+   参考答案：`COPY` 会比较拷进来的文件内容，`COPY . .` 里任何文件变了这一层就失效，它后面的 `npm install` 跟着重跑。先拷依赖清单装依赖，源码变化就碰不到这一层。
+
+3. **.dockerignore 是防线**：在上题目录里建一个 `.env`（内容 `SECRET=abc`），构建后执行 `docker run --rm cache-demo cat /app/.env`；再建一个 `.dockerignore`，写上 `.env` 和 `node_modules`，重新构建并重试。
+
+   验证：第一次打印 `SECRET=abc`；加了 `.dockerignore` 后报 `No such file or directory`。
+
+   参考答案：`COPY . .` 拷的是整个构建上下文，`.env` 就这样被烤进了镜像，任何能拉到镜像的人都能读到。`.dockerignore` 要放在构建上下文的根目录。

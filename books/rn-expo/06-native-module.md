@@ -237,3 +237,23 @@ class LockScreenKeysModule : Module() {
 - 原生侧注意**主线程**、**幂等**（注册类 API 重复调用会叠加）、`[weak self]`
 - JS 侧用 `declare class X extends NativeModule<Events>` 类型化；平台独占的功能用 `requireOptionalNativeModule` 并判空
 - 跨进程场景让原生层**只做搬运**，业务逻辑留在 JS；两侧共享的数据结构要互相注明
+
+## 动手练习
+
+1. **最小的同步函数**：在练习项目里运行 `npx create-expo-module@latest --local`，把 Swift 定义改成只有 `Name("Calc")` 和 `Function("add") { (a: Double, b: Double) in a + b }`，重新 `npx expo run:ios`，在 JS 里调用 `requireNativeModule('Calc').add(2, 3)`；再试 `add('2', 3)`。
+
+   验证：第一次返回 `5`，不是 Promise；第二次在 JS 侧抛出类型转换相关的错误。
+
+   参考答案：`Function` 是同步的，走 JSI 直接返回；参数按 Swift 类型做转换，类型不对由框架报错，不会进到你的闭包里。
+
+2. **挪走目录看静默失效**：把上题的模块从 `modules/` 挪到 `src/modules/`，JS 侧改用 `requireOptionalNativeModule('Calc')`，重新 prebuild 并构建。
+
+   验证：构建成功、没有任何报错，但 `requireOptionalNativeModule('Calc')` 返回 `null`；挪回 `modules/` 重新构建后恢复。
+
+   参考答案：autolinking 默认只扫描项目根下的 `modules/`，挪走后模块没被链接进工程。用 `requireNativeModule` 会直接红屏，Optional 版只是拿到 `null`，所以要判空。
+
+3. **函数跑在哪个线程**：在 `add` 的闭包里加一行 `print("main? \(Thread.isMainThread)")`，重新构建后调用一次，在 Xcode 的控制台（或 `xcrun simctl spawn booted log stream --predicate 'process == "<App 进程名>"'`）里看输出。
+
+   验证：观察打印的是 `true` 还是 `false`。
+
+   参考答案：`Function` 的闭包不保证在主线程。碰 UIKit、`MPRemoteCommandCenter` 这类 API 时，不要依赖观察到的结果，统一包一层 `onMain`。

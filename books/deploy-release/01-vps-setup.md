@@ -111,7 +111,7 @@ sudo ufw allow 80,443/tcp
 sudo ufw enable
 ```
 
-特别注意：**Postgres 的 5432、Node 的 3000 一个都不要对公网开**。hatch-counter 的编排里库不映射任何端口，服务端只绑 `127.0.0.1:3000` 给宿主机上的 nginx。还有一个经典坑：**Docker 发布的端口会绕过 ufw**（Docker 直接改 iptables），所以 `ports: "3000:3000"` 即使 ufw 没放行，公网照样打得进来。写成 `127.0.0.1:3000:3000` 才是真的只给本机。
+特别注意：**Postgres 的 5432、Node 的 3000 一个都不要对公网开**。hatch-counter 的编排里库不映射任何端口，服务端只绑 `127.0.0.1:3000` 给宿主机上的 nginx。注意 **Docker 发布的端口会绕过 ufw**，`ports: "3000:3000"` 照样对公网开放，要写成 `127.0.0.1:3000:3000`，原因见[《容器技术》Docker 会绕过防火墙](../docker-containers/05-network-storage.md#docker-会绕过防火墙)。
 
 ### 5. 自动安全更新
 
@@ -162,3 +162,25 @@ hatch-counter 把密钥文件和 compose 自己读的 `.env` 分开，原因很�
 - 初始化顺序：部署用户 → 关密码登录 → 安全组 + ufw → 自动安全更新 → Docker / nginx → 快照
 - 数据库和应用端口只绑本机；Docker 的端口映射会绕过 ufw，要写成 `127.0.0.1:端口:端口`
 - 应用的东西收在一个目录，密钥文件只在机器上生成、不进仓库
+
+## 动手练习
+
+下面的题会改防火墙和 sshd 配置，请在一次性虚拟机里做（例如 `multipass launch --name lab 24.04`，做完 `multipass delete --purge lab`），不要在正在用的服务器上试。
+
+1. **亲眼看 Docker 绕过 ufw**：在虚拟机里按本章打开 ufw（`default deny incoming`，只放 OpenSSH），装好 Docker 后运行 `docker run -d --name web -p 8080:80 nginx:alpine`，然后在 Mac 上 `curl -s http://<虚拟机 IP>:8080 | head -n 4`。再把容器换成 `-p 127.0.0.1:8080:80` 重来一次。
+
+   验证：第一次能拿到 nginx 欢迎页的 HTML（`sudo ufw status` 里明明没有 8080）；第二次 curl 连接失败，而在虚拟机里 `curl -s 127.0.0.1:8080` 仍然正常。
+
+   参考答案：Docker 发布端口是直接往 iptables 的 nat / DOCKER 链里写规则，流量在到达 ufw 管的 INPUT 链之前就被转发走了。所以对外只靠端口映射写成 `127.0.0.1:端口:端口`，再由宿主机上的 nginx 转发。
+
+2. **让 `sshd -t` 拦下一次手误**：在虚拟机里写一份故意拼错的 `/etc/ssh/sshd_config.d/10-hardening.conf`（例如 `PasswordAuthenticaton no`，少了一个 i），先跑 `sudo sshd -t; echo $?`，改对后再跑一次，最后用 `sudo sshd -T | grep -i '^passwordauthentication'` 看生效值。
+
+   验证：拼错时 `sshd -t` 打印出错的文件和行号，退出码非 0；改对后没有输出、退出码为 0；`sshd -T` 打印 `passwordauthentication no`。
+
+   参考答案：`sshd -t` 只做语法检查，`sshd -T` 打印合并所有配置文件后的最终值，两者配合才能确认「改的那一行真的生效了」。前面那份配置还没生效时，用 `&&` 把 `sshd -t` 和 `reload` 串起来，错了就不会 reload。
+
+3. **arm64 的 Mac 上编 amd64 镜像要多久**：在 Mac 上找一个有 `pnpm install` 的小项目（或者写一个只有 `RUN npm i typescript` 的 Dockerfile），分别 `time docker build -t t:native .` 和 `time docker buildx build --platform linux/amd64 -t t:amd64 --load .`，再用 `docker image inspect --format '{{.Architecture}}' t:amd64` 看架构。
+
+   验证：inspect 输出 `amd64`；amd64 那次的耗时明显长于原生构建（记下两次的 real 时间，对比倍数）。
+
+   参考答案：跨架构构建靠 QEMU 逐条翻译指令，CPU 密集的安装和编译步骤会成倍变慢，这就是本章建议把构建交给 amd64 的 CI runner 的原因。

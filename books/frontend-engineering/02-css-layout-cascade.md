@@ -189,3 +189,57 @@ hatch-counter 的侧栏和名字卡用了毛玻璃（`--glass` 配 `backdrop-fil
 - 组件响应式用容器查询；有固定侧栏的应用尤其不该用视口断点
 - `z-index` 只在同一层叠上下文里比较；`transform`、`opacity`、`backdrop-filter` 都会创建新上下文，浮层用 Portal 逃出去
 - 先定浏览器兼容性线，再决定能用哪些新特性
+
+## 动手练习
+
+每题都是一个独立的 HTML 文件，在浏览器里打开，用 DevTools 的 Elements → Computed 面板核对结果。
+
+1. **层压过优先级，未分层压过层**：
+
+   ```html
+   <style>
+     @layer base, utilities;
+     @layer utilities { .t { color: green; } }
+     @layer base { #x.t { color: red; } }
+     p.t { color: blue; }
+   </style>
+   <p id="x" class="t">这行是什么颜色？</p>
+   ```
+
+   先预测，再打开页面；然后删掉最后那条 `p.t`，再预测一次。
+
+   验证：有 `p.t` 时文字是蓝色；删掉后是绿色。Computed 面板里点开 `color`，能看到被划掉的规则和它们所在的层。
+
+   参考答案：未分层的 `p.t` 比所有层都优先，选择器优先级不参与比较；删掉后在两个层之间比，后声明的 `utilities` 赢，`base` 里那条带 ID、优先级更高的规则照样输。
+
+2. **滚动区为什么不出滚动条**：
+
+   ```html
+   <div style="display:flex; flex-direction:column; height:300px; border:1px solid #999">
+     <header style="flex-shrink:0">页头</header>
+     <main style="overflow:auto">
+       <div style="height:1000px; background:linear-gradient(#eee, #999)">很长的内容</div>
+     </main>
+   </div>
+   ```
+
+   观察 `main` 能不能滚动；再给 `main` 加上 `min-height: 0`。
+
+   验证：不加时 `main` 被内容撑到约 1000px 高、溢出外框，没有自己的滚动条（Computed 里 `main` 的高度远大于 300px）；加上 `min-height: 0` 后 `main` 被压到剩余高度，出现滚动条。
+
+   参考答案：flex 子项的 `min-height` 默认是 `auto`，即不小于内容高度，`overflow: auto` 永远等不到需要滚动的那一刻。这就是本章 `min-h-0` 的来历。
+
+3. **z-index: 9999 输给了 z-index: 1**：
+
+   ```html
+   <div style="position:relative; opacity:0.99">
+     <div style="position:absolute; z-index:9999; top:20px; width:120px; height:60px; background:tomato">菜单</div>
+   </div>
+   <div style="position:relative; z-index:1; width:200px; height:100px; background:steelblue">主内容</div>
+   ```
+
+   预测红色「菜单」在不在蓝色块上面，再把第一个 `div` 的 `opacity:0.99` 删掉重试。
+
+   验证：有 `opacity` 时红块被蓝块盖住；删掉后红块在上面。把 `opacity` 换成 `transform: translateZ(0)` 或 `backdrop-filter: blur(1px)`，结果和有 `opacity` 时一样。
+
+   参考答案：`opacity < 1` 让父元素创建了层叠上下文，里面的 9999 只在这个上下文里比较；整个上下文在外面按 `z-index: auto` 参与排序，排在 `z-index: 1` 的蓝块下面。浮层用 Portal 放到 `body` 下，就是为了跳出这类上下文。

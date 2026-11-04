@@ -114,3 +114,32 @@ DSH 给每种格式一个版本号，旧格式在读取时一代一代地迁移�
 - 硬规矩：模型看到的一切都必须能从日志还原；压缩是「替换」而不是删除，原文还在
 - 这个设计带来断点恢复、分叉、回放、Trajectory、子 agent 继承上下文，以及用投影实现的待办、权限等界面状态
 - 日志比发给模型的内容还完整；用官方 API 时默认会上传，敏感场景记得关掉
+
+## 动手练习
+
+1. **写一个最小的 deriveMessages**：用一个数组模拟本章插图里的日志：序号 0–8 依次是 `turn/start`、`system/message`、`user/message`、`step/start`、`assistant/message`、`tool/result`、`assistant/message`、一条声明 `replaces: [4, 6]` 的摘要 `user/message`、`step/end`。写一个函数，只保留消息类事件，并把被摘要替换的序号遮住。
+
+   验证：输出恰好三条：系统提示词、用户任务、摘要；原数组没有被修改，序号 4–6 的原文仍在里面。
+
+   参考答案：这个简化版把摘要放在它自己的位置上；真实实现会把摘要放到被替换那段的位置，但「只追加、推导时遮住」的思路一样。
+
+   ```js
+   const MSG = new Set(["system/message", "user/message", "assistant/message", "tool/result"]);
+   function derive(log) {
+     const hidden = new Set();
+     for (const e of log) if (e.replaces) for (let s = e.replaces[0]; s <= e.replaces[1]; s++) hidden.add(s);
+     return log.filter((e) => MSG.has(e.type) && !hidden.has(e.seq)).map((e) => e.text);
+   }
+   ```
+
+2. **用投影还原界面状态**：在上一题的日志里追加三条 `todo/write` 事件，内容分别是 `["读文件"]`、`["读文件", "写测试"]`、`["写测试"]`，写一个投影函数算出「当前待办」。再写一个 `fork(log, seq)`：只有当 `seq` 正好是某条 `turn/end` 时才返回前缀，否则抛错。
+
+   验证：当前待办是 `["写测试"]`；在一条 `turn/end` 上分叉返回到它为止的前缀，在轮次中间的序号上分叉抛出错误。
+
+   参考答案：投影就是对事件的折叠，状态不需要另存；分叉只允许在稳定位置，是为了不留下「有调用没结果」的半截轮次。
+
+3. **看一眼真实的日志**（需要 API key）：跑完一个小任务后，用 `find ~/.dsh -name '*.jsonl' -newer ~/.dsh/.credentials.yaml` 找到会话文件，用 `jq -r '.type' <文件> | sort | uniq -c` 统计各类事件的数量。
+
+   验证：能看到本章表格里的多种类型，结构事件（`turn/*`、`step/*`、`tool/call`）的数量和消息类事件不相上下；`tool/call` 和 `tool/result` 的数量相等。字段名如果不叫 `type`，先用 `head -1 <文件> | jq .` 看一条事件的结构。
+
+   参考答案：这一题只用来学习。会话格式在预览期频繁变化，正式的脚本应通过 SDK 或会话查询工具读取，不要依赖文件格式。

@@ -228,3 +228,30 @@ docker compose exec postgres psql -U counter -d counter \
 - 在 compose 里用 `command: -c` 或挂配置文件传参数，配置进 Git；`ALTER SYSTEM` 只用于临时救火
 - `shared_buffers` 约 25% 内存，SSD 上 `random_page_cost` 调到 1.1，`work_mem` 宁小勿大
 - 记得给容器设 `shm_size`；用 `idle_in_transaction_session_timeout` 和按角色的 `statement_timeout` 做护栏
+
+## 动手练习
+
+以下练习都在一次性容器里做，做完 `docker rm -f pgx` 即可清理，不要连自己的真实数据库：
+
+```bash
+docker run -d --name pgx -e POSTGRES_PASSWORD=x postgres:16-alpine
+docker exec -it pgx psql -U postgres
+```
+
+1. **哪些参数要重启**：在 psql 里执行 `ALTER SYSTEM SET shared_buffers = '256MB';` 和 `ALTER SYSTEM SET work_mem = '32MB';`，再执行 `SELECT pg_reload_conf();`，然后查 `pg_settings` 里这两个参数的 `setting` 和 `pending_restart`。
+
+   验证：`work_mem` 已经变成 32MB（`setting` 显示 `32768`，单位 kB），`pending_restart` 为 `f`；`shared_buffers` 的 `pending_restart` 为 `t`。`docker restart pgx` 之后再查，两者都生效、`pending_restart` 都是 `f`。
+
+   参考答案：`shared_buffers` 的 `context` 是 `postmaster`，要重启；`work_mem` 是 `user`，重载即生效。这也说明 `ALTER SYSTEM` 改的东西落在数据卷的 `postgresql.auto.conf` 里：`docker exec pgx cat /var/lib/postgresql/data/postgresql.auto.conf` 能看到这两行。
+
+2. **work_mem 不够时的临时文件**：执行 `SET log_temp_files = 0; SET work_mem = '64kB';`，再跑 `SELECT g FROM generate_series(1, 2000000) g ORDER BY g DESC LIMIT 1;`。然后把 `work_mem` 调到 `256MB` 再跑一次，两次都加上 `EXPLAIN (ANALYZE)`。
+
+   验证：64kB 时 `EXPLAIN ANALYZE` 的 Sort 节点显示 `Sort Method: external merge  Disk: ...kB`，`docker logs pgx` 里能看到 `temporary file: path ...`；调大后变成 `Sort Method: quicksort` 或 `top-N heapsort` 之类的内存排序，不再有临时文件日志。
+
+   参考答案：排序超出 `work_mem` 就溢出到磁盘。注意带 `LIMIT 1` 时优化器可能直接用 top-N heapsort，内存需求很小；如果第一次就没看到 external merge，去掉 `LIMIT` 改成 `SELECT count(*) FROM (SELECT g FROM generate_series(1,2000000) g ORDER BY g DESC) t;` 再试。
+
+3. **按角色的超时护栏**：建一个角色 `CREATE ROLE app LOGIN PASSWORD 'x'; ALTER ROLE app SET statement_timeout = '2s';`，然后分别用 `docker exec -it pgx psql -U app -d postgres -c "SELECT pg_sleep(5);"` 和 `-U postgres` 跑同一条语句。
+
+   验证：`app` 那条约 2 秒后报 `canceling statement due to statement timeout`；`postgres` 那条 5 秒后正常返回。
+
+   参考答案：`ALTER ROLE ... SET` 只在该角色的新连接上生效，所以业务角色受约束、迁移角色不受影响。容器内本地连接默认是 trust 认证，不需要输密码。

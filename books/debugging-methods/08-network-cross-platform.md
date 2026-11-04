@@ -203,3 +203,31 @@ CSP 也类似：资源被浏览器按页面的安全策略拦下，控制台会�
 - 网络不稳定会造成重复提交；同一次提交的重试要沿用同一个幂等键
 - 跨端差异用控制变量找第一个不同点；改了相关代码就过一遍环境矩阵中对应的那一行
 - CORS 是浏览器根据响应头拒绝交出结果，不是请求没到服务端
+
+## 动手练习
+
+1. **复现「模拟器能连，真机连不上」**：在 Mac 上运行 `python3 -m http.server 8765 --bind 127.0.0.1`，再开一个终端执行 `lsof -nP -iTCP:8765 -sTCP:LISTEN`；用同一 Wi-Fi 下的手机 Safari 打开 `http://<Mac 的局域网 IP>:8765`。然后把 `--bind` 换成 `0.0.0.0` 重来一遍。
+
+   验证：第一次 `lsof` 的 NAME 列是 `127.0.0.1:8765 (LISTEN)`，手机打不开；第二次是 `*:8765 (LISTEN)`，手机能看到目录列表。
+
+   参考答案：只监听回环地址时，只有本机（包括跑在 Mac 上的 iOS 模拟器）能连。手机浏览器这一步就排除了 App 本身；`-n -P` 让 `lsof` 不把地址和端口翻译成名字，读起来更直接。练完关掉服务，不要在公共 Wi-Fi 上长时间监听 `0.0.0.0`。
+
+2. **CORS：请求到了，结果被拦下**：写一个最小的 Node 服务，监听 3000 端口，每个请求打印一行 `got <method> <url>` 并返回 JSON，不设任何 CORS 响应头。另起 `python3 -m http.server 8001` 当作别的源，在浏览器打开 `http://127.0.0.1:8001`，在 DevTools 控制台执行 `fetch("http://localhost:3000/ping").then((r) => r.json())`。
+
+   验证：控制台报 CORS 错误，但 Node 服务的终端里打印了 `got GET /ping`；`curl -si -H "Origin: http://127.0.0.1:8001" http://localhost:3000/ping` 能拿到 JSON，响应头里没有 `Access-Control-Allow-Origin`。
+
+   参考答案：浏览器按响应头决定是否把结果交给页面，请求本身已经到了服务端。在响应里加上 `Access-Control-Allow-Origin: http://127.0.0.1:8001` 后，fetch 成功。
+
+3. **凌晨的订单算到哪一天**：执行下面的命令，看三行输出。
+
+   ```bash
+   TZ=Asia/Shanghai node -e '
+   const d = new Date("2026-11-03T16:30:00Z");
+   console.log(d.toString());
+   console.log(d.toISOString().slice(0, 10));
+   console.log(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai" }).format(d));'
+   ```
+
+   验证：第一行是 `Wed Nov 04 2026 00:30:00 GMT+0800 ...`，第二行是 `2026-11-03`，第三行是 `2026-11-04`。
+
+   参考答案：同一时刻，用 UTC 截断日期得到 11 月 3 日，门店当地的营业日却是 11 月 4 日。按日分组要先换到门店时区；把 `TZ` 换成 `UTC` 再跑一次，第一行跟着变，后两行不变，说明 `Intl` 的结果只取决于你显式传入的时区。

@@ -224,3 +224,23 @@ onContentProcessDidTerminate={() => {
 - 消息类型**只在一个文件定义**，用可辨识联合，两端各一个薄收发函数
 - 以页面发出的 `ready` 握手；用 ref 记录消息归属，滚动进度要节流
 - WebView 进程可能被回收：`onContentProcessDidTerminate` 里重载，状态真相放在 RN 和 SQLite
+
+## 动手练习
+
+1. **亲眼看 CSP 拦截**：开发构建里临时给阅读页的 `<WebView>` 加上 `webviewDebuggingEnabled`，打开任意一本书，在 Mac 的 Safari「开发」菜单里找到模拟器下的 `index.html`，在它的控制台里执行 `fetch('https://example.com')`。
+
+   验证：请求失败，控制台出现 Content Security Policy 拒绝连接的报错。练完把这个属性去掉。
+
+   参考答案：`default-src 'none'` 也覆盖了 `connect-src`，页面里的任何网络请求都会被拦下，渲染库想偷偷拉 CDN 也不行。
+
+2. **穷尽检查抓漏处理的消息**：在 `reader-web/src/main.ts` 的 `switch (msg.type)` 末尾加 `default: { const unhandled: never = msg; void unhandled; }`，然后在 `bridge.ts` 的 `ToReader` 里临时加一种 `{ type: 'ping' }`，运行 `pnpm typecheck`。
+
+   验证：报错指向 `default` 分支，提示 `{ type: 'ping' }` 不能赋给 `never`；在 switch 里补上 `case 'ping'` 后通过。练完删掉 `ping`。
+
+   参考答案：可辨识联合配合 `never`，新增消息而某一端没处理，就在编译期暴露，不用等到运行时消息被静默丢弃。
+
+3. **杀掉 Web 进程**：在模拟器里打开一本书滚到中间，在 Mac 终端用 `pgrep -fl WebContent` 找到模拟器里的 WebKit 内容进程（练习时只开这一个 App，免得认错），`kill` 掉它，再看阅读页。
+
+   验证：阅读页短暂白屏后重新加载，回到刚才的阅读位置附近。
+
+   参考答案：`onContentProcessDidTerminate` 里重置 `webReady` 并 `reload()`，页面重新发 `ready`，章节和位置从 SQLite 恢复。WebView 只是渲染层，状态真相在 RN 和 SQLite。

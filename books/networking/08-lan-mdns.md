@@ -233,3 +233,32 @@ React Native 里没有现成的 HTTP 服务器，项目在 TCP 套接字（`reac
 - 无法强认证的局域网服务：短 PIN + 错误次数上限 + 只在需要时开启
 - 「同一个 Wi-Fi 却连不上」：查子网、前台状态、权限、客户端隔离、VPN，再用 `nc` 和 `curl` 验证
 - 自动发现用 mDNS，但必须保留手动 IP 作为兜底
+
+## 动手练习
+
+1. **注册并发现一个假服务**：在 Mac 上开一个终端执行 `dns-sd -R "Shelf Test" _shelf._tcp local 8080 ver=1`；另开终端执行 `dns-sd -B _shelf._tcp`，再执行 `dns-sd -L "Shelf Test" _shelf._tcp local`；最后在第一个终端按 Ctrl+C。
+
+   验证：浏览结果里出现一行 `Add` 和实例名 `Shelf Test`；`-L` 的输出里有端口 `8080` 和 `ver=1`；停止注册后浏览窗口出现一行 `Rmv`。
+
+   参考答案：PTR 告诉你有哪些实例，SRV 和 TXT 给出主机、端口和附加信息。不用等手机端写完，CLI 的发现逻辑就可以对着这个假服务开发。
+
+2. **判断是否同一子网**：手机显示 `192.168.1.23`，掩码 `255.255.255.0`；电脑连的是访客网络，地址 `192.168.0.15/24`。另一组：`10.0.5.20/16` 和 `10.0.200.3/16`。判断每组能否直接通信，然后用 `ipconfig getoption en0 subnet_mask` 和 `arp -a` 看自己的子网和邻居。
+
+   验证：第一组不在同一子网，第二组在。
+
+   参考答案：`/24` 比较前三段，`192.168.1` 和 `192.168.0` 不同，要经网关转发，而访客网络通常不让互访；`/16` 只比较前两段，都是 `10.0`。`arp -a` 里能看到 MAC 的设备，说明链路层通。
+
+3. **Content-Length 还是分块**：把下面的代码存成 `len.mjs` 运行，然后分别执行 `curl -s -F file=@/etc/hosts http://127.0.0.1:8080/` 和 `cat /etc/hosts | curl -s -T - http://127.0.0.1:8080/`。
+
+   ```js
+   import http from 'node:http';
+   http.createServer((req, res) => {
+     console.log(req.headers['content-length'], req.headers['transfer-encoding']);
+     req.resume();
+     req.on('end', () => res.end('ok\n'));
+   }).listen(8080);
+   ```
+
+   验证：第一条请求服务端打印一个数字和 `undefined`；第二条打印 `undefined chunked`。
+
+   参考答案：长度事先知道时 curl 带 `Content-Length`，从管道读时不知道长度只能分块。只接受 `Content-Length` 的服务端（比如手机上的传书服务）会拒绝第二种，所以客户端要先算出长度再发。

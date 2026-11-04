@@ -270,3 +270,27 @@ git -C repo256 rev-parse --show-object-format   # sha256
 - 暂存区是路径到 blob 的表；`git add` 过的内容已经进了对象库
 - 改名和大改分开提交；删文件不会让仓库变小
 - `cat-file`、`ls-tree`、`rev-list` 这几个管道命令足够你看清任何仓库的内部
+
+## 动手练习
+
+1. **手算 blob ID**：不借助 `git hash-object`，只用 `printf` 和 `shasum` 算出内容为 `hello world` 加换行的 blob ID，再和本章第二个提交里 `README.md` 的 blob 对照。
+
+   验证：输出是 `3b18e512dba79e4c8300dd08aeb37f8e728b8dad`，与 `git cat-file -p 'HEAD^{tree}'` 里 README.md 那一行一致。
+
+   参考答案：头部字节数要算上末尾换行，`hello world\n` 是 12 字节：
+
+   ```bash
+   printf 'blob 12\0hello world\n' | shasum
+   ```
+
+2. **add 过就进了对象库**：在新仓库里 `echo 'draft v1' > notes.md && git add notes.md`，再把文件改成 `draft v2`、重新 add 并提交。不翻工作区，把 `draft v1` 找回来。
+
+   验证：`git fsck --dangling` 列出一个 `dangling blob`，`git cat-file -p <该 ID>` 输出 `draft v1`。
+
+   参考答案：第一次 add 已经把 v1 写成 blob；第二次 add 只是让 index 改指 v2 的 blob，v1 成了没人引用的悬空对象，在被 gc 清理前都能取回。也可以用 `echo 'draft v1' | git hash-object --stdin` 先算出 ID 再 `cat-file`。
+
+3. **哪些权限位会进仓库**：提交一个普通文件后，先 `chmod 600` 再看 `git status --short`，然后 `chmod +x` 再看一次。
+
+   验证：`chmod 600` 后没有任何输出；`chmod +x` 后出现 ` M`，`git diff` 显示 `old mode 100644` / `new mode 100755`。
+
+   参考答案：tree 里的文件模式只有 100644 和 100755 两种，Git 只关心可执行位，其余权限位不记录（前提是 `core.fileMode` 为默认的 true）。

@@ -386,3 +386,25 @@ macOS 的签名和公证与 Electron 遵循同样的规则：自己用可以 ad-
 - capabilities 是默认拒绝的白名单；命令本身是 API 边界，参数要在 Rust 里校验
 - 签名公证与 Electron 规则相同；体积小是真的，具体多少自己打包实测
 - 逻辑已经在 Rust 里、界面简单时选 Tauri；要和 TS 代码共享业务逻辑时，Electron 的摩擦更小
+
+## 动手练习
+
+以下练习都在本章的 `shelf-desk` 项目里做，`pnpm tauri dev` 运行，前端报错在窗口里右键「检查元素」打开的 Web Inspector 控制台里看。
+
+1. **收回一项权限**：把 `capabilities/default.json` 里的 `"dialog:allow-open"` 删掉，保存后让 `pnpm tauri dev` 重新编译，点「选择 books 目录」。
+
+   验证：文件选择框不再弹出；在 `pickAndCheck` 外层加一个 `.catch(console.error)`（或在控制台看未处理的 rejection），能看到一条说明 dialog 的 open 操作不被允许的错误。加回这一项后恢复正常。
+
+   参考答案：capability 是默认拒绝的白名单，插件的每个操作都要显式授权给窗口。前端代码一行没改，能力就被收回了，这就是它和 Electron preload 的区别。
+
+2. **参数名的大小写**：把 Rust 命令的参数 `path: String` 改名为 `book_dir: String`（函数体里同步改），前端仍然传 `{ path: dir }`。预测选目录之后发生什么，再把前端改成正确的键名。
+
+   验证：Rust 能编译通过，但 `invoke` 被 reject，页面上的错误提示提到缺少 `bookDir` 这个键。前端改成 `{ bookDir: dir }` 后恢复正常。
+
+   参考答案：Tauri 默认把 Rust 的 snake_case 参数名映射成 camelCase。前后端的约定没有编译期检查，这类错误只能在运行时暴露，也是 `tauri-specta` 这类工具存在的原因。
+
+3. **没注册的命令**：从 `generate_handler![check_books, last_dir]` 里删掉 `last_dir`，在前端 `useEffect` 里加一行 `invoke<string | null>("last_dir").then(console.log, console.error)`。
+
+   验证：`cargo` 编译时出现 `last_dir` 未被使用的警告；前端控制台打印的是 reject 的错误，说明找不到 `last_dir` 这个命令。加回去后打印 `null`（还没检查过任何目录时）或上次的目录路径。
+
+   参考答案：`#[tauri::command]` 只是让函数能被调用，`generate_handler!` 才是把它挂到 IPC 上。没挂上的命令前端调不到，这也是一层默认收紧的边界。

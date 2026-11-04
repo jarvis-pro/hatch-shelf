@@ -284,3 +284,33 @@ describe("GET /expenses", () => {
 - 仓库外的 TS 客户端用 `openapi-typescript` 加 `openapi-fetch` 生成纯类型的客户端
 - 生成的类型不等于运行时校验；客户端宽容地校验关键回包，服务端测试严格地校验契约
 - SDK 先不做，只给 OpenAPI 和 curl 示例；要做就做薄的：认证、重试、分页迭代、验签
+
+## 动手练习
+
+1. **看 zod 导出的 JSON Schema**：新建目录 `pnpm add zod`，写 `const Expense = z.object({ id: z.string(), amount: z.number().int(), note: z.string().max(200).nullable() })`，打印 `JSON.stringify(z.toJSONSchema(Expense), null, 2)`。
+
+   验证：输出里 `required` 包含三个字段，`amount` 是 `integer`，`note` 表示成「字符串或 null」的组合（具体写法以所装 zod 版本的输出为准），并带 `maxLength: 200`。
+
+   参考答案：OpenAPI 3.1 的数据模型就是 JSON Schema，所以这段输出可以直接放进 `components.schemas`；zod 改了字段，重新生成就同步了。
+
+2. **让生成的类型拦住写错的路径**：把本章开头的 OpenAPI 片段补全成 `openapi.json`（补上 `Problem` schema），运行 `npx openapi-typescript ./openapi.json -o ./schema.d.ts`，然后用 `openapi-fetch` 写 `api.GET("/expense")` 和 `api.GET("/expenses", { params: { query: { limit: "20" } } })`，执行 `npx tsc --noEmit`。
+
+   验证：`tsc` 报两处类型错误，一处指出 `"/expense"` 不是可用的路径，一处指出 `limit` 应该是 number。改成正确写法后 `tsc` 无输出。
+
+   参考答案：生成物只有类型，错误在编译期就暴露；但运行时服务端回了什么，TS 并不检查，关键回包仍需 zod 校验。
+
+3. **验证分页迭代器**：不连服务端，写一个假的 `api.GET`，按游标返回三页（`nextCursor` 依次为 `"p2"`、`"p3"`、`null`，每页 2 条），用本章的 `listAllExpenses` 遍历。
+
+   验证：`for await` 依次打印 6 条记录，假 `GET` 恰好被调用 3 次，最后一次传入的 `cursor` 是 `"p3"`。
+
+   参考答案：
+
+   ```typescript
+   const pages: Record<string, { items: { id: string }[]; nextCursor: string | null }> = {
+     start: { items: [{ id: "1" }, { id: "2" }], nextCursor: "p2" },
+     p2: { items: [{ id: "3" }, { id: "4" }], nextCursor: "p3" },
+     p3: { items: [{ id: "5" }, { id: "6" }], nextCursor: null },
+   };
+   let calls = 0;
+   const api = { GET: async (_: string, o: any) => (calls++, { data: pages[o.params.query.cursor ?? "start"] }) };
+   ```

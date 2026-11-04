@@ -172,3 +172,23 @@ FORGEJO__mailer__PASSWD: ${SMTP_PASSWORD}
 - 每个发信域名配齐 SPF、DKIM、DMARC；DMARC 从 `p=none` 开始逐步收紧；看邮件头确认三项都是 `pass`
 - 工具机上的工具共用一个 SMTP 账号，发件人按工具区分；邮件只是告警的备用通道
 - 企业邮箱按客户所在地选，确认支持 IMAP；至少一个关键账号的找回邮箱与自己的域名无关
+
+## 动手练习
+
+1. **看看大邮箱自己怎么配**：执行 `dig +short TXT qq.com | grep -i spf`、`dig +short TXT _dmarc.qq.com`，再对 `github.com` 做同样的查询。
+
+   验证：每个域名都能查到一条以 `v=spf1` 开头的 SPF 记录和一条以 `v=DMARC1` 开头的 DMARC 记录；留意各自 SPF 的结尾（`-all` 还是 `~all`）和 DMARC 的 `p=` 取值。
+
+   参考答案：SPF 列出有权发信的服务器，DMARC 告诉收件方验证失败时怎么处理。对照着看能理解 `include` 怎么串起多个发信服务，以及大发件方把策略收得多紧。
+
+2. **合并两条 SPF**：你的 `example.com` 上有两条 TXT 记录：`v=spf1 include:spf.mail-a.example -all`（企业邮箱）和 `v=spf1 include:spf.push-b.example -all`（后来加的推送服务）。会出什么问题？应该怎么改？再想想：推送服务本来就该用哪个域名发信？
+
+   验证：写出合并后的那一条记录，并说出更好的做法。
+
+   参考答案：一个域名有两条 SPF 记录时，SPF 检查结果是错误（permerror），等于两边都不认。合并成一条 `v=spf1 include:spf.mail-a.example include:spf.push-b.example -all`。更好的做法是推送服务改用 `notify.example.com` 这样的子域名发信，主域名的 SPF 只留企业邮箱，两者的信誉互不影响。
+
+3. **读一封信的认证结果**：在 QQ 邮箱或 Gmail 里找一封最近收到的通知邮件（比如 GitHub 或云厂商发来的），打开「显示原始邮件」，找到 `Authentication-Results` 这一段。
+
+   验证：能看到 `spf=`、`dkim=`、`dmarc=` 三项及其结果，以及 `header.d=` 或 `smtp.mailfrom=` 里用的发信域名。
+
+   参考答案：正规发件方三项通常都是 `pass`，而且发信域名往往是专门的子域名而不是主域名。配好自己的推送服务后，用同样的方法检查自己发出的测试邮件。

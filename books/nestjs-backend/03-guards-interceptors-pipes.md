@@ -301,3 +301,23 @@ create(@StoreCtx() { caller, storeId }: StoreContext, @Body(zBody(Create)) body:
 - 横切逻辑出错不应拖垮主请求：读不到就降级，别抛
 - 管道作用在单个参数上，内置的 `Parse*Pipe` 处理简单转换，复杂校验用 schema 管道
 - 参数装饰器把重复取值收起来，并让「这个接口需要什么」写在签名上
+
+## 动手练习
+
+1. **默认拒绝的全局守卫**：写一个 `ApiKeyGuard`，用 `{ provide: APP_GUARD, useClass: ApiKeyGuard }` 注册，要求 `x-api-key` 等于某个值；再写 `@Public()`，守卫里用 `getAllAndOverride` 读到就放行。给 `GET /health` 标 `@Public()`，然后新加一个 `GET /secret`，什么都不标。
+
+   验证：`curl -i localhost:3000/health` 是 200；`curl -i localhost:3000/secret` 是 403；带上 `-H "x-api-key: <那个值>"` 后 `/secret` 是 200。
+
+   参考答案：新端点忘了标，结果是「进不去」而不是「裸奔」。守卫要通过 `APP_GUARD` 注册，才能注入 `Reflector`。
+
+2. **override 和 merge 的区别**：定义 `const Roles = (...r: string[]) => SetMetadata("roles", r)`，控制器类上标 `@Roles("viewer")`，某个方法上标 `@Roles("owner")`。在守卫里分别打印 `reflector.getAllAndOverride("roles", [ctx.getHandler(), ctx.getClass()])` 和 `getAllAndMerge` 的结果，请求这个方法。
+
+   验证：`getAllAndOverride` 只得到 `["owner"]`；`getAllAndMerge` 得到的数组里 `owner` 和 `viewer` 都在。
+
+   参考答案：override 按 `[处理函数, 类]` 的顺序取第一个有值的，方法上的设置覆盖类上的；merge 把两层拼起来，适合角色需要叠加的场景。
+
+3. **能跳过处理函数的拦截器**：写一个拦截器，按请求头 `idempotency-key` 把回包存进一个 `Map`；命中时直接 `return of(saved)`，没命中时 `next.handle().pipe(tap((body) => map.set(key, body)))`。处理函数里打一行日志，并返回 `{ at: Date.now() }`。用同一个 key 连发两次 POST。
+
+   验证：处理函数的日志只出现一次；两次回包里的 `at` 完全相同。换一个 key 再发，日志又出现、`at` 变了。
+
+   参考答案：只有拦截器既能在执行前决定跳过，又能在执行后拿到回包。真实实现还要处理「还在跑」、失败不记、内容摘要不一致这几种情况，这道题只验证跳过本身。

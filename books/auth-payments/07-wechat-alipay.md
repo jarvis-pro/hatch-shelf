@@ -379,3 +379,37 @@ function mapAlipayNotify(f: Record<string, string>): ChannelQueryResult {
 - 支付宝签名用原始值排序拼接，URL 编码只在拼地址时做；通知验签去掉 `sign` 和 `sign_type`，应答纯文本 `success`
 - 两家金额单位不同，在适配层转换；状态映射集中在一个函数里
 - 上线前逐项验证：验签、重复通知、回调缺失、过期关单、退款；会过期的证书写进监控
+
+## 动手练习
+
+1. **在本地演一遍微信回调验签**：不需要商户号。用 `crypto.generateKeyPairSync("rsa", { modulusLength: 2048 })` 生成一对密钥扮演「微信支付」，用私钥对 `${ts}\n${nonce}\n${body}\n` 做 RSA-SHA256 签名，再用本章 `verify` 的逻辑（公钥按序列号放进 Map）验证三种情况：原样、`body` 改一个字符、`ts` 改成 10 分钟前并重新签名。
+
+   验证：第一种返回 `true`，后两种返回 `false`。
+
+   参考答案：报文改动让签名对不上；旧时间戳即使签名正确也被 300 秒的窗口挡掉，截获的旧通知不能重放。
+
+   ```javascript
+   import { generateKeyPairSync, createSign, createVerify } from "node:crypto";
+   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+   const sign = (ts, nonce, body) =>
+     createSign("RSA-SHA256").update(`${ts}\n${nonce}\n${body}\n`).sign(privateKey, "base64");
+   const verify = (ts, nonce, body, sig) =>
+     Math.abs(Date.now() / 1000 - ts) <= 300 &&
+     createVerify("RSA-SHA256").update(`${ts}\n${nonce}\n${body}\n`).verify(publicKey, sig, "base64");
+   const now = Math.floor(Date.now() / 1000), body = '{"id":"n1"}';
+   console.log(verify(now, "a", body, sign(now, "a", body)));
+   console.log(verify(now, "a", body + " ", sign(now, "a", body)));
+   console.log(verify(now - 600, "a", body, sign(now - 600, "a", body)));
+   ```
+
+2. **支付宝签名串**：用本章的 `signString` 处理 `{ b: "2", a: "1", c: "", sign: "x", sign_type: "RSA2", subject: "月卡 会员" }`，排除 `sign` 和 `sign_type`。再对比把 `subject` 先 `encodeURIComponent` 之后得到的签名串。
+
+   验证：第一次输出 `a=1&b=2&subject=月卡 会员`；第二次 `subject` 那一段变成 `%E6%9C%88...` 的编码形式，两串不同，用同一把私钥签出的结果也不同。
+
+   参考答案：空值不参与签名，键按 ASCII 排序；签名对原始值做，编码只在拼最终 URL 时做，否则支付宝那边按解码后的值验签就对不上。
+
+3. **北京时间的时间戳**：调用本章的 `alipayTimestamp(new Date("2026-11-04T16:30:00Z"))`，先写下你预期的结果。
+
+   验证：输出 `2026-11-05 00:30:00`。
+
+   参考答案：UTC 16:30 是北京时间次日 00:30。函数手动加 8 小时再取 ISO 字符串，结果不受服务器所在时区影响；直接用 `toLocaleString` 则会随机器时区变化。

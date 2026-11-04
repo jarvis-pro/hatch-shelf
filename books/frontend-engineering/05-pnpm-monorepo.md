@@ -205,3 +205,31 @@ pnpm 的 `-r` 和 `--filter` 已经能按拓扑顺序跑任务。Turborepo、Nx 
 - 共享包两种形态：有 Node 直接消费就预编译，只给打包器用就源码直出
 - 用 `tsconfig` 的 `lib`、ESLint 的导入限制来守共享包的边界
 - 同一依赖的版本用 catalog 或 peerDependencies 保持唯一
+
+## 动手练习
+
+在一个空目录里搭一个最小 workspace：根 `package.json`（`"private": true`）、`pnpm-workspace.yaml`（`packages: ["packages/*"]`），下面两个包：`packages/a`（`name: "@demo/a"`，`index.js` 里 `module.exports = "from a"`）和 `packages/b`。
+
+1. **复现幽灵依赖**：`packages/b/package.json` 写上 `"dependencies": { "@demo/a": "workspace:*", "express": "^4" }`，在根目录 `pnpm install`，然后在 `packages/b` 里运行：
+
+   ```bash
+   node -e 'console.log(require("@demo/a")); require("debug")'
+   ```
+
+   再看 `ls -la node_modules/@demo/` 和 `ls node_modules/.pnpm | grep debug`。
+
+   验证：第一行打印 `from a`；`require("debug")` 抛出 `MODULE_NOT_FOUND`，尽管 `.pnpm` 里确实有 `debug@...`（它是 express 的依赖）。`node_modules/@demo/a` 是指向 `../../../a` 的符号链接。用 npm 在一个独立目录里装 express，同一句 `require("debug")` 能成功。
+
+   参考答案：isolated 布局下，`b` 的 `node_modules` 只有它声明过的依赖，express 的间接依赖藏在 `.pnpm` 里看不到；npm 平铺时 `debug` 被提升到顶层，代码碰巧能跑，这就是幽灵依赖。
+
+2. **-r 按拓扑顺序执行**：给 `a`、`b` 各加一个 `"build": "echo build-x"` 脚本（`b` 依赖 `a`），在根目录运行 `pnpm -r build`，然后试 `pnpm --filter @demo/b build` 和 `pnpm --filter "@demo/b..." build`。
+
+   验证：`-r` 时 `build-a` 总在 `build-b` 之前；`--filter @demo/b` 只打印 `build-b`；`--filter "@demo/b..."` 两个都打印，`a` 在前。
+
+   参考答案：pnpm 按 workspace 依赖关系排出拓扑顺序；`...` 后缀表示「连同它的依赖一起」。这就是 hatch-counter 能用 `pnpm -r typecheck` 让 core 先于各个 app 检查的原因。
+
+3. **脚本名撞上内置命令和钩子**：在根 `package.json` 里加三个脚本：`"prebuild": "echo PRE-HOOK"`、`"build": "echo ROOT-BUILD"`、`"pack": "echo MY-PACK-SCRIPT"`。分别运行 `pnpm build` 和 `pnpm pack`，然后试 `pnpm run pack`。
+
+   验证：`pnpm build` 先打印 `PRE-HOOK` 再打印 `ROOT-BUILD`；`pnpm pack` 不会打印 `MY-PACK-SCRIPT`，而是执行 pnpm 内置的打包命令（根包没有版本号时报 `ERR_PNPM_PACKAGE_VERSION_NOT_FOUND`）；`pnpm run pack` 才执行你的脚本。
+
+   参考答案：`pre*` / `post*` 会被当成生命周期钩子自动执行；和内置命令同名的脚本，不加 `run` 时被内置命令抢先。本章那次「发布成功但什么都没做」的事故就是这样来的。

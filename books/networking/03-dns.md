@@ -193,3 +193,23 @@ Docker Compose 给每个项目建一个网络，并在容器内提供一个内�
 - `dig` 不走系统解析流程；程序的解析要用 `dscacheutil` / `getent` 验证，先查 `/etc/hosts`
 - Node 里 `localhost` 可能解析成 `::1`，开发配置写 `127.0.0.1` 最省心
 - Compose 内用服务名互相访问，不要写死容器 IP
+
+## 动手练习
+
+1. **缓存里的 TTL 在倒数**：执行 `dig @1.1.1.1 example.com`，隔十几秒再执行一次，对比 ANSWER 里的 TTL；再用 `dig example.com NS +short` 找到权威服务器，执行 `dig @<其中一台> example.com` 两次。
+
+   验证：问公共解析器时，第二次的 TTL 比第一次小，`flags` 里没有 `aa`；问权威服务器时 `flags` 里有 `aa`，两次 TTL 相同，就是配置值。
+
+   参考答案：公共解析器返回的是缓存，TTL 是剩余寿命；权威服务器给的是原始配置。「改了不生效」时先问权威确认配置，再问解析器看缓存。
+
+2. **dig 不看 /etc/hosts**：在一次性容器 `docker run --rm -it ubuntu:24.04 bash` 里 `apt-get update && apt-get install -y dnsutils`，执行 `echo '10.1.2.3 example.com' >> /etc/hosts`，然后分别执行 `getent hosts example.com` 和 `dig +short example.com`。
+
+   验证：`getent` 输出 `10.1.2.3`，`dig` 输出的是公网上的真实地址。
+
+   参考答案：`getent` 走系统解析流程（和 curl、Node 的 `dns.lookup` 一样），先查 `/etc/hosts`；`dig` 直接发 DNS 查询。程序解析结果和 `dig` 不一致时，先看 hosts 文件。
+
+3. **服务名只在自定义网络里能解析**：执行 `docker network create lab`、`docker run -d --name db --network lab alpine sleep 600`，然后分别执行 `docker run --rm --network lab alpine sh -c 'cat /etc/resolv.conf; nslookup db'` 和 `docker run --rm alpine nslookup db`。
+
+   验证：第一条看到 `nameserver 127.0.0.11`，`db` 解析出一个容器 IP；第二条（默认 bridge 网络）解析失败。做完 `docker rm -f db && docker network rm lab`。
+
+   参考答案：按名字解析容器靠 Docker 的内嵌 DNS，它只在用户自定义网络上提供；Compose 会自动为项目建这样一个网络，所以服务名能直接用。

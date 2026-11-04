@@ -384,3 +384,34 @@ async rtdn(@Headers("authorization") auth: string, @Body() body: PubSubPush) {
 - 订阅属于 Apple ID 或 Google 账号，不属于你的账号；归属冲突要定规则并显式处理
 - Google Play：服务端确认购买，处理 `linkedPurchaseToken` 链；通知经 Pub/Sub 推送，验证推送令牌
 - 退款和撤销以平台为准，同步即可
+
+## 动手练习
+
+1. **乱序通知下的两种写法**：写一个小脚本模拟平台：远端订阅状态先后变成 `active`、`canceled`，两条事件却按相反的顺序送达。写法 A 按事件里的 `status` 直接覆盖本地；写法 B 收到事件后读取远端当前状态再覆盖。
+
+   验证：处理完两条事件后，写法 A 的本地状态是 `active`，写法 B 是 `canceled`。
+
+   参考答案：事件里的快照可能是旧的，回头去取的永远是最新状态，所以乱序和重复都不影响结果。
+
+   ```javascript
+   const remote = { status: "active" };
+   const events = [{ status: "active" }];
+   remote.status = "canceled";
+   events.push({ status: "canceled" });
+   const delivered = [...events].reverse(); // 乱序送达
+   let a, b;
+   for (const e of delivered) { a = e.status; b = remote.status; }
+   console.log({ a, b });
+   ```
+
+2. **把平台状态归一**：按本章的 `mapStripeStatus` 和 `mapAppleStatus`，判断下面四种情况落进镜像表的 `status`，以及苹果那两条的 `current_period_end` 取哪个字段：Stripe 订阅 `past_due`；Stripe 订阅 `incomplete`；苹果 `status = 4` 且续订信息里有 `gracePeriodExpiresDate`；苹果 `status = 1` 但交易里有 `revocationDate`。
+
+   验证：对照本章的两个映射函数和「几个要点」检查。
+
+   参考答案：`grace`；`on_hold`；`grace`，到期日取 `gracePeriodExpiresDate`，宽限期内照常提供服务；`revoked`，`revocationDate` 先于状态码判断，退款撤销的交易不能因为状态码是 1 就算有效。
+
+3. **重复投递不改变结果**（需要 Stripe 测试账号）：在测试模式下用 Stripe CLI 的 `stripe listen --forward-to localhost:3000/webhooks/stripe` 把事件转到本地，用测试卡 `4242 4242 4242 4242` 完成一次订阅结账。记下一条 `customer.subscription.updated` 的事件 ID，用 `stripe events resend <事件 ID>` 再投递两次。
+
+   验证：`external_subscriptions` 里这个订阅始终只有一行，`status` 和 `current_period_end` 不变，只有 `synced_at` 在每次投递后更新。
+
+   参考答案：`ON CONFLICT (provider, external_id) DO UPDATE` 加上「回头去取」，重复处理只是用同样的最新状态再覆盖一次。

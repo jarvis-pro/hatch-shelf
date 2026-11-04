@@ -497,3 +497,23 @@ Go 有一句口号：「不要通过共享内存来通信，而要通过通信�
 - 只有发送方关闭 channel；向已关闭的 channel 发送会 panic；`select` + `time.After` 做超时
 - errgroup 是带错误和并发限制的 `Promise.all`；并发数测过再定，不是越大越好
 - 每个 goroutine 要有退出条件，否则就是泄漏；自己起的 goroutine 要自己 recover
+
+## 动手练习
+
+1. **让 -race 报警，再修好它**：用本章「数据竞争与 -race」一节的 `count++` 程序，先 `go run main.go` 跑三次，再 `go run -race main.go`。然后用 `sync.Mutex` 或 `atomic.Int64` 修复，再跑一次 `-race`。
+
+   验证：不加 `-race` 时打印的数字通常小于 1000 且每次不同；加 `-race` 后输出里有 `WARNING: DATA RACE`，末尾是 `Found N data race(s)` 和 `exit status 66`。修复后 `-race` 不再报警，稳定输出 `1000`。
+
+   参考答案：`count++` 是读、加一、写回三步，没有同步就会交错。竞争检测器发现竞争时会把退出码设为 66，所以 CI 里 `go test -race` 能直接失败。
+
+2. **少关一个 channel**：把本章 worker pool 程序里生产者 goroutine 的 `close(jobs)` 注释掉，预测运行结果。
+
+   验证：程序卡住片刻后崩溃，输出 `fatal error: all goroutines are asleep - deadlock!`；恢复 `close(jobs)` 后打印 `完成 7 家店`。
+
+   参考答案：worker 的 `for j := range jobs` 只在 `jobs` 关闭后退出；worker 不退出，`wg.Wait()` 不返回，`results` 不会关闭，主 goroutine 的 `range results` 永远等下去。所有 goroutine 都在等时，运行时会报 deadlock。
+
+3. **数一数泄漏的 goroutine**：在本章 `select` 超时示例的第一段后面加两行：`time.Sleep(100 * time.Millisecond)` 和 `fmt.Println("goroutines:", runtime.NumGoroutine())`（删掉后面的 ticker 部分）。先预测数字，再把 `results` 改成 `make(chan string, 1)` 重跑。
+
+   验证：无缓冲时打印 `超时，放弃` 和 `goroutines: 2`；改成缓冲 1 之后是 `goroutines: 1`。
+
+   参考答案：超时后没人接收，后台 goroutine 永远阻塞在 `results <- ...` 上，它和 `main` 一起算 2 个。缓冲为 1 时这次发送不需要接收方，goroutine 发完就退出了。

@@ -240,3 +240,38 @@ hatch-counter 目前的规模不需要读写分离，一个库加连接池足够
 - 设置 `max_slot_wal_keep_size`，监控不活跃的复制槽，否则 WAL 会撑满主库磁盘
 - 手动切换：确认旧主库已停 → `pg_promote()` → 改应用连接 → 旧主库重新克隆，严防脑裂
 - 一人公司优先「异步从库 + 手动切换」，需要自动高可用时考虑托管数据库
+
+## 动手练习
+
+在本机用两个一次性容器搭一主一从（主库 `pg1`、从库 `pg2`），做完执行 `docker rm -f pg1 pg2; docker volume rm pg2data; docker network rm pgnet` 清理：
+
+```bash
+docker network create pgnet
+docker run -d --name pg1 --network pgnet -e POSTGRES_PASSWORD=x postgres:16-alpine -c max_slot_wal_keep_size=64MB
+sleep 5
+docker exec pg1 psql -U postgres -c "CREATE ROLE replicator REPLICATION LOGIN PASSWORD 'rep'" \
+  -c "SELECT pg_create_physical_replication_slot('replica1')"
+docker exec pg1 sh -c 'echo "host replication replicator samenet scram-sha-256" >> "$PGDATA/pg_hba.conf"'
+docker exec pg1 psql -U postgres -c "SELECT pg_reload_conf()"
+docker run --rm --network pgnet --user postgres -e PGPASSWORD=rep -v pg2data:/var/lib/postgresql/data \
+  postgres:16-alpine pg_basebackup -h pg1 -U replicator -D /var/lib/postgresql/data -X stream -S replica1 -R
+docker run -d --name pg2 --network pgnet -e POSTGRES_PASSWORD=x -v pg2data:/var/lib/postgresql/data postgres:16-alpine
+```
+
+1. **复制不是备份**：在 `pg1` 上建表插数据，在 `pg2` 上查到它；再在 `pg1` 上执行 `DELETE FROM` 这张表，回到 `pg2` 查。另外在 `pg2` 上尝试插入一行。
+
+   验证：`pg1` 上 `SELECT state FROM pg_stat_replication;` 返回 `streaming`；`pg2` 上 `SELECT pg_is_in_recovery();` 返回 `t`；删除后一两秒内 `pg2` 上也查不到数据；在 `pg2` 上插入报 `cannot execute INSERT in a read-only transaction`。
+
+   参考答案：从库忠实重放主库的一切 WAL，误删也照样复制过去，所以防误操作只能靠第 2、3 章的备份。
+
+2. **掉线的复制槽**：`docker stop pg2`，然后在 `pg1` 上反复制造 WAL，比如执行几次 `INSERT INTO big SELECT g, repeat('x', 500) FROM generate_series(1, 200000) g;`（先建表 `big (id int, s text)`）并 `SELECT pg_switch_wal();`。每轮之后用本章「复制槽的坑」里那条查询看 `replica1`。
+
+   验证：`active` 变成 `f`，`retained` 随写入增长；超过 64MB 并经过一次 `CHECKPOINT` 后，`wal_status` 离开 `reserved`（中间可能看到 `extended`、`unreserved`），最终变成 `lost`。此时再 `docker start pg2`，它的日志会报需要的 WAL 段已被删除，无法继续追。
+
+   参考答案：没有 `max_slot_wal_keep_size` 时，主库会一直替这个槽保留 WAL 直到磁盘满；有了上限，主库保住了，代价是从库要重新克隆。真实环境里槽不用了就 `pg_drop_replication_slot`。
+
+3. **手动切换与脑裂**：重做环境后，在 `pg2` 上执行 `SELECT pg_promote();`，**不停** `pg1`，分别往两边插入一行不同的数据。
+
+   验证：`pg_promote()` 返回 `t`，`pg2` 上 `pg_is_in_recovery()` 变成 `f`，`pg2` 的日志里有 `selected new timeline ID: 2`；两边各自接受了写入，互相查不到对方新插的那一行。
+
+   参考答案：这就是脑裂：两个库同时可写，数据分叉。正确顺序是先确认旧主库停掉、不再接受写入，再提升从库；旧主库之后要清空重新克隆，不能直接接回来。

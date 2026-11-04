@@ -374,3 +374,30 @@ print(settings.model, settings.max_concurrency)
 - Pydantic 相当于 zod：类即 schema，`model_validate` 校验并转换，错误带路径、一次报全
 - `model_json_schema()` 把模型变成 JSON Schema，同一份定义既能约束模型输出，又能校验结果
 - 环境变量用 `pydantic-settings` 校验，密钥用 `SecretStr`
+
+## 动手练习
+
+1. **运行时不管，检查器会管**：把下面的代码存成 `shout.py`，先 `uv run shout.py`，再 `uvx mypy shout.py`（或 `uvx pyright shout.py`）。
+
+   ```python
+   def shout(name: str | None) -> str:
+       return name.upper() + "!"
+
+   print(shout("ada"))
+   ```
+
+   验证：直接运行打印 `ADA!`，没有任何报错；mypy 报 `Item "None" of "str | None" has no attribute "upper"  [union-attr]`，pyright 报 `"upper" is not a known attribute of "None"`。
+
+   参考答案：解释器不看标注，这次碰巧传的是字符串所以能跑；检查器按标注推理，知道 `name` 可能是 `None`。在前面加 `if name is None: return "!"` 收窄后，两个检查器都不再报错。
+
+2. **宽松转换与严格模式**：定义 `class Lax(BaseModel): quantity: float`，再定义一个加了 `model_config = ConfigDict(strict=True)` 的 `Strict`，分别对 `{"quantity": "30"}` 调用 `model_validate`。
+
+   验证：`Lax` 得到 `quantity=30.0`；`Strict` 抛 `ValidationError`，错误的 `loc` 是 `('quantity',)`，信息是 `Input should be a valid number`。
+
+   参考答案：Pydantic 默认像 `z.coerce` 一样把字符串 `"30"` 转成数字；严格模式下类型必须原样匹配。处理模型输出时宽松模式通常更省事，但要清楚它会替你做转换。
+
+3. **看 schema 里有什么**：用[从模型到 JSON Schema](#从模型到-json-schema)里的 `Ticket`，取 `s = Ticket.model_json_schema()`，打印 `s["description"]`、`s["required"]`、`s["properties"]["category"]["enum"]` 和 `urgency` 的 `minimum` / `maximum`。
+
+   验证：依次看到 docstring 原文 `一条客服工单的分类结果。`、`['category', 'urgency', 'summary']`、`['bug', 'billing', 'feature', 'other']`、`1 5`。
+
+   参考答案：docstring 成了 schema 的 `description`，`Literal` 成了 `enum`，`Field(ge=1, le=5)` 成了 `minimum` / `maximum`；没有默认值的字段都进了 `required`。这些就是第 7 章发给模型的格式约束。

@@ -304,3 +304,39 @@ Grafana 连上 Prometheus 数据源后，不用从零画：node_exporter、postg
 - 标签值必须是有限小集合，用户 ID、完整 URL 不能当标签
 - `/metrics` 不对公网开放；node_exporter 用 apt 装在宿主机上；Prometheus 设时间和大小两个保留上限
 - 延迟看分位数不看平均值，桶边界放在你关心的阈值附近
+
+## 动手练习
+
+1. **亲眼看一个 /metrics 端点**：在空目录里 `npm init -y && npm i prom-client`，写一个 Node HTTP 服务：每个请求给 Counter `demo_requests_total` 加 1，`/metrics` 返回 `registry.metrics()`。启动后请求根路径 5 次，再抓一次指标。
+
+   验证：`curl -s localhost:9464/metrics | grep '^demo_requests_total'` 输出 `demo_requests_total 5`（`/metrics` 本身不计数时）。同一输出里还能看到 `# TYPE demo_requests_total counter`。
+
+   参考答案：
+
+   ```js
+   // server.mjs
+   import http from "node:http";
+   import { Counter, Registry } from "prom-client";
+   const registry = new Registry();
+   const c = new Counter({ name: "demo_requests_total", help: "请求数", registers: [registry] });
+   http.createServer(async (req, res) => {
+     if (req.url === "/metrics") {
+       res.setHeader("Content-Type", registry.contentType);
+       return res.end(await registry.metrics());
+     }
+     c.inc();
+     res.end("ok");
+   }).listen(9464);
+   ```
+
+2. **感受标签基数**：在上一题的服务里再加一个带 `userId` 标签的 Counter `demo_by_user_total`，启动时对 `u1` 到 `u1000` 各 `inc` 一次。
+
+   验证：`curl -s localhost:9464/metrics | grep -c '^demo_by_user_total{'` 输出 `1000`。也就是说，一个标签值就是一条独立的时间序列。
+
+   参考答案：用户数涨到十万，这个指标就是十万条序列，Prometheus 的内存和磁盘随之上涨。按用户的分析应该放到日志或数据库里，标签只用路由模板、状态码这类有限集合。
+
+3. **手算 histogram_quantile**：某接口过去 5 分钟的累计桶计数是 `le="0.1"`: 60，`le="0.25"`: 90，`le="0.5"`: 100，`le="+Inf"`: 100。按 Prometheus 的算法估算 p95。
+
+   验证：结果是 0.375 秒。可以把这组数换成 p50、p99 再算一遍，体会估计值完全由桶边界决定。
+
+   参考答案：第 95 个观测值落在 0.25–0.5 这个桶里（前面已有 90 个，这个桶有 10 个），桶内线性插值：$0.25 + (0.5 - 0.25) \times \frac{95 - 90}{100 - 90} = 0.375$。如果你关心的阈值是 300ms，就该在 0.3 放一个桶边界，否则 0.25 到 0.5 之间的值全靠插值猜。

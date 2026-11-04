@@ -239,3 +239,33 @@ export function requireStore(req: Request): StoreContext {
 - 浏览器端刷新令牌放 `HttpOnly; SameSite=Strict` 且限定 `Path` 的 cookie，访问令牌只在内存
 - 权限守卫默认拒绝：最高角色永远放行，无关权限的端点显式标注，没标的只有最高角色能进
 - 停用、到期拦在业务接口上而不是登录时，让用户看到准确的原因
+
+## 动手练习
+
+1. **载荷谁都能读**：装上 `@nestjs/jwt`，用 `JwtService.signAsync({ sub: "acc-1", did: "dev-1" }, { secret: "dev-secret-0123456789", audience: "tenant" })` 签一张令牌，打印出来。然后不用密钥解开它：`node -e 'console.log(Buffer.from(process.argv[1].split(".")[1], "base64url").toString())' <令牌>`。
+
+   验证：打印出的 JSON 里有 `sub`、`did`、`aud` 和 `iat`。
+
+   参考答案：载荷只是 Base64URL 编码，签名只保证没被改过，不保证别人看不见。令牌里不放敏感信息，越少越好。
+
+2. **audience 隔开两类令牌**：用同一个密钥签一张 `audience: "admin"` 的令牌，再用 `verifyAsync(token, { secret, audience: "tenant" })` 验它；最后去掉 `audience` 选项再验一次。
+
+   验证：带 `audience: "tenant"` 时抛错，错误消息里有 `audience invalid`；不传 `audience` 时验签通过。
+
+   参考答案：同一个密钥签出来的两类令牌，签名都是对的，只有校验 `aud` 才分得开。验签时不写 `audience`，后台令牌就能通过租户守卫。
+
+3. **轮换与重放检测**：不连数据库，用一个 `Map<哈希, { device, usedAt? }>` 实现 `rotate(token)`：查不到或设备已作废就抛错；已经用过就把这台设备的所有票作废并抛错；否则标记用过、发一张新票。写三条 jest 测试：正常轮换两次；旧票再用一次被拒；被拒之后，刚发的那张新票也不能用了。
+
+   验证：`pnpm test` 三条全绿；把「作废整台设备」那行注释掉，第三条变红。
+
+   参考答案：重放出现时分不清谁是真用户，只能整台设备作废。关键几行：
+
+   ```ts
+   const row = tokens.get(hash(t));
+   if (!row || revoked.has(row.device)) throw new Error("请重新登录");
+   if (row.usedAt) { revoked.add(row.device); throw new Error("refresh_reused"); }
+   row.usedAt = Date.now();
+   const fresh = randomBytes(32).toString("base64url");
+   tokens.set(hash(fresh), { device: row.device });
+   return fresh;
+   ```

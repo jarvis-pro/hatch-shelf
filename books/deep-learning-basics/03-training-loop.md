@@ -269,3 +269,36 @@ print(classes[probs.argmax().item()], f"{probs.max().item():.1%}", "真实:", cl
 - 多分类用 `CrossEntropyLoss`，输入 logits 和 `int64` 标签；初始 loss 应约为 $\ln C$
 - 新项目默认 AdamW + `lr=1e-3`；`model.train()` / `model.eval()` 和 `torch.no_grad()` 各管各的
 - 保存 `state_dict`，续训时连优化器状态一起存；调试先过拟合一个 batch
+
+## 动手练习
+
+1. **训练前先看基准**：在 `train_mlp.py` 的 `for epoch` 循环之前加一行 `print(evaluate())`，运行后看第一行输出。
+
+   验证：测试 loss 在 2.3 附近，准确率在 10% 附近（具体数字随初始化略有不同）。
+
+   参考答案：没训练的模型对 10 个类别给出接近均匀的概率，loss 约为 $\ln 10 \approx 2.30$，准确率约等于随机猜。如果这里已经离 2.30 很远，先查初始化和数据预处理，再谈训练。
+
+2. **忘了 `opt.step()`**：把 `train_one_epoch` 里的 `opt.step()` 注释掉，跑 2 个 epoch。
+
+   验证：不报错，每个 epoch 的 train / test loss 都停在 2.3 附近，准确率和练习 1 的基准几乎一样。对照[训练不动时查什么](#训练不动时查什么)表格的第一行。
+
+   参考答案：梯度照常算出来了，但没有人用它更新参数。这类 bug 不会报错，只能靠「loss 一直在 $\ln C$ 附近」这个信号发现。
+
+3. **过拟合一个 batch**：恢复 `opt.step()`，把训练循环换成反复训练同一个 batch：
+
+   ```python
+   x, y = next(iter(train_dl))
+   x, y = x.to(device), y.to(device)
+   model.train()
+   for step in range(201):
+       loss = loss_fn(model(x), y)
+       opt.zero_grad()
+       loss.backward()
+       opt.step()
+       if step % 50 == 0:
+           print(step, f"{loss.item():.4f}")
+   ```
+
+   验证：loss 从 2.3 附近一路降到接近 0。
+
+   参考答案：128 张图对 20 万参数的模型来说很容易记住，降不下去说明训练代码本身有问题。可以再故意把 `loss.backward()` 删掉重跑一次，看 loss 纹丝不动是什么样子。

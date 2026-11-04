@@ -234,34 +234,11 @@ chmod -R a+rX /tmp/x
 
 ## 新服务器的用户初始化
 
-云服务器开出来通常只有 root。上线前建议做这几步：
+云服务器开出来通常只有 root。建部署用户、放公钥、关密码登录的完整步骤见[《部署与 CI/CD》拿到机器之后的头半小时](../deploy-release/01-vps-setup.md#拿到机器之后的头半小时)，更进一步的收紧见[《一人运维手册》SSH：从「能用」到「收紧」](../production-ops/01-hardening.md#ssh从能用到收紧)。这里只看其中和本章有关的两点。
 
-```bash
-# 1. 建一个日常用户并给 sudo 权限
-adduser deploy
-usermod -aG sudo deploy
+一是权限：复制到新用户家目录的 `.ssh` 要 `chown -R deploy:deploy`，目录 700、`authorized_keys` 600。属主不对，或者目录、文件对别人可写，sshd 会拒绝这把公钥，表现就是「公钥明明放进去了还要密码」。
 
-# 2. 把本机公钥放进去
-mkdir -p /home/deploy/.ssh
-cp /root/.ssh/authorized_keys /home/deploy/.ssh/
-chown -R deploy:deploy /home/deploy/.ssh
-chmod 700 /home/deploy/.ssh
-chmod 600 /home/deploy/.ssh/authorized_keys
-```
-
-**新开一个终端确认 `ssh deploy@<IP>` 能登录、`sudo` 能用**之后，再改 ssh 配置，禁止 root 和密码登录。在 `/etc/ssh/sshd_config.d/` 下新建一个文件：
-
-```text
-# /etc/ssh/sshd_config.d/10-hardening.conf
-PermitRootLogin no
-PasswordAuthentication no
-```
-
-```bash
-sudo sshd -t && sudo systemctl reload ssh
-```
-
-文件名以 `10-` 开头是有讲究的：sshd 对同一个选项**取第一次出现的值**，`sshd_config.d/` 里的文件按文件名排序读入。有些云镜像会放一个 `50-cloud-init.conf` 打开密码登录，你的文件排在它前面才能生效。改完可以用 `sudo sshd -T | grep -i passwordauth` 看最终生效的值。
+二是配置文件的位置。关密码登录不要直接改 `/etc/ssh/sshd_config`，而是在 `/etc/ssh/sshd_config.d/` 下新建一个文件，比如 `10-hardening.conf`。文件名以 `10-` 开头是有讲究的：sshd 对同一个选项**取第一次出现的值**，`sshd_config.d/` 里的文件按文件名排序读入。有些云镜像会放一个 `50-cloud-init.conf` 打开密码登录，你的文件排在它前面才能生效。改完可以用 `sudo sshd -T | grep -i passwordauth` 看最终生效的值。
 
 `sshd -t` 先检查配置语法，有错就不 reload。改 ssh 配置时**保留一个已登录的会话别关**，万一改错了还能救回来。
 
@@ -273,3 +250,25 @@ sudo sshd -t && sudo systemctl reload ssh
 - 内核只认 UID / GID，按「属主 → 属组 → 其他人」只取第一个匹配组的权限
 - 目录的 x 控制能否进入，w 控制能否增删文件；路径上每一级都要有 x
 - 密钥 600、目录 755、静态文件 644；新服务器先建普通用户，再关掉 root 和密码登录
+
+## 动手练习
+
+root 会跳过大部分权限检查，下面的题要用普通用户做。在一次性容器里准备环境：`docker run --rm -it ubuntu:24.04 bash`，然后 `useradd -m alice`，需要以 alice 身份执行时用 `su alice -c '命令'`。
+
+1. **删除看目录**：以 alice 身份在 `/home/alice` 下执行 `mkdir d && touch d/f && chmod 444 d/f && chmod 555 d && rm -f d/f`；再 `chmod 755 d` 后重复 `rm -f d/f`。
+
+   验证：第一次报 `Permission denied`，第二次成功，`ls d` 为空。
+
+   参考答案：删除是修改目录项，只看目录的 w；文件本身是 444 并不妨碍删除。
+
+2. **路径上每一级都要 x**：以 root 执行 `mkdir -p /srv/a/b && echo hi > /srv/a/b/c.txt && chmod 644 /srv/a/b/c.txt && chmod 700 /srv/a`，然后 `su alice -c 'cat /srv/a/b/c.txt'`；再 `chmod 711 /srv/a`，重试。
+
+   验证：第一次 `Permission denied`；改成 711 后打印 `hi`，但 `su alice -c 'ls /srv/a'` 仍然被拒绝。
+
+   参考答案：进入目录只要 x，列目录才要 r。这正是 nginx「文件 644 却 403」的常见原因：某一级父目录没给其他人 x。
+
+3. **只看第一个匹配的组**：以 alice 身份执行 `echo secret > f && chmod 007 f && cat f`。
+
+   验证：报 `Permission denied`，尽管 `ls -l f` 显示其他人有 `rwx`。
+
+   参考答案：alice 是属主，内核只看属主那三位（`---`），不会再退到其他人那组。`chmod 600 f` 后就能读。

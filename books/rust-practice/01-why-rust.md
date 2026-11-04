@@ -367,3 +367,42 @@ help: consider making this binding mutable
 - 几乎一切是表达式，函数最后一个不加分号的表达式就是返回值
 - `enum` + `match` 就是带穷尽检查的可辨识联合；没有 null，用 `Option`
 - 编译器报错会给出改法，把它当同事
+
+## 动手练习
+
+1. **多一个分号**：`cargo new semi`，在 `src/main.rs` 里写下面的代码，运行前预测 `cargo check` 的结果，再按编译器提示改掉。
+
+   ```rust
+   fn add(a: i32, b: i32) -> i32 {
+       a + b;
+   }
+
+   fn main() {
+       println!("{}", add(1, 2));
+   }
+   ```
+
+   验证：报 `error[E0308]: mismatched types`，指出函数声明返回 `i32` 却隐式返回了 `()`，并有一条 help 建议删掉分号。删掉后 `cargo run` 输出 `3`。
+
+   参考答案：加了分号，`a + b` 就从表达式变成语句，函数体的值是 `()`，和签名对不上。
+
+2. **给枚举加一个分支**：把本章的 `ImportResult` 和 `describe` 拷进项目，在 `enum` 里加一个 `Skipped` 分支，不改 `describe`，运行 `cargo check`。
+
+   验证：报 `error[E0004]: non-exhaustive patterns`，指出 `ImportResult::Skipped` 没有被覆盖。给 `match` 补一个 `ImportResult::Skipped => "跳过".to_string(),` 后通过。
+
+   参考答案：`match` 必须穷尽。这正是可辨识联合在 Rust 里比 TS 省心的地方：加了新状态，所有没处理它的地方都会编译失败。
+
+3. **调试和 release 下的溢出**：用一个运行时才知道的值（避免编译期被常量检查拦下）：
+
+   ```rust
+   fn main() {
+       let x: u8 = "255".parse().unwrap();
+       println!("{}", x + 1);
+   }
+   ```
+
+   先 `cargo run`，再 `cargo run --release`，比较结果；然后把 `x + 1` 改成 `x.checked_add(1)` 并用 `{:?}` 打印。
+
+   验证：调试构建 panic，信息包含 `attempt to add with overflow`；release 构建打印 `0`；改用 `checked_add` 后两种构建都打印 `None`。
+
+   参考答案：调试构建检查整数溢出，release 默认回绕。需要确定语义时用 `checked_*`、`saturating_*`、`wrapping_*` 系列方法明确写出来。

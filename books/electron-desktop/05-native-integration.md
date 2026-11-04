@@ -237,3 +237,23 @@ navigator.mediaSession.setActionHandler("nexttrack", core.hasNext() ? () => core
 - 长期数据和缓存分目录；开发和正式分目录
 - 不可信脚本放进无 preload、开沙箱的隐藏窗口
 - 媒体键优先用 Web 标准的 Media Session
+
+## 动手练习
+
+1. **隐藏窗口里的定时器被节流**：在页面里写 `let last = Date.now(); setInterval(() => { const now = Date.now(); console.log(now - last); last = now; }, 500);`，主进程里加一个托盘或菜单项调用 `win.hide()` / `win.show()`。打开 DevTools（单独窗口模式）后把窗口藏起来一两分钟，再拿回来看日志；然后给窗口加 `backgroundThrottling: false` 重来一次。
+
+   验证：第一次藏起来期间打印的间隔明显大于 500（观察具体数值，常见是 1000 左右，时间长了可能更大）；关掉节流后一直在 500 附近。
+
+   参考答案：Chromium 对隐藏页面的定时器节流，依赖定时器节拍的播放器会因此「一首放完很久才接下一首」，所以要显式关掉，代价是隐藏时多耗一点电。
+
+2. **给自定义协议写 Range 和白名单**：按本章注册一个 `demo://local/<区>/<文件名>` 协议，只认 `audio` 一个区，自己解析 `Range` 返回 206。在页面 Console 里依次执行：`(await fetch('demo://local/audio/a.mp3', { headers: { Range: 'bytes=0-9' } }))` 看 `status` 和 `arrayBuffer()` 长度；把 Range 换成超过文件大小的 `bytes=99999999-`；最后请求 `demo://local/audio/..%2F..%2Fetc%2Fpasswd`。
+
+   验证：第一个是 `206`、长度 `10`，响应头 `Content-Range` 形如 `bytes 0-9/<文件大小>`；第二个是 `416`；第三个是 `404`。
+
+   参考答案：`<audio>` 拖进度靠 Range；文件名先解码再检查是否含 `/`、是否以 `.` 开头，任何不在白名单里的路径一律 404，而不是「把路径拼上去」。
+
+3. **只允许一个实例**：在主进程加上 `requestSingleInstanceLock` 那段，用 `electron-builder --mac --dir` 打出 `.app` 后，在终端连续运行两次 `open -n <App>.app`。
+
+   验证：只剩一个进程（`pgrep -fl <App名>` 看主进程只有一个），第二次打开时第一个实例的窗口被拿到前台。去掉这段再试，会看到两个独立的实例。
+
+   参考答案：拿不到锁的第二个进程直接 `quit`，第一个进程通过 `second-instance` 事件得知有人想打开它；避免两个进程同时写同一份数据。

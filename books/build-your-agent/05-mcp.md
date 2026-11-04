@@ -334,3 +334,46 @@ allowedTools: ["Read", "Grep", "Glob", "mcp__shelf-books__*"],
 - stdio 子进程默认只继承少数环境变量，密钥显式按需传
 - 工具列表在会话开始时定下来，不在会话中途增减
 - 测适配器用真 server 加假模型；Agent SDK 版本只需在 `mcpServers` 里加一段配置
+
+## 动手练习
+
+1. **确认密钥不会传给 MCP server**：用一个只打印环境变量名的「假 server」接上 `StdioClientTransport`，父进程里放一个假的 `ANTHROPIC_API_KEY`。
+
+   ```typescript
+   import { Client } from "@modelcontextprotocol/client";
+   import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
+   process.env.ANTHROPIC_API_KEY = "sk-fake";
+   const transport = new StdioClientTransport({
+     command: "node",
+     args: ["-e", "console.error(Object.keys(process.env).sort().join(' ')); setTimeout(() => {}, 2000)"],
+     env: { SHELF_BOOKS_DIR: "/tmp" },
+     stderr: "inherit",
+   });
+   await new Client({ name: "probe", version: "0" }).connect(transport).catch((e) => console.error("连接失败（预期内）：", e.message));
+   ```
+
+   验证：打印的变量名里有 `PATH`、`HOME`、`SHELF_BOOKS_DIR`，没有 `ANTHROPIC_API_KEY`；两秒后子进程退出，连接失败。
+
+   参考答案：子进程只继承少数几个变量再合并你传的 `env`。如果把 `env` 写成 `{ ...process.env, SHELF_BOOKS_DIR: "/tmp" }` 再跑，密钥就会出现在列表里。
+
+2. **不信注解，手动标成写操作**：在 `mcp.test.ts` 里另连一次 `shelf-books`，传 `writeTools: ["check_book"]`，再让假模型调用 `mcp__shelf-books__check_book`，不传 `approve`。
+
+   验证：这个工具的 `risk` 是 `"write"`；工具结果是 `is_error`，内容含「用户拒绝」。
+
+   参考答案：server 自己声明了只读，但宿主有权不信。对第三方 server，`writeTools` 是把审批加回来的开关。
+
+3. **看白名单省下多少上下文**：用适配器连官方的文件系统参考 server，先不传 `allow`，打印工具数和工具定义序列化后的长度；再挑两个工具放进 `allow` 重连一次。
+
+   ```typescript
+   const fsServer = () => new StdioClientTransport({ command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"] });
+   const all = await connectMcp({ name: "fs", transport: fsServer() });
+   console.log(all.tools.length, JSON.stringify(all.tools.map((t) => t.def)).length, all.tools.map((t) => t.risk));
+   const names = all.tools.slice(0, 2).map((t) => t.def.name.replace("mcp__fs__", ""));
+   const few = await connectMcp({ name: "fs", transport: fsServer(), allow: names });
+   console.log(few.tools.length, JSON.stringify(few.tools.map((t) => t.def)).length);
+   await all.close(); await few.close();
+   ```
+
+   验证：第二次只有 2 个工具，序列化长度只剩第一次的一小部分；第一次的风险列表里，没有声明 `readOnlyHint` 的工具都是 `write`。
+
+   参考答案：每个工具定义每轮都要发给模型，白名单既省上下文又减少选错；server 升级新增的工具也不会自动出现。

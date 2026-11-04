@@ -273,3 +273,25 @@ sudo iotop -o          # 只显示正在读写的进程
 - 控制台扩容后还要 `growpart` 加 `resize2fs`
 - 磁盘满先查 Docker、容器日志、journal；`du` 和 `df` 对不上就用 `lsof +L1` 找已删除仍被占用的文件
 - 清空正在写的日志用 `truncate -s 0`，不要 `rm`；清理 Docker 卷之前看清列表，别误删停着的数据库卷
+
+## 动手练习
+
+**不要在真实服务器上写满磁盘**。下面的题都在一次性的特权容器里，用内存文件系统 tmpfs 模拟一块小盘：`docker run --rm -it --privileged ubuntu:24.04 bash`，进去后执行 `mkdir -p /mnt/d && mount -t tmpfs -o size=20m tmpfs /mnt/d`。退出容器一切消失。
+
+1. **写满再排查**：执行 `dd if=/dev/zero of=/mnt/d/fill bs=1M`，等它自己停下；然后按本章的排查顺序找出元凶。
+
+   验证：`dd` 以 `No space left on device` 结束；`df -h /mnt/d` 的 `Use%` 是 `100%`；`du -sh /mnt/d/*` 指向 `fill`。
+
+   参考答案：先 `df` 确认哪个挂载点满了，再在那个挂载点下用 `du` 逐层找大头。
+
+2. **删了空间却没回来**：重新写满后，执行 `sleep 1000 < /mnt/d/fill &`，然后 `rm /mnt/d/fill`，再看 `df -h /mnt/d`。
+
+   验证：`df` 仍然是 `100%`；`ls -l /proc/$!/fd/0` 显示指向 `/mnt/d/fill (deleted)`；`kill %1` 之后 `df` 降回接近 0。
+
+   参考答案：`rm` 只删目录项，`sleep` 还打开着这个 inode，数据块就不会释放。真实服务器上用 `lsof +L1` 找这类文件，对正在写的日志应该用 `truncate -s 0` 清空。
+
+3. **inode 先用完**：另挂一块只有 200 个 inode 的盘：`mkdir -p /mnt/i && mount -t tmpfs -o size=20m,nr_inodes=200 tmpfs /mnt/i`，然后 `for n in $(seq 1 300); do touch /mnt/i/f$n; done`。
+
+   验证：后面一批 `touch` 报 `No space left on device`；`df -h /mnt/i` 几乎没用，`df -i /mnt/i` 的 `IUse%` 是 `100%`。
+
+   参考答案：每个文件占一个 inode，小文件多时 inode 比空间先耗尽，报错信息一模一样，所以 `df -h` 没满时要接着看 `df -i`。

@@ -344,3 +344,33 @@ print(a.T.shape, a.sum(axis=0), a @ a.T)
 - 广播从最后一维对齐，相等或为 1 才兼容；形状错误是最常见的 bug
 - `@` 是矩阵乘法，`*` 是逐元素乘；softmax 要先减最大值，余弦相似度就是归一化后的点积
 - PyTorch 张量的 API 基本照搬 NumPy，学会这一章就能读懂大部分张量代码
+
+## 动手练习
+
+1. **先猜形状再验证**：不运行，先写下每一行的结果，再用 `uv run --with numpy` 跑一遍对答案。
+
+   ```python
+   import numpy as np
+
+   x = np.zeros((32, 128, 768))
+   print(x.mean(axis=1).shape)
+   print((np.ones((4, 1)) + np.ones(3)).shape)
+   print(x.sum(axis=-1, keepdims=True).shape)
+   np.ones((2, 3)) + np.ones(2)
+   ```
+
+   验证：依次输出 `(32, 768)`、`(4, 3)`、`(32, 128, 1)`；最后一行抛 `ValueError: operands could not be broadcast together with shapes (2,3) (2,)`。
+
+   参考答案：`axis=1` 让第 1 维消失；`(4, 1)` 和 `(3,)` 从最后一维对齐，`1` 和 `3` 兼容、`(3,)` 前面补 1，结果 `(4, 3)`；`keepdims` 把被压缩的维保留为 1；`(2, 3)` 和 `(2,)` 的最后一维 3 和 2 不相等也都不是 1，所以报错。
+
+2. **视图还是副本**：令 `a = np.arange(6)`，分别对 `a[1:4]`、`a[::2]`、`a[[1, 2]]`、`a[a > 2]` 调用 `np.shares_memory(a, ...)`。
+
+   验证：输出依次是 `True`、`True`、`False`、`False`。
+
+   参考答案：普通切片（包括带步长的切片）只是换了一种方式看同一块内存，返回视图；花式索引和布尔掩码要挑出任意位置的元素，只能拷贝出一个新数组。
+
+3. **复现 softmax 溢出**：写一个不减最大值的 `naive(z)`（直接 `np.exp(z)` 再除以和），对 `np.array([[1000.0, 999.0], [1.0, 2.0]])` 分别调用 `naive` 和本章的 `softmax`。
+
+   验证：`naive` 打印出 `RuntimeWarning: overflow encountered in exp`，第一行结果是 `nan nan`，第二行正常；`softmax` 两行都正常，`.sum(axis=1)` 是 `[1. 1.]`，第一行约为 `[0.731 0.269]`。
+
+   参考答案：`exp(1000)` 超出 `float64` 范围变成 `inf`，`inf / inf` 得 `nan`。每行先减去自己的最大值，指数最大只有 `exp(0) = 1`，而分子分母同乘一个常数，结果不变；`axis=-1` 加 `keepdims=True` 让它对一整批逐行生效。

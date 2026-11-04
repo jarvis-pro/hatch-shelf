@@ -250,3 +250,56 @@ sequenceDiagram
 - 短信登录的闸门：码寿命和尝试次数、冷却、按号和按 IP 的滚动额度、挡回去的也记账
 - 接第三方登录用授权码 + PKCE，核对 `state`，secret 只放服务端
 - Passkey 服务端无秘密、天然防钓鱼，适合作为附加方式和管理员的第二因素
+
+## 动手练习
+
+以下练习都只在你自己的电脑上、用自己写的小脚本做，不要拿别人的服务或真实用户的令牌试。
+
+1. **解开载荷，再递一张 alg=none 的票**：新建目录，`pnpm add jose`，把本章的 `signAccess` / `verifyAccess` 抄进 `jwt.mjs`（`JWT_SECRET` 用 32 个以上的随机字符）。先签一张票，用 `node -e "console.log(Buffer.from(process.argv[1].split('.')[1], 'base64url').toString())" <令牌>` 看它的载荷；再按下面的写法手工拼一张 `alg: none` 的票和一张 `aud: admin` 的票，交给验证函数。
+
+   ```js
+   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+   const none = `${b64({ alg: 'none', typ: 'JWT' })}.${b64({ sub: 'u1', aud: 'tenant' })}.`;
+   const admin = await new SignJWT({}).setProtectedHeader({ alg: 'HS256' })
+     .setSubject('u1').setAudience('admin').setExpirationTime('15m').sign(secret);
+   for (const t of [none, admin]) {
+     try { await jwtVerify(t, secret, { algorithms: ['HS256'], audience: 'tenant' }); console.log('通过'); }
+     catch (e) { console.log('拒绝', e.code); }
+   }
+   ```
+
+   验证：第一条命令直接打印出含 `sub`、`did`、`aud` 的 JSON 明文；循环打印两行「拒绝」，第二行的错误码是 `ERR_JWT_CLAIM_VALIDATION_FAILED`，第一行是与算法不被允许有关的错误码（以你所装 jose 版本实际打印的为准）。
+
+   参考答案：载荷只是 base64url 编码，谁都能读，所以不能放秘密；写死 `algorithms` 挡住了 `none`，校验 `aud` 挡住了发给别的系统的票。把 `algorithms` 和 `audience` 两个选项删掉再跑一次，观察第二张票会不会被放行。
+
+2. **刷新令牌轮换与重放检测**：用一个 `Map` 在内存里实现 `issue(device)` 和 `rotate(token)`：每次续期作废旧票、发新票；已用过的旧票再来续期时，作废这台设备名下的所有票。然后按本章的时序图走一遍：`r1 = issue('d1')`，`r2 = rotate(r1)`，再 `rotate(r1)`，最后 `rotate(r2)`。
+
+   验证：第三步抛出「重放」错误；第四步也失败（`r2` 已被连带作废），对应时序图里真用户被要求重新登录。
+
+   参考答案：关键是「已用」标记和按设备连坐。真实系统里 `Map` 的键应换成令牌的 SHA-256（第 4 章），并且整个过程放进一个事务。
+
+   ```js
+   import { randomBytes } from 'node:crypto';
+   const tokens = new Map(); // token -> { device, used }
+   export function issue(device) {
+     const t = randomBytes(32).toString('base64url');
+     tokens.set(t, { device, used: false });
+     return t;
+   }
+   export function rotate(t) {
+     const rec = tokens.get(t);
+     if (!rec) throw new Error('401');
+     if (rec.used) {
+       for (const [k, v] of tokens) if (v.device === rec.device) tokens.delete(k);
+       throw new Error('401 重放：该设备全部作废');
+     }
+     rec.used = true;
+     return issue(rec.device);
+   }
+   ```
+
+3. **滚动窗口和自然日**：写一个 `allow(phone, now)`，同一个号滚动 24 小时最多 10 条；再写一个按自然日计数的版本。分别在 `23:50` 连发 10 条、`00:10` 再连发 10 条（用固定的 `Date` 时间戳模拟，不用真等）。
+
+   验证：自然日版本 20 条全部放行；滚动窗口版本 `00:10` 那一轮一条都不放行。
+
+   参考答案：滚动窗口保存每次发送的时间戳，判断时只数 `now - 24h` 之后的条数；自然日计数在零点清零，所以跨零点能拿到两倍额度。

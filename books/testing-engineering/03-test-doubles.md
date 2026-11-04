@@ -267,3 +267,23 @@ it("服务商超时时换下一家，而不是直接报错", async () => {
 - 依赖注入不需要框架，函数参数就够；`vi.mock` 留给改不动的代码
 - Fake 会和真实实现分叉；非用不可时，给两者跑同一套约定测试
 - 第三方 HTTP 在网络层拦截，并让未拦截的请求直接失败
+
+## 动手练习
+
+1. **测试分不出 ceil 和 round**：把本章 `sendExpiryReminders` 和「还剩 2.5 天说 3 天」的测试放进一个装了 Vitest 的空目录跑通。然后把实现里的 `Math.ceil` 分别换成 `Math.floor` 和 `Math.round` 各跑一次。
+
+   验证：换成 `Math.floor` 时测试红；换成 `Math.round` 时测试仍然绿。
+
+   参考答案：JavaScript 里 `Math.round(2.5)` 也是 3，2.5 天恰好分不出两种取整。再加一行用例「还剩 2.2 天说 3 天」，`Math.round` 就会红。替身用对了，剩下的问题是边界值挑得够不够。
+
+2. **让约定测试揭穿一个 fake**：照本章写 `bookStoreContract`，再写一个有 bug 的内存实现，`put` 直接往数组里 `push`、`list` 返回数组拷贝、`remove` 用 `filter`。跑约定测试，然后把内部存储换成 `Map<string, Book>` 再跑。
+
+   验证：第一次「同 id 再次写入即为更新」失败，`list()` 返回了两本 `demo`；换成 `Map` 后两条都通过。
+
+   参考答案：fake 只照着「能存能取」写，很容易漏掉真实实现里由主键保证的行为。同一套约定测试也跑在真实实现上，fake 漏掉的行为就会暴露出来。
+
+3. **确认未拦截的请求会失败**：在装了 `msw` 和 `vitest` 的目录里，用不带任何处理器的 `setupServer()`，`beforeAll` 里 `server.listen({ onUnhandledRequest: "error" })`，测试里 `await fetch("https://example.com/")`。再把选项去掉（默认是 `"warn"`）跑一次。
+
+   验证：第一次测试失败，输出里有 MSW 指出这条 `GET https://example.com/` 没有匹配处理器的报错；第二次只打印警告，请求真的发了出去（断网时会看到网络错误）。
+
+   参考答案：`"error"` 让漏拦截变成测试失败，而不是悄悄访问真实服务。新接一个第三方接口时，先看到这条报错，再补处理器。

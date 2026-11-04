@@ -202,3 +202,48 @@ flowchart TD
 - 自动埋点不覆盖所有库，比如 postgres.js；关键步骤用手动 span 补上，属性里不放敏感数据
 - 起步用 Jaeger all-in-one；流量小就 100% 采样
 - 外部调用多、服务多时追踪价值最大；简单单体可以先只靠请求 ID 加日志
+
+## 动手练习
+
+1. **拆一个 traceparent**：写一个函数解析 `00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`，返回 trace id、父 span id 和是否已采样；再把末尾的 `01` 改成 `00` 试一次。
+
+   验证：第一次输出 `sampled: true`，trace id 是 32 位、父 span id 是 16 位；改成 `00` 后 `sampled: false`。
+
+   参考答案：
+
+   ```js
+   function parse(h) {
+     const [version, traceId, parentId, flags] = h.split("-");
+     return { version, traceId, parentId, sampled: (parseInt(flags, 16) & 1) === 1 };
+   }
+   console.log(parse("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"));
+   ```
+
+   标志位的最低位表示上游已采样。下游用 `ParentBasedSampler` 时就按这一位决定要不要记录，整条链路的取舍因此一致。
+
+2. **在控制台看父子 span**：在空目录里 `npm init -y && npm i @opentelemetry/sdk-node @opentelemetry/sdk-trace-base @opentelemetry/api`，用 `ConsoleSpanExporter` 代替 OTLP 导出器，建一个 `parent` span，在它里面再建一个 `child` span。
+
+   验证：`node trace.mjs` 打印两个 span，`traceId` 相同；`child` 记录的父 span（不同版本字段名叫 `parentId` 或 `parentSpanContext.spanId`）等于 `parent` 的 `id`。
+
+   参考答案：
+
+   ```js
+   // trace.mjs
+   import { NodeSDK } from "@opentelemetry/sdk-node";
+   import { ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base";
+   import { trace } from "@opentelemetry/api";
+   const sdk = new NodeSDK({ traceExporter: new ConsoleSpanExporter() });
+   sdk.start();
+   const tracer = trace.getTracer("demo");
+   await tracer.startActiveSpan("parent", async (p) => {
+     await tracer.startActiveSpan("child", async (c) => c.end());
+     p.end();
+   });
+   await sdk.shutdown(); // 不调用的话，缓冲区里的 span 可能来不及打印
+   ```
+
+3. **忘了 end 会怎样**：把上一题里 `c.end()` 改成空函数体再运行。
+
+   验证：输出里只剩 `parent`，没有 `child`。
+
+   参考答案：span 只有在 `end()` 之后才会交给导出器。手动 span 一律用 `try/finally` 包住，在 `finally` 里 `end()`，否则抛异常的那条路径上的 span 全都会消失，而那恰恰是你最想看的。

@@ -311,3 +311,23 @@ legacySummary() { /* ... */ }
 - 先发服务端（兼容新旧），再发 App；兼容分支注释写明何时可删
 - 弃用流程：文档、`Deprecation` / `Sunset` 响应头、统计、通知、限时演练、410
 - 在 CI 里自动比较 OpenAPI，检出破坏性变更就失败
+
+## 动手练习
+
+1. **判断改动是否安全**：对下面每项说出「安全 / 破坏」：① `GET /expenses` 默认 `limit` 从 20 改成 50；② 回包新增 `currency` 字段；③ `note` 最大长度从 200 改成 100；④ `status` 枚举新增 `"refunded"`；⑤ `paidAt` 从必有改成可能为 `null`；⑥ `POST /expenses` 新增可选参数 `tags`，不传时等于空数组。
+
+   验证：对照[改动的两种](#改动的两种)那张表逐项核对。
+
+   参考答案：① 破坏（默认行为变了，按页数估算的客户端会出错）；② 安全；③ 破坏（以前能提交的现在被拒）；④ 看客户端是否有兜底；⑤ 破坏；⑥ 安全。
+
+2. **验证宽容的客户端 schema**：把本章的 `OrderStatus` / `StockOrder` 存成文件，用 `npx tsx` 解析 `{"id":"so_1","status":"returned","total":100,"extra":1}`，再把 `StockOrder` 加上 `.strict()`、`OrderStatus` 换成纯 `z.enum([...])` 重跑。
+
+   验证：第一次成功，结果是 `{ id: "so_1", status: "unknown", total: 100 }`，没有 `extra`；第二次抛 ZodError，提到未知键 `extra` 和非法枚举值。
+
+   参考答案：客户端的宽容决定了服务端能不能加字段、加枚举值；严格版的 1.0 会把服务端的这两种安全改动都变成破坏性改动。
+
+3. **用 oasdiff 抓破坏性变更**：写两份最小 OpenAPI 文件 `base.yaml`、`rev.yaml`，后者把 `Expense` 的 `note` 属性删掉、并给请求体加一个 `required` 字段。运行 `docker run --rm -v "$PWD":/specs tufin/oasdiff breaking /specs/base.yaml /specs/rev.yaml`。
+
+   验证：输出里列出两条 error 级别的变更，分别指向删除的响应属性和新增的必填请求属性；只在 `rev.yaml` 里加一个可选属性时输出为空。
+
+   参考答案：把这条命令加 `--fail-on ERR` 放进 CI，就能让破坏性变更在合并前失败。具体输出格式随 oasdiff 版本变化，以实际运行为准。

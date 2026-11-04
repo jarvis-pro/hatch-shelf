@@ -231,3 +231,57 @@ export function useSubmission(): Submission {
 - effect 的 deps 逐项 `Object.is` 比较；闭包读到旧值是快照语义的直接结果
 - 读最新值的老写法是渲染期写 ref（如 `useLatest`），React 19.2 起用 `useEffectEvent` 代替
 - 需要每个实例一份的稳定对象，用 `useState(() => new X())`，不要依赖 `useMemo` 的缓存
+
+## 动手练习
+
+1. **队列里的三次更新**：把本章 `Counter` 的点击处理改成下面这样，点一次前先算出结果：
+
+   ```tsx
+   const onClick = () => {
+     setN((p) => p + 1);
+     setN(n + 1);
+     setN((p) => p + 1);
+   };
+   ```
+
+   验证：从 0 点一次后显示 `2`。
+
+   参考答案：队列依次是「函数、值 1、函数」：0 → 1 → 1 → 2。中间那个 `n + 1` 读的是快照里的 0，它把前面的结果直接覆盖成 1。
+
+2. **条件调用 hook**：
+
+   ```tsx
+   function Bad() {
+     const [show, setShow] = useState(true);
+     if (show) {
+       useState(0);
+     }
+     const [b] = useState("x");
+     return <button onClick={() => setShow(false)}>{b}</button>;
+   }
+   ```
+
+   点一次按钮，预测发生什么。
+
+   验证：页面崩溃（没有错误边界时整个应用卸载），控制台报错以 `Rendered fewer hooks than expected` 开头；`eslint-plugin-react-hooks` 在编辑器里会提前对 `if` 里那一行报 `rules-of-hooks`。
+
+   参考答案：这次渲染只调用了两个 hook，链表上却有三个节点，React 按顺序对不上，只能报错。
+
+3. **闭包读旧值，useEffectEvent 读新值**：
+
+   ```tsx
+   function Ticker() {
+     const [count, setCount] = useState(0);
+     useEffect(() => {
+       const id = setInterval(() => console.log("tick", count), 1000);
+       return () => clearInterval(id);
+     }, []);
+     return <button onClick={() => setCount((c) => c + 1)}>{count}</button>;
+   }
+   ```
+
+   连点三次按钮，看控制台；然后加一行 `const onTick = useEffectEvent(() => console.log("tick", count));`，把 `setInterval` 里的回调换成 `() => onTick()`。
+
+   验证：按钮显示 `3`，原写法一直打印 `tick 0`；改用 `useEffectEvent` 后打印 `tick 3`，而且 effect 的 deps 仍是 `[]`，定时器没有被重建。
+
+   参考答案：effect 只在挂载时创建一次，它捕获的是那次渲染的 `count`。`useEffectEvent` 返回的函数在每次提交后指向最新的回调，所以能读到最新值，又不需要进 deps。

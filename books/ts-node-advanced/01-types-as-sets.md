@@ -259,3 +259,43 @@ openBook(file);
 - 收窄就是把集合变小；判别联合配合 `never` 穷尽检查，让协议改动由编译器追踪
 - 函数参数逆变、返回值协变；方法语法的成员是双变的，回调建议用属性语法
 - 品牌类型是人为声明的子集，用来把「已校验」编进类型
+
+## 动手练习
+
+1. **让穷尽检查报错**：把[收窄就是让集合变小](#收窄就是让集合变小)一节的 `FromReader` 和 `handle` 存成 `a.ts`，在联合里加一员 `| { type: "close" }`，不改 `switch`，运行 `npx tsc --strict --noEmit a.ts`。
+
+   验证：报 `error TS2322: Type '{ type: "close"; }' is not assignable to type 'never'.`，位置在 `const exhaustive: never = msg` 那一行。补上 `case "close":` 分支后通过。
+
+   参考答案：每个 `case` 从集合里减掉一员，漏掉的那一员留到了 `default`，`msg` 不再是空集，赋给 `never` 失败。
+
+2. **方法语法的隐患能跑出运行时错误**：
+
+   ```ts
+   type Animal = { name: string };
+   type Dog = Animal & { bark(): void };
+   interface MethodStyle { handle(x: Dog): void }
+   const m: MethodStyle = { handle: (x: Dog) => x.bark() };
+   const a: { handle(x: Animal): void } = m;
+   a.handle({ name: "cat" });
+   ```
+
+   先 `tsc --strict --noEmit` 检查，再编译运行（`npx tsc --strict --target es2022 --outDir out b.ts && node out/b.js`）。然后把两处成员都改成属性语法 `handle: (x: ...) => void`，再检查一次。
+
+   验证：方法语法下类型检查零报错，运行时抛 `TypeError: x.bark is not a function`；改成属性语法后，第 5 行报 `TS2322`，错误链最后一行指出 `Property 'bark' is missing in type 'Animal'`。
+
+   参考答案：方法语法的参数是双变的，`strictFunctionTypes` 管不到；属性语法按逆变检查，把「只会处理狗的函数」交给「可能传猫的人」会被拒绝。
+
+3. **多余属性检查只看字面量**：
+
+   ```ts
+   type HasId = { id: string };
+   const direct: HasId = { id: "x", extra: 1 };
+   const temp = { id: "x", extra: 1 };
+   const viaVar: HasId = temp;
+   ```
+
+   预测哪一行报错、报什么，再用 `tsc --strict --noEmit` 验证。
+
+   验证：只有第 2 行报 `error TS2353: Object literal may only specify known properties, and 'extra' does not exist in type 'HasId'.`，第 4 行通过。
+
+   参考答案：结构上带 `extra` 的对象仍是 `HasId` 集合的成员；多余属性检查是只针对新鲜字面量的拼写检查，不是集合关系的一部分。

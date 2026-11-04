@@ -141,3 +141,30 @@
 - 用自动重启、健康检查、自动回滚减少人工介入；证书、域名、磁盘这类**定时炸弹**要自动化加监控两手准备
 - 出门前冻结发版、检查定时炸弹；诚实告知用户响应时间
 - 正视巴士因子：交接文档、紧急访问、服务能自己跑多久、用户数据可导出
+
+## 动手练习
+
+1. **给告警分格子**：把下面六条告警分到叫醒、工作时间处理、周报、删掉四类里：A. 外部探测连续 3 次失败；B. 某台机器 CPU 5 分钟内冲到 95% 后回落，请求成功率正常；C. 备份心跳 26 小时没收到；D. 证书剩余 18 天；E. 证书已过期；F. 磁盘使用率 85%。
+
+   验证：每条都能用「影响用户吗」「能等吗」两个问题说出理由。
+
+   参考答案：A、E 叫醒（影响用户且不能等）；C、F 工作时间处理（现在不影响用户，但会恶化，白天要真的去修）；D 进周报（自动续期本该在处理，这里是兜底提醒）；B 删掉，只留在看板上，因为它是原因而不是症状，用户没受影响。
+
+2. **验证「unhealthy 不会自动重启」**：在本机跑两个容器：`docker run -d --name sick --restart unless-stopped --health-cmd false --health-interval 2s --health-retries 1 alpine:3.20 sleep infinity` 和 `docker run -d --name crash --restart unless-stopped alpine:3.20 sh -c 'sleep 3; exit 1'`。等半分钟，分别看 `docker ps` 和 `docker inspect -f '{{.RestartCount}}' <名字>`。
+
+   验证：`sick` 在 `docker ps` 里显示 `(unhealthy)`，但 RestartCount 一直是 `0`；`crash` 的 RestartCount 在增长。练完 `docker rm -f sick crash`。
+
+   参考答案：restart 策略只看进程有没有退出，不看健康检查。所以要么让应用在不健康时自己退出，要么另写守护脚本；同时「进程反复重启」本身应该是一条告警。
+
+3. **写一个证书到期检查**：用 openssl 检查你自己的域名（或任意一个公开的 HTTPS 站点）的证书 14 天内是否到期，再把阈值改成 400 天看另一个分支。
+
+   ```bash
+   host=example.com
+   echo | openssl s_client -connect "$host:443" -servername "$host" 2>/dev/null \
+     | openssl x509 -noout -enddate -checkend $((14*86400))
+   echo "exit=$?"
+   ```
+
+   验证：正常的证书打印 `notAfter=...`、`Certificate will not expire` 和 `exit=0`；阈值改成 `$((400*86400))` 后打印 `Certificate will expire`、`exit=1`（公开证书有效期不会超过 400 天）。
+
+   参考答案：靠退出码就能接进任何拨测或 cron 告警。它是证书自动续期的兜底监控：自动化会静默失败，所以两样都要。

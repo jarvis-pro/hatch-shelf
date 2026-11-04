@@ -246,3 +246,32 @@ Syncthing 只做同步，没有网页界面、没有分享链接、没有在线�
 - 只有多个工具都要说 S3，或者要多地冗余时，才在 NAS 上跑 Garage；它是单二进制、AGPL、S3 子集
 - MinIO 社区版已不适合作为新部署的首选；只通过 S3 API 访问存储，换实现就只是改端点
 - Syncthing 解决设备间同步，但它不是备份：开版本控制并再备份一次；国内关掉全局发现和中继，直接填内网地址
+
+## 动手练习
+
+前两题用本机目录模拟「云端仓库」和「NAS 仓库」，用官方的 restic 镜像，不需要对象存储账号。先准备：
+
+```bash
+mkdir -p ~/selfhost-lab/r/data && cd ~/selfhost-lab/r
+echo lab-password > pw && echo hello > data/a.txt
+r() { docker run --rm -v "$PWD":/w -w /w restic/restic "$@"; }
+r -r cloud -p pw init && r -r cloud -p pw backup data
+```
+
+1. **从云端拉取到 NAS**：执行 `r -r nas -p pw init --from-repo cloud --from-password-file pw --copy-chunker-params`，再执行 `r -r nas -p pw copy --from-repo cloud --from-password-file pw` 和 `r -r nas -p pw snapshots`。然后改一下 `data/a.txt`，对 `cloud` 再备份一次，重复 `copy`。
+
+   验证：第一次 `copy` 后 `nas` 里有 1 个快照，时间和路径与 `cloud` 里的一致；第二次 `copy` 只复制新增的那个快照，`nas` 里变成 2 个。
+
+   参考答案：`copy` 只搬目标仓库里还没有的快照；初始化时沿用源仓库的分块参数，两边的数据块才能去重。真实环境里 NAS 拿的是只读钥匙，这一步就是它每天定时做的事。
+
+2. **云端被删，NAS 还在**：用 `r -r cloud -p pw snapshots` 找到最早那个快照的 ID，执行 `r -r cloud -p pw forget <ID> --prune` 模拟云端被误删或被攻击者清理；再看两边的 `snapshots`，并用 `r -r nas -p pw restore latest --target restored` 恢复一次。
+
+   验证：`cloud` 里少了一个快照，`nas` 里两个都还在；`restored/data/a.txt` 内容正确。做完删掉 `~/selfhost-lab/r`。
+
+   参考答案：拉取方式下，服务器上没有任何能碰到 NAS 的凭据，云端怎么变都删不掉 NAS 上已经拉下来的快照。NAS 自己的 `forget` 策略决定保留多久。
+
+3. **同步不是备份**：你的笔记本、台式机和 NAS 用 Syncthing 同步一个「合同」文件夹。某天你在笔记本上误删了整个文件夹，十分钟后发现。分别说出：NAS 上没开版本控制、开了阶梯式版本控制、开了版本控制并且 NAS 上的同步目录每天用 restic 备份，这三种情况下能找回什么。
+
+   验证：三种情况各给出一个结论。
+
+   参考答案：没开版本控制时，删除几秒内同步到所有设备，Syncthing 里找不回来；开了版本控制，被删的文件挪到 NAS 的 `.stversions` 目录，可以拷回来；再加上 restic 备份，即使 `.stversions` 也被清理或文件被勒索软件加密后同步过去，仍能从前一天的快照恢复。

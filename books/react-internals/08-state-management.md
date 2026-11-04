@@ -158,3 +158,46 @@ flowchart TD
 - 服务端数据用数据请求库管理，要解决去重、过期、缓存、失效、结构共享、离线等问题；推送失效可映射为按 key 前缀 `invalidateQueries`
 - URL 适合可分享、可后退的状态；是否持久化要看用户预期，不只是技术选择
 - 不要把服务端数据复制进全局 store；从最简单的方案开始，遇到具体痛点再升级
+
+## 动手练习
+
+1. **memo 挡不住 Context**：
+
+   ```tsx
+   const Perms = createContext<{ perms: string[] } | null>(null);
+
+   const Reader = memo(function Reader() {
+     const v = use(Perms)!;
+     console.log("Reader render");
+     return <i>{v.perms.length}</i>;
+   });
+
+   export default function App() {
+     const [n, setN] = useState(0);
+     const [perms] = useState(["stock"]);
+     return (
+       <Perms value={{ perms }}>
+         <button onClick={() => setN(n + 1)}>{n}</button>
+         <Reader />
+       </Perms>
+     );
+   }
+   ```
+
+   关掉 StrictMode，点两次按钮，数 `Reader render`；再把 value 换成 `useMemo(() => ({ perms }), [perms])` 重试。
+
+   验证：内联对象时共打印 3 次；用 `useMemo` 后只有挂载时的 1 次。
+
+   参考答案：`memo` 只比较 props，`Reader` 没有 props 变化，但它读了 Context，Provider 的 value 每次都是新对象，React 会直接给所有消费者标上更新。稳定 value 之后，`App` 的重渲染就传不到 `Reader` 了。
+
+2. **选择器只订阅自己那一块**：用本章的 `createStore` 建一个 `{ step: 1, reading: false }` 的 store，写两个组件，一个 `store.use((s) => s.step)`，一个 `store.use((s) => s.reading)`，各自在渲染时计数。挂载后调用两次 `store.set({ step: ... })`。
+
+   验证：`step` 组件共渲染 3 次，`reading` 组件只渲染了挂载时的 1 次。如果把选择器改成 `(s) => ({ step: s.step })`，会得到第 4 章练习 3 那样的无限循环报错。
+
+   参考答案：`useSyncExternalStore` 每次通知后重新调用选择器，结果 `Object.is` 相同就不渲染；`reading` 没变，组件就被跳过。这是外部 store 相对 Context 的主要优势，前提是选择器返回原始值或稳定引用。
+
+3. **给状态分类（分析题）**：一个「采购单」页面有这些状态，按本章的判断顺序为每一项选工具，并说出理由：(a) 供应商列表；(b) 当前查看的采购单 id；(c) 正在编辑、还没提交的新采购单行项目，切到别的页面再回来要还在；(d) 「删除确认」弹窗是否打开；(e) 当前登录用户能否看到进价。
+
+   验证：对照判断流程图逐项走一遍，每一项都能落到图中的某个终点上。
+
+   参考答案：(a) 真相在服务端，用数据请求库或取数 hook，不要复制进全局 store；(b) 应该能收藏、分享、后退，放 URL search params；(c) 生命周期跨路由、组件卸载后仍需保留，用外部 store（类似本章的导入草稿）；(d) 只有一个组件关心，`useState`；(e) 登录后很少变、到处读，用 Context。

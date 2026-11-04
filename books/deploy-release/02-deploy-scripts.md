@@ -219,3 +219,41 @@ fi
 - 停服维护用一个标记文件 + nginx 判断，失败时宁可停在维护页
 - 传文件用**白名单**而不是「整目录同步 + 排除」，密钥文件永远不在名单上
 - 改 nginx 必须 `nginx -t` 通过才 reload，失败自动换回备份
+
+## 动手练习
+
+1. **`set -u` 和 `pipefail` 各拦住了什么**：在本机临时目录里分别运行下面两段，比较输出和退出码。
+
+   ```bash
+   bash -c 'echo "将要删除：$DIR/"'; echo "exit=$?"
+   bash -c 'set -u; echo "将要删除：$DIR/"'; echo "exit=$?"
+   bash -c 'false | true'; echo "exit=$?"
+   bash -c 'set -o pipefail; false | true'; echo "exit=$?"
+   ```
+
+   验证：第一段打印 `将要删除：/`、`exit=0`；第二段报 `DIR: unbound variable`，退出码非 0（具体数值随 bash 版本不同）；第三段 `exit=0`；第四段 `exit=1`。
+
+   参考答案：没有 `set -u` 时未定义变量被当成空串，路径悄悄变成 `/`；没有 `pipefail` 时管道的退出码只看最后一段，前面的失败被吞掉。这里只用 `echo` 演示，不要把 `rm` 放进去试。
+
+2. **让 `trap ... ERR` 真的退回一次**：在本机建一个目录，放一份只有一个服务的 `docker-compose.yml`（`api` 用 `nginx:${API_TAG}`，加一个 `wget -q -O /dev/null http://127.0.0.1/` 的 healthcheck），把本章的 `deploy.sh` 删掉起库和迁移两行。先 `./deploy.sh 1.27-alpine`，再 `./deploy.sh no-such-tag`。
+
+   验证：第二次 `docker compose pull api` 失败后，屏幕上出现 `退回 1.27-alpine`；`cat .env` 仍是 `API_TAG=1.27-alpine`，`docker compose ps` 里容器是 healthy。
+
+   参考答案：`pull` 返回非 0 触发 ERR 钩子，`restore` 先摘掉钩子再把 tag 写回上一版并 `up --wait`。可以再试一次把 healthcheck 改成必然失败的命令，观察 `--wait` 超时同样会触发退回。
+
+   ```yaml
+   services:
+     api:
+       image: nginx:${API_TAG}
+       ports: ["127.0.0.1:8080:80"]
+       healthcheck:
+         test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+         interval: 2s
+         retries: 5
+   ```
+
+3. **`set_tag` 不冲掉别的行**：准备一份两行的 `.env`（`OTHER=keep` 和 `API_TAG=old`），把本章的 `set_tag` 函数复制进一个小脚本，连续调用 `set_tag 1.0`、`set_tag 1.1`。再把函数换成 `echo "API_TAG=$1" > .env` 重做一遍。
+
+   验证：前者结束后 `grep -c '^API_TAG=' .env` 输出 `1`，`OTHER=keep` 还在；后者 `OTHER=keep` 消失。
+
+   参考答案：`grep -v` 先过滤掉旧的那一行再追加，重复执行结果相同（幂等），也不碰其他键；整份重写只在「文件里永远只有一行」时才碰巧正确。

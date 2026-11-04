@@ -368,3 +368,48 @@ Agent SDK 版本也能用同样的样例评测：把 `runSdkAgent` 的 `cwd` 指
 - 评分器也要测：用假模型扮演好 agent 和坏 agent，确认能分辨
 - 每个样例跑多次；比较的是每个成功任务的成本，而不是每次请求的成本
 - 真实使用中的每次失败，都变成一条新样例
+
+## 动手练习
+
+1. **算清 pass@k 和 pass^k**：单次成功率 80%，算 k 为 1、5、10 时两个口径的值；再反推：想让 pass^5 达到 90%，单次成功率要多少。
+
+   ```bash
+   node -e 'const p=0.8; for (const k of [1,5,10]) console.log(k, (1-(1-p)**k).toFixed(4), (p**k).toFixed(4)); console.log((0.9**(1/5)).toFixed(4))'
+   ```
+
+   验证：k=5 时两个值约为 `0.9997` 和 `0.3277`，k=10 时 pass^k 约 `0.1074`；最后一行约 `0.9791`。
+
+   参考答案：后台无人值守的任务看 pass^k；要让连续 5 次全对的概率到九成，单次成功率得接近 98%，这比「通过率 80%」严格得多。
+
+2. **补上「不删正文」的过程检查**：本章说「不要删掉任何正文内容」还没有检查。在 `runCase` 里注入问题之前记下章节去掉空白后的字符数，评分时再比一次。
+
+   ```typescript
+   const target = path.join(bookDir, "01-syntax.md");
+   const size = async () => (await readFile(target, "utf8")).replace(/\s/g, "").length;
+   const before = await size(); // 放在 c.break(bookDir) 之前
+   // ……agent 运行之后、评分时：
+   const after = await size();
+   if (after < before * 0.95) reasons.push(`正文少了 ${before - after} 个字符`);
+   ```
+
+   验证：重跑 `eval.test.ts`，「坏 agent」那条的 `reasons` 里多了「正文少了 … 个字符」；「好 agent」仍然通过。
+
+   参考答案：本章已经指出，坏 agent 覆盖后的文件能通过校验；字数检查把「改对了但丢了内容」也变成可判定的失败。
+
+3. **让回放在工具输出变化时报错**：用一个返回固定文字的工具录一段，再换成返回另一段文字的同名工具回放。
+
+   ```typescript
+   it("工具输出变了，回放在第二轮报错", async () => {
+     const tape = path.join(await mkdtemp(path.join(tmpdir(), "tape-")), "t.jsonl");
+     const tool = (out: string): AgentTool => ({ def: { name: "now", description: "", input_schema: { type: "object", properties: {} } },
+       risk: "read", run: async () => out });
+     const live = scriptedModel([reply([{ tool: "now", input: {} }]), reply(["好"])]);
+     await runAgent({ model: recording(live, tape), system: "s", tools: [tool("A")], task: "x" });
+     await expect(runAgent({ model: await replaying(tape), system: "s", tools: [tool("B")], task: "x" }))
+       .rejects.toThrow("重新录一遍");
+   });
+   ```
+
+   验证：测试通过；第一轮请求的指纹相同，回放成功，第二轮因为工具结果从 A 变成 B 而找不到录像。
+
+   参考答案：录像指纹覆盖完整请求，所以它不仅能发现 prompt 的改动，也能发现「模型看到的工具输出变了」这种更隐蔽的变化。

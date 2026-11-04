@@ -222,3 +222,57 @@ flowchart TD
 - `@vitejs/plugin-react` 6.x 用 `@rolldown/plugin-babel` + `reactCompilerPreset()` 接入；可用 annotation 模式和 `"use memo"` / `"use no memo"` 渐进推进
 - 已有的手写记忆化先保留；Compiler 解决不了慢渲染本身、网络和「数据每次都是新引用」的问题
 - 迁移顺序：清渲染期 ref → 处理 effect 里 setState → lint 清零 → 局部编译验证 → 全量
+
+## 动手练习
+
+在第 1 章的 Vite 项目里按本章「接入 Vite」一节装好 Compiler（或者新建一个分支再装，方便对照）。
+
+1. **没有 memo 的子组件也被跳过了**：
+
+   ```tsx
+   function Child({ label }: { label: string }) {
+     console.log("Child render");
+     return <i>{label}</i>;
+   }
+
+   export default function App() {
+     const [n, setN] = useState(0);
+     return (
+       <div>
+         <button onClick={() => setN(n + 1)}>{n}</button>
+         <Child label="固定文字" />
+       </div>
+     );
+   }
+   ```
+
+   关掉 StrictMode，先在未接入 Compiler 的分支上点两次按钮，再在接入后的分支上点两次，各自数 `Child render` 打印了几次。
+
+   验证：未接入时共 3 次（挂载 1 次、每次点击 1 次）；接入后只有挂载时的 1 次。React DevTools 的 Components 面板里，`App` 和 `Child` 名字旁出现 `Memo ✨` 标记；构建产物里能搜到 `react/compiler-runtime`。
+
+   参考答案：Compiler 缓存了 `<Child label="固定文字" />` 这个元素，依赖（常量字符串）没变就复用同一个对象，满足第 2 章「props 引用相同」的 bailout 条件。
+
+2. **lint 先于 Compiler 发现问题**：在装了 `eslint-plugin-react-hooks` v7 推荐配置的项目里放这两个组件，运行 `pnpm eslint src`：
+
+   ```tsx
+   export function Stamp() {
+     const now = Date.now();
+     return <time>{now}</time>;
+   }
+
+   export function Latest({ value }: { value: string }) {
+     const ref = useRef(value);
+     ref.current = value;
+     return <span>{value}</span>;
+   }
+   ```
+
+   验证：第一个组件报 `Cannot call impure function during render`（`purity` 规则），第二个报 `Cannot access refs during render`（`refs` 规则），都是 error。
+
+   参考答案：`Date.now()` 被缓存后时间会「冻住」；渲染期写 ref 在并发渲染下可能写进一个最终被丢弃的版本。这两类问题不上 Compiler 也算隐患。
+
+3. **违规的组件被 Compiler 跳过**：把练习 2 的 `Latest` 和一个干净的 `function Clean({ value }: { value: string }) { return <span>{value}</span>; }` 放在同一个文件里，接入 Compiler 后用 React DevTools 看两个组件，或者 `pnpm build` 后在产物里搜 `_c(`。
+
+   验证：`Clean` 有 `Memo ✨` 标记、产物里有对应的 `_c(...)` 缓存槽；`Latest` 没有标记，产物里保持原样。
+
+   参考答案：Compiler 识别出渲染期写 ref，选择不优化这个组件，行为和原来一致，只是拿不到自动记忆化的收益。这正是迁移清单把「清理渲染期 ref」放在第一步的原因。

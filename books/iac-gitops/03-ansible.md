@@ -162,7 +162,7 @@ docker_apt_mirror: https://download.docker.com
     state: enabled
 ```
 
-云上的安全组（第 2 章）和机器上的 ufw 是两道独立的防线，各自用各自层的工具管。SSH 加固、fail2ban 这些内容[《一人运维手册》](../production-ops/)讲过，在这里只是把那些命令翻译成任务，不再重复理由。
+云上的安全组（第 2 章）和机器上的 ufw 是两道独立的防线，各自用各自层的工具管。新机的 SSH 初始化和加固、fail2ban 这些内容在[《部署与 CI/CD》拿到机器之后的头半小时](../deploy-release/01-vps-setup.md#拿到机器之后的头半小时)和[《一人运维手册》SSH：从「能用」到「收紧」](../production-ops/01-hardening.md#ssh从能用到收紧)讲过，在这里只是把那些命令翻译成任务，不再重复理由。
 
 `cache_valid_time` 让 `apt update` 在一小时内只跑一次，否则每次运行都是一次 `changed`。
 
@@ -279,9 +279,7 @@ server {
 
 ## certbot：先有鸡还是先有蛋
 
-证书这一步有个循环依赖：上面的 nginx 配置引用了证书文件，证书不存在时 `nginx -t` 失败；而 webroot 方式申请证书，又需要 nginx 先跑起来响应 `/.well-known/acme-challenge/`。
-
-部署文档的解法是分两段：先放一份只监听 80 的临时配置，申请完证书再换正式配置。翻译成 Ansible，就是让 certbot 这个 role 在正式配置之前跑一个只含 80 端口的配置：
+证书这一步有个循环依赖：正式配置引用证书文件，而 webroot 方式签证书又需要 nginx 先在 80 端口服务挑战文件。手工的解法（先放只处理挑战的临时配置，签完再换正式配置）见[《Nginx 与反向代理》从零上线的顺序](../nginx-gateway/03-https-acme.md#从零上线的顺序)，ACME 本身的原理见[《计算机网络》证书怎么来：ACME](../networking/05-tls.md#证书怎么来acme)。翻译成 Ansible，就是让 certbot 这个 role 在正式配置之前跑一个只含 80 端口的配置：
 
 ```yaml
 # roles/certbot/tasks/main.yml
@@ -435,3 +433,33 @@ ansible-lint site.yml
 - 证书的循环依赖要拆成两段；这类顺序问题只在全新机器上暴露
 - 边界：**Ansible 管机器上有什么，`deploy.sh` 管跑哪个版本**；带密钥的任务关掉 diff
 - `--check` 是参考不是保证；`changed=0` 是最便宜的漂移检测
+
+## 动手练习
+
+三题共用一个一次性容器当目标机器，不需要云服务器，也不走 SSH。先准备好：
+
+```bash
+docker run -d --name ans-lab ubuntu:24.04 sleep infinity
+docker exec ans-lab sh -c 'apt-get update -qq && apt-get install -y -qq python3'
+ansible-galaxy collection install community.docker
+printf 'ans-lab ansible_connection=community.docker.docker\n' > hosts.ini
+# 做完清理：docker rm -f ans-lab
+```
+
+1. **找出不幂等的任务**：写一个 playbook（`hosts: all`），只有一个任务：`ansible.builtin.command: mkdir -p /srv/demo`。用 `ansible-playbook -i hosts.ini demo.yml` 连跑两次；然后给任务加上 `args: { creates: /srv/demo }`，再跑两次。
+
+   验证：加 `creates` 之前，两次的 PLAY RECAP 都是 `changed=1`；加了之后每次都是 `changed=0`，用 `-v` 运行能看到任务因为 `/srv/demo` 已存在而跳过了命令。
+
+   参考答案：`command` 模块不知道命令做了什么，只要执行了就报 `changed`。`creates` 告诉它「这个路径存在就说明已经做过」，等于把命令式操作补成幂等的，正文里 certbot 申请证书用的就是这一招。
+
+2. **handler 只跑一次**：写三个 `ansible.builtin.copy` 任务，分别往 `/etc/demo/a.conf`、`b.conf`、`c.conf` 写不同的 `content`（先用 `file` 模块建好 `/etc/demo`），三个任务都 `notify: reload demo`；handler 是 `ansible.builtin.command: echo reloaded`。跑两次。
+
+   验证：第一次输出里 `RUNNING HANDLER [reload demo]` 只出现一次，且在所有任务之后；第二次三个 copy 都是 `ok`，handler 根本不出现。
+
+   参考答案：handler 在 play 的任务全部跑完后才统一执行，被通知多少次都只跑一次；没有任务报 `changed` 就不会通知它。这就是正文里「三个文件都改了，nginx 也只重载一次」的机制。
+
+3. **`force: false` 守住的边界**：写一个任务，用 `ansible.builtin.copy` 往 `/srv/app/.env` 写 `content: "API_TAG=0.1.0\n"`，带 `force: false`（先建好目录）。跑一次后，模拟 `deploy.sh` 发了新版：`docker exec ans-lab sh -c 'echo API_TAG=0.2.0 > /srv/app/.env'`。再跑 playbook，然后把 `force: false` 去掉再跑一次。
+
+   验证：每次跑完都用 `docker exec ans-lab cat /srv/app/.env` 看。带 `force: false` 时仍是 `API_TAG=0.2.0`，任务是 `ok`；去掉之后变回 `API_TAG=0.1.0`，任务是 `changed`。
+
+   参考答案：`force: false` 只在文件不存在时写入。去掉它，等于让 Ansible 每次都把线上版本退回初始值，这正是「Ansible 管机器上有什么，`deploy.sh` 管跑哪个版本」要防的事。

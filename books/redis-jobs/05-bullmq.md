@@ -410,3 +410,25 @@ export class QueueBoardModule {}
 - NestJS 里用 `@Processor` + `WorkerHost`；独立 worker 用 `createApplicationContext`，同一镜像不同命令
 - `stop_grace_period` 大于最长任务；第三方限速用 `limiter`，429 时 `rateLimit` 暂停队列
 - 需要长期留存的结果和进度写进 Postgres；Bull Board 必须放在鉴权后面
+
+## 动手练习
+
+环境：`docker run --rm -d --name r5 -p 6379:6379 redis:7.4-alpine redis-server --maxmemory-policy noeviction`，新建一个目录 `pnpm add bullmq ioredis`，脚本用 `.mjs` 直接 `node` 运行。
+
+1. **默认不重试**：写一个处理函数每次都 `throw new Error("boom")` 的 Worker，加一个不带任何选项的任务，再加一个带 `attempts: 3, backoff: { type: "fixed", delay: 1000 }` 的任务，在 `failed` 事件里打印 `job.id` 和 `job.attemptsMade`。
+
+   验证：第一个任务只打印一次，`attemptsMade` 为 `1`；第二个任务大约每秒打印一次，最后一次 `attemptsMade` 为 `3`。`redis-cli ZCARD bull:<队列名>:failed` 返回 `2`。
+
+   参考答案：`attempts` 默认是 1，失败一次就进 `failed`；重试要显式设，最好放在 `defaultJobOptions` 里。
+
+2. **进程被杀后任务重跑**：Worker 的处理函数先打印「开始 job.id」，再 `await` 60 秒。加一个任务，看到「开始」后对 worker 进程 `kill -9`，立刻再启动一个新的 worker 进程。
+
+   验证：新进程不会马上拿到任务；大约 30 秒（`lockDuration` 默认值）到一分钟后，新进程打印出同一个 `job.id` 的「开始」，并触发 Worker 的 `stalled` 事件（可以监听打印出来）。
+
+   参考答案：被杀的进程不再续锁，锁过期后检查器把任务放回 `wait`，所以同一个任务执行了两次，处理函数必须幂等（第 8 章）。
+
+3. **保留策略**：一个队列不设 `removeOnComplete`，另一个设 `removeOnComplete: 10`，各加 100 个立即成功的任务，跑完后对比。
+
+   验证：`redis-cli ZCARD bull:<不设的队列>:completed` 是 `100`，设了的是 `10`；`redis-cli --scan --pattern 'bull:<不设的队列>:*' | wc -l` 明显多于另一个。
+
+   参考答案：BullMQ 默认保留全部完成的任务，每个任务一个 Hash 加集合里的成员，长期运行会撑满 `noeviction` 的 Redis。

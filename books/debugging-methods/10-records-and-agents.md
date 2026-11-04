@@ -256,3 +256,33 @@ useEffect(() => {
 - 维护一份症状到根因的索引
 - 让 agent 协助排查时，先让它当调查者而不是修复者：给现象、复现、已排除，要求列假设和验证方法、失败测试先行、回到原始现象验证
 - 交给 agent 的日志和数据先去掉密钥和个人信息
+
+## 动手练习
+
+1. **用类型挡住「忘了取消订阅」**：写 `sub.ts`，用 `tsc --noEmit --strict sub.ts` 检查（需要安装 `typescript` 和 `@types/node`）。
+
+   ```typescript
+   import { EventEmitter } from "node:events";
+   const bus = new EventEmitter();
+   type Subscribe = (cb: (blocks: string[]) => void) => () => void;
+
+   export const onStoreChanged: Subscribe = (cb) => {
+     bus.on("store-changed", cb);
+   };
+   ```
+
+   验证：报 `TS2322`，其中一行是 `Type 'void' is not assignable to type '() => void'.`；在函数末尾加上 `return () => bus.off("store-changed", cb);` 后不再报错。
+
+   参考答案：这就是把第 7 章的教训变成机器会检查的规则：签名要求返回取消函数，忘了写就编译不过，不再依赖人记得。
+
+2. **让 lint 拦住没 await 的 Promise**：在一个小 TS 项目里装 `eslint`、`typescript`、`typescript-eslint`，按 typescript-eslint 文档开启需要类型信息的配置和 `@typescript-eslint/no-floating-promises`，然后写一行 `writeFile("a.txt", "x");`（来自 `node:fs/promises`），运行 `npx eslint .`。
+
+   验证：这一行被标出 `@typescript-eslint/no-floating-promises`，消息以 `Promises must be awaited` 开头；改成 `await writeFile(...)` 或 `void writeFile(...)` 后通过。配置写法以 typescript-eslint.io 当前版本的文档为准。
+
+   参考答案：第 1 章的 bug 正是这一类。注意 `void` 只表示「我确认不需要等」，像第 1 章那样后面紧跟着依赖写入结果的代码时，正确的做法是等待它或改用同步版本。
+
+3. **改写一段给 agent 的提示词**：原提示词是「设置页偶尔显示的书库大小不对，修一下」。按本章的结构改写，补上现象、复现、已排除、相关文件，并约束它的工作方式。
+
+   验证：改写后的提示词里有「先不要修改代码」、一条可执行的复现步骤、至少一条「已排除」，并要求失败测试先行和回到原始现象验证；没有把你自己的猜测写成结论。
+
+   参考答案：例如「现象：导入一本书后回到设置页，书库大小仍是导入前的数字，过一会儿或重启后才正确。复现：导入示例书 → 切到设置页，10 次中 10 次。已排除：导入本身成功，书架上能看到新书。相关文件：设置页、书库变更通知。先不要修改代码，列出候选原因和验证方法……」判断要点是把「偶尔」「不对」换成期望与实际，把 agent 放在调查者的位置上。

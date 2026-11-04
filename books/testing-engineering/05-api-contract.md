@@ -251,3 +251,28 @@ const NEW = "999.0.0";
 - 旧版本靠三层：只做加法、版本闸门（排在鉴权前面）、回放真实的旧请求
 - 一人 monorepo 通常不需要 Pact；给第三方提供 API 时再考虑
 - 调用第三方：保存真实响应、定期冒烟、适配层运行时校验
+
+## 动手练习
+
+1. **看 fetch 到底发了什么头**：开一个终端运行 `nc -l 9000`（Linux 上是 `nc -l -p 9000`），另一个终端用 Node 22 分别发两次请求，每次发完回到第一个终端看请求头，再重新起 `nc`：
+
+   ```bash
+   node -e 'const f=new FormData(); f.append("file", new Blob(["hi"]), "a.zip"); fetch("http://localhost:9000/", {method:"POST", body:f}).catch(()=>{})'
+   node -e 'const s=new ReadableStream({start(c){c.enqueue(new TextEncoder().encode("hi")); c.close()}}); fetch("http://localhost:9000/", {method:"POST", body:s, duplex:"half"}).catch(()=>{})'
+   ```
+
+   验证：第二条请求的头里是 `Transfer-Encoding: chunked`，没有 `Content-Length`；第一条记下它实际带的是哪一个。
+
+   参考答案：请求体长度能不能预先知道，取决于 body 的类型和运行时实现，不是调用方能从 API 上看出来的。只接受 `Content-Length` 的服务端遇到第二种就会回 411，所以本章主张让「命令行拼出的字节」直接喂给解析器测试，而不是相信 `fetch` 的默认行为。
+
+2. **让 schema 抓住一个多出来的 null**：在装了 `zod` 的目录里写一个脚本，定义 `z.object({ id: z.string(), note: z.string() })`，分别对 `{ id: "1", note: "x" }` 和 `{ id: "1", note: null }` 调用 `safeParse`，打印 `success` 和 `error?.issues`。
+
+   验证：第一次 `success: true`；第二次 `success: false`，issues 里有一条 `path` 是 `["note"]`。
+
+   参考答案：类型在运行时不存在，服务端多返回一个 `null`，只有运行时校验看得见。把这一步放进测试的 HTTP 辅助函数，几百条测试就都顺带成了契约测试。
+
+3. **判断哪些改动能上线**：服务端准备发布这几处改动，手机上还有三个月前的旧版本：响应里加 `tags` 数组；请求体新增必填的 `currency`；错误码 `quota_exceeded` 改名为 `limit_reached`；状态枚举加一个 `archived`；请求里加一个可选的 `note`。逐条判断对旧客户端是否安全，不安全的给出替代做法。
+
+   验证：每一条都能说出「旧客户端会怎样」。
+
+   参考答案：加 `tags` 和可选 `note` 安全。必填 `currency` 不安全，改成可选并给服务端默认值。错误码改名不安全，旧客户端靠它分支，保留旧码或者用版本闸门挡住旧版。加 `archived` 要看旧客户端的 `switch` 是否有兜底分支；不确定时只对新版本返回它，或者让旧版本看到一个它认识的值。

@@ -257,3 +257,42 @@ flowchart TD
 - DO 同一个 ID 全球只有一个单线程实例，天然串行；实例怎么切分是设计核心
 - 新代码用 RPC 调 DO，用 SQLite 存储后端，迁移里声明 `new_sqlite_classes`
 - 选存储也看你想让服务端知道多少业务：唱片墙为了保持「哑仓库」，用 R2 + 条件写代替了数据库
+
+## 动手练习
+
+继续用[第 4 章练习](04-workers-runtime.md#动手练习)里的 `edge-lab` 项目，`wrangler dev` 会在本地模拟 R2 和 D1，数据在 `.wrangler/state/` 下，可以随便写删。本地练习时配置里的 `database_id` 填任意占位字符串即可，所有命令都带 `--local`。
+
+1. **R2 条件写撞出 412**：在 `wrangler.toml` 加一个 `[[r2_buckets]]`（binding 为 `VAULT`，桶名随意），实现 `GET /m` 返回 `index/manifest.json` 及其 `etag`，`PUT /m` 读取 `If-Match` 头交给 `onlyIf`，条件不满足时返回 412。
+
+   验证：先 `curl -X PUT -d '{"v":1}' localhost:8787/m` 写入，`curl -si localhost:8787/m` 记下 `etag`；然后用同一个 etag 连续 PUT 两次：第一次 `200`，第二次 `412`。
+
+   参考答案：请求体先 `arrayBuffer()` 再写（直接传长度未知的流，R2 的 `put` 会报错）；引号要去掉。
+
+   ```ts
+   if (req.method === "PUT") {
+     const m = req.headers.get("if-match");
+     const obj = await env.VAULT.put("index/manifest.json", await req.arrayBuffer(), {
+       onlyIf: m ? { etagMatches: m.replace(/^W\//, "").replaceAll('"', "") } : undefined,
+     });
+     return obj ? new Response("ok", { headers: { etag: obj.httpEtag } }) : new Response("stale", { status: 412 });
+   }
+   const o = await env.VAULT.get("index/manifest.json");
+   return o ? new Response(o.body, { headers: { etag: o.httpEtag } }) : new Response("none", { status: 404 });
+   ```
+
+2. **看索引怎么改变 D1 的读取行数**：在配置里加一个 D1 binding，用本章的 `tracks` 建表语句但**先不建索引**，然后看查询计划，再建索引看一次。
+
+   ```bash
+   pnpm exec wrangler d1 execute shelf --local --command "CREATE TABLE tracks (id TEXT PRIMARY KEY, title TEXT, artist TEXT, month TEXT, created_at INTEGER)"
+   pnpm exec wrangler d1 execute shelf --local --command "EXPLAIN QUERY PLAN SELECT id FROM tracks WHERE month = '2026-10'"
+   ```
+
+   验证：建索引前计划里是 `SCAN tracks`；执行 `CREATE INDEX idx_tracks_month ON tracks(month)` 后再看，变成 `SEARCH tracks USING INDEX idx_tracks_month (month=?)`。
+
+   参考答案：`SCAN` 意味着读遍每一行，D1 按读取行数计费，表越大这条查询越贵；`SEARCH ... USING INDEX` 只读命中的行。
+
+3. **给四个需求选存储**：（a）App 启动时读的「强制升级最低版本号」；（b）每个用户每天最多领 3 次的优惠券计数；（c）用户头像；（d）可以按标签、日期筛选的笔记列表。为每个选 R2 / KV / D1 / DO 之一，并说出排除其他选项的一条理由。
+
+   验证：答案里每一项都要能对上本章选型表的一行，并点出一致性或数据形状上的理由。
+
+   参考答案：（a）KV，读极多写极少，晚一分钟生效可以接受；（b）DO，按用户切实例，强一致的读-改-写，KV 会丢计数；（c）R2，大块二进制；（d）D1，要按条件查询，记得给筛选列建索引。

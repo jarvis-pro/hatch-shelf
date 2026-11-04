@@ -320,3 +320,44 @@ hook 是以你的身份、你的权限执行的任意命令。这带来两个提
 - 常用组合：`PreToolUse` 保护文件、`PostToolUse` 格式化和跑 lint、`Stop` 收工前类型检查、`Notification` 提醒你
 - 拦截时告诉它「该去哪儿改」；Stop hook 要检查 `stop_hook_active`，只放快的检查
 - 能用权限规则表达的优先用权限规则；clone 来的项目先看它的 hooks 再运行
+
+## 动手练习
+
+1. **不启动 Claude 也能测 hook**：hook 只是一个读 stdin、看退出码的脚本。把本章的 `protect-files.sh` 存好并加执行权限，直接喂几段 JSON。
+
+   ```bash
+   for f in /repo/app/ios/Podfile /repo/app/src/a.ts /repo/.env.local; do
+     printf '{"tool_input":{"file_path":"%s"}}' "$f" | .claude/hooks/protect-files.sh; echo "exit=$?"
+   done
+   ```
+
+   验证：第一条和第三条打印「已拦截：…」并且 `exit=2`；第二条没有输出，`exit=0`。
+
+   参考答案：先在命令行把 hook 测准，再接进 settings；接进去之后用 `/hooks` 确认它在生效列表里。
+
+2. **拦住 `eslint-disable`**：写一个 `PreToolUse` hook，检查 Edit 的 `new_string` 或 Write 的 `content` 里有没有 `eslint-disable`，有就阻断，并告诉 Claude 正确写法。
+
+   ```bash
+   #!/usr/bin/env bash
+   text=$(jq -r '.tool_input.new_string // .tool_input.content // empty')
+   if printf '%s' "$text" | grep -q 'eslint-disable'; then
+     echo "不要用 eslint-disable 绕过 lint。不需要等待的 promise 写 void，需要处理失败时加 .catch。" >&2
+     exit 2
+   fi
+   exit 0
+   ```
+
+   验证：`printf '%s' '{"tool_input":{"new_string":"// eslint-disable-next-line"}}' | ./no-disable.sh; echo $?` 输出提示和 `2`；内容换成 `void foo()` 时输出 `0`。接进 settings（matcher 写 `Edit|Write`）后，让 Claude 故意加一行禁用注释，它会被拦下并改用 `void`。
+
+   参考答案：阻断信息同时给出「不许做什么」和「该怎么做」，模型才有路可走。
+
+3. **Stop hook 的防拉锯开关**：把本章的 `check-before-stop.sh` 存好，在一个有未提交改动、并且故意留了一个类型错误的仓库里分别喂两段输入。
+
+   ```bash
+   echo '{"stop_hook_active":true}'  | .claude/hooks/check-before-stop.sh; echo "exit=$?"
+   echo '{"stop_hook_active":false}' | .claude/hooks/check-before-stop.sh; echo "exit=$?"
+   ```
+
+   验证：第一条直接 `exit=0`；第二条打印类型检查的报错尾部并 `exit=2`。接进 settings 后让 Claude 做一个小改动，观察它在想收工时被拦回来修类型错误。
+
+   参考答案：`stop_hook_active` 为真说明这一轮已经是被 hook 拦回来续跑的，再拦就可能来回拉锯；放它停下，把剩下的问题留给你看。

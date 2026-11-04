@@ -299,3 +299,23 @@ cat /proc/$(pgrep -o nginx)/limits # 看某个运行中进程的实际上限
 - 退出码 137 = 被 SIGKILL，常见于 OOM 或停止超时；`dmesg` 里能找到 OOM 记录
 - 负载要和 `nproc` 比，负载高 CPU 低看 `wa` 和 `D` 状态
 - 内存看 `available` 不看 `free`，缓存是可回收的；小内存机器加 swap
+
+## 动手练习
+
+1. **从退出码认出信号**：在 bash 里执行 `sleep 300 & kill $!; wait $!; echo $?`，再执行 `sleep 300 & kill -9 $!; wait $!; echo $?`。
+
+   验证：第一次输出 `143`，第二次输出 `137`。
+
+   参考答案：被信号 N 杀死的进程退出码是 128 + N，SIGTERM 是 15，SIGKILL 是 9。以后看到容器退出码 137，先想到 SIGKILL。
+
+2. **容器里的 PID 1 不理 SIGTERM**：执行 `docker run -d --name p1 node:22-alpine node -e 'setInterval(()=>{},1000)'`，再 `time docker stop p1`；删掉容器后加上 `--init` 重做一遍（容器名换成 `p2`）。
+
+   验证：第一次 `docker stop` 大约耗时 10 秒，`docker inspect -f '{{.State.ExitCode}}' p1` 是 `137`；加 `--init` 后几乎立刻返回，退出码是 `143`。做完 `docker rm p1 p2`。
+
+   参考答案：Node 没注册 SIGTERM 处理，作为 PID 1 时内核把信号忽略，只能等超时被 SIGKILL。`--init` 让 tini 当 PID 1 并转发信号，Node 不是 PID 1，SIGTERM 按默认行为终止它。
+
+3. **复现一次 OOM**：执行 `docker run --name oom -m 128m node:22-alpine node -e 'const a=[];setInterval(()=>a.push(Buffer.alloc(1e7,1)),50)'`，等它自己退出。
+
+   验证：`docker inspect -f '{{.State.OOMKilled}} {{.State.ExitCode}}' oom` 输出 `true 137`。做完 `docker rm oom`。
+
+   参考答案：进程不断申请并写入内存，超过容器的 cgroup 上限后被内核 OOM Killer 用 SIGKILL 杀掉。在 Linux 宿主上还可以用 `sudo dmesg -T | grep -i oom` 看到对应记录。

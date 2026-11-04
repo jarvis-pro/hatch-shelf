@@ -358,3 +358,35 @@ fn main() {
 - 函数参数优先用 `&str`、`&[T]`；结构体字段优先用 `String`、`Vec<T>`
 - 方法的 `&self`、`&mut self`、`self` 分别表示读、改、消耗
 - 遇到 E0382 / E0502 / E0499，先想「这份数据归谁、谁在用、用到哪一行」
+
+## 动手练习
+
+1. **挪一行 println，看借用何时结束**：把[借用在最后一次使用时结束](#借用在最后一次使用时结束)一节的例子放进 `src/main.rs`，确认 `cargo run` 能跑；然后把 `println!("第一本：{first}");` 挪到 `books.push(...)` 那一行之后，再 `cargo check`。
+
+   验证：原样运行输出 `第一本：rust-practice` 和 `["rust-practice", "electron-desktop"]`；挪动之后报 `` error[E0502]: cannot borrow `books` as mutable because it is also borrowed as immutable ``，箭头分别指向 `&books[0]`、`push` 和挪下来的 `println!`。
+
+   参考答案：借用的范围到最后一次使用为止。挪到后面之后，`first` 的不可变借用要一直活到 `push` 之后，和 `push` 需要的可变借用重叠。原因也不只是规则：`push` 可能让 `Vec` 换一块内存，`first` 会变成悬垂引用。
+
+2. **修好 E0382，三种改法都试一次**：从下面的代码开始，先预测错误码，再分别用「传引用」「调整顺序」「clone」三种方式各改一次。
+
+   ```rust
+   fn shout(s: String) -> String {
+       s.to_uppercase()
+   }
+
+   fn main() {
+       let id = String::from("rust-practice");
+       let loud = shout(id);
+       println!("{id} -> {loud}");
+   }
+   ```
+
+   验证：原代码报 `` error[E0382]: borrow of moved value: `id` ``，并标出 `value moved here`。三种改法都能输出 `rust-practice -> RUST-PRACTICE`：把参数改成 `s: &str` 并传 `&id`；或者先打印 `id` 再调用（此时只能分两行输出）；或者调用 `shout(id.clone())`。
+
+   参考答案：首选传引用，函数只是读字符串，不需要拥有它；`clone` 能用，但多了一次堆分配。
+
+3. **`&String` 和 `&str` 的差别**：把本章 `is_chapter_file` 的参数类型改成 `&String`，保留 `is_chapter_file("README.md")` 这一行调用，预测 `cargo check` 的结果。
+
+   验证：报 `error[E0308]: mismatched types`，指出期望 `&String`、拿到的是 `&str`。改回 `&str` 后，`&owned` 和字面量两种调用都能通过。
+
+   参考答案：`&String` 可以自动解引用成 `&str`，反过来不行；字面量本身就是 `&str`，没有 `String` 可借。所以参数写 `&str` 能接受的值更多。

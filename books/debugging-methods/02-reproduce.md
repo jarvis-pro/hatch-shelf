@@ -225,3 +225,37 @@ CI 里偶尔失败、重跑就过的测试，常被当成「测试的问题」�
 - 最小复现：逐个删，直到删不动；根因常常自己显现，还能直接写成测试
 - 偶发问题用加延迟、限速、循环跑、加压来提高概率，用失败率做实验结果
 - 不稳定的测试也是 bug，查根因而不是加重试
+
+## 动手练习
+
+1. **用失败率做实验结果**：下面这行命令模拟一个每次 5% 概率失败的测试。用本章的循环跑 100 次，记下失败次数；连跑三轮，看三轮的数字差多少。再按 $1-(1-p)^N$ 算出：修复后要连续跑多少次都不失败，才有 95% 的把握。
+
+   ```bash
+   fails=0
+   for i in $(seq 1 100); do
+     node -e 'process.exit(Math.random() < 0.05 ? 1 : 0)' || fails=$((fails + 1))
+   done
+   echo "failed $fails / 100"
+   ```
+
+   验证：每轮输出 `failed N / 100`，N 多在 5 上下，三轮之间相差几次是正常的。
+
+   参考答案：$p=0.05$ 时 $1-0.95^N \ge 0.95$ 解得 $N \ge 59$，和图里一致。三轮的波动说明「100 次失败 3 次」和「100 次失败 7 次」不足以说明改动有效，样本要更多，或者把失败率先放大。
+
+2. **找出依赖顺序的测试**：在一个装了 Vitest 的空项目里写 `cache.test.ts`，先正常跑 `npx vitest run` 几次，再用 `npx vitest run --sequence.shuffle` 跑十次，记下失败次数。
+
+   ```typescript
+   import { expect, test } from "vitest";
+   const cache = new Map<string, number>();
+   test("首次读取是默认值", () => {
+     expect(cache.get("count") ?? 0).toBe(0);
+   });
+   test("写入后能读到", () => {
+     cache.set("count", 3);
+     expect(cache.get("count")).toBe(3);
+   });
+   ```
+
+   验证：默认顺序每次都通过；打乱顺序后有一部分运行里「首次读取是默认值」失败，报 `expected 3 to be +0` 一类的断言错误。参数写法以 vitest.dev 当前版本的 CLI 文档为准。
+
+   参考答案：两个测试共享模块级的 `cache`，第一个测试只在它先跑时才成立。修法是每个测试用自己的状态（在 `beforeEach` 里新建，或把 `cache` 放进被测函数的参数），而不是给它加 `retry`。

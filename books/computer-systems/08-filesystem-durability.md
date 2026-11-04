@@ -244,3 +244,23 @@ WAL 模式加 `synchronous = NORMAL` 是移动端和桌面端很常见的组合�
 - 两次各自原子的 rename 合起来不原子；hatch-shelf 替换书目录时有一个微秒级窗口，可以用启动恢复兜底
 - 数据库用 WAL 把随机写变成顺序追加，用组提交分摊 fsync；`synchronous_commit = off` 和 SQLite 的 `NORMAL` 是「丢一点、不损坏」的取舍
 - SQLite WAL 模式备份要先做检查点；容器卷的持久性取决于宿主机磁盘，运行中的数据目录不能直接复制
+
+## 动手练习
+
+1. **磁盘满时覆盖写会留下什么**：不要在真实磁盘上做，用一个一次性的小文件系统：Linux 上 `docker run --rm -it --tmpfs /data:size=5m node:22-alpine sh` 后进入 `/data`；Mac 上 `hdiutil create -size 5m -fs HFS+ tiny.dmg && hdiutil attach tiny.dmg -mountpoint ./mnt` 后进入 `mnt`。先写一个 `config.json`（内容 `{"v":1}`），用 `dd if=/dev/zero of=fill bs=1M` 写满（出现 `No space left on device` 为止），再用 `fs.writeFileSync` 把 `config.json` 覆盖成一段 100 KB 的新内容。
+
+   验证：Node 报 `ENOSPC`；`wc -c config.json` 是 0，旧内容也没了。换成本章的 `writeFileDurable` 重做一遍：同样报 `ENOSPC`，但 `cat config.json` 仍是 `{"v":1}`，目录里也没有残留的 `.tmp` 文件。Mac 上做完 `hdiutil detach mnt && rm tiny.dmg`。
+
+   参考答案：`writeFile` 先截断再写，截断成功、写入失败，就得到一个空文件。先写临时文件再 `rename`，失败只发生在临时文件上，目标文件从头到尾没被碰过。
+
+2. **把 fsync 摊薄**：在 `fsync.mjs` 里加第三种情况：每写 100 行才 `fsyncSync` 一次（模拟组提交），和「每行都 fsync」对比每次写入的平均耗时。
+
+   验证：每 100 行 fsync 一次时平均耗时介于两者之间，比每行都 fsync 快约两个数量级。作者的 Mac 上三种情况分别约为 3.8、2756、37.5 µs/次。
+
+   参考答案：一次 fsync 的代价基本固定，和这次带下去多少数据关系不大。组提交让多个事务共享一次等待，代价是同一批里的事务要一起等，单个事务的延迟没有变短。
+
+3. **只复制主文件的 SQLite 备份**：用 Node 22.5 以上自带的 `node:sqlite`（Node 22 上会打印实验性警告）打开 `t.db`，设 `PRAGMA journal_mode = WAL`，建表插入 100 行，在**不关闭连接**的情况下用 `copyFileSync("t.db", "copy.db")`，再打开 `copy.db` 查行数；然后在复制前加一句 `PRAGMA wal_checkpoint(TRUNCATE)` 重做。
+
+   验证：第一次查 `copy.db` 报 `no such table`（建表语句也还在 `-wal` 里）；加检查点后查到 100 行。
+
+   参考答案：WAL 模式下新写入先进 `t.db-wal`，检查点才合并回主文件；最后一个连接正常关闭时 SQLite 也会做检查点，所以「关掉 App 再复制」碰巧没问题，运行中复制就会拿到旧数据。

@@ -204,3 +204,23 @@ function Draggable() {
 - 常见来源：多余渲染（memo / React Compiler）、长列表（FlatList）、跨边界高频消息（在源头节流）、JS 线程重活
 - Reanimated 在 **UI 线程**逐帧计算动画；Shared Value 改了不触发重渲染；UI 线程回调里用 `scheduleOnRN` 回到 JS
 - 简单的状态切换用 Reanimated 4 的 **CSS 过渡**；手势用 Gesture Handler 3 的 Hook API，回调默认在 UI 线程
+
+## 动手练习
+
+1. **JS 线程忙时谁还在动**：在练习页面放两个方块：一个用 Reanimated 的 `withRepeat(withTiming(360, { duration: 1000 }), -1)` 驱动旋转；另一个用 `setInterval` 每 16ms `setState` 改角度。再放一个按钮，`onPress` 里忙循环 2 秒。打开开发菜单的 Perf Monitor 后点按钮。
+
+   验证：2 秒内 Reanimated 的方块继续转，`setState` 的方块停住；Perf Monitor 上 JS 帧率掉下去，UI 帧率基本不变。
+
+   参考答案：Reanimated 的每一帧在 UI 线程计算，JS 线程只负责启动动画；`setState` 驱动的动画每帧都要 JS 线程参与。
+
+2. **数一数渲染了多少行**：准备 1000 条数据，行组件里 `console.log('render', id)`。先用 `ScrollView` + `map` 渲染，重载后看日志条数；再换成 `FlatList`（带 `keyExtractor`）。
+
+   验证：`ScrollView` 一启动就打出 1000 条；`FlatList` 只打出首屏附近的几十条以内，往下滚才陆续增加。
+
+   参考答案：`FlatList` 虚拟化，只渲染可见区域附近的项；`ScrollView` 一次渲染全部子元素。
+
+3. **在 UI 线程直接 setState**：把本章 `Sheet` 里的 `scheduleOnRN(setMounted, false)` 改成直接调用 `setMounted(false)`，打开再关闭弹层。
+
+   验证：关闭时报错，信息大意是在 UI 线程上调用了一个不是 worklet 的函数；改回 `scheduleOnRN` 后正常卸载。
+
+   参考答案：`withTiming` 的完成回调在 UI 线程执行，React 的 setState 只能在 JS 线程调用，必须用 `scheduleOnRN` 调度回去。

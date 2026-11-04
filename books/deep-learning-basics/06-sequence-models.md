@@ -246,3 +246,47 @@ GRU 的进步是真实的，但它有两个结构性问题：
 - bigram 只看一个字，是一张查找表；RNN 用隐藏状态累积上下文，GRU / LSTM 用门缓解梯度消失
 - 生成时每次取最后位置的分布，`torch.multinomial` 抽样，把新字接回去
 - RNN 只能串行计算、上下文被压进固定大小的向量，这两点引出了注意力
+
+## 动手练习
+
+1. **起始 loss 为什么高于 $\ln V$**：作者表格里 bigram 的起始 val loss 是 8.01，比 $\ln 1919 \approx 7.56$ 还高。在 `char_rnn.py` 里建好 `Bigram` 之后加一行 `nn.init.zeros_(model.table.weight)`，运行 `uv run python char_rnn.py bigram`，看 step 0 那一行。
+
+   验证：step 0 的 train 和 val loss 都等于程序开头打印的「均匀猜测的 loss」（到小数点后两位一致）；去掉这一行，step 0 的 loss 会高于它。
+
+   参考答案：`nn.Embedding` 默认用标准正态初始化，查出来的 logits 随机且尺度不小，等于一开始就带着随机的偏见乱猜，比均匀猜还差。全零的 logits 经过 softmax 就是均匀分布，loss 正好是 $\ln V$。
+
+2. **不训练的 bigram**：[模型一：bigram](#模型一bigram)说它可以直接数出来。用训练集数相邻字符对，在验证集上算交叉熵，和 3000 步训练出的 bigram 比：
+
+   ```python
+   V = vocab_size
+   pairs = train_data[:-1] * V + train_data[1:]               # 把 (前, 后) 编成一个整数
+   counts = torch.bincount(pairs, minlength=V * V).view(V, V).float()
+   probs = (counts + 0.1) / (counts + 0.1).sum(dim=1, keepdim=True)   # 加 0.1 平滑，避免 log(0)
+   val_loss = -probs[val_data[:-1], val_data[1:]].log().mean()
+   print(f"count bigram val loss {val_loss.item():.3f}")
+   ```
+
+   验证：几秒内算完，结果低于 `char_rnn.py bigram` 第 3000 步的 val loss。
+
+   参考答案：数出来的频率就是 bigram 在训练集上的最优解，梯度下降 3000 步还没走到那里。平滑系数可以试 1、0.1、0.01，太大会把常见搭配的概率摊薄，val loss 反而变高。
+
+3. **漏写 `batch_first`**：对比 `batch_first=True` 和不写时，改动 batch 里第 0 条序列会不会影响第 1 条的输出：
+
+   ```python
+   import torch
+   from torch import nn
+
+   torch.manual_seed(0)
+   for bf in (True, False):
+       gru = nn.GRU(8, 16, batch_first=bf)
+       x = torch.randn(2, 5, 8)                     # 本意：(B=2, T=5, 8)
+       x2 = x.clone()
+       x2[0] = torch.randn(5, 8)                    # 只改第 0 条
+       y, _ = gru(x)
+       y2, _ = gru(x2)
+       print(bf, y.shape, "第 1 条变了:", not torch.allclose(y[1], y2[1]))
+   ```
+
+   验证：两种写法输出形状都是 `torch.Size([2, 5, 16])`、都不报错；`True` 那行打印 `第 1 条变了: False`，`False` 那行打印 `第 1 条变了: True`。
+
+   参考答案：不写 `batch_first` 时，GRU 把 `(2, 5, 8)` 当成 `T=2, B=5`，第 0 维变成了时间，第 0 条样本成了第 1 条的「前文」，样本之间串了味。形状对得上就不会报错，只能靠这类检查发现。

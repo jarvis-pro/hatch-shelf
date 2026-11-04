@@ -208,3 +208,39 @@ plutil -p ios/Shelf/Info.plist | grep -A3 CFBundleDocumentTypes
 - 优先结构化 mod（`withInfoPlist`、`withAndroidManifest`），文本替换次之，`withDangerousMod` 最后
 - 插件必须**幂等**、找不到锚点就抛错，把替换逻辑写成可测试的纯函数，出包后验证结果
 - 重型需求（如新增小组件 target）用成熟的社区插件，源码放在 `ios/` 之外
+
+## 动手练习
+
+1. **看插件跑完后的配置**：在 `app/` 下运行 `npx expo config --type prebuild --json | jq '.ios.infoPlist.CFBundleDocumentTypes | length'`，再把 `| length` 换成 `[].LSItemContentTypes` 看内容。
+
+   验证：长度是 `2`；内容里能看到 `public.zip-archive` 和 `net.daringfireball.markdown`。
+
+   参考答案：`expo config --type prebuild` 输出所有插件运行后的最终配置，不生成工程，是调试插件的第一步。
+
+2. **让插件大声失败**：在练习项目里放入本章的 `with-document-types.js`，`app.json` 里把参数写成 `{ "types": ["zip", "epub"] }`，运行 `npx expo prebuild --clean --no-install`。
+
+   验证：prebuild 中止，报错信息里有 `with-document-types 不认识：epub`。
+
+   参考答案：参数不对立即抛错，比「静默生成一个缺项的 Info.plist、直到 AirDrop 时才发现」好排查得多。
+
+3. **给文本 mod 写幂等测试**：仿照签名插件写一个纯函数 `inject(gradle)`：已含 `signingConfigs.release` 时原样返回，找不到锚点 `    signingConfigs {\n` 时抛错，否则在锚点后插入一段文本。用 `node --test` 验证它。
+
+   验证：三个用例都通过，输出里 `# fail 0`。
+
+   参考答案：
+
+   ```js
+   import test from 'node:test';
+   import assert from 'node:assert/strict';
+   import { inject } from './inject.js';
+
+   const tpl = 'android {\n    signingConfigs {\n        debug {}\n    }\n}\n';
+   test('只改一次', () => {
+     const once = inject(tpl);
+     assert.equal(inject(once), once);
+   });
+   test('找不到锚点就抛', () => {
+     assert.throws(() => inject('android {}\n'));
+   });
+   test('插入了 release', () => assert.match(inject(tpl), /signingConfigs\.release|release \{/));
+   ```

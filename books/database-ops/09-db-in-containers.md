@@ -182,4 +182,26 @@ volumes:
 - hatch-counter 把自建库当作过渡形态，风险已记录；迁移前补一个每日 `pg_dump` 和磁盘告警性价比最高
 - 迁到托管库要注意：没有 superuser、导不出角色密码、扩展白名单、连接数随规格、参数组
 
+## 动手练习
+
+都在本机一次性容器里做，不要在生产机上试 `down -v`、`prune` 或强杀。
+
+1. **没挂命名卷，数据去哪了**：`docker run -d --name nov -e POSTGRES_PASSWORD=x postgres:16-alpine`，建一张表插几行，然后 `docker rm -f nov`，用同样的命令再起一个 `nov` 查这张表。最后执行 `docker volume ls -f dangling=true`。
+
+   验证：新容器里报 `relation ... does not exist`；`dangling` 列表里多出一个长串哈希名的匿名卷，旧数据就在里面，但没有任何容器再引用它。
+
+   参考答案：官方镜像声明了 `VOLUME`，不挂命名卷时 Docker 会建匿名卷；新容器拿到的是另一个新的匿名卷。一次 `docker volume prune` 就能把旧数据彻底清掉，所以生产必须用命名卷。清理：`docker rm -f nov` 后对那个匿名卷执行 `docker volume rm`。
+
+2. **被强杀之后的启动**：`docker run -d --name stopx -e POSTGRES_PASSWORD=x -v stopx:/var/lib/postgresql/data postgres:16-alpine`，插入一些数据，然后分别用 `docker stop stopx`（正常停止）和 `docker kill stopx`（直接 SIGKILL）停掉，每次停完 `docker start stopx`，看 `docker logs stopx` 的最后几行。
+
+   验证：正常停止后，启动日志里是 `database system was shut down at ...`；强杀后是 `database system was interrupted ...`，接着出现 `redo starts at ...` 的崩溃恢复。两种情况下已提交的数据都在。
+
+   参考答案：强杀不丢已提交数据（WAL 已落盘），但下次启动要重放 WAL。`stop_grace_period` 给快速关闭留出做检查点的时间，避免走到这一步。清理：`docker rm -f stopx; docker volume rm stopx`。
+
+3. **内存上限下的 OOM**：`docker run -d --name oom --memory=256m -e POSTGRES_PASSWORD=x postgres:16-alpine`，在 psql 里执行 `SET work_mem = '1GB';` 后跑 `SELECT count(*) FROM (SELECT g, count(*) FROM generate_series(1, 20000000) g GROUP BY g) s;`，同时另开一个终端连着这个库。
+
+   验证：查询失败，`docker logs oom` 里有 `server process (PID ...) was terminated by signal 9: Killed` 和 `terminating any other active server processes`，另一个终端的连接也被断开。没触发时把行数再加大。
+
+   参考答案：被 cgroup 杀掉的是一个 backend，postmaster 却要断开所有连接、重新初始化共享内存，整个库短暂不可用。设内存上限时要把 `work_mem` 的最坏情况一起算进去。清理：`docker rm -f oom`。
+
 到这里，这本书讲完了单个数据库从调参到升级的全部日常运维。下一步推荐读[《一人运维手册》](../production-ops/)，把数据库放回整台服务器、整个产品的视角里，讲加固、容灾演练、事故响应和值班制度；想把本书里提到的那些告警真正搭起来，读[《可观测性与性能》](../observability-performance/)。

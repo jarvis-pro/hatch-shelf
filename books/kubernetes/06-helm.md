@@ -376,3 +376,25 @@ kubectl apply -k overlays/prod
 - `helm upgrade --install --wait --rollback-on-failure` 一条命令完成迁移、发布、等待、失败回滚；回滚不会撤销迁移
 - 渲染结果交给 kubeconform 校验；第三方 chart 固定版本、values 进 Git
 - 没有顺序要求时，kubectl 内置的 Kustomize 是更轻的选择
+
+## 动手练习
+
+只在本机练习集群里做，先确认 `kubectl config current-context`，沿用 `lab` 命名空间。用 `helm create demo` 生成一个脚手架 chart（默认部署一个 nginx），在它上面改。做完 `helm -n lab uninstall demo`。
+
+1. **不加引号的版本号**：把 `demo/values.yaml` 里 `image.tag` 改成 `1.10`（不加引号），执行 `helm template demo ./demo | grep 'image:'`；再改成 `"1.10"` 重试。
+
+   验证：第一次渲染出的镜像 tag 是 `1.1`；加了引号后是 `1.10`。
+
+   参考答案：YAML 把 `1.10` 解析成浮点数，末尾的 0 丢了，渲染出一个不存在的 tag，表现为 `ImagePullBackOff`。版本号一律写成带引号的字符串。
+
+2. **checksum 注解让配置变更触发滚动**：在 `demo/templates/` 下加一个 `configmap.yaml`，`data` 里只有 `GREETING: {{ .Values.greeting | quote }}`，`values.yaml` 加 `greeting: hi`。先 `helm upgrade --install demo ./demo -n lab --wait`，记下 `kubectl get pods` 的 Pod 名；执行 `helm upgrade demo ./demo -n lab --set greeting=bye --wait`，再看 Pod 名。然后在 `deployment.yaml` 的 Pod 模板 `metadata` 下加上 `annotations: { checksum/config: ... }`（写法同正文），再改一次 `greeting` 升级。
+
+   验证：没有注解时，改了 `greeting` 升级后 Pod 名不变；加了注解后，每次改 `greeting` 升级，Pod 都换了新名字。
+
+   参考答案：ConfigMap 变化不会改动 Pod 模板，Deployment 也就不会滚动；把 ConfigMap 内容的哈希写进 Pod 模板的注解，配置一变模板就变。
+
+3. **pre-upgrade hook 失败会怎样**：加一个 `templates/migrate-job.yaml`，内容是带 `"helm.sh/hook": pre-upgrade` 注解、`backoffLimit: 0`、执行 `["sh", "-c", "echo migrating; exit 1"]` 的 busybox Job。执行 `helm upgrade demo ./demo -n lab --set image.tag=1.27-alpine --wait --rollback-on-failure`（Helm 3 用 `--atomic`），然后看 `helm -n lab history demo` 和 Deployment 当前的镜像。
+
+   验证：`helm upgrade` 报错退出；`history` 里最新的几条记录显示这次升级失败并回滚；Deployment 的镜像还是升级前的那个。
+
+   参考答案：hook 失败时 Helm 不会去更新普通资源，所以「迁移没跑完，新版本不上线」。真实场景里这个 Job 就是数据库迁移。

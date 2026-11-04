@@ -543,3 +543,25 @@ moved {
 - cloud-init 只做让 Ansible 能连上的最少的事
 - 状态文件含明文敏感信息：放远程后端、开版本控制、开锁、开客户端加密；加密口令要存在体系之外
 - 已有机器用 `import` 收编，改地址用 `moved`，`.terraform.lock.hcl` 进 Git
+
+## 动手练习
+
+下面三题都只用 `hashicorp/local` 和 `hashicorp/random` 两个 provider，在本机一个空目录里做，不需要云账号。
+
+1. **亲手制造一次漂移**：新建目录，写一个 `main.tf`，里面只有一个 `local_file` 资源（`filename = "${path.module}/hello.txt"`，`content = "v1\n"`）。`tofu init && tofu apply` 之后，在 OpenTofu 之外删掉 `hello.txt`，再跑 `tofu plan -detailed-exitcode; echo "exit=$?"`。
+
+   验证：`plan` 提议重新创建这个文件，汇总行是 `Plan: 1 to add, 0 to change, 0 to destroy.`，最后打印 `exit=2`；再 `tofu apply` 一次后重跑，打印 `No changes.` 和 `exit=0`。
+
+   参考答案：`plan` 先刷新状态，向「现实」查询时发现状态里记着的文件不存在了，于是和代码对比得出要新建。`-detailed-exitcode` 用 0 / 1 / 2 区分无变化、出错、有变化，第 6 章的漂移检测脚本靠的就是这个退出码。
+
+2. **看清 `forces replacement`，再用 `lifecycle` 拦住它**：接上题，把 `content` 改成 `"v2\n"` 后 `tofu plan`；然后给资源加上 `lifecycle { prevent_destroy = true }` 再 `plan` 一次；最后在 `lifecycle` 里再加 `ignore_changes = [content]`，第三次 `plan`。
+
+   验证：第一次 `plan` 显示 `-/+` 和 `# forces replacement`；第二次直接报错，错误标题是 `Instance cannot be destroyed`；第三次显示 `No changes.`。
+
+   参考答案：`local_file` 的参数一变就只能删了重建，和正文里云主机改 `image_id` 是同一类问题。`prevent_destroy` 让任何含删除的计划失败，`ignore_changes` 让这个属性的变化不再进入差异。真实环境里不要用 `ignore_changes` 掩盖本该处理的变化，它只适合 `user_data` 这类「改了也没意义」的属性。
+
+3. **状态里的明文，以及加密之后**：在新目录里写一个 `random_password` 资源（`length = 20`），`apply` 后执行 `grep -c '"result"' terraform.tfstate`。再换一个新目录，写同样的资源，并加上正文「状态加密」一节的 `encryption` 块（练习里可以把 `passphrase` 直接写成一个不少于 16 个字符的字符串），`apply` 后再 grep 一次，并跑 `tofu state show random_password.p`。
+
+   验证：第一个目录的 grep 计数不为 0，用 `cat` 能直接看到生成的密码；第二个目录的计数是 0，文件里找不到任何资源属性，而 `tofu state show` 仍能正常显示资源。
+
+   参考答案：provider 生成的值原样写进状态，`sensitive` 只影响终端显示，不影响状态文件。加密发生在 OpenTofu 客户端，状态落盘前就是密文。口令丢了这个状态就打不开了，所以练习目录用完直接删掉。之所以用新目录，是因为给已有的明文状态加加密需要额外配置迁移用的 `fallback`。

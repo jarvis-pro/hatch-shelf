@@ -269,3 +269,42 @@ docker compose up -d api
 - 用 `pg_stat_archiver` 监控归档，`failed_count` 上涨就要处理，否则 `pg_wal` 会撑满磁盘
 - 恢复步骤：停服务 → **留存现场** → 放回基础备份 → `recovery.signal` + `restore_command` + 带时区的 `recovery_target_time` → 观察日志 → 核对 → 清理参数
 - 长期运行换成 pgBackRest / WAL-G，归档直接进异地对象存储
+
+## 动手练习
+
+两道题共用一个一次性环境：数据放在卷 `pitr_data`，归档和基础备份放在卷 `pitr_bk`。做完 `docker rm -f pitr && docker volume rm pitr_data pitr_bk` 清理。
+
+```bash
+docker run -d --name pitr -e POSTGRES_PASSWORD=x \
+  -v pitr_data:/var/lib/postgresql/data -v pitr_bk:/bk \
+  postgres:16-alpine -c archive_mode=on -c archive_timeout=60 \
+  -c 'archive_command=test ! -f /bk/wal/%f && cp %p /bk/wal/%f'
+sleep 5
+docker exec pitr sh -c 'mkdir -p /bk/wal /bk/base && chown -R postgres:postgres /bk'
+```
+
+1. **完整走一遍 PITR**：建表 `CREATE TABLE t (id int, v text); INSERT INTO t SELECT g, 'ok' FROM generate_series(1,100) g;`，做一份基础备份 `docker exec pitr pg_basebackup -U postgres -D /bk/base/b1 -Ft -z -X stream -c fast`。再插入 `INSERT INTO t VALUES (101, 'after-base');`，执行 `SELECT now();` 记下时间，然后执行误操作 `UPDATE t SET v = 'oops';` 和 `SELECT pg_switch_wal();`。最后按本章步骤把库恢复到记下的那个时刻。
+
+   验证：恢复后 `SELECT v, count(*) FROM t GROUP BY v;` 返回 `ok` 100 行和 `after-base` 1 行，没有 `oops`；`docker logs pitr` 里能看到 `starting point-in-time recovery to ...`、`recovery stopping before commit ...` 和 `selected new timeline ID: 2`。
+
+   参考答案：101 这一行在基础备份之后，靠重放归档 WAL 回来；`oops` 那个事务在目标时刻之后，被挡在外面。`now()` 的输出自带 `+00` 时区，直接用作 `recovery_target_time` 不会差 8 小时。恢复步骤：
+
+   ```bash
+   docker stop pitr
+   docker run --rm -v pitr_data:/data -v pitr_bk:/bk alpine sh -c '
+     find /data -mindepth 1 -delete &&
+     tar -C /data -xzf /bk/base/b1/base.tar.gz &&
+     tar -C /data/pg_wal -xzf /bk/base/b1/pg_wal.tar.gz &&
+     touch /data/recovery.signal &&
+     echo "restore_command = '"'"'cp /bk/wal/%f %p'"'"'" >> /data/postgresql.auto.conf &&
+     echo "recovery_target_time = '"'"'<记下的时间>'"'"'" >> /data/postgresql.auto.conf &&
+     echo "recovery_target_action = '"'"'promote'"'"'" >> /data/postgresql.auto.conf &&
+     chown -R 70:70 /data && chmod 700 /data'
+   docker start pitr
+   ```
+
+2. **归档失败时 pg_wal 会涨**：执行 `docker exec pitr chmod 000 /bk/wal`，然后连续执行几次 `SELECT pg_switch_wal();`（中间插几行数据），观察 `pg_stat_archiver` 和 `docker exec pitr ls /var/lib/postgresql/data/pg_wal/archive_status`。再 `chmod 700 /bk/wal` 恢复权限。
+
+   验证：权限被收走期间，`failed_count` 持续上涨，`last_failed_wal` 有值，`archive_status` 目录里出现若干 `.ready` 文件，`docker logs pitr` 里有 `archive command failed`；恢复权限后一两分钟内 `.ready` 变成 `.done`，`archived_count` 追上来。
+
+   参考答案：`archive_command` 返回非 0 时，Postgres 保留段文件并不断重试，不丢数据，但段文件会在 `pg_wal` 里积压，生产上最终撑满磁盘。所以要监控 `failed_count`，而不只是看归档目录有没有新文件。

@@ -428,6 +428,26 @@ flowchart TD
 - 原生扩展按平台分包，主包用 `optionalDependencies` 引用；Electron 里要 `asarUnpack`
 - 多数时候保持纯 TS；只有测量确认的 CPU 瓶颈才值得引入 Rust
 
+## 动手练习
+
+1. **量一量 WASM 的体积**：按本章用 `wasm-pack build crates/shelf-wasm --target web --release` 构建，记下 `ls -lh pkg/shelf_wasm_bg.wasm` 和 `gzip -c pkg/shelf_wasm_bg.wasm | wc -c`。然后在根 `Cargo.toml` 的 `[profile.release]` 里加上 `opt-level = "z"` 和 `panic = "abort"`，重新构建再量一次。
+
+   验证：第二次的 `.wasm` 和 gzip 后的字节数都比第一次小（具体数字因版本而异，记下自己的两组数）。再把 `count_h1` 和 `is_slug` 的导出删掉，观察体积是否明显变化。
+
+   参考答案：`opt-level = "z"` 按体积优化，`panic = "abort"` 去掉栈展开代码；链接器只保留被导出函数用到的代码，所以删掉两个小函数几乎不影响体积，大头在 `lint_chapter` 依赖的 serde 序列化和格式化代码。
+
+2. **事件循环有没有被卡住**：在 napi-rs 项目里写一个 `bench.mjs`：先 `const t = setInterval(() => process.stdout.write("."), 10)`，再 `await checkBooks("books")`，最后 `clearInterval(t)`。然后把 `await checkBooks(...)` 换成一个同步循环：读出 `books/` 下所有章节文件，逐个调用 `lintChapter`。两次各运行一遍。
+
+   验证：`checkBooks` 运行期间点号持续输出；同步循环运行期间点号停住，循环结束后才继续。
+
+   参考答案：`AsyncTask` 的 `compute` 跑在 libuv 线程池里，JS 线程空着，计时器照常触发；同步的 `lintChapter` 虽然是 Rust 写的，但仍在 JS 线程上执行，执行期间事件循环被占住。原生代码快，不等于不阻塞。
+
+3. **跨边界的成本**：在 Node 里用 `--target nodejs` 构建的 WASM 包，对同一个字符串调用 `isSlug` 一百万次，用 `console.time` 计时；再用 JS 写一个等价的正则 `/^[a-z0-9]+(?:-[a-z0-9]+)*$/` 做同样的测试。
+
+   验证：比较两个耗时。多数机器上 JS 正则版不会比 WASM 版慢，而且常常更快；把输入换成一整章 Markdown、改测 `countH1` 和一个等价的 JS 实现，差距会变化。记下你看到的结果。
+
+   参考答案：每次调用 WASM 都要把字符串从 UTF-16 编码成 UTF-8 拷进线性内存，`isSlug` 本身的计算量远小于这笔开销。WASM 适合「一次传进去、在里面算很久」的粗粒度调用。
+
 ## 接下来读什么
 
 第 9 章从 Rust 的角度做了一个 Tauri 应用，[《Electron 桌面应用》](../electron-desktop/)从另一个方向讲桌面开发：同一种语言写主进程和界面，代价是体积。两本对照着读，桌面方案的取舍会具体得多。napi-rs 扩展最终跑在 Node 的事件循环和线程池里，[事件循环与 libuv](../ts-node-advanced/04-event-loop-libuv.md) 那一章能帮你理解 `AsyncTask` 的后台线程从哪来。想把 WASM 放到边缘去跑，可以回到[《云与边缘》](../cloud-and-edge/)。

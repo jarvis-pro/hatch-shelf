@@ -150,3 +150,23 @@ pnpm ios
 - **CNG**：`ios/` `android/` 是 prebuild 的生成物，不入库、不手改，原生配置写在 `app.json` 和 config plugin 里
 - 莫名其妙的原生编译 / 链接错误，先 `prebuild --clean`
 - 依赖用 `npx expo install` 安装；升级 SDK 用 `expo install expo@^<版本> --fix` + `expo-doctor`
+
+## 动手练习
+
+1. **分辨原生依赖**：在仓库根目录（hoisted 布局，包都在 `node_modules/` 下）运行 `ls node_modules/fflate` 和 `ls node_modules/react-native-tcp-socket`，再各自 `find <包目录> -maxdepth 1 -name '*.podspec'`。
+
+   验证：tcp-socket 里能看到 `ios/` 目录和一个 `.podspec`；fflate 两样都没有。
+
+   参考答案：带 `ios/` 或 podspec 的包属于原生壳，装完要重新 prebuild + 构建；fflate 是纯 JS，重启 Metro 就够。
+
+2. **原生配置不会热重载**：在 `app.json` 的 `ios.infoPlist` 里临时加一个键 `"ShelfExerciseFlag": "1"`，只重启 Metro，然后运行 `plutil -p app/ios/Shelf/Info.plist | grep ShelfExerciseFlag`；再执行 `pnpm prebuild`（即 `expo prebuild --clean`）后重新 grep。
+
+   验证：第一次 grep 没有输出；prebuild 之后输出 `"ShelfExerciseFlag" => "1"`。练完删掉这个键并再 prebuild 一次。
+
+   参考答案：Info.plist 属于原生壳，Metro 只负责 JS bundle；改 `app.json` 的原生配置必须重新生成工程并构建。
+
+3. **改 Metro 配置要重启**：把 `app/metro.config.js` 里 `assetExts.push('html')` 这行注释掉，先不重启 Metro，按 `r` 重载 App；再重启 Metro 重载一次。
+
+   验证：不重启时 App 照常工作；重启后 Metro 报错，提示无法解析阅读器的 `index.html`（打不开书）。改回后再重启恢复。
+
+   参考答案：Metro 只在启动时读配置；`html` 不在资源扩展名里时，`require` 这个文件就不会被当作资源处理。

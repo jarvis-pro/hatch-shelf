@@ -613,3 +613,23 @@ chapters 至少要有一章
 - 枚举是 `const` + `iota` 或字符串常量，编译器不检查穷尽
 - 泛型覆盖「同一逻辑适用多种类型」，没有条件类型；先写具体类型，重复三次再泛化
 - 1.23 起可以用 `for range` 遍历迭代器函数，标准库的 `maps.Keys`、`slices.Sorted` 都基于它
+
+## 动手练习
+
+1. **nil 接口打印出了什么**：把[nil 接口的坑](#nil-接口的坑)一节的程序复制下来，把最后一行改成 `fmt.Println(err == nil, err)`，再加一行 `fmt.Printf("%T\n", err)`。运行前预测这两行输出。
+
+   验证：输出 `false my error` 和 `*main.MyErr`。把 `find` 改成成功时 `return nil` 后，输出变成 `true <nil>` 和 `<nil>`。
+
+   参考答案：返回的接口值动态类型是 `*MyErr`、动态值是 nil 指针，所以不等于 `nil`；`Error()` 的接收者没有解引用，在 nil 指针上调用也不会 panic，于是打印出了 `my error`，这种 bug 在日志里很难看出来。
+
+2. **值不满足指针接收者的接口**：写一个 `Notifier` 接口和 `MemoryNotifier`（`Notify` 用指针接收者，同本章示例），在 `main` 里写 `mem := MemoryNotifier{}`，然后把 `mem` 直接传给一个参数类型是 `Notifier` 的函数。预测编译结果，再改一处让它通过。
+
+   验证：编译失败，报错包含 `MemoryNotifier does not implement Notifier (method Notify has pointer receiver)`。把实参改成 `&mem` 后编译通过，并且函数里追加的消息在 `mem.sent` 里看得到。
+
+   参考答案：指针接收者的方法只属于 `*MemoryNotifier` 的方法集。传值进去会被复制，修改落在副本上，所以编译器直接拒绝。
+
+3. **去掉约束里的 `~`**：定义 `type Status int` 和约束 `type Number interface{ int | int64 | float64 }`（故意不写 `~`），用本章的 `Sum` 计算 `Sum([]Status{1, 2, 3})`。预测结果，再按报错提示修复。
+
+   验证：编译失败，报错是 `Status does not satisfy Number (possibly missing ~ for int in Number)`；约束改成 `~int | ~int64 | ~float64` 后输出 `6`。
+
+   参考答案：`int` 只匹配 `int` 本身；`~int` 匹配所有底层类型是 `int` 的类型，`Status` 也在其中。

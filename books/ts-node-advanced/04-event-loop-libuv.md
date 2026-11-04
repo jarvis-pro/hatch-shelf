@@ -224,3 +224,48 @@ clearInterval(tick);
 - 线程池任务互相排队，`UV_THREADPOOL_SIZE` 要在启动前设置，超过核数意义不大
 - 同步代码是事件循环的头号敌人，用 `monitorEventLoopDelay` 度量并接入监控
 - 自己写的 CPU 密集计算放进 `worker_threads`，并用固定大小的池
+
+## 动手练习
+
+1. **把 order.mjs 改成 CJS**：复制本章的 `order.mjs` 为 `order.cjs`，把 `import` 改成 `const { readFile } = require("node:fs");`，`import.meta.filename` 改成 `__filename`。运行前写下九行的顺序，再 `node order.cjs`。
+
+   验证：前四行变成 `0 sync`、`4 nextTick`、`3 promise`、`5 microtask`，其余五行和 ESM 版本相同。
+
+   参考答案：CJS 模块代码不在 Promise 任务里执行，同步代码跑完后 Node 先清空 nextTick 队列，再轮到 V8 的微任务队列；ESM 里顺序相反。这正是「不要依赖两者相对顺序」的原因。
+
+2. **用 nextTick 饿死定时器**：
+
+   ```js
+   // starve.mjs
+   let i = 0;
+   setTimeout(() => console.log("timeout, i =", i), 0);
+   function loop() {
+     if (++i < 1_000_000) process.nextTick(loop);
+   }
+   loop();
+   ```
+
+   预测打印出的 `i`，再运行。然后把 `process.nextTick(loop)` 换成 `setImmediate(loop)`，再预测一次。
+
+   验证：nextTick 版输出 `timeout, i = 1000000`；setImmediate 版的 `i` 是一个很小的数（通常是个位数），并且要等整个循环跑完很久之后程序才退出。
+
+   参考答案：nextTick 队列在进入下一个阶段前必须清空，自我续命的 nextTick 一百万次全部跑完，定时器才有机会执行；`setImmediate` 每轮只在 check 阶段跑一次，定时器在下一轮的 timers 阶段就能插进来。
+
+3. **线程池把 readFile 也拖慢了**：
+
+   ```js
+   // mix.mjs
+   import { pbkdf2 } from "node:crypto";
+   import { readFile } from "node:fs";
+   const start = performance.now();
+   for (let i = 0; i < 4; i++) pbkdf2("pw", "salt", 400_000, 64, "sha512", () => {});
+   readFile(import.meta.filename, () => {
+     console.log(`readFile 完成于 ${(performance.now() - start).toFixed(0)} ms`);
+   });
+   ```
+
+   分别运行 `node mix.mjs` 和 `UV_THREADPOOL_SIZE=5 node mix.mjs`。
+
+   验证：默认配置下 `readFile` 要几十到上百毫秒才完成（大约等于一次 `pbkdf2` 的耗时）；线程池为 5 时接近 `0 ms`。
+
+   参考答案：4 个 `pbkdf2` 占满了默认的 4 个线程，读一个小文件也得排队；多出一个线程后它立即被执行。读文件慢不一定是磁盘慢，也可能是线程池被别的任务占了。

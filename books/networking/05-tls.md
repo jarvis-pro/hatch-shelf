@@ -192,3 +192,31 @@ echo "$host: $days days left"
 - ACME 的 HTTP-01 需要 80 端口可达，DNS-01 支持通配符；让工具只签证书、配置由仓库管
 - 重点是续期：自动续期 + 续期后 reload + **外部监控剩余天数**
 - 不要在生产中关闭证书校验
+
+## 动手练习
+
+1. **读一张真实的证书**：执行 `openssl s_client -connect github.com:443 -servername github.com </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName`；再加 `-showcerts` 重新连接，用 `grep -c 'BEGIN CERTIFICATE'` 数服务器发了几张证书。
+
+   验证：SAN 里有 `DNS:github.com`；`notBefore` 和 `notAfter` 给出有效期；证书数量至少是 2。
+
+   参考答案：服务器发的是网站证书加中间证书，根证书在客户端本地。数出来只有 1 张，就是链不完整。
+
+2. **复现域名不匹配**：生成一张只对 `a.test` 有效、有效期 1 天的自签证书并起一个 TLS 服务：
+
+   ```bash
+   openssl req -x509 -newkey rsa:2048 -nodes -days 1 -keyout k.pem -out c.pem \
+     -subj /CN=a.test -addext subjectAltName=DNS:a.test
+   openssl s_server -accept 8443 -cert c.pem -key k.pem -www
+   ```
+
+   系统自带的 openssl 不认 `-addext` 时，换用 Homebrew 装的 openssl。另开终端依次执行 `curl -s -o /dev/null -w '%{http_code}\n' --cacert c.pem --resolve a.test:8443:127.0.0.1 https://a.test:8443/`、把两处 `a.test` 换成 `b.test` 再执行一次、去掉 `--cacert c.pem` 再访问 `a.test`。
+
+   验证：第一条输出 `200`；第二条报主体名不匹配（错误信息里有 `subject name` 或 `does not match` 一类字样）；第三条报证书不受信任（`self signed` 或 `unable to get local issuer` 一类字样）。
+
+   参考答案：验证同时检查「链到可信根」和「SAN 包含访问的域名」，两条各对应一类常见报错。`--resolve` 让 curl 用指定 IP 但仍按域名发 SNI 和校验证书。
+
+3. **给到期检查一个开关**：对上题的证书执行 `openssl x509 -in c.pem -noout -checkend $((14*86400)); echo $?`，再对 github.com 的证书做同样的检查（把第 1 题的管道末尾换成 `openssl x509 -noout -checkend $((14*86400))`）。
+
+   验证：本地证书输出 `Certificate will expire`、退出码 `1`；github.com 一般输出 `Certificate will not expire`、退出码 `0`。
+
+   参考答案：`-checkend` 判断证书在 N 秒内是否过期，退出码可以直接挂到 cron 或监控上，比自己算日期更省事。

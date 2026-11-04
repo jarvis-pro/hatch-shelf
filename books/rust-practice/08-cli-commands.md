@@ -317,3 +317,29 @@ cargo build --release --target x86_64-apple-darwin
 - 测试写在同文件的 `#[cfg(test)] mod tests` 里，`cargo test` 运行；重写已有工具时用真实数据对照两个实现
 - `--release` 加 LTO、strip 得到一个独立的二进制文件；性能对比用 hyperfine 实测
 - 规则要被多端共用时，不要用两种语言各写一份
+
+## 动手练习
+
+1. **clap 替你拒绝非法值**：运行 `cargo run -p shelf-cli -- check books --format yaml`，预测输出和退出码（`echo $?`）。再试 `cargo run -p shelf-cli -- check --help`，找到 `--format` 那一行。
+
+   验证：clap 报 `invalid value 'yaml' for '--format <FORMAT>'`，并列出可选值 `text`、`json`，退出码是 `2`；`check --help` 里能看到 `--format` 的默认值 `text` 和可选值，以及 `--strict` 的说明（来自 `///` 注释）。
+
+   参考答案：`ValueEnum` 把枚举的变体变成合法取值，解析阶段就拒绝了非法输入，你的代码拿到的 `format` 一定是 `Text` 或 `Json`。clap 的用法错误默认以 2 退出，正好和本章「2 表示工具本身出错」的约定一致。
+
+2. **三种退出码**：在临时目录里造一本书 `demo/`（`book.yaml` 的 `id: demo`，`chapters: [01-a.md]`，`01-a.md` 内容为 `# 一\n`），再在目录里多放一个没列入 chapters 的 `draft.md`。依次运行下面三条命令，每条之后 `echo $?`，先写下预测：
+
+   ```bash
+   shelf check demo
+   shelf check demo --strict
+   shelf check no-such-dir
+   ```
+
+   验证：第一条输出 `✗ demo` 和一条 `警告 draft.md 未列入 chapters，不会被导入`，退出码 `0`（只有警告）；第二条输出相同，退出码 `1`；第三条在 stderr 打印以 `shelf: 读取目录 no-such-dir 失败` 开头的一行，退出码 `2`。
+
+   参考答案：`check` 返回 `Ok(false)` 映射为 1，`Err` 映射为 2；`--strict` 让警告也算失败。注意第一条虽然退出码为 0，文本输出里仍是 `✗`，因为它只看 `issues` 是否为空，这也是可以顺手改进的地方。
+
+3. **让 ls 的容器借用临时数据**：把 `ls` 里的 `shelves` 改成 `BTreeMap<&str, Vec<(&str, &str)>>`，`push((&m.id, &m.title))`，并去掉 `shelf` 末尾的 `.to_string()`，`cargo check`。
+
+   验证：报「借用的值活得不够久」一类的错误（通常是 `E0597`），指出 `m` 在本轮循环结束时被释放，而 `shelves` 之后还要用。改回拥有所有权的版本后通过。
+
+   参考答案：`m` 是每轮循环临时加载的，容器活得比它久，只能拥有数据。原来的 `push((m.id, m.title))` 把字段移出 `m`，不需要 clone。

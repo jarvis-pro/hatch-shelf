@@ -232,3 +232,41 @@ nginx 限流是成本最低的一道防线，但它只是第一道。
 - **key 为空字符串时不计数**：配合 `map` / `geo` 实现「只限锁着的请求」和白名单
 - `limit_conn` 限并发连接，适合下载和长连接
 - 新规则先用 `limit_req_dry_run on` 观察，再真正拒绝
+
+## 动手练习
+
+环境同[第 1 章的练习](01-config-model.md#动手练习)。注意 `return` 指令在限流检查之前就执行了，所以被限流的 location 要真的转发出去，这里转给同一个 nginx 的 9000 端口：
+
+```nginx
+limit_req_zone $binary_remote_addr zone=t1:1m rate=5r/s;
+limit_req_zone $binary_remote_addr zone=t2:1m rate=5r/s;
+map $http_x_vip $vip_key { yes ""; default $binary_remote_addr; }
+limit_req_zone $vip_key zone=t3:1m rate=5r/s;
+
+server { listen 9000; location / { return 200 "ok\n"; } }
+server {
+    listen 80;
+    limit_req_status 429;
+    location /a/ { limit_req zone=t1;                   proxy_pass http://127.0.0.1:9000; }
+    location /b/ { limit_req zone=t2 burst=10 nodelay; proxy_pass http://127.0.0.1:9000; }
+    location /c/ { limit_req zone=t3;                   proxy_pass http://127.0.0.1:9000; }
+}
+```
+
+1. **burst 的差别**：同一瞬间发 12 个请求：`seq 12 | xargs -P12 -I{} curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/a/ | sort | uniq -c`，再对 `/b/` 做一次。
+
+   验证：`/a/` 大约 1 个 `200`、其余 `429`；`/b/` 大约 11 个 `200`、1 个 `429`。
+
+   参考答案：`rate=5r/s` 是每 200 毫秒放一个，没有 burst 时同一瞬间的第二个就被拒；`burst=10 nodelay` 允许 10 个超额请求立即通过，之后按速率恢复名额。
+
+2. **空 key 不计数**：对 `/c/` 发同样的 12 个并发请求，然后加上 `-H 'X-VIP: yes'` 再发一次。
+
+   验证：不带头时和 `/a/` 一样大多是 `429`；带上 `X-VIP: yes` 后 12 个全是 `200`。
+
+   参考答案：`map` 把带这个头的请求的 key 算成空字符串，`limit_req` 对空 key 不计数。真实配置里换成按 cookie 或 `geo` 来源网段判断，不能用客户端随手能伪造的头。
+
+3. **先 dry run**：在 `/a/` 里加一行 `limit_req_dry_run on;`，reload 后重发 12 个并发请求，再看 `docker logs ng 2>&1 | tail`。
+
+   验证：12 个全是 `200`；日志里出现 `limiting requests, dry run` 的记录。
+
+   参考答案：dry run 只记录不拒绝，可以先在线上观察会误伤谁，再决定 rate 和 burst。

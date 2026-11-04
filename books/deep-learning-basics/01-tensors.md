@@ -214,3 +214,23 @@ t.numpy()                 # 反向转换，同样共享内存（仅限 CPU 张�
 - 广播从最后一维对齐，长度 1 的维会被复制；写错形状时它不报错，只会悄悄算错
 - `transpose` 后要 `.contiguous()` 才能 `view`，或者直接用 `reshape`
 - `backward()` 自动求梯度；梯度会累加，每步要清零；评估时用 `torch.no_grad()`
+
+## 动手练习
+
+1. **抓一个广播 bug**：按[广播](#广播)一节的例子，造 `pred = torch.randn(32)` 和 `y = torch.randn(32, 1)`，打印 `(pred - y).shape`；再改一处让结果变成逐元素相减。
+
+   验证：改之前打印 `torch.Size([32, 32])`，改之后打印 `torch.Size([32])`，整个过程没有任何报错。
+
+   参考答案：`(32,)` 被视为 `(1, 32)`，和 `(32, 1)` 互相广播成 `(32, 32)`。把标签压成同样的一维即可：`pred - y.squeeze(1)`（或 `y.view(-1)`）。
+
+2. **复现 view 报错**：对 `t = torch.randn(2, 3, 4).transpose(1, 2)` 依次执行 `t.is_contiguous()`、`t.view(2, 12)`、`t.reshape(2, 12)`、`t.contiguous().view(2, 12)`。
+
+   验证：第一个打印 `False`；`view` 抛出 `RuntimeError`，信息里有 `view size is not compatible with input tensor's size and stride`；后两个都得到形状 `(2, 12)`。
+
+   参考答案：`transpose` 只改了 stride，没有搬动内存，`view` 无法在不拷贝的前提下重新解释形状；`reshape` 和 `.contiguous()` 都会在需要时拷贝一份连续的数据。
+
+3. **观察梯度累加**：把[自动求导](#自动求导)一节 `y = w ** 2 + 2 * w` 的前向和 `backward()` 放进循环跑两次，中间不清零，打印 `w.grad`。
+
+   验证：打印 `tensor(16.)`，而不是 `tensor(8.)`。
+
+   参考答案：每次 `backward()` 都把新梯度加到 `.grad` 上，两次就是 8 + 8。在循环里加一行 `w.grad = None` 后，结果回到 8。

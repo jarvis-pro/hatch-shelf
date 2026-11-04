@@ -222,3 +222,54 @@ curl -N -H "Authorization: Bearer $TOKEN" https://app.example.com/v1/events
 - 心跳间隔必须小于路径上最短的空闲超时；客户端也要有自己的看门狗
 - 长连接用 `location =` 单独配置，不要污染普通接口
 - 协议设计成「断了就重连 + 快照对账」，reload、维护、超时都变得无害；配 `worker_shutdown_timeout` 让 reload 干净收尾
+
+## 动手练习
+
+需要一个会推 SSE 的后端。在[第 1 章的练习](01-config-model.md#动手练习)目录里存一个 `sse.mjs`：每 `every` 秒（默认 1 秒）推一条消息，带 `?xab` 参数时加上 `X-Accel-Buffering: no` 头。
+
+```js
+import http from 'node:http';
+http.createServer((req, res) => {
+  const u = new URL(req.url, 'http://x');
+  const headers = { 'Content-Type': 'text/event-stream' };
+  if (u.searchParams.has('xab')) headers['X-Accel-Buffering'] = 'no';
+  res.writeHead(200, headers);
+  const every = Number(u.searchParams.get('every') ?? 1) * 1000;
+  let n = 0;
+  const t = setInterval(() => res.write(`data: ${++n}\n\n`), every);
+  req.on('close', () => clearInterval(t));
+}).listen(3000);
+```
+
+后端和 nginx 放在同一个 Docker 网络里，先起后端（nginx 启动时要能解析到 `sse` 这个名字）：
+
+```bash
+cd ~/nginx-lab && docker rm -f ng 2>/dev/null; docker network create lab
+docker run --rm -d --name sse --network lab -v "$PWD/sse.mjs:/sse.mjs:ro" node:22-alpine node /sse.mjs
+docker run --rm -d --name ng --network lab -p 8080:80 -v "$PWD/conf.d:/etc/nginx/conf.d:ro" nginx:1.27-alpine
+```
+
+`conf.d/default.conf`：
+
+```nginx
+server {
+    listen 80;
+    location /buf/   { proxy_pass http://sse:3000; }
+    location /nobuf/ { proxy_pass http://sse:3000; proxy_buffering off; }
+    location /short/ { proxy_pass http://sse:3000; proxy_buffering off; proxy_read_timeout 3s; }
+}
+```
+
+做完 `docker rm -f ng sse && docker network rm lab`。
+
+1. **缓冲让推送攒着不发**：分别执行 `curl -N localhost:8080/nobuf/`、`curl -N localhost:8080/buf/` 和 `curl -N 'localhost:8080/buf/?xab'`，各看十几秒。
+
+   验证：`/nobuf/` 每秒出现一行 `data: N`；`/buf/` 长时间没有输出，或隔很久才成批出现；带 `?xab` 的 `/buf/` 又恢复成每秒一行。
+
+   参考答案：nginx 默认把上游响应攒进缓冲区再发，几字节的消息会一直卡着。`proxy_buffering off` 和后端的 `X-Accel-Buffering: no` 任一处生效都能解决，所以两处都写。
+
+2. **心跳比读超时长会怎样**：执行 `time curl -N 'localhost:8080/short/?every=5'`，再执行 `time curl -N 'localhost:8080/short/?every=1'` 看十几秒后按 Ctrl+C。
+
+   验证：`every=5` 时 3 秒左右连接就结束了，一条消息都没收到，`docker logs ng 2>&1 | tail` 里有 `upstream timed out`；`every=1` 时一直在推，不会被断开。
+
+   参考答案：`proxy_read_timeout` 计的是两次读到数据的间隔，消息或心跳的间隔必须小于它（以及路径上其他设备的空闲超时）。

@@ -222,3 +222,23 @@ flowchart TD
 - LFS 用指针文件代替大文件，代价是每个环境都要装、CI 要显式拉取、平台单独计量；能重新生成的文件不必进仓库
 - partial clone（`--filter=blob:none`）保留完整历史、按需下载内容；sparse checkout 只检出指定目录；两者组合可以把克隆缩小两个数量级
 - worktree 让一个仓库同时检出多个分支，适合紧急修复、跑 bisect、并行 agent；依赖要各自安装，同一分支不能检出两次
+
+## 动手练习
+
+1. **增量压缩对谁有效**：建两个练习仓库。`txt` 里用 `seq 1 150000 > a.txt` 生成一个约 0.9 MB 的文本，之后每次追加一行再提交，共 10 次；`bin` 里每次用 `head -c 1000000 /dev/urandom > a.bin` 生成新的随机文件再提交，共 10 次。两边都 `git gc` 后比较 `git count-objects -vH` 的 `size-pack`。
+
+   验证：`txt` 只有几百 KiB，`bin` 接近 10 MiB。
+
+   参考答案：文本各版本之间几乎全部相同，打包后只存一份加若干小增量；随机字节和已压缩的 PNG 一样找不到可复用的片段，存几版就占几倍。
+
+2. **同一分支不能检出两次**：在练习仓库里（当前在 main 上）执行 `git worktree add ../wt main`。
+
+   验证：失败并提示 `fatal: 'main' is already used by worktree at '...'`。
+
+   参考答案：这是防止两个工作区同时往一个分支提交。确实需要同一份代码时用 `git worktree add --detach ../wt main`，或者新建分支 `-b`。
+
+3. **rm -rf 留下的记录**：`git worktree add ../wt2 -b tmp` 后直接 `rm -rf ../wt2`，看 `git worktree list`，再执行 `git worktree prune` 后看一次。
+
+   验证：删除后 `wt2` 那一行仍在，末尾标着 `prunable`；prune 之后消失。此时 `git branch` 里 `tmp` 分支还在，需要的话手动删。
+
+   参考答案：worktree 的登记信息在主仓库的 `.git/worktrees/` 下，删目录不会清理它；正确做法是 `git worktree remove`。

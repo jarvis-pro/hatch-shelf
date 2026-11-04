@@ -308,3 +308,31 @@ flowchart TD
 - `settingSources` 显式指定，避免本机设置影响 agent；无人值守用 `dontAsk`，不要用 `bypassPermissions`
 - 结果要同时看 `subtype` 和 `is_error`，错误结果之后 `query` 可能抛异常
 - 以文件和命令为中心的 agent 用 SDK；嵌在业务系统里、要精细控制或换厂商的，手写
+
+## 动手练习
+
+1. **单测路径护栏 hook**：把 `onlyBooks` 导出，构造几个 `PreToolUse` 输入直接调用它，不需要启动 SDK，也不需要 API key。
+
+   ```typescript
+   const call = (file_path: string) => onlyBooks(
+     { hook_event_name: "PreToolUse", tool_name: "Edit", tool_input: { file_path } } as any,
+     undefined, { signal: new AbortController().signal });
+   for (const f of ["books/x/01.md", "README.md", "books/../package.json", "booksX/a.md", path.join(REPO, "books/x/01.md")])
+     console.log(f, JSON.stringify(await call(f)).includes('"deny"') ? "deny" : "pass");
+   ```
+
+   验证：`books/x/01.md` 和绝对路径那条是 `pass`，其余三条是 `deny`。
+
+   参考答案：`path.resolve` 先把 `books/../package.json` 规整成仓库根目录下的文件，再和 `books/` 加分隔符比较，所以 `..` 和 `booksX` 都绕不过。符号链接仍然没处理，要更严就再用 `realpath` 查一遍。
+
+2. **看清 init 消息里到底有哪些工具**（需要 API key）：照本章组装好 `runSdkAgent`，跑一个简单任务，记下 `init` 消息打印的工具列表；再把 `tools` 选项删掉重跑一次。
+
+   验证：第一次的列表里有 `Read`、`Edit`、`mcp__shelf__check_book`，没有 `Bash`；删掉 `tools` 后列表里出现 `Bash` 和更多内置工具。
+
+   参考答案：`tools` 决定模型能看到哪些内置工具；`allowedTools` 只决定哪些自动批准。排查「工具为什么没出现 / 为什么出现了」时先看 `init`。
+
+3. **hook 的 deny 不受权限模式影响**（需要 API key）：在仓库的一份一次性副本里，把 `permissionMode` 临时设成 `"bypassPermissions"`，让 agent「把 README.md 第一行改成 # Test」。
+
+   验证：agent 收到「只允许修改 books/ 下的文件」的拒绝，README.md 没有变化；而对 `books/` 下文件的修改不再弹出审批。
+
+   参考答案：权限判定顺序里 hook 排第一，它的 deny 在任何模式下都生效；`bypassPermissions` 跳过的是后面的询问和回调。必须守住的规则写在 hook 里就是这个原因。实验完删掉这份副本。

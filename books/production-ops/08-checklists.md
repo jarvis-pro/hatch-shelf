@@ -234,6 +234,36 @@ WantedBy=timers.target
 - 按周、月、季度、年组织例行清单，再加上线前、出门前、事故后、换机器四份事件清单
 - 用日历提醒、仓库里的执行记录和 agent 辅助，让清单真的被执行；太累的清单要精简
 
+## 动手练习
+
+1. **用假数据测磁盘检查**：把每日检查脚本里的磁盘那一段单独拿出来，用 `printf` 喂一份假的 `df -P` 输出代替真实磁盘，在本机 `bash` 里运行。
+
+   ```bash
+   problems=(); warn() { problems+=("$1"); }
+   fake_df() { printf 'Filesystem 1024-blocks Used Available Capacity Mounted\n/dev/vda1 100 85 15 85%% /\n/dev/vdb1 100 40 60 40%% /data\n'; }
+   while read -r use mount; do
+     pct=${use%\%}
+     (( pct >= 80 )) && warn "磁盘 ${mount} 已用 ${use}"
+   done < <(fake_df | awk 'NR>1 {print $5, $6}')
+   printf '%s\n' "${problems[@]}"
+   ```
+
+   验证：只打印一行 `磁盘 / 已用 85%`，`/data` 不出现。
+
+   参考答案：把「取数据」和「判断」分开，就能不写满真实磁盘也测到告警分支。改脚本时用这种假输入跑一遍，比等真出问题时才发现判断写反了要好。
+
+2. **在一次性容器里把整个脚本跑一遍**：`docker run --rm -it ubuntu:24.04 bash`，在里面 `apt update && apt install -y openssl curl ca-certificates`，把本章的脚本存成 `/root/ops-check.sh`；写 `/etc/ops-check.env`，其中 `DOMAINS=example.com`、`APP_DIR=/tmp`、`NOTIFY_URL=http://127.0.0.1:9/`、`BACKUP_MAX_AGE_HOURS=30`；再造一个重启标记 `echo linux-image-test > /var/run/reboot-required.pkgs && touch /var/run/reboot-required`，然后 `bash /root/ops-check.sh; echo "exit=$?"`。
+
+   验证：输出里有 `需要重启：linux-image-test`，接着是 `推送失败`（9 号端口没有服务在听），最后 `exit=1`。容器里没有 systemd 和 docker，这两项会报找不到命令，但其余检查照样跑完。
+
+   参考答案：这正是脚本故意不用 `set -e` 的效果：一项检查出错不影响后面几项。推送失败时只打到标准错误、不吞掉退出码，timer 那边仍能看到这次检查是失败的。
+
+3. **哪一层能发现**：对下面四个问题，判断由每日检查脚本、外部拨测、还是季度人工清单发现：A. 证书续期成功但 nginx 没 reload；B. 域名的 DNS 解析被误改；C. `authorized_keys` 里还留着一台已经卖掉的旧电脑的钥匙；D. `ops-check.timer` 本身被禁用了。
+
+   验证：每一项都能指出本书里对应的那一段。
+
+   参考答案：A 每日脚本能发现，它从机器上连自己的域名看到的仍是旧证书；B 每日脚本发现不了，要靠外部拨测；C 只能靠季度的账号复查；D 脚本不跑就不会报警，要给它加心跳，或每周看 `journalctl -u ops-check`。
+
 ## 接下来读什么
 
 按书架导读的运维路线，接下来建议读[《可观测性与性能》](../observability-performance/)：本书反复提到的外部拨测、燃烧率告警、错误日志计数，在那里会系统地展开成日志、指标、追踪和告警的完整方案，后半本还会讲压测和容量规划。然后读[《PostgreSQL 运维》](../database-ops/)，补上本书刻意留白的那块：数据库本身的 PITR、复制、连接池和大版本升级。

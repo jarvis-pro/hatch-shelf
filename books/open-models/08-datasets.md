@@ -224,3 +224,49 @@ if __name__ == "__main__":
 - 质量和多样性比数量重要；窄任务几百条就见效，用数据量曲线判断还要不要加
 - 清洗：去重、一致性、长度、错误样本、隐私、覆盖、负例；随机抽 50 条亲自读
 - 按实体或时间切分训练、验证、评测集，防止泄漏；评测集先于训练数据定下来
+
+## 动手练习
+
+1. **对比两个家族的 chat template**：在 Mac 上 `uv pip install transformers`（只下载分词器，不下载权重），把[模型实际看到的是什么](#模型实际看到的是什么)里的脚本分别对 `Qwen/Qwen3-0.6B` 和另一个家族的小模型（如 `HuggingFaceTB/SmolLM2-135M-Instruct`）各跑一次。
+
+   验证：Qwen 的输出里有 `<|im_start|>` 和 `<|im_end|>`；另一个家族的标记和换行方式不同（以实际打印为准）。
+
+   参考答案：同一份 `messages` 渲染出的文本取决于分词器自带的模板，所以训练和推理必须用同一个；导出到 GGUF / Ollama 后要再核对一次。
+
+2. **用假数据跑通 build_dataset.py**：把正文 3 段代码拼成 `build_dataset.py`，再用下面的脚本造 30 条记录（6 家供货商各 5 条），其中故意埋了一条未授权、一条重复、一条列数不对，然后运行 `python3 build_dataset.py`。
+
+   ```python
+   import json
+   cols = ["序号", "产品名称", "单位", "数量", "单价", "金额"]
+   recs = []
+   for s in range(6):
+       for i in range(5):
+           q = 10 + s * 5 + i
+           row = ["1", f"菜{s}-{i}", "斤", str(q), "2.5", str(q * 2.5)]
+           model = row if i % 2 else [*row[:3], str(q + 1), *row[4:]]  # 偶数条模型读错了数量
+           recs.append({"id": f"r-{s}{i}", "supplier": f"供货商{s}", "image": f"images/{s}{i}.jpg",
+                        "columns": cols, "model_rows": [model], "final_rows": [row], "consent": True})
+   recs[0]["consent"] = False                       # 未授权
+   recs[2]["final_rows"] = recs[1]["final_rows"]     # 和上一条重复
+   recs[3]["final_rows"] = [["1", "土豆", "斤"]]      # 列数不对
+   with open("records.jsonl", "w", encoding="utf-8") as f:
+       f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in recs)
+   ```
+
+   验证：打印三行统计，三份加起来是 27 条（30 条去掉埋的 3 条）；test 和 valid 各 1 家供货商，train 4 家。
+
+   参考答案：未授权和列数不对由 `valid()` 过滤，重复由 `fingerprint()` 去掉。6 家供货商时 `n // 10` 为 0，`max(1, …)` 保证评测集至少有 1 家。
+
+3. **检查没有泄漏**：对上一题生成的三个文件，统计每个文件里出现的供货商集合，确认两两没有交集。再想一想：如果改成随机按行切 10% 当评测集，会怎样？
+
+   验证：三个集合两两交集为空。
+
+   参考答案：按供货商切分保证评测集的版式都没见过。随机按行切时，评测集里的 3 条左右几乎必然来自训练集里也出现过的供货商，分数会偏高。
+
+   ```python
+   import json
+   sets = {n: {json.loads(l)["supplier"] for l in open(f"data/{n}.jsonl", encoding="utf-8")}
+           for n in ("train", "valid", "test")}
+   print(sets)
+   print(sets["train"] & sets["test"], sets["train"] & sets["valid"], sets["valid"] & sets["test"])
+   ```

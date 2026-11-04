@@ -312,3 +312,31 @@ async function assertGlobalBudget(tx: Tx) {
 - 按号额度防轰炸，按 IP 额度压量级，全站预算给账单封顶；过半报警
 - 人机验证在可疑时才触发，结果在服务端校验；审核员的固定码要自带按 IP 限额
 - 一键登录只是拿到手机号的另一个入口，进的是同一个 `resolveIdentity`
+
+## 动手练习
+
+1. **验码次数上限**：在 Docker 里的 Postgres 建本章的 `sms_codes` 表，插入一条 5 分钟后过期的码。把 `verifyCode` 里那条 `UPDATE ... attempts < 5 ... RETURNING` 的 SQL 改成直接写死手机号，用 `for i in $(seq 6); do psql ... -c "<那条 SQL>"; done` 连跑 6 次，`RETURNING` 里加上 `attempts`。
+
+   验证：前 5 次各返回一行，`attempts` 依次是 1 到 5；第 6 次输出 `UPDATE 0`。
+
+   参考答案：「占一次机会」和「判断是否还有机会」在同一条语句里完成，所以无论并发多少请求，最多只有 5 次能拿到 `code_hash` 去比对。可以再开两个窗口同时跑，结果相同。
+
+2. **`trust proxy` 填错的后果**：`npm i express` 后写一个只返回 `req.ip` 的服务，分别把 `trust proxy` 设成 `0`、`1`、`true`，用 `curl -H "X-Forwarded-For: 6.6.6.6, 5.5.5.5" localhost:3000` 访问。
+
+   验证：设成 `0` 时返回本机回环地址；设成 `1` 时返回 `5.5.5.5`；设成 `true` 时返回 `6.6.6.6`。
+
+   参考答案：`1` 表示只信任最近一跳（你的 nginx），取它追加的那个地址，也就是最右边的；`true` 信任整条链，取最左边那个客户端自己填的值，攻击者每次换个头就换了一个 IP，按 IP 额度失效。
+
+   ```javascript
+   import express from "express";
+   const app = express();
+   app.set("trust proxy", JSON.parse(process.env.TP ?? "0"));
+   app.get("/", (req, res) => res.send(req.ip));
+   app.listen(3000);
+   ```
+
+3. **算一笔被刷的账**：假设单价 0.045 元，按号每天 10 条、按 IP 每天 30 条、全站每天 1000 条。攻击者有 200 个代理 IP 和无限个号码，持续刷 24 小时。分别算出只有按号额度、加上按 IP 额度、再加全站预算三种情况下最多发出多少条、花多少钱。
+
+   验证：和本章配图的数字对得上。
+
+   参考答案：只按号时攻击者每个号刷 10 条就换号，上限取决于请求速率，额度不起作用；加按 IP 后是 200 × 30 = 6000 条，约 270 元；再加全站预算，封顶 1000 条，约 45 元。全站预算触发时正常用户也收不到码，所以要在过半时报警。

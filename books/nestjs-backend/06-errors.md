@@ -252,3 +252,23 @@ hatch-counter 的代码里有大量范例，提炼成几条原则：
 - 日志要打完整的 `cause` 链；约束冲突按 SQLSTATE 认，不按消息文本
 - Nest 管线之外抛的错（请求体解析、定时任务、长连接）要单独处理
 - 报错文案在服务端写一份，说清后果、下一步、是谁的事，用读者的词
+
+## 动手练习
+
+1. **默认过滤器不泄露原因**：在处理函数里 `throw new Error("connect failed: postgres://app:secret@db:5432/counter")`，`curl -i localhost:3000`。
+
+   验证：回包是 `{"statusCode":500,"message":"Internal server error"}`，不含连接串；服务端终端里能看到这条错误和堆栈。
+
+   参考答案：非 `HttpException` 一律被默认过滤器回成通用 500，这一点 Nest 已经做对了。自己写全局过滤器时要守住同一条线：未知异常只进日志。
+
+2. **ZodError 兜底**：处理函数里写 `z.object({ day: z.iso.date() }).parse(body)`，发一个 `{"day":"2026-02-30"}`。先不加过滤器；再注册一个 `@Catch()` 全局过滤器：`HttpException` 回 `{ error, code }`，`ZodError` 回 400 和第一条 issue，其余回 500 并在日志里带一个 `randomBytes(4).toString("hex")` 引用号。
+
+   验证：没有过滤器时是 500；加上之后是 400，回包有 `"code":"invalid_input"`。再抛一个普通 `Error`，日志里的引用号能和那次 500 对上。
+
+   参考答案：直接调 `.parse()` 抛的不是 `HttpException`，不兜底的话用户填错一个日子就看到「服务端出错」。
+
+3. **认 SQLSTATE 不认消息**：`docker run --rm -d --name pg -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17`，`docker exec -it pg psql -U postgres`，执行 `\set VERBOSITY verbose`，然后试 `select 'abc'::uuid;`；再建一张带唯一约束的表，插两次同一个值。
+
+   验证：第一条报错行以 `ERROR:  22P02:` 开头，第二条以 `ERROR:  23505:` 开头。
+
+   参考答案：错误码是稳定的契约，消息文本会随 `lc_messages` 和版本变化。应用里用 postgres.js 时，码在错误对象的 `code` 上，经过 ORM 包装后要沿着 `cause` 链去找。

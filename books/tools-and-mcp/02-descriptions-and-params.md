@@ -234,3 +234,33 @@ MCP 允许给工具加行为提示，宿主可以据此决定是否需要用户�
 - schema 做形状检查，代码做语义和安全检查
 - 返回值只给下一步需要的、语义化、控制体积；截断时明确告诉模型还剩多少、怎么继续
 - `content` 给模型读，`structuredContent` + `outputSchema` 给程序用；注解是不可信的提示
+
+## 动手练习
+
+1. **看模型到底看到什么**：用 zod v4 定义本章的 `bookId` / `offset` 两个参数（`offset` 带 `.default(0)`），分别运行 `z.toJSONSchema(schema)` 和 `z.toJSONSchema(schema, { io: 'input' })`，比较两份输出。
+
+   验证：两份都带着 `description`、`minimum: 0` 和 `default: 0`；默认模式下 `required` 是 `["bookId", "offset"]`，`io: 'input'` 时只有 `["bookId"]`。
+
+   参考答案：有默认值的字段，对调用方（模型）来说是可选的，对处理函数拿到的结果来说是一定存在的。给模型看的必须是「输入」视角，否则模型会以为每次都要填 `offset`。SDK 注册工具时替你处理了这件事，自己手写转换时要注意。
+
+2. **写一个会说明自己被截断的分页函数**：实现 `page(name, lines, offset, limit)`，返回本章那种头部加正文：没截断时写「已到结尾」，截断时写还剩多少行、下次用什么 `offset`。
+
+   验证：`page("03-attention.md", 412 行, 0, 200)` 的头部是 `[03-attention.md 共 412 行，本次 1-200 行，还有 212 行，用 offset=200 继续]`；`offset=400` 时是 `本次 401-412 行，已到结尾`；`offset=500` 时不返回空字符串，而是说明超出范围、共多少行。
+
+   参考答案：
+
+   ```ts
+   function page(name: string, lines: string[], offset = 0, limit = 200) {
+     const n = lines.length;
+     if (offset >= n) return `[${name} 共 ${n} 行，offset=${offset} 超出范围，最大可用 ${n - 1}]`;
+     const end = Math.min(offset + limit, n);
+     const tail = end < n ? `还有 ${n - end} 行，用 offset=${end} 继续` : '已到结尾';
+     return `[${name} 共 ${n} 行，本次 ${offset + 1}-${end} 行，${tail}]\n` + lines.slice(offset, end).join('\n');
+   }
+   ```
+
+3. **分清配置和参数**：一个发周报的工具设计成 `send_report(to, smtpHost, smtpPassword, subject, body, format)`，其中 `format` 只有 `markdown` 和 `html` 两种。按本章规则重新设计它的参数，并用描述模板写出工具描述。
+
+   验证：`smtpHost`、`smtpPassword` 从参数里消失，改由启动配置提供；`format` 是枚举并有默认值；描述里写明它会对外发邮件、不可撤回；`annotations` 里 `openWorldHint` 为 true、`readOnlyHint` 为 false。
+
+   参考答案：判断依据是「这个值该不该由模型决定」。收件人是否也该收窄成白名单，取决于场景，第 6 章会讲到。

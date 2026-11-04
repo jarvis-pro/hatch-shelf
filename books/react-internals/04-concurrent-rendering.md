@@ -233,3 +233,57 @@ export function useLiveState(): Snapshot {
 - `useTransition` / `startTransition` 标记不紧急的 state 更新，期间旧界面保持；不能用于受控输入
 - `useDeferredValue` 推迟昂贵的派生渲染，配合 `memo` 才有效；它和防抖解决的是不同问题
 - 外部可变数据源要用 `useSyncExternalStore` 接入以避免撕裂；`getSnapshot` 必须在不变时返回同一引用
+
+## 动手练习
+
+以下练习去掉 `<StrictMode>` 观察更清楚（否则每次渲染的日志会出现两遍）。
+
+1. **transition 先渲染一次旧值**：
+
+   ```tsx
+   export default function App() {
+     const [category, setCategory] = useState("全部");
+     const [isPending, startTransition] = useTransition();
+     console.log("render", isPending, category);
+     return <button onClick={() => startTransition(() => setCategory("热菜"))}>热菜</button>;
+   }
+   ```
+
+   点一次按钮，预测点击后打印的两行。
+
+   验证：依次是 `render true 全部` 和 `render false 热菜`。
+
+   参考答案：React 先用 Sync 优先级渲染一次，只把 `isPending` 变成 `true`，分类仍是旧值；新分类在 transition lane 上另外渲染，完成后两者一起变成最终状态。这就是「旧界面保持、加一个 pending 提示」的来源。
+
+2. **deferred 值慢一拍**：
+
+   ```tsx
+   export default function App() {
+     const [q, setQ] = useState("");
+     const deferred = useDeferredValue(q);
+     console.log(`render q="${q}" deferred="${deferred}"`);
+     return <input value={q} onChange={(e) => setQ(e.target.value)} />;
+   }
+   ```
+
+   在输入框里一次粘贴进 `niu`，预测日志。再做一个慢组件：`const SlowList = memo(function SlowList({ q }: { q: string }) { const end = performance.now() + 100; while (performance.now() < end); return <p>{q}</p>; })`，分别传入 `q` 和 `deferred`，连续快速打字比较输入框的跟手程度。
+
+   验证：粘贴后先打印 `q="niu" deferred=""`，再打印 `q="niu" deferred="niu"`。慢组件接 `q` 时每敲一个字输入框都卡约 100 ms；接 `deferred` 时输入框跟手，列表在停手后才更新。
+
+   参考答案：紧急渲染里 `useDeferredValue` 返回旧值，`memo` 的 `SlowList` 因 props 没变而 bailout；新值在可打断的低优先级渲染里处理，连续输入时中间那些渲染被丢弃重来。去掉 `memo`，延迟就失效了。
+
+3. **getSnapshot 每次返回新对象**：
+
+   ```tsx
+   const store = { state: "off" };
+   function Bad() {
+     const s = useSyncExternalStore(() => () => {}, () => ({ state: store.state }));
+     return <i>{s.state}</i>;
+   }
+   ```
+
+   渲染它，预测控制台。
+
+   验证：先出现 `The result of getSnapshot should be cached to avoid an infinite loop`，随后抛出 `Maximum update depth exceeded`，页面渲染失败。把快照改成模块级的不可变对象（`let snapshot = { state: "off" }`，`getSnapshot` 返回 `snapshot`）后恢复正常。
+
+   参考答案：React 用 `Object.is` 比较快照，每次新对象就意味着「数据一直在变」，于是不断重渲染。快照必须在数据不变时返回同一个引用。

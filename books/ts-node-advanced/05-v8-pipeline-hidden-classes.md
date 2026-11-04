@@ -198,3 +198,35 @@ V8 的启发式每个版本都在变，今天的「技巧」明天可能就失�
 - 内联缓存有单态、多态、超态三种状态，热路径上超态可以慢一倍以上
 - 数组的 elements kind 只会向通用方向转换，同一数组只放同一类值
 - 先剖析、后优化；规矩写 TS 基本天然满足引擎的偏好
+
+## 动手练习
+
+1. **多一个属性也是新形状**：把本章 `deopt.js` 最后那次调用改成 `area({ w: 3, h: 2, d: 1 })`（属性顺序不变，只是多了 `d`），运行 `node --trace-opt --trace-deopt deopt.js 2>&1 | grep area`；再改成 `area({ w: 3, h: 2 })` 运行一次。
+
+   验证：多了 `d` 时仍然出现 `bailout (kind: deopt-eager, reason: wrong map)`；形状完全相同时只有 `marking ... for optimization` 和 `completed optimizing` 几行，没有 `bailout`。
+
+   参考答案：隐藏类由属性集合和添加顺序共同决定，`{w, h, d}` 和 `{w, h}` 是两个隐藏类，优化代码里的形状检查同样会失败。
+
+2. **构造函数里的条件赋值**：用 `node --allow-natives-syntax` 运行：
+
+   ```js
+   class Point { constructor(x, y) { this.x = x; if (y !== undefined) this.y = y; } }
+   const p1 = new Point(1, 2), p2 = new Point(1);
+   console.log(%HaveSameMap(p1, p2));
+   const cache = {};
+   for (let i = 0; i < 20; i++) cache["k" + i] = i;
+   for (let i = 0; i < 10; i++) delete cache["k" + i];
+   console.log(%HasFastProperties(cache));
+   ```
+
+   先预测两行输出，再把构造函数改成无条件的 `this.y = y;`、把 `cache` 换成 `new Map()`（相应用 `set` / `delete`），想想第一行会怎样变化。
+
+   验证：原代码输出 `false` 和 `false`；无条件赋值后第一行变成 `true`。
+
+   参考答案：条件赋值让同一个类的实例分成两种形状；把对象当字典频繁 `delete`，会退化成字典模式。前者改成总是赋值（缺失时就是 `undefined`），后者换成 `Map`。这两种写法在 TS 代码里都很常见，`--allow-natives-syntax` 只用于这种实验。
+
+3. **把超态变回单态**：本章 `poly.js` 用 8 种形状测得明显变慢。改写 `shapes`，让 8 个对象都是 `{ x: 1, k }`（同一组属性名，值不同），用同样的循环测一次。
+
+   验证：用时回到和 `1 shapes` 同一个量级（比 8 种不同形状时明显更快）；具体毫秒数和机器有关，记下你自己的三组数。
+
+   参考答案：区分对象的信息放在属性**值**里而不是属性**名**里，所有对象共享一个隐藏类，`getX` 的内联缓存保持单态。

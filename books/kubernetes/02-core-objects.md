@@ -333,3 +333,50 @@ kubectl config set-context --current --namespace=counter
 - preStop 短暂 sleep + 应用处理 SIGTERM，才能消除滚动发布的零星失败
 - **Service** 用标签选择就绪的 Pod，提供稳定的 DNS 名和负载均衡
 - 回滚只退镜像，迁移仍然要向前兼容
+
+## 动手练习
+
+正文已经把 hatch-counter 的清单写好了，这里的题专门「弄坏」东西再观察。只在本机的 k3d 练习集群里做：先 `kubectl config current-context` 确认是 `k3d-counter-lab`，再 `kubectl create namespace lab && kubectl config set-context --current --namespace=lab`，做完 `kubectl delete namespace lab`。
+
+1. **坏版本接不到流量**：`kubectl create deployment demo --image=nginx:1.27-alpine --replicas=2`，再用 `kubectl patch deployment demo -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0}}}}'` 设好策略。然后换一个不存在的镜像 `kubectl set image deployment/demo nginx=nginx:no-such-tag`，执行 `kubectl rollout status deployment/demo --timeout=60s`，再 `kubectl get pods`。
+
+   验证：`rollout status` 超时返回非 0；Pod 列表里旧的 2 个仍是 `Running`，多出 1 个 `ErrImagePull` 或 `ImagePullBackOff`。`kubectl rollout undo deployment/demo` 后那个坏 Pod 消失。
+
+   参考答案：`maxUnavailable: 0` 要求新 Pod 就绪后才停旧的，新 Pod 永远起不来，更新就卡在第一步，旧版本照常服务。
+
+2. **readiness 摘流量但不重启**：apply 下面的清单，然后观察 `kubectl get pods`（READY 列）和 `kubectl get endpointslices -l kubernetes.io/service-name=web`（ENDPOINTS 列）；对其中一个 Pod 执行 `kubectl exec <Pod> -- touch /tmp/ready`，再观察；最后 `kubectl exec <Pod> -- rm /tmp/ready`。
+
+   ```yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata: { name: web }
+   spec:
+     replicas: 2
+     selector: { matchLabels: { app: web } }
+     template:
+       metadata: { labels: { app: web } }
+       spec:
+         containers:
+           - name: nginx
+             image: nginx:1.27-alpine
+             readinessProbe:
+               exec: { command: ["cat", "/tmp/ready"] }
+               periodSeconds: 2
+   ---
+   apiVersion: v1
+   kind: Service
+   metadata: { name: web }
+   spec:
+     selector: { app: web }
+     ports: [{ port: 80 }]
+   ```
+
+   验证：开始两个 Pod 都是 `0/1`，ENDPOINTS 为空；`touch` 后那个 Pod 变成 `1/1`，它的 IP 出现在 ENDPOINTS 里；`rm` 后又被摘掉，RESTARTS 始终是 `0`。
+
+   参考答案：readiness 失败只把 Pod 从 Service 后面摘掉，不重启。把同一个探针改成 `livenessProbe` 再试，`rm` 之后 RESTARTS 会增加，这就是「liveness 不能查数据库」的原因：依赖一抖，所有副本一起被重启。
+
+3. **看一次 OOMKilled**：执行 `kubectl run oom --image=node:22-alpine --restart=Never --overrides='{"spec":{"containers":[{"name":"oom","image":"node:22-alpine","command":["node","-e","const a=[];setInterval(()=>a.push(Buffer.alloc(1e7,1)),50)"],"resources":{"limits":{"memory":"64Mi"}}}]}}'`，等十几秒后 `kubectl get pod oom` 和 `kubectl describe pod oom | grep -iA2 'state'`。
+
+   验证：状态列显示 `OOMKilled`；`describe` 里 `Reason: OOMKilled`，`Exit Code: 137`。
+
+   参考答案：超过内存 limit 的容器被内核 OOM Killer 用 SIGKILL 杀掉。换成 Deployment 管理时，它会进入 `CrashLoopBackOff` 反复重启，`kubectl logs --previous` 里往往什么都没有，要靠 `describe` 看原因。

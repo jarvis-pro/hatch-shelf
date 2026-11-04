@@ -42,89 +42,13 @@ server 能向 agent 提供几类东西：
 
 其中 Tools 最常用，它和第 3 章讲的工具是同一回事，只是定义和执行挪到了一个独立的进程里。消息格式基于 JSON-RPC 2.0，传输方式主要有两种：本地进程间用 **stdio**，远程服务用 **HTTP**（规范中称 Streamable HTTP）。协议还在演进，具体细节以官方规范为准。
 
-### 一个最小的 MCP server
+### 写一个 server 是什么样子
 
-下面用官方 TypeScript SDK 写一个只读的书架查询 server。示例基于 SDK 2.x（`@modelcontextprotocol/server`，实现 2026-07-28 版协议），和[《工具设计与 MCP》第 5 章](../tools-and-mcp/05-build-mcp-server.md)的完整版本同一写法。网上很多教程还是 1.x 的 `@modelcontextprotocol/sdk` 写法，两者的差异见那一章开头的对照表。
+写一个 MCP server 的工作量很小：用官方 SDK 创建一个 server，逐个注册工具（名字、给模型看的描述、参数的 schema、执行函数），再挂到 stdio 或 HTTP 传输上；客户端那边，在项目根目录的 `.mcp.json` 里写上启动命令，Claude Code 就能发现它（首次使用时会请你确认是否信任）。工具的执行函数和第 3 章的工具没有区别：返回文本，失败时返回错误信息而不是抛异常。
 
-```typescript
-import { McpServer } from "@modelcontextprotocol/server";
-import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
-import * as z from "zod/v4";
+有一点原理层面的要求值得单独说：**server 收到的参数来自模型，模型的输入又可能受到外部内容影响，所以 server 必须像对待任何不可信输入一样校验参数**，比如只允许读 `.md`、禁止路径穿越。hatch-shelf 把 zip slip 检查写在 `@shelf/spec` 里，道理相同。
 
-const BOOKS_DIR = process.env.BOOKS_DIR ?? "books";
-
-function createServer(): McpServer {
-  const server = new McpServer({ name: "shelf-books", version: "0.1.0" });
-
-  server.registerTool(
-    "list_books",
-    {
-      description: "列出 books 目录下所有书的 id 和 book.yaml 中的 title 行。只读。",
-      inputSchema: z.object({}),
-    },
-    async () => {
-      const entries = await readdir(BOOKS_DIR, { withFileTypes: true });
-      const lines: string[] = [];
-      for (const e of entries.filter((d) => d.isDirectory())) {
-        try {
-          const yaml = await readFile(join(BOOKS_DIR, e.name, "book.yaml"), "utf8");
-          const title = yaml.match(/^title:\s*(.+)$/m)?.[1] ?? "(无标题)";
-          lines.push(`${e.name}\t${title}`);
-        } catch {
-          // 没有 book.yaml 的目录不是书，跳过
-        }
-      }
-      return { content: [{ type: "text", text: lines.join("\n") }] };
-    },
-  );
-
-  server.registerTool(
-    "read_chapter",
-    {
-      description: "读取某本书的某个章节文件全文。file 形如 01-what-is-agent.md。",
-      inputSchema: z.object({ bookId: z.string(), file: z.string() }),
-    },
-    async ({ bookId, file }) => {
-      // 只允许读 .md，且禁止路径穿越
-      if (!/^[a-z0-9-]+$/.test(bookId) || !/^[a-z0-9-]+\.md$/.test(file)) {
-        return { content: [{ type: "text", text: "bookId 或 file 格式不合法" }], isError: true };
-      }
-      try {
-        const text = await readFile(join(BOOKS_DIR, bookId, file), "utf8");
-        return { content: [{ type: "text", text }] };
-      } catch {
-        return { content: [{ type: "text", text: `找不到 ${bookId}/${file}，先用 list_books 确认 id` }], isError: true };
-      }
-    },
-  );
-
-  return server;
-}
-
-// stdio 是协议通道，日志只能写 stderr
-serveStdio(createServer);
-console.error("shelf-books MCP server 已启动");
-```
-
-2.x 的 server 由工厂函数创建，`serveStdio` 负责接管 stdin / stdout 并在需要时调用工厂；同一个工厂也可以交给 HTTP 处理函数，本地和远程共用一份工具定义。
-
-在项目根目录放一个 `.mcp.json`，Claude Code 就能发现这个 server（首次使用时会请你确认是否信任）：
-
-```json
-{
-  "mcpServers": {
-    "shelf-books": {
-      "command": "npx",
-      "args": ["tsx", "tools/shelf-mcp/server.ts"],
-      "env": { "BOOKS_DIR": "books" }
-    }
-  }
-}
-```
-
-注意 `read_chapter` 里的参数校验：MCP server 收到的参数来自模型，模型的输入又可能受到外部内容影响，**server 必须像对待任何不可信输入一样校验参数**。hatch-shelf 把 zip slip 检查写在 `@shelf/spec` 里，道理相同。
+完整的书架查询 server（SDK 2.x 写法、和 1.x 的差异、用真实客户端测试、接入 Claude Code）见[《工具设计与 MCP》第 5 章](../tools-and-mcp/05-build-mcp-server.md#注册工具资源和提示模板)，协议本身的消息格式和传输方式见[第 4 章](../tools-and-mcp/04-mcp-protocol.md#消息格式json-rpc-20)。
 
 ### 使用 MCP 的注意事项
 
@@ -202,3 +126,28 @@ Skill 里可以附带脚本。像「收集两个 tag 之间的提交」这种确
 - Skills 是打包的做事方法，核心是 `SKILL.md`，可附带模板和脚本
 - Skills 用**渐进式披露**分层加载，description 决定它能否被正确触发
 - 记忆、Skill、MCP、子 agent、hooks 各有分工，按「知道 / 会做 / 能力 / 隔离 / 保证」来选
+
+## 动手练习
+
+1. **用 Inspector 看一个 MCP server**：在临时目录里启动官方的文件系统参考 server，用 MCP Inspector 连接它（命令以官方仓库 README 为准）。
+
+   ```bash
+   mkdir -p /tmp/mcp-demo && echo hello > /tmp/mcp-demo/a.md
+   npx @modelcontextprotocol/inspector npx -y @modelcontextprotocol/server-filesystem /tmp/mcp-demo
+   ```
+
+   验证：在 Inspector 的 Tools 页能列出读文件、列目录等工具；读 `/tmp/mcp-demo/a.md` 返回 `hello`；读 `/etc/hosts` 返回一个拒绝访问、路径不在允许目录内的错误。
+
+   参考答案：拒绝发生在 server 内部，不依赖模型是否「听话」，这就是本章说的 server 必须自己校验参数。
+
+2. **写一个 Skill 并观察 description 的作用**：在一个仓库里建 `.claude/skills/chapter-stats/SKILL.md`，description 写「统计 books/ 下每本书的章节数和字数。当用户问书有多少章、多少字时使用」，正文写一条 `find` / `wc` 的做法。然后在 Claude Code 里问「每本书各有多少字」。再把 description 改成「工具」重开会话问同样的问题。
+
+   验证：第一次能看到 agent 调用了这个 Skill；改成「工具」后它多半不再调用，而是自己去拼命令。
+
+   参考答案：模型平时只看到 name 和 description，description 没说做什么、什么时候用，就不会被选中。
+
+3. **选扩展机制**：为下面五个需求各选一种机制（项目记忆、Skill、MCP、子 agent、hooks）：(a) 每次改完 `.ts` 文件都要跑 prettier；(b) 让 agent 能查公司内部的工单系统；(c) 一个月用一次的「发版十步流程」；(d) 「本仓库所有日期用 UTC 存储」；(e) 在 3 万行日志里找出一次崩溃的原因。
+
+   验证：用本章「知道 / 会做 / 能力 / 隔离 / 保证」五个词对号入座。
+
+   参考答案：(a) hooks，必须保证发生；(b) MCP，原本够不到的系统；(c) Skill，有时要会做；(d) 项目记忆，每次都要知道；(e) 子 agent，需要干净的工作区。

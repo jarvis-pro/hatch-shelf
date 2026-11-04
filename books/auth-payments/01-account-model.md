@@ -369,3 +369,23 @@ CREATE INDEX ON auth_events (account_id, created_at DESC);
 - 换号、改密码、解绑这类动作，除当前设备外全部下线；业务逻辑只认账号 ID
 - 订阅挂在「谁付钱」的实体上，有租户的挂租户
 - 注销是冷静期加匿名化：释放身份、清凭据，保留财务记录；留一张登录事件表
+
+## 动手练习
+
+1. **规范化手机号**：把本章的 `normalizePhone` 存成 `phone.mjs`（去掉类型标注），对 `"+86 138 0013 8000"`、`"86-13800138000"`、`"13800138000"`、`"12345678901"` 各调用一次，先写下预期再运行。
+
+   验证：`node phone.mjs` 打印的前三个都是 `13800138000`，第四个是 `null`。
+
+   参考答案：先去空格和连字符，再去掉开头的 `86` 或 `+86`，三种写法都落到同一个 11 位号码，唯一约束才可靠；`12345678901` 第二位是 2，不符合 `1[3-9]` 的号段规则。
+
+2. **TOTP 密钥被篡改**：用 `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` 生成 `FIELD_KEY`，用本章的 `seal` 加密一个字符串，把结果最后一段（密文）改掉一个字符，再调用 `open`。
+
+   验证：未改动时 `open(seal("JBSWY3DPEHPK3PXP"))` 原样返回；改动后 `open` 抛出异常（Node 的报错信息里有 `unable to authenticate data`）。
+
+   参考答案：AES-GCM 带认证标签，密文、IV、标签任何一处被改都解不开，而不是解出一串乱码。这也是选 GCM 而不是 CBC 的原因：数据库里的值被人改过，你会立刻知道。
+
+3. **两个请求同时用新号注册**：用 Docker 起一个 Postgres（`docker run --rm -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17`），建本章的 `accounts` 和 `auth_identities` 表。开两个 `psql` 窗口，都先 `BEGIN;`，再各自插入一条 `kind='phone', identifier='13800138000'` 的身份（`account_id` 各指向一个新账号）。先在窗口 A `COMMIT;`。
+
+   验证：窗口 B 的 `INSERT` 在 A 提交前一直卡住，A 提交后 B 报 `duplicate key value violates unique constraint`。
+
+   参考答案：唯一约束在并发下也成立，后到的事务等前一个结束再判定。应用层捕获这个错误（SQLSTATE `23505`）后整个事务重来一次，`resolveIdentity` 就会走到「有账号，登录」分支，不会多出第二个账号。

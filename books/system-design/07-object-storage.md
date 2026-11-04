@@ -233,3 +233,35 @@ hatch-counter 有两个桶：单据原图的私有桶（服务端写，钥匙在
 - 不同用途的桶和钥匙分开，一把钥匙只碰一个桶的一种操作
 - 库里引用的文件必须存在，孤儿可以接受、定期清理；对象存储操作放在数据库事务外面
 - 文件处理放进异步任务；生命周期规则自动清理临时文件；冗余不是备份
+
+## 动手练习
+
+1. **预签名 URL 绑了什么**：用 Docker 起一个 MinIO（`docker run -d -p 9000:9000 -p 9001:9001 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address :9001`），在控制台 `http://localhost:9001` 建一个桶 `demo`。在一个新目录里 `pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner`，用下面的脚本生成一个 30 秒有效的上传地址，然后分别用 `curl -i -X PUT -H 'Content-Type: image/jpeg' --data-binary @a.jpg '<url>'`、把头换成 `image/png`、以及等 30 秒之后再传。
+
+   ```javascript
+   import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+   import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+   const s3 = new S3Client({
+     region: "us-east-1", endpoint: "http://localhost:9000", forcePathStyle: true,
+     credentials: { accessKeyId: "minioadmin", secretAccessKey: "minioadmin" },
+     requestChecksumCalculation: "WHEN_REQUIRED", // 不在签名里带空请求体的校验和
+   });
+   const cmd = new PutObjectCommand({ Bucket: "demo", Key: "store-1/rcp-test", ContentType: "image/jpeg" });
+   console.log(await getSignedUrl(s3, cmd, { expiresIn: 30 }));
+   ```
+
+   验证：第一次返回 200，控制台里能看到 `store-1/rcp-test`（「store-1」那一层是按前缀模拟出来的文件夹）；换了 Content-Type 和过期之后都是 403，响应体 XML 里的错误码说明了原因。
+
+   参考答案：签名覆盖了方法、键、`Content-Type` 和过期时间，任何一项不符都拒绝。签名不限制文件大小，所以传完之后服务端还要 `HeadObject` 确认。脚本里关掉自动校验和，是因为新版 SDK 的这项默认行为各家兼容程度不一，遇到签名错误先查这里。MinIO 镜像的发布方式近年有变化，拉取不到时以其官方说明为准。
+
+2. **选上传路径**（分析题）：A. 一个人做的课程平台，讲师上传 1–2 GB 的视频，夜里统一转码；B. 报销 App，员工拍单据照片，上传后要立刻识别出金额回填表单；C. 只有 Expo App 和一个 Cloudflare Worker 的个人播客收藏 App，没有其他后端。各走哪条路。
+
+   验证：每个选择说明文件流量经过了谁、钥匙放在哪里。
+
+   参考答案：A 预签名直传，大文件不该过 API，传完通知 API 再入队转码；B 经服务端转发，文件本来就要交给识别；C 经 Worker 代理，钥匙留在 Worker，App 只拿令牌。如果 A 改成「上传后必须先过内容审核才能入库」，仍然可以直传，但要把审核放进异步任务并在审核前不对外可见，而不是改成经服务端转发。
+
+3. **替换文件的顺序**（分析题）：更换店铺 Logo 时，有人写成：删旧文件 → 存新文件 → 更新库里的文件名。逐步列出每一步失败时库和存储各是什么状态，再给出正确顺序。
+
+   验证：检查每个失败点上「库里引用的文件是否存在」。
+
+   参考答案：第一步之后、第三步之前任何一步失败，库里指着一个已经被删的文件，页面会裂图。正确顺序是新键存新文件 → 更新库 → 删旧文件；最后一步失败只留下孤儿，由清理任务收拾。如果新文件沿用旧键原地覆盖，CDN 和客户端可能还缓存着旧图，这也是「内容不可变，改了就换新键」的理由。

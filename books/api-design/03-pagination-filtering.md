@@ -253,3 +253,33 @@ GET /products/changes?since=<上次拿到的游标>&limit=200
 - 过滤用平铺的查询参数，不发明查询语言；读接口的不认识取值宽松处理
 - 排序字段走白名单，服务端总是追加决胜键，游标绑定排序方式
 - 离线同步按更新顺序增量拉取，删除留墓碑；严格不漏要用单调版本号而不是墙上时间
+
+## 动手练习
+
+在一次性容器里起一个 Postgres：`docker run --rm -d --name pg -e POSTGRES_PASSWORD=pw postgres:17`，用 `docker exec -it pg psql -U postgres` 进去，先建表并灌 100 万行：
+
+```sql
+CREATE TABLE expenses (id bigserial PRIMARY KEY, store_id int, paid_at timestamptz, amount int);
+INSERT INTO expenses (store_id, paid_at, amount)
+SELECT 1, now() - (g || ' seconds')::interval, g % 5000 FROM generate_series(1, 1000000) g;
+CREATE INDEX ON expenses (store_id, paid_at DESC, id DESC);
+ANALYZE expenses;
+```
+
+1. **看 offset 越翻越慢**：分别对 `OFFSET 0`、`OFFSET 100000`、`OFFSET 900000` 跑 `EXPLAIN ANALYZE SELECT * FROM expenses WHERE store_id=1 ORDER BY paid_at DESC, id DESC LIMIT 20 OFFSET ...`。
+
+   验证：三次的 `Execution Time` 依次明显变大；计划里 Limit 节点下的 Index Scan 的实际 `rows` 约等于 offset + 20。
+
+   参考答案：offset 要沿索引走过前面所有行再丢掉，成本和页码成正比，和本章的图一致。
+
+2. **改成游标分页**：取 `OFFSET 900000` 那一页之前最后一条的 `(paid_at, id)`，改写成 `WHERE store_id=1 AND (paid_at, id) < ('...', ...) ORDER BY paid_at DESC, id DESC LIMIT 21` 再 `EXPLAIN ANALYZE`。
+
+   验证：Index Scan 实际只读 21 行，`Execution Time` 和 `OFFSET 0` 同一量级。
+
+   参考答案：元组比较能直接用复合索引定位起点；多取一条用来判断是否还有下一页。
+
+3. **复现 offset 重复**：在 psql 里先查 `OFFSET 0 LIMIT 20` 记下最后一条 id，然后 `INSERT INTO expenses (store_id, paid_at, amount) VALUES (1, now(), 1);`，再查 `OFFSET 20 LIMIT 20`。再用游标方式重做一遍。
+
+   验证：offset 版本第二页的第一条就是第一页的最后一条；游标版本第二页不包含它。
+
+   参考答案：新行插在最前面，把旧数据整体往后挤了一位；游标说的是「从哪一条之后」，不受前面插入的影响。做完 `docker stop pg` 容器会自动删除。

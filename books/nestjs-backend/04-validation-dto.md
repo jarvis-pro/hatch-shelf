@@ -250,3 +250,23 @@ const CategoryResolution = z.discriminatedUnion("action", [
 - 查询参数全是字符串，一律整个对象过 schema；空串当没给、日子要真有、反了报错不对调、不认识的筛选值当没给
 - 带转换的 schema 用 `z.output` 标参数类型
 - 防批量赋值：schema 剥掉多余字段，写库时显式列出列，身份相关的 id 永远不从请求体取
+
+## 动手练习
+
+1. **批量赋值与 whitelist**：装上 `class-validator class-transformer`，写一个只有 `title` 字段（`@IsString()`）的 DTO，`@Post()` 处理函数原样返回 `body`。先注册 `new ValidationPipe()`，发 `{"title":"买菜","storeId":"别人家的店"}`；再改成 `{ whitelist: true }`；最后加上 `forbidNonWhitelisted: true`。
+
+   验证：第一次回包里 `storeId` 还在；第二次被剥掉了；第三次回 400，`message` 里有 `property storeId should not exist`。
+
+   参考答案：class-validator 默认保留未声明的字段，要靠 `whitelist` 剥掉。更根本的防线是写库时显式列出列、身份相关的 id 不从请求体取。
+
+2. **查询参数全是字符串**：写 `@Get("t") t(@Query("page") page: number) { return { type: typeof page, page }; }`，请求 `curl "localhost:3000/t?page=2"`。然后注册 `new ValidationPipe({ transform: true })` 再请求一次。
+
+   验证：第一次回 `{"type":"string","page":"2"}`，尽管参数标的是 `number`；第二次 `type` 变成 `number`。
+
+   参考答案：TypeScript 类型不做运行时转换，查询参数到达时一律是字符串。要么让管道按类型转换，要么像本章那样整个查询对象过 schema。
+
+3. **空串变成 0**：在一个 `.mjs` 文件里用 zod 跑 `z.coerce.number().int().optional().parse("")`，再把它包进本章的 `z.preprocess(blank, ...)` 跑一次；同时试 `z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse("2026-02-30")`。
+
+   验证：第一个结果是 `0`，包了 `blank` 之后是 `undefined`；正则版本放过了 `2026-02-30`。
+
+   参考答案：`Number("")` 是 `0`，表单清空的筛选会被当成「第 0 页」。日期只过正则不够，要再 `refine` 检查这一天真的存在。

@@ -231,3 +231,41 @@ export class AppExceptionFilter implements ExceptionFilter {
 - 注入的根本防线是参数化：Drizzle 用 `sql` 模板别用 `sql.raw`，动态列名走白名单，外部命令传参数数组
 - 新功能先问：谁能调、最坏怎么被滥用、出错时放行还是拒绝
 - 对外报错通用，细节只进日志；设计上默认失败即拒绝
+
+## 动手练习
+
+以下练习都是在本机写一段故意有漏洞的小程序、再把它修好，不要对任何别人的服务做注入或 SSRF 尝试。
+
+1. **字符串拼 SQL 的后果**：Node 22.13 以上（或 Node 24）用内置的 `node:sqlite` 写 `sqli.mjs`，运行 `node sqli.mjs "x' or '1'='1"`。
+
+   ```js
+   import { DatabaseSync } from 'node:sqlite';
+   const db = new DatabaseSync(':memory:');
+   db.exec("create table users(name text, secret text); insert into users values ('alice','a1'),('bob','b2')");
+   const name = process.argv[2];
+   console.log(db.prepare(`select * from users where name = '${name}'`).all());
+   console.log(db.prepare('select * from users where name = ?').all(name));
+   ```
+
+   验证：第一行打印出 alice 和 bob 两条记录（连同 `secret`）；第二行是 `[]`。可能伴随一条 SQLite 是实验特性的 `ExperimentalWarning`，不影响结果。
+
+   参考答案：拼接让输入里的引号变成了 SQL 语法；`?` 占位符把整段输入当成一个值。Drizzle 的 `sql` 模板就是第二种，`sql.raw` 是第一种。
+
+2. **`exec` 和 `execFile`**：在本机执行下面这段，文件名是故意构造的。
+
+   ```js
+   import { exec, execFile } from 'node:child_process';
+   const name = 'nothing.txt; echo INJECTED';
+   exec(`ls ${name}`, (_e, out) => console.log('exec:', JSON.stringify(out)));
+   execFile('ls', [name], (e) => console.log('execFile:', e?.message));
+   ```
+
+   验证：`exec` 那行的输出是 `"INJECTED\n"`，说明分号后面的命令被 shell 执行了；`execFile` 那行只是报文件不存在，整串文字原样出现在错误信息里，没有任何命令被执行。两行的先后顺序不固定。
+
+   参考答案：`exec` 经过 shell，`;`、`$()` 都有特殊含义；`execFile` 不经过 shell，参数数组里的每一项都只是一个参数。
+
+3. **一个会 SSRF 的代理，再加白名单**：先起一个只监听本机的「内网服务」：`node -e "require('http').createServer((q, s) => s.end('INTERNAL-SECRET')).listen(9000, '127.0.0.1')"`。再写一个 3000 端口的代理，把 `?u=` 参数原样 `fetch` 后返回。执行 `curl 'http://127.0.0.1:3000/?u=http://127.0.0.1:9000/'`。然后按本章的骨架加上协议和主机白名单、`redirect: 'manual'`，重启再试。
+
+   验证：加白名单前返回 `INTERNAL-SECRET`；加之后返回 403 `host not allowed`。
+
+   参考答案：代理服务器在网络上的位置比用户高，能碰到用户碰不到的地址；只放行 `https:` 和白名单里的主机，并且不跟随重定向，才算把这条路收住。

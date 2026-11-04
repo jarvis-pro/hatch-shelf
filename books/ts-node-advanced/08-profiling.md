@@ -231,3 +231,40 @@ performance.measure("render", "render:start", "render:end");
 - 火焰图找顶部宽而平的块；GC 占比高就转去看分配（`--heap-prof`）
 - 运行中的服务用 inspector + SSH 隧道剖析，inspector 端口绝不暴露到公网
 - 剖析 → 改热点 → 再剖析验证，一次只改一处
+
+## 动手练习
+
+1. **自己走一遍剖析循环**：把本章的 `slow.ts` 和 `top.ts` 存下来，运行 `node --cpu-prof --cpu-prof-dir=before slow.ts`，再 `node top.ts before/*.cpuprofile 5`。按本章的方法改写 `slugify`，输出到 `after` 目录再统计一次。
+
+   验证：改之前排第一的是 `(anonymous) slow.ts:5`（`filter` 回调），占四成多，前几名里还有 `RegExp: [a-z0-9]`；改之后这两项消失，排在前面的变成哈希相关的 `digest`、`Hash`，两次打印的哈希值完全相同，总采样时间明显变短。
+
+   参考答案：热点在字符串处理而不是哈希。改完后剖析结果的「形状」变了，这才算验证了优化，而不是只看到总时间变短。
+
+2. **ELU 分不清的和分得清的**：
+
+   ```js
+   // elu.mjs —— node elu.mjs sync / node elu.mjs async
+   import { performance } from "node:perf_hooks";
+   import { pbkdf2 } from "node:crypto";
+   const before = performance.eventLoopUtilization();
+   const t = setInterval(() => {
+     if (process.argv[2] === "sync") { const end = Date.now() + 90; while (Date.now() < end); }
+     else pbkdf2("pw", "salt", 300_000, 64, "sha512", () => {});
+   }, 100);
+   setTimeout(() => {
+     clearInterval(t);
+     console.log(process.argv[2], "ELU", performance.eventLoopUtilization(before).utilization.toFixed(2));
+   }, 1000);
+   ```
+
+   预测两次的 ELU，运行时同时用活动监视器或 `top` 看进程 CPU。
+
+   验证：`sync` 约 `0.80`（每 100 ms 忙 90 ms），`async` 接近 `0.00`，尽管后者的进程 CPU 使用率并不低。
+
+   参考答案：异步 `pbkdf2` 在线程池里算，主线程大部分时间空闲。ELU 只反映主线程，所以它能区分「JS 算不过来」和「后台线程在忙」，这是只看 CPU 使用率做不到的。
+
+3. **剖析一个运行中的服务**：用第 7 章的 `serve.ts` 加上 `--inspect=127.0.0.1:9229` 启动，在 Chrome 打开 `chrome://inspect`，在 Profiler 里开始录制，同时用 `npx autocannon -d 5 http://localhost:3000` 压 5 秒，停止录制。然后不带 `--inspect` 重启服务，用 `kill -USR1 <pid>` 再连一次。
+
+   验证：录制结果里能看到 `pipeline`、文件读取和 HTTP 写出相关的调用栈；空闲时录制则几乎全是 `(idle)`。发送 `SIGUSR1` 后，服务的 stderr 打印出 `Debugger listening on ws://127.0.0.1:9229/...`，`chrome://inspect` 里出现这个进程。
+
+   参考答案：剖析必须在有负载时做。`SIGUSR1` 能给已经在跑的进程打开 inspector，默认只监听本机；它等同远程代码执行权限，所以远程服务器上只通过 SSH 隧道连。

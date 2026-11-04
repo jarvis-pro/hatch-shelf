@@ -265,3 +265,30 @@ flowchart TD
 - hook 能被 `--no-verify` 跳过，是提醒而不是保证；保证在 CI
 - CI 默认浅克隆，依赖历史和标签的 job 要 `fetch-depth: 0`
 - 用 `git diff --exit-code` 检查生成文件是否同步；从 CI 提交用独立身份、只 add 明确的文件
+
+## 动手练习
+
+1. **手写一个 commit-msg hook**：在练习仓库里建 `.githooks/commit-msg`，`git config core.hooksPath .githooks`，让不以 Conventional Commits 类型开头的消息提交失败。分别用 `update stuff`、`feat(app): x` 提交，再用 `--no-verify` 提交一次 `update`。
+
+   验证：第一次提交打印你的报错、`echo $?` 为 1；第二次成功；第三次也成功，说明 hook 只是提醒。
+
+   参考答案（记得 `chmod +x`）：
+
+   ```sh
+   #!/bin/sh
+   head -1 "$1" | grep -qE '^(feat|fix|docs|chore|refactor|content)(\([a-z-]+\))?!?: .+' && exit 0
+   echo "提交消息不符合 Conventional Commits：$(head -1 "$1")" >&2
+   exit 1
+   ```
+
+2. **复现 CI 的浅克隆**：给练习仓库较早的一个提交打附注标签 `v1`，然后 `git clone --depth 1 file://<仓库绝对路径> shallow`，在 `shallow` 里运行 `git describe --tags`；再 `git fetch --unshallow --tags` 后重试。
+
+   验证：第一次报 `fatal: No names found, cannot describe anything.`；补全历史后输出形如 `v1-1-g<哈希>`。
+
+   参考答案：本地路径克隆会忽略 `--depth`，要写成 `file://` 才会真正浅克隆。浅克隆里没有标签指向的那个提交，`describe` 无从找起，这就是 CI 里要 `fetch-depth: 0` 的原因。
+
+3. **用退出码判断要不要跑**：在练习仓库建 `app/` 和 `books/` 两个目录并提交，再提交一次只改 `books/` 的改动。分别运行 `git diff --quiet HEAD~1 HEAD -- app/; echo $?` 和把 `app/` 换成 `books/` 的同一条命令。
+
+   验证：`app/` 输出 0（没有变化，可以跳过），`books/` 输出 1。
+
+   参考答案：`--quiet` 隐含 `--exit-code`，有差异返回 1，这正是本章「只在相关目录改动时运行」那段脚本的判断依据。

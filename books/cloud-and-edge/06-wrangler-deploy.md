@@ -294,3 +294,25 @@ binding 类配置**不会从顶层继承**到环境里，每个环境要写全�
 - 部署脚本别叫 `deploy`（会被 pnpm 内置命令吞掉）；部署后用独立请求验证
 - 版本和部署可以分开，`wrangler rollback` 只回滚代码不回滚数据
 - CI 里用最小权限的 API 令牌；多环境的 binding 和 secret 要逐个环境配全
+
+## 动手练习
+
+继续用[第 4 章练习](04-workers-runtime.md#动手练习)里的 `edge-lab` 项目，三道题都只在本机跑，不会部署任何东西。
+
+1. **复现「脚本叫 deploy」的坑**：在 `edge-lab/package.json` 的 `scripts` 里加 `"deploy": "echo DEPLOYING"`，分别运行 `pnpm deploy` 和 `pnpm run deploy`；再把脚本改名为 `ship`，运行 `pnpm ship`。
+
+   验证：`pnpm deploy` 的输出里**没有** `DEPLOYING`（出现的是 pnpm 自己的 deploy 命令的报错或用法提示）；`pnpm run deploy` 和 `pnpm ship` 都打印出 `DEPLOYING`。
+
+   参考答案：`pnpm <名字>` 遇到内置命令时执行内置命令，不会去找同名脚本；显式的 `pnpm run` 才一定跑脚本。所以脚本名避开内置命令，部署后还要用一个独立请求验证。
+
+2. **让类型检查发现配置和代码不一致**：在 `edge-lab` 里运行 `pnpm exec wrangler types`，看生成的 `worker-configuration.d.ts`；然后把 `wrangler.toml` 里的 R2 binding 名从 `VAULT` 改成 `STORE`，重新生成，再跑 `pnpm exec tsc --noEmit`（tsconfig 的 `types` 指向生成的文件，代码里的 `env` 用生成的 `Env` 类型）。
+
+   验证：第一次生成后 `grep VAULT worker-configuration.d.ts` 能看到 `VAULT: R2Bucket`；改名后 `tsc` 报错，指出 `VAULT` 在 `Env` 上不存在。
+
+   参考答案：把 `wrangler types` 放进脚本、生成文件进仓库，binding 改名这类错误就在类型检查阶段暴露，而不是上线后 `env.VAULT` 为 `undefined`。
+
+3. **验证 binding 不从顶层继承**：在 `wrangler.toml` 末尾加一段只有名字的 `[env.staging]`（`name = "edge-lab-staging"`），不写 `r2_buckets`；用 `pnpm exec wrangler dev --env staging` 启动，请求一次读 R2 的路由。
+
+   验证：请求返回 500，终端里能看到类似 `Cannot read properties of undefined` 的错误，指向 `env.VAULT`；把 `[[env.staging.r2_buckets]]` 补上后恢复正常。
+
+   参考答案：顶层的 `[[r2_buckets]]` 不会进入 `env.staging`，每个环境要把 binding 写全，并指向独立的桶。

@@ -261,3 +261,48 @@ docker compose up -d --wait --wait-timeout 90
 - 开发和生产配置差别大时分成两份文件，不要互相抄端口和密码
 - 发版顺序：拉镜像 → 起库 → `compose run --rm` 跑迁移 → `up --wait` 等健康检查；失败自动回滚镜像
 - 回滚只能退镜像，退不了迁移，迁移必须向后兼容
+
+## 动手练习
+
+1. **.env 和 env_file 各管什么**：在一个空目录里建三个文件：`.env` 写 `TAG=3.20`，`app.env` 写 `GREETING=hi`，`compose.yaml` 如下。然后执行 `docker compose run --rm app` 和 `docker compose config | grep image`。
+
+   ```yaml
+   name: envtest
+   services:
+     app:
+       image: alpine:${TAG}
+       env_file: app.env
+       command: sh -c 'echo "greeting=$$GREETING tag=$$TAG"'
+   ```
+
+   验证：输出 `greeting=hi tag=`，`TAG` 在容器里是空的；`config` 里的镜像是 `alpine:3.20`。
+
+   参考答案：`.env` 只给 compose 文件做变量替换，不进容器；`env_file` 才把变量注入容器。`$$` 是为了让 Compose 不替换、原样交给容器里的 shell。
+
+2. **等健康，不只是等启动**：写一个会「慢慢变健康」的假数据库，比较两种 `depends_on`：
+
+   ```yaml
+   name: hctest
+   services:
+     db:
+       image: alpine:3.20
+       command: sh -c 'sleep 8; touch /tmp/ready; sleep 600'
+       healthcheck: { test: ["CMD", "test", "-f", "/tmp/ready"], interval: 1s }
+     app:
+       image: alpine:3.20
+       command: echo app started
+       depends_on:
+         db: { condition: service_healthy }
+   ```
+
+   执行 `time docker compose up app`，按 Ctrl+C 后 `docker compose down`；再把 `service_healthy` 改成 `service_started` 重做一次。
+
+   验证：`service_healthy` 时 `app started` 大约 8 秒后才出现；`service_started` 时几乎立刻出现。
+
+   参考答案：只写依赖关系或 `service_started` 只保证启动顺序；`service_healthy` 才等健康检查通过。真实场景里健康检查用 `pg_isready` 这类会真正连一下的命令。
+
+3. **为什么迁移要用 compose run**：在上题的项目里（db 起着），执行 `docker compose run --rm app ping -c 1 db`，再执行 `docker run --rm alpine ping -c 1 db`。
+
+   验证：第一条能解析出 `db` 的地址并收到回应；第二条报 `bad address 'db'`。做完 `docker compose down`。
+
+   参考答案：`compose run` 用服务的配置起临时容器，加入项目网络，能用服务名；裸 `docker run` 在默认 bridge 上，解析不了服务名。部署脚本跑迁移连不上库，常见原因就是这一条。

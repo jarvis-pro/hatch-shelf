@@ -164,6 +164,35 @@ npx wrangler kv key put --binding FLAGS maintenance on --remote
 - 上限分三层：架构上让被刷不可能、用量告警、硬性停止；Cloudflare 付费套餐上第一层最重要
 - 每月看趋势、看最大项、看免费额度余量
 
+## 动手练习
+
+1. **用本章的变量表估一次用量**：设 $U=5$、$d=30$、$o=60$、$S=40$、$m=0.008$（GB）、$T=2000$，按「估算」一节的公式算出 R2 存储、A 类操作、B 类操作和出网流量的月用量；再查 R2 当前定价页，判断是否落在免费额度内。
+
+   验证：存储 $2000\times0.008=16$ GB；A 类约 $40\times4=160$ 次；B 类 $5\times(30+2\times60)=750$ 次；出网 $5\times30\times0.008=1.2$ GB。
+
+   参考答案：四个数都很小，持续增长的只有存储那一项。把 $U$ 放大到 500 再算一遍：B 类和出网流量放大 100 倍，存储不变。出网流量放在按流量计费的存储上就会变成账单的主要部分。
+
+2. **数出碎 Range 的放大倍数**：一首 5MB 的歌，客户端按 64KB 一段下载，需要几次读操作？100 个订阅者每人每月下载 50 首，一个月共多少次？和「一次请求整个文件」比是多少倍？然后在[第 4 章练习](04-workers-runtime.md#动手练习)的 `edge-lab` 里实际看一次：用 curl 循环按 64KB 的 Range 读一个本地 R2 对象，数 `wrangler dev` 终端里打印的请求行。
+
+   验证：$5\times1024/64=80$ 次 / 首；$100\times50\times80=400{,}000$ 次 / 月，对比整文件下载的 $5{,}000$ 次，是 80 倍；终端里的请求行数等于循环次数。
+
+   参考答案：B 类操作和 Worker 请求都按次计费，分段大小直接乘到账单上；分段尽量大，或一次请求整个文件、靠 Range 只做断点续传。
+
+3. **一条命令止血的熔断开关**：在 `edge-lab` 里加一个 KV binding `FLAGS`（本地 `id` 填占位值），每个请求先读 `maintenance`，值为 `on` 时除 `/v1/ping` 外一律返回 503。
+
+   验证：`pnpm exec wrangler kv key put --binding FLAGS maintenance on --local` 之后，`curl -s -o /dev/null -w '%{http_code}\n' localhost:8787/anything` 输出 `503`，`/v1/ping` 仍是 `200`；`kv key delete --binding FLAGS maintenance --local` 后恢复。
+
+   参考答案：
+
+   ```ts
+   const url = new URL(req.url);
+   if (url.pathname !== "/v1/ping" && (await env.FLAGS.get("maintenance")) === "on") {
+     return new Response("maintenance", { status: 503 });
+   }
+   ```
+
+   线上用 `--remote` 操作，并记住 KV 是最终一致的，开关生效要等传播，不是立即生效。
+
 ## 接下来读什么
 
 这本书讲的是「云」这一层。接下来建议读[《可观测性与性能》](../observability-performance/)，给跑在云上的服务装上日志、指标和告警，用量异常才能第一时间发现；然后回到[《一人运维手册》](../production-ops/)，把事故响应、值班和检查清单补齐。如果要做海外市场，[《出海实务》](../going-global/)讲了地区、付款、域名和邮件；想把这些资源的配置也写成代码，看[《基础设施即代码》](../iac-gitops/)。

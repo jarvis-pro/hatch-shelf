@@ -252,3 +252,39 @@ print(np.allclose(out[4:], out2[4:]))  # False
 - 多头注意力可以改写成各头输出之和，每个头由 QK 电路（看哪里）和 OV 电路（写什么）两部分决定
 - 现代块普遍用 Pre-LN、RMSNorm、SwiGLU、RoPE
 - 每层参数约 $12d^2$，前向 FLOPs 约 $24d^2 + 4nd$；训练每 token 约 $6N$ FLOPs；注意力分数项随上下文变长而变得显著
+
+## 动手练习
+
+1. **把掩码放错地方**：随机生成一个 $5\times5$ 的分数矩阵 `S`，先做 softmax、再把对角线以上的元素乘 0（而不是先加 $-\infty$），打印每行的和。
+
+   验证：除最后一行是 1 以外，其余各行的和都小于 1。
+
+   参考答案：softmax 之后再乘 0，被遮住位置的概率被扔掉了却没有重新归一化；加 $-\infty$ 是在归一化之前就让它们变成 0。
+
+   ```python
+   import numpy as np
+   rng = np.random.default_rng(0)
+   S = rng.standard_normal((5, 5))
+   P = np.exp(S - S.max(-1, keepdims=True)); P /= P.sum(-1, keepdims=True)
+   P *= ~np.triu(np.ones((5, 5), bool), 1)
+   print(P.sum(-1).round(3))
+   ```
+
+2. **验证「各头之和」的改写**：用本章「完整实现」里的 `mha`，得到 `out` 和 `A` 后，按 $\sum_i A^{(i)} X W_V^{(i)} W_O^{(i)}$ 重新算一遍（$W_V^{(i)}$ 取 `Wv` 的第 $i$ 组 $d_k$ 列，$W_O^{(i)}$ 取 `Wo` 的第 $i$ 组 $d_k$ 行），和 `out` 比较；再看 $W_V^{(1)}W_O^{(1)}$ 的秩。
+
+   验证：`np.allclose(out, tot)` 打印 `True`；`np.linalg.matrix_rank` 打印 16，即 $d_k$。
+
+   参考答案：拼接后乘 $W_O$ 等于分块相乘再相加，所以头与头只是「相加」到残差流；每个 OV 电路是 $d\times d$ 但秩不超过 $d_k$。
+
+   ```python
+   dk = 64 // 4
+   tot = sum(A[i] @ X @ W[2][:, i*dk:(i+1)*dk] @ W[3][i*dk:(i+1)*dk, :] for i in range(4))
+   print(np.allclose(out, tot))
+   print(np.linalg.matrix_rank(W[2][:, :dk] @ W[3][:dk, :]))
+   ```
+
+3. **注意力什么时候成主角**：用本章表格的每层前向 FLOPs $24d^2 + 4nd$，求注意力分数项等于其余部分时的上下文长度 $n$，代入 Llama 3 8B 的 $d=4096$；再算 $n=8192$ 时注意力分数项占每层 FLOPs 的比例。
+
+   验证：$n=6d=24576$；$n=8192$ 时约占 25%。
+
+   参考答案：$4nd = 24d^2 \Rightarrow n = 6d$。$n=8192$ 时 $4nd/(24d^2+4nd) = 8192/(24576+8192)=0.25$。上下文继续变长，这一项会超过所有矩阵乘法之和，这就是第 5 章要解决的问题。

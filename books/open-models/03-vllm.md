@@ -241,3 +241,44 @@ $$
 - Docker Compose 部署时 nginx 要关 `proxy_buffering`、加长超时，vLLM 必须加 API key 且不直接暴露
 - 一个底座可以同时挂多个 LoRA，按 `model` 字段路由
 - 压测找吞吐趋平、TTFT 飙升的拐点；划算与否取决于真实流量能否把 GPU 用满
+
+## 动手练习
+
+1. **从 config.json 算 KV Cache**：在 Mac 上下载 Qwen3-8B 的配置文件（不需要令牌），用[KV Cache 能装多少](#kv-cache-能装多少)的公式算每 token 的 KV Cache 和一个 16K 请求的占用。
+
+   ```python
+   import json, urllib.request
+   url = "https://huggingface.co/Qwen/Qwen3-8B/resolve/main/config.json"
+   c = json.load(urllib.request.urlopen(url))
+   head_dim = c.get("head_dim") or c["hidden_size"] // c["num_attention_heads"]
+   per_token = 2 * c["num_hidden_layers"] * c["num_key_value_heads"] * head_dim * 2  # BF16
+   print(c["num_hidden_layers"], c["num_key_value_heads"], head_dim)
+   print(per_token / 1024, "KiB/token;", per_token * 16384 / 2**30, "GiB/16K")
+   ```
+
+   验证：写作时这份配置是 36 层、8 个 KV 头、头维度 128，算出 144 KiB/token、16K 请求 2.25 GiB；配置若已更新，以你下载到的数字为准。
+
+   参考答案：比 Llama 3 8B 多 4 层，所以每 token 多 1/8。在 24 GB 卡上 BF16 权重约 16 GB，剩余 5 GB 多一点，只够两个 16K 满长请求，和正文的结论一致。
+
+2. **复现 nginx 缓冲对流式输出的影响**：在 Mac 上用 Ollama 当上游，Docker 起一个 nginx 反代它，分别用 `proxy_buffering on` 和 `off` 两份配置，用 `curl -N` 发 `"stream": true` 的请求。
+
+   ```nginx
+   server {
+       listen 80;
+       location /v1/ {
+           proxy_pass http://host.docker.internal:11434;
+           proxy_http_version 1.1;
+           proxy_buffering on;   # 第二次改成 off
+       }
+   }
+   ```
+
+   验证：`docker run --rm -p 8088:80 -v $PWD/nginx.conf:/etc/nginx/conf.d/default.conf:ro nginx:1.27` 后请求 `http://localhost:8088/v1/chat/completions`。`on` 时短回答的 `data:` 行往往在最后一起出现（长回答会一阵一阵地出现）；`off` 时逐行连续出现。容器连不上 Ollama 时，先确认 Ollama 在跑，必要时临时用 `OLLAMA_HOST=0.0.0.0:11434` 起服务，测完改回。
+
+   参考答案：nginx 默认把上游响应攒进缓冲区再转发，SSE 的小块数据就被攒住了。生产配置里关掉 `proxy_buffering`、加长 `proxy_read_timeout`。
+
+3. **算一笔账**（纯计算）：一张 GPU 每小时租金 2 美元，压测吞吐 1500 tokens/s；但真实流量折算下来全天平均只有 20 tokens/s。用[算一笔账](#算一笔账)的公式分别算每百万 token 成本。可选：租一台 NVIDIA GPU，用 `vllm bench serve` 从并发 1 往上加，自己找出拐点（参数名以 `--help` 为准）。
+
+   验证：两个结果约为 0.37 美元和 27.8 美元。
+
+   参考答案：差了 75 倍，原因全在利用率：GPU 按小时计费，空闲时间分摊到了少量 token 上。流量撑不满 GPU 时，API 或按秒计费的平台更便宜。

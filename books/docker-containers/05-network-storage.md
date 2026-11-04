@@ -168,14 +168,14 @@ docker compose exec -T postgres pg_restore -U counter -d counter --clean < backu
 
 `-T` 关掉伪终端分配，否则二进制输出会被终端处理搞坏。
 
-hatch-counter 目前只依赖云盘自动快照做备份，部署文档里如实记录了代价：快照只能整盘回退，无法「只恢复昨天下午改坏的那张表」；理由是库迟早要迁到托管数据库，到时由托管备份接手。在这之前，手动改库前先手动打一次快照。这是一个**知道的风险**，而不是被忘掉的风险，这种「把代价写下来」的做法值得学习。
-
 非数据库的普通卷（比如上传文件目录），可以用一个临时容器打包：
 
 ```bash
 docker run --rm -v myproj_uploads:/data -v "$PWD":/backup alpine \
   tar czf /backup/uploads-$(date +%F).tgz -C /data .
 ```
+
+这些导出文件仍在宿主机上，只防误操作。要再送一份到异地并让失败可见（3-2-1、restic、心跳），见[《一人运维手册》3-2-1 原则](../production-ops/02-backup-dr.md#3-2-1-原则)；hatch-counter 目前为什么只靠云盘快照、这样做的代价，见同章的[案例](../production-ops/02-backup-dr.md#案例只有快照是一个知道的风险)；pg_dump 的格式选择和恢复演练见[《PostgreSQL 运维》第 2 章](../database-ops/02-backup-restore.md)。
 
 ### 日志也是存储
 
@@ -209,3 +209,36 @@ logging:
 - 绑定挂载要注意宿主机目录的 UID 与容器内进程是否一致
 - 数据库用 `pg_dump` 备份，不要直接拷运行中的数据目录
 - 给容器日志配轮转，否则迟早写满磁盘
+
+## 动手练习
+
+1. **绑定地址决定谁能访问**：执行 `docker run -d --name p1 -p 127.0.0.1:8081:80 nginx:alpine` 和 `docker run -d --name p2 -p 8082:80 nginx:alpine`。在本机分别 `curl -sI localhost:8081` 和 `curl -sI localhost:8082`，再用局域网地址访问：`curl -sI --connect-timeout 3 http://$(ipconfig getifaddr en0):8081`（Linux 换成本机的局域网 IP），8082 同样试一次。
+
+   验证：本机访问两个都返回 `200`；用局域网地址时 8081 连不上，8082 返回 `200`。做完 `docker rm -f p1 p2`。
+
+   参考答案：`-p 8082:80` 等于绑 `0.0.0.0`，所有网卡上的请求都会被转进容器；`127.0.0.1:8081:80` 只接本机回环来的连接。放在服务器上，前者就是把服务挂到了公网。
+
+2. **命名卷和容器的生命周期**：写一个 `compose.yaml`：
+
+   ```yaml
+   name: voltest
+   services:
+     app:
+       image: alpine:3.20
+       command: sh -c 'date >> /data/log && cat /data/log'
+       volumes: [data:/data]
+   volumes:
+     data:
+   ```
+
+   执行三次 `docker compose run --rm app`，再执行 `docker compose down` 后跑一次，最后 `docker compose down -v` 后再跑一次。
+
+   验证：前三次输出的行数依次是 1、2、3；`down` 之后是 4 行；`down -v` 之后又回到 1 行。
+
+   参考答案：命名卷独立于容器存在，`down` 只删容器和网络；`-v` 连卷一起删，对数据库来说就是删库。
+
+3. **空卷会被填充，绑定挂载会遮住**：执行 `docker run --rm -v demo_html:/usr/share/nginx/html nginx:alpine ls /usr/share/nginx/html`；再建一个空目录 `mkdir empty`，执行 `docker run --rm -v "$PWD/empty:/usr/share/nginx/html" nginx:alpine ls /usr/share/nginx/html`。
+
+   验证：第一条列出 `50x.html` 和 `index.html`；第二条什么都不输出。做完 `docker volume rm demo_html`。
+
+   参考答案：首次挂载空的命名卷时，Docker 会把镜像里该路径下已有的内容复制进卷；绑定挂载则直接用宿主机目录盖住镜像里的内容。用绑定挂载给数据库或网站目录时，要先想清楚镜像里原来的文件去哪了。

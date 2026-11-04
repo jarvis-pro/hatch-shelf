@@ -212,3 +212,35 @@ docker build --target test -f apps/api/Dockerfile .
 - 去掉开发依赖要先确认运行时没人用它（比如用 tsx 跑迁移）
 - `pnpm deploy --prod` 能产出独立可搬运的目录，注意新版本 pnpm 的前置条件
 - 先用 `docker image history` 或 dive 测量，再决定怎么瘦身
+
+## 动手练习
+
+1. **把编译器留在构建阶段**：建一个目录，`package.json` 写 `{"devDependencies":{"typescript":"5.6.3"}}`，`index.ts` 写 `const msg: string = 'hi'; console.log(msg);`。先用单阶段构建 `single`：
+
+   ```dockerfile
+   FROM node:22-alpine AS build
+   WORKDIR /app
+   COPY package.json ./
+   RUN npm install
+   COPY index.ts ./
+   RUN npx tsc index.ts --outDir dist
+   CMD ["node", "dist/index.js"]
+   ```
+
+   再在末尾追加 `FROM node:22-alpine`、`WORKDIR /app`、`COPY --from=build /app/dist ./dist`、`CMD ["node", "dist/index.js"]`，构建成 `multi`。用 `docker image ls` 比较，再分别 `docker run --rm <镜像> ls`。
+
+   验证：两个镜像运行都输出 `hi`；`multi` 比 `single` 小了几十 MB，`ls` 只有 `dist`，没有 `node_modules`。
+
+   参考答案：最终镜像只包含最后一个阶段的层，TypeScript 和源码都留在了 `build` 阶段。用 `docker image history single` 能看到最大的那层就是 `npm install`。
+
+2. **--target 和没用到的阶段**：在上题 Dockerfile 的两个阶段之间插入一个 `FROM build AS test` 和 `RUN node -e "process.exit(1)"`（一个必然失败的「测试」）。分别执行 `docker build -t multi .` 和 `docker build --target test .`。
+
+   验证：第一条构建成功，输出里没有执行 `test` 阶段；第二条在那一步失败退出。
+
+   参考答案：BuildKit 只构建目标阶段依赖到的阶段，`test` 不被最终阶段引用，默认构建时会被跳过；CI 里用 `--target test` 专门跑它。
+
+3. **瘦身前先问谁在用**：同事提议把 hatch-counter 的 runtime 阶段改成只拷 `dist/` 和 `pnpm deploy --prod` 产出的生产依赖。部署脚本里有一步 `docker compose run --rm api ./node_modules/.bin/tsx src/db/migrate-cli.ts`。这样改会发生什么？怎么改才不出问题？
+
+   验证：能说出哪一步会坏、为什么，并给出一种改法。
+
+   参考答案：迁移会失败：`tsx` 是开发依赖，`src/` 也不再在镜像里。改法是把迁移脚本也编译成 JS 放进 `dist/` 用 `node` 执行，或者单独做一个带开发依赖的 `migrate` 阶段、用 `--target migrate` 构建成另一个镜像给部署脚本用。

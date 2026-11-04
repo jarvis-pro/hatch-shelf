@@ -232,3 +232,38 @@ Redis 是好东西，但它是**又一个要部署、要监控、要备份（或
 - hatch-counter 的版本号缓存：数据库触发器维护版本号，推版本不推数据，只在内存不落盘
 - 取用形状决定值不值得缓存：读一次的大文件不缓存，反复读的小对象缓存
 - 单实例时 Redis 的大部分用途都有更简单的替代；多实例共享高频状态时再引入
+
+## 动手练习
+
+1. **复现缓存击穿**：把下面的脚本存成 `stampede.mjs` 用 Node 运行。然后把 `naiveGet` 换成本章的 `TtlCache`（去掉类型注解），同样并发 50 次 `cache.get("k", load)`，再跑一次。
+
+   ```javascript
+   let loads = 0;
+   const load = async () => { loads++; await new Promise((r) => setTimeout(r, 100)); return "v"; };
+   const store = new Map();
+   async function naiveGet(key) {
+     const hit = store.get(key);
+     if (hit && hit.expiresAt > Date.now()) return hit.value;
+     const value = await load();
+     store.set(key, { value, expiresAt: Date.now() + 10_000 });
+     return value;
+   }
+   await Promise.all(Array.from({ length: 50 }, () => naiveGet("k")));
+   console.log("loads =", loads);
+   ```
+
+   验证：第一次输出 `loads = 50`，换成 `TtlCache` 后输出 `loads = 1`。
+
+   参考答案：50 个调用都在第一次 `load()` 完成之前检查缓存，全部未命中；`TtlCache` 的 `loading` 表让后来的调用等同一个 Promise。真实系统里这 50 次就是同一瞬间打到数据库的 50 条查询。
+
+2. **三类数据放哪层**（分析题）：单实例的门店 SaaS 有三类数据：A. 全平台共用的城市和行业字典，一个月改一次；B. 店主首页的「今日营业额」，每记一笔都会变；C. 公开的商品示意图，每张几十 KB，所有店反复看到。各自缓存在哪一层、怎么失效，或者不缓存。
+
+   验证：每类数据对照「读得多、变得少、旧一点能接受或能准确知道何时变了」三条逐一打勾。
+
+   参考答案：A 进程内 Map + TTL，改动时顺手 `invalidate`；B 是钱，旧一秒都可能误导，不加 TTL 缓存，要缓存只能用能准确知道变化的版本号方案；C 文件名带内容哈希，`Cache-Control: public, max-age=31536000, immutable` 交给浏览器和 CDN。如果 A 改成多实例部署，`invalidate` 只清本实例，要么接受 TTL 的延迟，要么改动时通知各实例。
+
+3. **看 ETag 和 304**：新建目录，`pnpm add express`，写一个只有 `app.get("/x", (req, res) => res.json({ a: 1 }))` 的服务，用 `curl -i localhost:3000/x` 请求一次，再把响应里的 ETag 原样放进 `-H 'If-None-Match: <etag>'` 请求第二次。
+
+   验证：第一次是 200，响应头里有 `ETag: W/"..."`；第二次是 `304 Not Modified`，没有响应体。
+
+   参考答案：Express 默认对响应体生成弱 ETag，并处理条件请求。304 省的是传输，请求本身还是到了服务端；要让浏览器连请求都不发，得靠 `Cache-Control` 的 `max-age`。把 `res.json` 的内容改掉再带旧 ETag 请求，会重新拿到 200。

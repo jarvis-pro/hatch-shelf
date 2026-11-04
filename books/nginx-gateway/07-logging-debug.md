@@ -197,3 +197,38 @@ error_log /var/log/nginx/error.log info;   # 默认 error，临时调到 info �
 - 502 看 error log 关键词：refused、no live upstreams、prematurely closed
 - 分段验证：直连后端 vs 经过 nginx；`curl --resolve` 不依赖 DNS 测试 server 块
 - 同一个后端挂在多个域名下时，每个 server 块的限制都要一致
+
+## 动手练习
+
+环境同[第 1 章的练习](01-config-model.md#动手练习)。官方镜像把 access log 接到容器的 stdout、error log 接到 stderr，用 `docker logs ng 2>/dev/null` 看前者、`docker logs ng 2>&1 >/dev/null` 看后者。`conf.d/default.conf`：
+
+```nginx
+log_format timed '$remote_addr - [$time_local] "$request" $status '
+                 'rt=$request_time urt=$upstream_response_time us=$upstream_status';
+server { listen 9000; location / { return 200 "ok\n"; } }
+server {
+    listen 80;
+    access_log /dev/stdout timed;
+    location /ok/   { proxy_pass http://127.0.0.1:9000; }
+    location /down/ { proxy_pass http://127.0.0.1:9999; }
+    location /hang/ { proxy_pass http://10.255.255.1; proxy_connect_timeout 2s; }
+}
+```
+
+1. **从日志分清是谁的错**：依次请求 `curl -s localhost:8080/ok/`、`curl -s localhost:8080/down/`、`head -c 2000000 /dev/zero | curl -s --data-binary @- localhost:8080/ok/`，然后看两种日志。
+
+   验证：access log 三行的状态分别是 `200`、`502`、`413`；`200` 那行 `us=200`，`413` 那行 `us=-`；error log 里有 `connect() failed (111: Connection refused)`。
+
+   参考答案：`us=-` 说明请求没到后端，是 nginx 自己拒的；502 要去 error log 看原因，这里是后端端口没人监听。
+
+2. **504 和 499**：执行 `curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/hang/`，再执行 `curl -s -m 1 localhost:8080/hang/`，然后看日志。
+
+   验证：第一条约 2 秒后输出 `504`，error log 里有 `upstream timed out`；第二条 curl 1 秒就自己放弃了，access log 里这一行记的是 `499`。如果你的网络对 `10.255.255.1` 立刻回「不可达」，会看到 502 而不是超时，换一个不回应的私网地址再试。
+
+   参考答案：504 是 nginx 等后端超时；499 是客户端比 nginx 先放弃。大量 499 时看同一行的 `urt`，根因通常是后端慢、客户端超时短。
+
+3. **用 awk 统计状态码**：把上面几种请求各多发几次，执行 `docker logs ng 2>/dev/null | grep 'rt=' | awk '{print $8}' | sort | uniq -c | sort -rn`。
+
+   验证：输出按次数排好的状态码分布，和你发的请求对得上。
+
+   参考答案：`$time_local` 里带一个空格，所以按空格切分后状态码落在第 8 列；换了 log_format 就要重新数列，这也是长期使用时改用 JSON 格式的理由。

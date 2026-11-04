@@ -228,3 +228,23 @@ afterPack: scripts/fuses.cjs
 - 设严格 CSP，需要 `eval` 的脚本挪到单独的沙箱窗口
 - 用 `@electron/fuses` 关掉 `RunAsNode`、`NODE_OPTIONS`、`--inspect` 这些后门
 - 偏离清单可以，但要写清理由、评估前提，并知道前提变了要补什么
+
+## 动手练习
+
+1. **封死导航和新窗口**：在第 1 章的练习工程里，先不加任何防护，在页面 Console 里执行 `location.href = 'https://example.com'`，再执行 `window.open('https://example.com')`。然后按本章加上 `setWindowOpenHandler` 和 `will-navigate` 两段，重启后再试。
+
+   验证：加之前，主窗口整页跳到了外部网站（它带着你的 preload），`window.open` 开出一个新的 Electron 窗口；加之后主窗口原地不动，链接在系统浏览器里打开。
+
+   参考答案：跳到外部的页面会继承 preload 交出去的全部函数；导航一律拦掉，外链只交给 `shell.openExternal` 且只放行 `https:`。
+
+2. **权限请求只放行需要的**：按本章加上只允许 `notifications` 的 `setPermissionRequestHandler`，在页面 Console 里执行 `await Notification.requestPermission()` 和 `await navigator.mediaDevices.getUserMedia({ video: true })`。
+
+   验证：第一个返回 `"granted"`；第二个抛出 `NotAllowedError`。
+
+   参考答案：权限处理函数是页面申请系统能力时的唯一入口，显式列白名单，不依赖默认行为。
+
+3. **翻转 fuse 前后对比**：用 `pnpm build && pnpm exec electron-builder --mac --dir` 打出一个未签名的 `.app`，运行 `ELECTRON_RUN_AS_NODE=1 <App>.app/Contents/MacOS/<App> -e "console.log(process.version)"`，并运行 `npx @electron/fuses read --app <App>.app`。再按本章加上 `afterPack: scripts/fuses.cjs` 重打一次，重复两条命令。
+
+   验证：翻转前第一条打印出 Node 版本号（应用被当成了 Node 解释器），`read` 显示 `RunAsNode` 为 Enabled；翻转后不再打印版本号（应用照常启动），`RunAsNode` 为 Disabled。
+
+   参考答案：`RunAsNode` 打开时，任何能设环境变量的程序都能借你的应用执行任意脚本；它是二进制里的开关，只能在打包时翻转。

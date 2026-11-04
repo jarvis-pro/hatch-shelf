@@ -180,6 +180,37 @@
 
 贯穿全书的一句话：**你无法保证模型不被说服，但可以设计系统，让被说服的模型也造不成严重后果。**
 
+## 动手练习
+
+1. **用精简清单检查自己的一个仓库**：挑一个你在用编码 agent 的仓库，对照「个人编码 agent」那张表逐条查。几条可以直接用命令看：
+
+   ```bash
+   jq '.permissions' .claude/settings.json
+   ls -a .claude .mcp.json 2>/dev/null
+   gh api repos/{owner}/{repo}/branches/main/protection --jq '.required_pull_request_reviews != null'
+   ```
+
+   验证：得到一张「已做 / 未做」的表；未做的每一项写一句「为什么可以接受」或「什么时候补」。
+
+   参考答案：最常见的缺口是 deny 里没有 `.env*`、`.claude/` 和 CI 配置的修改不需要确认、main 没有分支保护（上面的 `gh api` 会返回 404 和 `Branch not protected`）。
+
+2. **打开陌生仓库前先看它的 agent 配置**：写两条命令，列出一个仓库 `.claude/settings.json` 里所有 hooks 会执行的命令，以及 `.mcp.json` 里每个 MCP server 的启动命令。自己造一个带一条 hook 和一个 server 的测试仓库来验证。
+
+   ```bash
+   jq -r '[.hooks // {} | .. | .command? // empty] | .[]' .claude/settings.json
+   jq -r '.mcpServers // {} | to_entries[] | "\(.key): \(.value.command) \(.value.args // [] | join(" "))"' .mcp.json
+   ```
+
+   验证：输出里能看到你在测试仓库里写的 hook 命令和 server 启动命令，每条一行。
+
+   参考答案：hooks 和 MCP server 都会以你的身份执行命令，clone 来的仓库在打开之前就该看一眼，这是清单里「先看 `.claude/` 和 `.mcp.json`」那一条的具体做法。
+
+3. **用清单分析一个定时 agent**：设想一个「团队日报」agent，每天早上读团队私有仓库里新开的 issue，汇总后发到群里。说出三要素是否齐全、按「无人值守的定时 agent」清单该怎么改。
+
+   验证：答案里至少有一条硬约束，并且说明发送这一步由谁执行。
+
+   参考答案：私有 issue 是私密数据，issue 正文是不可信内容（任何有权限的人都能写），发群消息是对外通信，三者齐全。参照采购助手的例子：agent 只做分类计数，输出严格的 schema（标签、数量、issue 编号）；群消息由确定性代码按 schema 拼出标题和链接后发送，不让模型的自由文本直接进群。
+
 ## 接下来读什么
 
 - 想把这些原则用到每天在用的编码 agent 上：[《编码 Agent 实战》](../coding-agents/)，尤其是 hooks 和常见坑两章

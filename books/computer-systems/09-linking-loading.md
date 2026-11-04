@@ -280,3 +280,23 @@ JS 部分则完全不同：Metro 把所有 JS 打成一个 bundle，Hermes 在�
 - Node 原生模块是动态库，受系统、架构、C 库和 ABI 约束；Node-API 模块跨 Node 大版本兼容，Electron 需要重编非 Node-API 模块
 - 预编译包在安装的机器上选择：不要拷宿主机的 `node_modules` 进镜像，构建和运行阶段用同一种 C 库
 - 先弄清哪些依赖带原生代码，再选基础镜像
+
+## 动手练习
+
+1. **亲手当一次链接器的客户**：把本章的 `greet.c`、`main.c` 存下来（Mac 需要 Xcode 命令行工具，Linux 用 `gcc` 替换 `clang`），依次执行 `clang -c greet.c main.c`、`nm main.o`、`clang main.o -o x`、`clang greet.o main.o -o hello && ./hello; echo $?`。
+
+   验证：`nm main.o` 里 `_greet`、`_greet_count` 前是 `U`（Linux 上没有下划线）；只链接 `main.o` 报 `Undefined symbols`（Linux 上是 `undefined reference to 'greet'`）；完整链接后打印两行问候，退出码 0。
+
+   参考答案：链接器要为每个 `U` 找到一个定义；`printf` 也是 `U`，但它由系统 C 库在运行时提供，不需要你给。
+
+2. **看加载器找到了哪些库**：对上一题的 `hello` 运行 `otool -L hello` 和 `DYLD_PRINT_LIBRARIES=1 ./hello`（Linux 上是 `ldd hello` 和 `LD_DEBUG=libs ./hello`）。
+
+   验证：`otool -L` 只列出 `libSystem.B.dylib` 一项；`DYLD_PRINT_LIBRARIES` 打印出的库多得多（`libSystem` 自己又依赖一串 `/usr/lib/system/` 下的库）。Linux 上 `ldd` 能看到 `libc.so.6` 和 `ld-linux-*.so.*` 加载器。
+
+   参考答案：可执行文件里只记直接依赖，加载器递归地把依赖的依赖也映射进来。
+
+3. **复现 Alpine 的那条报错**：只在 Docker 里做，在一个空目录里先用 glibc 镜像安装：`docker run --rm -v "$PWD":/app -w /app node:22 npm i better-sqlite3`，再用 Alpine 镜像加载它：`docker run --rm -v "$PWD":/app -w /app node:22-alpine node -e 'require("better-sqlite3")'`。之后对 `node_modules/better-sqlite3/build/Release/better_sqlite3.node` 运行 `file`。
+
+   验证：Alpine 那条命令报错，信息里提到找不到 `ld-linux-` 开头的动态加载器（或类似的共享库加载失败）；`file` 显示它是 `ELF 64-bit LSB shared object`，架构和你的 Docker 架构一致。在 Alpine 镜像里重新 `npm i` 后再加载就正常了。
+
+   参考答案：`.node` 是为 glibc 编译的动态库，依赖 glibc 的加载器，而 Alpine 只有 musl 的。安装和运行用同一种 C 库的镜像，问题就不存在。顺带用 `node -p process.versions.modules` 看本机 Node 的 ABI 编号（Node 22 是 127），和本章报错里的 `NODE_MODULE_VERSION` 对照。

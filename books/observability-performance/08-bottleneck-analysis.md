@@ -242,3 +242,28 @@ const items = await db
 - 连接池耗尽的表现是「接口慢但 SQL 快」；`idle in transaction` 是头号嫌疑，外部调用不要放进事务
 - `pg_stat_statements` 按总耗时排序找最贵的 SQL，`EXPLAIN (ANALYZE, BUFFERS)` 看执行计划
 - 外部调用必须有超时，重试要退避和设上限；优化前后用同一压测对比
+
+## 动手练习
+
+1. **一个慢接口拖慢所有接口**：写一个 Node HTTP 服务，`/block` 用 `while (Date.now() - t < 300) {}` 同步空转 300ms，`/fast` 直接返回。先单独测 `/fast`，再在另一个终端循环请求 `/block` 的同时测 `/fast`。最后用 `node --cpu-prof server.mjs` 启动、跑一会儿后 Ctrl+C，把生成的 `.cpuprofile` 拖进 Chrome DevTools 的 Performance 面板。
+
+   验证：单独测时 `curl -s -o /dev/null -w '%{time_total}\n' localhost:3000/fast` 是几毫秒；`/block` 被持续请求时，同一条命令经常输出 0.1–0.3 秒。火焰图里 `/block` 的处理函数是又宽又平的一块。
+
+   参考答案：事件循环是单线程的，300ms 的同步代码期间其他请求只能等。这类问题在 SQL 和外部调用的耗时里都看不到，要看事件循环延迟或 CPU profile。
+
+2. **制造并抓住 idle in transaction**：在一次性容器里起 Postgres：`docker run -d --name pg-lab -e POSTGRES_PASSWORD=dev postgres:16`。开第一个会话 `docker exec -it pg-lab psql -U postgres`，执行 `BEGIN; SELECT 1;` 后什么都不做；在第二个会话里执行本章的 `pg_stat_activity` 查询。然后在第一个会话 `ROLLBACK;`，先执行 `SET idle_in_transaction_session_timeout = '5s';`，再 `BEGIN; SELECT 1;`，等 10 秒后随便执行一条语句。
+
+   验证：第二个会话里能看到一行 `state` 为 `idle in transaction`，`xact_age` 不断变大；设了超时后，第一个会话等待后再执行语句会报错，提示连接因 idle-in-transaction 超时被终止。
+
+   参考答案：事务开着但什么都不执行，连接就被白白占住。生产代码里这几乎总是「事务里调了外部 API」。超时参数是兜底，根本的修法是把外部调用移出事务。
+
+3. **从 pg_stat_statements 认出 N+1**：用 `docker run -d --name pg-n1 -e POSTGRES_PASSWORD=dev postgres:16 -c shared_preload_libraries=pg_stat_statements` 起库，执行 `CREATE EXTENSION pg_stat_statements;`，建表 `items(purchase_id int, qty int)` 并用 `generate_series` 灌 10 万行。然后在 shell 里循环 50 次逐条查询 `select * from items where purchase_id = $i`，再执行一次 `select * from items where purchase_id = any(array[1,2,3])`。最后对单条查询做 `EXPLAIN ANALYZE`，建索引后再做一次。
+
+   验证：`select calls, left(query, 60) from pg_stat_statements order by calls desc limit 3;` 里，逐条查询被归成一行，`calls` 是 50，参数显示为 `$1`；建索引前计划里是 `Seq Scan`（可能带 `Parallel`），建 `create index on items(purchase_id)` 之后变成 `Index Scan` 或 `Bitmap Heap Scan`。做完 `docker rm -f pg-n1 pg-lab`。
+
+   参考答案：同一形状的查询 `calls` 远高于其他查询，就是 N+1 的特征，改成一次 `= any(...)` 或 `IN` 的批量查询；缺索引则体现在大表上的 `Seq Scan`。灌数据可以用：
+
+   ```sql
+   CREATE TABLE items (purchase_id int, qty int);
+   INSERT INTO items SELECT (random() * 5000)::int, 1 FROM generate_series(1, 100000);
+   ```

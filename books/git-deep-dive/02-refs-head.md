@@ -222,3 +222,23 @@ git config --global alias.pushf 'push --force-with-lease --force-if-includes'
 - `origin/main` 是上次 fetch 的记录；`fetch.prune`、`push.autoSetupRemote` 值得全局打开
 - `reset` 挪的是分支，三种模式决定暂存区和工作区要不要跟着变；从未 add 的改动丢了就找不回来
 - 强推用 `--force-with-lease --force-if-includes`
+
+## 动手练习
+
+1. **分支文件去哪了**：在练习仓库里提交一次，确认 `.git/refs/heads/main` 存在，然后运行 `git gc`，再 `ls .git/refs/heads` 和 `git rev-parse main`。
+
+   验证：`ls` 可能已经看不到 `main`，但 `rev-parse` 照常输出提交 ID；`cat .git/packed-refs` 里能找到 `refs/heads/main` 那一行。
+
+   参考答案：gc 把松散引用收进了 `packed-refs`，这正是脚本不该直接读 `.git/refs` 的原因。如果仓库是 reftable 格式，两个地方都看不到，`rev-parse` 依旧可用。
+
+2. **两个点和三个点**：从 main 的提交 A、B 分出 `feat`，在 `feat` 上提交 F1、F2，再回到 main 提交 M1。预测 `git log --oneline main..feat` 和 `git log --oneline main...feat` 各输出几行，再运行确认。
+
+   验证：前者 2 行（F2、F1），后者 3 行（F2、F1、M1）。
+
+   参考答案：`..` 是 feat 能到、main 到不了的提交；`...` 是两边各自独有的提交，加 `--left-right` 能看到 M1 带 `<`、F1/F2 带 `>`。
+
+3. **lease 拦住了什么**：建一个裸仓库 `origin.git`，克隆出 `a`、`b` 两份。`a` 推一个提交；`b` 拉下来再追加一个提交推上去；`a` 不 fetch，直接 `commit --amend` 后执行 `git push --force-with-lease`。
+
+   验证：推送被拒，输出里有 `! [rejected]` 和 `(stale info)`；远程上 `b` 的提交还在。换成 `--force` 则会成功并覆盖掉它。
+
+   参考答案：`a` 的 `origin/main` 还停在 fetch 前的位置，与远程实际位置不一致，lease 检查失败。先 `git fetch` 再推会通过检查，这时再加 `--force-if-includes` 才能拦住「fetch 了却没合进来」的情况。

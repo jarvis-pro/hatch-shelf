@@ -207,3 +207,40 @@ R2 把操作分成 A 类（写、列举等）和 B 类（读等）分别计价�
 - 读-改-写用 `If-Match` / `If-None-Match` 条件写防丢失更新，撞了就重读重写
 - 键要确定、分前缀、收窄字符集，大列表分片
 - 计费看容量、两类请求、出网流量、取回费
+
+## 动手练习
+
+下面前两题用本地的 MinIO（S3 兼容）做，不需要任何云账号。先起一个一次性容器，默认账号密码是 `minioadmin`，容器里自带 `mc` 命令行：
+
+```bash
+docker run -d --rm --name minio -p 9000:9000 minio/minio server /data
+docker exec minio mc alias set local http://localhost:9000 minioadmin minioadmin
+docker exec minio mc mb local/demo
+echo hello | docker exec -i minio mc pipe local/demo/hello.txt
+```
+
+> MinIO 社区版的镜像分发方式近年有调整，拉不到镜像时换任意一个能在 Docker 里跑的 S3 兼容存储即可，题目的验证点不变。
+
+1. **桶的公开状态看桶本身**：不带任何凭据直接请求对象，再把桶设成匿名可下载，再请求一次，最后改回私有。
+
+   验证：`curl -s -o /dev/null -w '%{http_code}\n' http://localhost:9000/demo/hello.txt` 第一次输出 `403`；执行 `docker exec minio mc anonymous set download local/demo` 后同一条命令输出 `200`；`mc anonymous set none local/demo` 后又回到 `403`。
+
+   参考答案：对象地址没变、你的应用代码也没变，变的只是桶的策略，这就是「给 R2 桶绑自定义域」那类事故的本质。检查公开状态要用 `mc anonymous get` 这类看桶设置的命令，不能只测自己的服务。
+
+2. **预签名 URL 与 Range**：放一个 10MB 的对象，签一个 1 分钟有效的下载地址，用 Range 取前 1KB，过期后再取一次。
+
+   ```bash
+   head -c 10485760 /dev/urandom | docker exec -i minio mc pipe local/demo/10m.bin
+   docker exec minio mc share download --expire 1m local/demo/10m.bin   # 输出里 Share: 后面是地址
+   curl -s -D - -o /dev/null -r 0-1023 '<上面的地址>'
+   ```
+
+   验证：响应状态是 `206`，响应头里有 `Content-Range: bytes 0-1023/10485760`；一分钟后再执行同一条 curl，状态变成 `403`。
+
+   参考答案：签名地址里带着过期时间和签名，存储端自己校验，不需要你的服务参与；Range 是存储原生支持的，自己写网关时要做到同样的 206 和 Content-Range。
+
+3. **给一个场景设计键**：一个记账 App 让用户上传小票照片，要求能按用户列出、按月份清理 90 天前的临时缩略图、不在日志里暴露手机号。为原图、缩略图、每个用户的索引 JSON 各设计一个键的模板。
+
+   验证：对照本章「键的设计」五条逐条检查：确定性、按类型分前缀、字符集、大列表分片、键里无私密信息。
+
+   参考答案：例如 `receipt/<userId>/<yyyy-mm>/<sha256>.jpg`、`thumb/<yyyy-mm>/<sha256>.webp`、`index/<userId>/<yyyy-mm>.json`。`userId` 用内部随机 ID 而不是手机号；缩略图放在独立前缀下，才能用一条生命周期规则按前缀清理；用内容哈希做文件名，同一张图在任何设备上算出同一个键。

@@ -316,3 +316,34 @@ asyncio.run(main())
 - 图片以 base64 内容块传入，放在文字之前；schema 里给模型留「看不清」的出口
 - SDK 自带重试；剩下的错误按异常类型从具体到宽泛处理
 - 并发用 `AsyncAnthropic` + `asyncio.Semaphore` + `gather`；批量任务先小样本、缓存结果、记录用量
+
+## 动手练习
+
+1. **不调 API，先验证并发骨架**：把[并发：AsyncAnthropic](#并发asyncanthropic)里的模型调用换成 `await asyncio.sleep(1)`，信号量设为 4，同时提交 8 个任务，并让第 6 个任务（`i == 5`）抛一个 `RuntimeError`。
+
+   ```python
+   limit = asyncio.Semaphore(4)
+
+   async def fake_call(i: int) -> str:
+       async with limit:
+           await asyncio.sleep(1)          # 假装是一次 1 秒的模型调用
+       if i == 5:
+           raise RuntimeError("模拟 429")
+       return f"ok {i}"
+   ```
+
+   验证：用 `time.perf_counter()` 计时 `asyncio.gather(..., return_exceptions=True)`，总耗时约 2.0 秒；结果列表里有 1 个是异常对象，其余 7 个是字符串，程序没有中途退出。
+
+   参考答案：8 个任务、每次最多 4 个同时进行，分两批，所以约 2 秒；`return_exceptions=True` 让失败以返回值的形式出现，相当于 `Promise.allSettled`。
+
+2. **触发一次 AuthenticationError**：用 `anthropic.Anthropic(api_key="sk-ant-invalid", max_retries=0)` 创建客户端，套上[错误处理与重试](#错误处理与重试)里的 `try/except` 发一次请求。不需要有效的 key，但需要能连上 API。
+
+   验证：走进 `except anthropic.AuthenticationError` 分支，`e.status_code` 是 `401`；断网再跑一次，走进 `APIConnectionError` 分支。
+
+   参考答案：SDK 把 HTTP 状态码映射成不同的异常类，401 不会被自动重试；网络层的失败是另一类异常，和 HTTP 错误分开处理。
+
+3. **结构化输出看边界**（需要 API key）：用本章的 `Ticket` 和 `messages.parse`，对三条输入各调一次：一条明确的账单问题、一条功能建议、一条「你好」。每次打印 `response.stop_reason`、`response.parsed_output` 和 `response.usage.input_tokens`。
+
+   验证：前两条应分别得到 `billing` 和 `feature` 类别的 `Ticket` 实例；第三条观察模型如何归类（多半是 `other`），以及 `urgency` 是否落在 1–5 之间。三次的 `input_tokens` 都包含了 schema 带来的开销。
+
+   参考答案：`parsed_output` 是本地用 Pydantic 校验过的对象，所以 `urgency` 越界会变成 `ValidationError` 而不是悄悄进入下游；输入很模糊时，`Literal` 里留一个 `other` 能给模型一个合理的出口。

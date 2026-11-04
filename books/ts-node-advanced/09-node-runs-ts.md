@@ -227,4 +227,45 @@ Node 还有一个 `--experimental-transform-types` 参数，会真正转换 enum
 - `node_modules` 里的 `.ts` 不会被擦除；pnpm workspace 内部包因为是符号链接可以直接导出源码，发 npm 的包仍要编译
 - 内部工具、脚本、CLI 适合直接跑；库、NestJS、前端代码继续用编译或打包
 
+## 动手练习
+
+1. **enum 在两道关口各怎么报**：在一个 `package.json` 写了 `"type": "module"` 的空目录里建 `e.ts`：
+
+   ```ts
+   enum Level { Info, Warn }
+   console.log(Level.Warn);
+   ```
+
+   先 `node e.ts`，再 `npx tsc --noEmit --erasableSyntaxOnly --module nodenext e.ts`。然后按本章的方法改成 `as const` 对象加联合类型，两条命令再各跑一次。
+
+   验证：`node` 报 `SyntaxError [ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX]: TypeScript enum is not supported in strip-only mode`；`tsc` 报 `e.ts(1,6): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.`。改写后 `node` 输出 `1`，`tsc` 无报错。
+
+   参考答案：两边拦的是同一个问题，区别在时机：`tsc` 在编辑器和提交前就能报，`node` 要等到真的运行。
+
+2. **类型导入少写一个 type**：用本章的 `colors.ts`，写一个 `bad.ts`：`import { Color, paint } from "./colors.ts";`，再用 `Color` 注解一个变量并打印 `paint(...)`。运行 `node bad.ts`，然后把导入改成 `import { type Color, paint } from "./colors.ts";` 再运行。
+
+   验证：第一次报 `SyntaxError: The requested module './colors.ts' does not provide an export named 'Color'`；改后正常输出。打开 `verbatimModuleSyntax` 时，`tsc --noEmit` 对第一种写法报 `TS1484`。
+
+   参考答案：擦除只删类型注解，不分析一个导入名是不是纯类型；`Color` 留在了运行时的 `import` 语句里，而 `colors.ts` 运行时并没有这个导出。
+
+3. **行号原样保留**：
+
+   ```ts
+   // line.ts
+   interface Book {
+     id: string;
+     title: string;
+   }
+   function check(b: Book): void {
+     if (!b.title) throw new Error(`book ${b.id} has no title`);
+   }
+   check({ id: "x", title: "" } as Book);
+   ```
+
+   预测 `node line.ts` 报错堆栈里指向的行号。
+
+   验证：堆栈第一行是 `.../line.ts:6`，下面打印的源码就是 `throw new Error(...)` 那一行；`at check (.../line.ts:6:...)` 的列号也和编辑器里一致。
+
+   参考答案：类型被替换成等长的空格，前面那个四行的 `interface` 变成空行，没有改变任何位置，所以不需要 source map。
+
 读完这本书，类型系统和运行时这两块地基就打好了。技术栈纵深的下一站是[《React 19 原理与模式》](../react-internals/)，它会用类似的方式拆开 React 的调度和渲染；如果你更关心后端，可以接着读[《NestJS 后端架构》](../nestjs-backend/)，把本书第 4 章到第 8 章的运行时知识用到真实的服务里。

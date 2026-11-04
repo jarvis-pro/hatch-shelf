@@ -222,3 +222,23 @@ MCP（Model Context Protocol）是让 agent 接外部工具的通用协议，[�
 - Skills 放在 `.dsh/skills`、`.agents/skills` 或 `~/.dsh/skills` 等目录，平时只露名字，用到才加载
 - 子 agent、Teams、目标、Ralph、定时任务、计划模式让它能接更大的活；目标的自动续做需要人来授权
 - 从 Claude Code 迁过来：`CLAUDE.md` 直接可用，Skills 挪到 `.agents/skills`；rules、`@` 导入不被读取，权限规则和 hooks 要用门禁插件或实验性桥接重新兜底
+
+## 动手练习
+
+1. **同一个任务，两种模式**（需要 API key）：在一个有几十个 Markdown 文件的仓库里，分别用 Standard 和 PTC 模式各开一个新会话，提同一个任务：「找出所有没有一级标题的 .md 文件」。两边都完成后打开 Trajectory。
+
+   验证：Standard 模式下能看到大量 `read` 调用、模型请求次数多；PTC 模式下主要是一两次 `run_code`，模型请求次数和总输入 token 明显更少。两边给出的文件清单应当一致（可以用 `grep -L '^# ' $(find . -name '*.md' -not -path '*/node_modules/*')` 自己核对）。
+
+   参考答案：PTC 的中间结果留在程序里，只有最终清单回到上下文。如果你的版本里 PTC 要通过配置叠加层启用，按本章提到的 `docs/upgrade-guide/` 操作。
+
+2. **确认它读到了你的 CLAUDE.md**（需要 API key）：在练手仓库的 `CLAUDE.md` 里加一条显眼又无害的规矩，例如「每次回答都以『收到。』开头」，然后在 DSH 里开新会话随便问一句。
+
+   验证：回答以「收到。」开头；在 Trajectory 里展开第一次模型请求，系统提示词里能找到这句话。删掉这条后新开会话，它不再出现。
+
+   参考答案：说明文件在会话开始时加载，中途修改不会影响已经开着的会话，而且会让提示词缓存失效，所以改完要开新会话验证。
+
+3. **写一个会被加载的 Skill**（需要 API key）：在练手仓库建 `.agents/skills/count-chapters/SKILL.md`，描述写「统计某本书的章节数时使用」，正文写「读 book.yaml 的 chapters 字段，只回答数字」。新开会话问「agent-principles 这本书有几章」。再把目录名改成 `CountChapters` 重试一次。
+
+   验证：第一次 Trajectory 里出现一次 `skill` 工具调用，回答只有一个数字；改成大写目录名后不再出现 `skill` 调用。
+
+   参考答案：Skill 名字必须是小写短横线格式，不合规的不会被发现。模型平时只看到名字和描述，所以描述里要写清「什么时候用」。

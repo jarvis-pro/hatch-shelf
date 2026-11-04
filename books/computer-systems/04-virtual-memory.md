@@ -151,3 +151,23 @@ JIT 编译器（V8、JavaScriptCore）恰恰需要「先写机器码、再执行
 - 给 V8 设的堆上限要低于容器限额，让 JS 先报错
 - fork 靠写时复制几乎免费，Redis 快照和 Postgres 连接都依赖它；Node 的 `child_process.fork` 不是 Unix fork
 - W^X 让 JIT 需要平台许可；iOS 普通 App 不能 JIT，这是 Hermes 预编译字节码的背景之一
+
+## 动手练习
+
+1. **用 RSS 量出页大小**：把 `rss.mjs` 里「每 4 KB 写一个字节」的步长依次改成 16384 和 65536，分别在 Apple Silicon Mac 和一台 x86-64 Linux 上运行，看「写了前一半」那一行涨了多少。
+
+   验证：Mac 上步长 4096 和 16384 都涨约 512 MB，步长 65536 只涨约 128 MB；Linux（4 KB 页）上步长 16384 就只涨约 128 MB。
+
+   参考答案：每碰一页就分配一整页。步长不超过页大小时每页都被碰到；步长是页大小的 k 倍时只碰到 1/k 的页。涨幅从哪一档开始下降，就说明页有多大，可以和 `getconf PAGESIZE`（macOS 上也可用 `sysctl hw.pagesize`）对照。
+
+2. **VIRT 大不说明问题**：启动一个空闲的 Node 进程（`node -e 'setTimeout(() => {}, 60000)' &`），用 `ps -o vsz=,rss= -p $!` 看它的虚拟大小和驻留大小（单位 KB）。
+
+   验证：VSZ 是数 GB 到数百 GB 的量级，RSS 只有几十 MB。
+
+   参考答案：V8 启动时预留了大片地址空间，但没碰过的页不占物理内存。判断内存压力看 RSS，不看 VSZ。
+
+3. **两种 OOM 的区别**：只在 Docker 里做。运行 `docker run --name oom1 -m 256m node:22-alpine node -e 'const a=[]; for(;;) a.push(Buffer.alloc(1e7, 1))'`，结束后 `echo $?` 并 `docker inspect -f '{{.State.OOMKilled}}' oom1`；再运行 `docker run --rm -m 256m node:22-alpine node --max-old-space-size=128 -e 'const a=[]; for(;;) a.push(new Array(1e6).fill(1))'`。
+
+   验证：第一个没有任何报错输出，退出码 137，`OOMKilled` 为 `true`；第二个打印 `JavaScript heap out of memory` 和一段错误信息，退出码不是 137。做完 `docker rm oom1`。
+
+   参考答案：Buffer 在 V8 堆外，堆上限管不住它，最后撞上 cgroup 限额被内核 `SIGKILL`；普通数组在堆里，V8 先撞到自己的上限，还有机会报错。这就是要把 `--max-old-space-size` 设在容器限额以下、并留出堆外余量的原因。

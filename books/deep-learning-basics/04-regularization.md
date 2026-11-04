@@ -235,3 +235,34 @@ for epoch in range(num_epochs):
 - 权重衰减限制参数大小，用 AdamW；dropout 训练时随机丢神经元，评估时关闭
 - 数据增强要符合任务语义；更多真实数据永远是最好的正则化
 - BatchNorm 用于 CNN，LayerNorm 用于序列模型和 Transformer；学习率调度和预热让训练更稳、收敛更好
+
+## 动手练习
+
+1. **忘了 `model.eval()` 会怎样**：沿用[制造一次过拟合](#制造一次过拟合)的脚本，不训练，直接对同一批验证数据前向两次：
+
+   ```python
+   model = make_model(0.5)
+   x, _ = next(iter(val_dl))
+   x = x.to(device)
+   with torch.no_grad():
+       model.train()
+       print(torch.equal(model(x), model(x)))
+       model.eval()
+       print(torch.equal(model(x), model(x)))
+   ```
+
+   验证：第一行打印 `False`，第二行打印 `True`。
+
+   参考答案：`train()` 模式下 dropout 每次随机丢不同的神经元，同一个输入两次输出不同；`eval()` 模式下 dropout 不起作用，输出是确定的。评估时忘了切换，指标就会带着这份随机性。
+
+2. **给过拟合实验加早停**：把[早停](#早停)一节的逻辑（`patience=5`，保存最好的 `state_dict`）合进 `run()`，只跑不加正则的那一组，在停下时打印停在第几轮、最好的验证 loss 是多少。
+
+   验证：训练在验证 loss 见底之后约 5 轮停下（作者数据里见底在第 10 轮，所以停在第 15 轮前后），最终加载的参数对应的验证 loss 就是打印出的最低值，而不是最后一轮的值。
+
+   参考答案：每轮算完 `va` 后和 `best_val` 比较，变好就 `copy.deepcopy(model.state_dict())`，连续 `patience` 轮没变好就 `break`，循环结束后 `load_state_dict(best_state)`。
+
+3. **数据才是最好的正则**：把 `Subset(train_full, range(1_000))` 改成 `range(10_000)`，仍然不加正则（`run(p_drop=0.0, weight_decay=0.0, epochs=30)`），和 1000 张时的结果比。
+
+   验证：验证 loss 的最低点明显低于 0.572，训练 loss 和验证 loss 之间的差距也小得多；每轮耗时约是原来的 10 倍。
+
+   参考答案：同样的模型容量，数据多了 10 倍，「背答案」变难了，模型只能去学更通用的规律。这和[把正则化加回去](#把正则化加回去)末尾用全部 5.5 万张训练的结论一致。

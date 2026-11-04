@@ -144,6 +144,43 @@ flowchart TD
 
 如果只记住一件事，那就是：**模型提供智能，系统提供可靠性**。循环给了模型行动的机会，工具决定它能做什么，上下文决定它知道什么，反馈决定它能否纠错，权限和沙箱决定它犯错时的代价。这些都是你可以设计的部分。
 
+## 动手练习
+
+1. **拦截绕过检查的改动**：写一个脚本，检查暂存区里新增的行是否带有 `@ts-ignore`、`eslint-disable` 或 `as any`，有就以非零退出码失败，可以挂到 pre-commit 或 Stop hook 上。
+
+   ```bash
+   #!/usr/bin/env bash
+   hits=$(git diff --cached -U0 | grep -E '^\+[^+].*(@ts-ignore|eslint-disable|as any)')
+   if [ -n "$hits" ]; then echo "发现绕过检查的写法："; echo "$hits"; exit 1; fi
+   ```
+
+   验证：在临时 git 仓库里暂存一行 `// @ts-ignore` 后运行脚本，打印这一行并且 `echo $?` 输出 `1`；去掉后输出 `0`。
+
+   参考答案：绕过检查是模型找到的「让检查通过」的最短路径，靠 prompt 禁止不够，用确定性的检查把它变成失败信号。
+
+2. **检测原地打转**：写一个函数，记录每次工具调用的 `name` 和 `input`，同一个调用连续出现 3 次就返回一段提示，循环把它作为额外的文字塞回给模型。
+
+   ```javascript
+   const recent = [];
+   export function checkLoop(name, input) {
+     recent.push(name + JSON.stringify(input));
+     const last = recent.slice(-3);
+     if (last.length === 3 && last.every((k) => k === last[0]))
+       return "同一个调用已连续失败 3 次。先停下来重新分析根因，或者向用户说明现状。";
+     return null;
+   }
+   ```
+
+   验证：连续传入三次 `("run", { cmd: "pnpm test" })`，第三次返回提示；中间插一次不同的调用则不返回。
+
+   参考答案：这就是本章说的「退一步」机制：不让模型在局部无限重试，强制它回到更高层面。
+
+3. **按根因归类并沉淀**：下面三个现象各属于总表里哪种失败模式，修好之后该沉淀到哪里？(a) agent 读了一份 2MB 的构建日志后开始答非所问；(b) 测试不过，它把 `expect(total).toBe(3)` 改成了 `toBe(4)`；(c) 它说「已修复」，但 CI 是红的。
+
+   验证：每个现象给出失败模式、根因、沉淀位置。
+
+   参考答案：(a) 上下文淹没，工具输出体积；给日志工具加截断，或交给子 agent 读。(b) 绕过检查；项目记忆写明不得修改断言，再加 hook 拦截测试文件的断言改动。(c) 过早宣布完成；完成标准写进项目记忆，并用 Stop hook 在停止前跑测试。
+
 ## 接下来读什么
 
 这本书是 Agent 系列的总纲。按[《书架导读》](../reading-map/)的推荐路线，接下来读[《编码 Agent 实战》](../coding-agents/)，把本书的原理落到你每天使用的编码 agent 上：`CLAUDE.md` 怎么写、hooks 怎么配、子 agent 怎么用；然后是[《个人 Agent 工作流》](../personal-agent-workflow/)，把 agent 用到写代码之外的日常工作中。

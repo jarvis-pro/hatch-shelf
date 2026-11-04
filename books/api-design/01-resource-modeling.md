@@ -263,3 +263,32 @@ POST   /backup/restore      合并备份（业务动作）
 - 状态码用一小组、全 API 统一；失败绝不回 200
 - 成功回包直接返回资源，列表从第一天起用对象包着；新建回 201 和完整资源
 - 字段命名、id、时间、金额、枚举、空值的写法在第一个接口上线前定下来
+
+## 动手练习
+
+1. **改写动作式接口**：一个记账小程序有这些接口：`POST /getOrders`、`POST /addOrder`、`POST /cancelOrder?id=7`、`GET /orders/7/remove`、`POST /setOrderPaid`。按本章规则改写成资源式，并写出每个接口成功时的状态码。
+
+   验证：对照[方法的语义](#方法的语义)和[状态码](#状态码用一小组用对)两节自查：没有 GET 改数据，没有动词出现在集合名里，新建回 201。
+
+   参考答案：`GET /orders`（200）、`POST /orders`（201 + `Location`）、`POST /orders/7/cancel`（200，返回新状态）、`DELETE /orders/7`（204）、`POST /orders/7/pay`（200）。`GET .../remove` 最危险，链接预览就能把数据删掉；「取消」「付款」是带副作用的状态迁移，用 `POST /资源/{id}/动词`。
+
+2. **区分「没传」和「传了 null」**：把本章的 `PatchExpense` schema 存成 `patch.ts`，用 `npx tsx patch.ts` 分别解析 `{}`、`{"note":null}`、`{"note":null,"foo":1}`、`{"amount":32.5}`。
+
+   验证：`{"note":null}` 成功且结果里 `note` 键存在、值为 `null`；其余三个都抛出 ZodError，报错信息分别指向「至少改一个字段」、多余的 `foo`、`amount` 不是整数。
+
+   参考答案：
+
+   ```typescript
+   for (const body of [{}, { note: null }, { note: null, foo: 1 }, { amount: 32.5 }]) {
+     const r = PatchExpense.safeParse(body);
+     console.log(JSON.stringify(body), r.success ? r.data : r.error.issues[0].message);
+   }
+   ```
+
+   `.partial()` 让键可以缺席，`.nullable()` 让值可以是 `null`，两者组合才能区分「不改」和「清空」；`.strict()` 拒绝未知字段。
+
+3. **数一数 JS 会丢多少精度**：在 Node 里执行 `JSON.parse('{"id": 9007199254740993}').id`，再试 `0.1 + 0.2`。
+
+   验证：第一行输出 `9007199254740992`，比原值少 1；第二行输出 `0.30000000000000004`。
+
+   参考答案：这就是 id 用字符串、金额用整数分的原因：超过 2^53 的整数和十进制小数在 JS 的 number 里都无法精确表示，错误发生在客户端解析时，服务端日志里看不出来。

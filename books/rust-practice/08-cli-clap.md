@@ -414,4 +414,38 @@ pub fn check_book(dir: &Path) -> Result<CheckedBook, LoadError> {
 - `mod` 声明模块，`pub use` 重新导出，相当于 TS 的 `index.ts`；Rust 默认私有
 - `Result` 实现了 `IntoIterator`，`flatten` 可以顺手过滤掉读取失败的项
 
+## 动手练习
+
+1. **给 lint_chapter 写一个测试**：在 `lint.rs` 末尾加一个测试模块，先写下你预测的问题列表，再 `cargo test -p shelf-core`。
+
+   ```rust
+   #[cfg(test)]
+   mod tests {
+       use super::*;
+
+       #[test]
+       fn mixed() {
+           let md = "# 标题\n~~~\nx\n~~~\n# 第二个\n![a](https://x.test/a.png)\n";
+           let got: Vec<String> = lint_chapter("a.md", md).iter().map(|i| i.to_string()).collect();
+           assert_eq!(got, vec!["在这里写你的预测"]);
+       }
+   }
+   ```
+
+   验证：第一次运行测试失败，`assert_eq!` 的输出里 `left` 就是实际结果：依次是 `错误 a.md:2 代码块没有标注语言`、`错误 a.md:6 远程图片（离线时无法显示）`、`错误 a.md 有 2 个 H1，每章只能有一个`。把它们填进 `vec![...]` 后测试通过。
+
+   参考答案：`~~~` 也是围栏，后面没写语言；逐行的问题按行号先后加入，H1 计数在扫描结束后才报告，所以排在最后。
+
+2. **is_slug 的边界**：对 `"rust-practice"`、`"Rust"`、`"a--b"`、`"-a"`、`"a1"`、`""` 逐个预测 `is_slug` 的结果，写成一个 `#[test]` 里的六条 `assert_eq!`。
+
+   验证：`cargo test` 通过时，结果依次是 `true`、`false`、`false`、`false`、`true`、`false`。
+
+   参考答案：大写字母不在允许的字节里；连续的 `--`、开头或结尾的 `-` 被单独排除；空串被第一条条件排除。和 `@shelf/spec` 的 `SLUG_RE` 对照，可以把这组用例同时放进 TS 测试，确认两边一致。
+
+3. **把 chars().count() 换成 len()**：写一个测试，构造一个 `next` 里 `reason` 为 30 个汉字（`"字".repeat(30)`）的 `BookManifest`，断言 `validate` 不报 reason 超长。先确认通过，再把 `validate` 里的 `r.chars().count()` 改成 `r.len()`，预测测试结果。
+
+   验证：原代码测试通过；改成 `len()` 后测试失败，多出一条 `next ... 的 reason 超过 60 字`。
+
+   参考答案：30 个汉字是 90 个 UTF-8 字节。跨语言移植规则时，这类「长度怎么数」的差别最好用测试固定下来。
+
 库写好了，但还没有入口。[下一章](08-cli-commands.md)用 clap 定义 `check` 和 `ls` 两个命令，并行检查全部书，再讲测试和发布。

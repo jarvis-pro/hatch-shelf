@@ -278,3 +278,32 @@ kubectl -n counter run nettest --rm -it --image=busybox:1.36 --restart=Never -- 
 - 迁移 nginx 时逐项对上请求体上限、长连接、转发头；`externalTrafficPolicy: Local` 才能拿到真实客户端 IP
 - cert-manager 让证书成为声明式对象并自动续期，但过期告警仍需外部监控
 - 用 NetworkPolicy 只放行 api、迁移、备份三类 Pod 访问 Postgres，并实际验证
+
+## 动手练习
+
+只在本机练习集群里做（按[第 2 章](02-core-objects.md#先起一个练习集群)的命令创建，已把集群的 80 映射到本机 8080），先确认 `kubectl config current-context`，沿用 `lab` 命名空间。先起两个会报出自己名字的小服务：
+
+```bash
+kubectl create deployment api --image=hashicorp/http-echo:1.0 -- /http-echo -text=api
+kubectl create deployment web --image=hashicorp/http-echo:1.0 -- /http-echo -text=web
+kubectl expose deployment api --port=80 --target-port=5678
+kubectl expose deployment web --port=80 --target-port=5678
+```
+
+1. **Prefix 怎么匹配**：写一个 Ingress，`ingressClassName: traefik`，`host: lab.localhost`，`/v1`（Prefix）转给 `api`，`/`（Prefix）转给 `web`。apply 后先预测，再分别执行 `curl -s -H 'Host: lab.localhost' localhost:8080<路径>`，路径取 `/v1`、`/v1/stores`、`/v1abc`、`/`。
+
+   验证：依次输出 `api`、`api`、`web`、`web`。
+
+   参考答案：`Prefix` 按路径段匹配，`/v1abc` 的第一段是 `v1abc` 不是 `v1`，于是落到 `/`；同一个 host 下更长的路径优先。
+
+2. **集群 DNS 的短名和全名**：执行 `kubectl run dns --rm -it --image=busybox:1.36 --restart=Never -- nslookup api`；再在另一个命名空间里试：`kubectl create namespace other`，然后 `kubectl -n other run dns --rm -it --image=busybox:1.36 --restart=Never -- nslookup api`，最后把 `api` 换成 `api.lab` 重试。
+
+   验证：同命名空间里 `api` 能解析；在 `other` 里 `api` 解析失败，`api.lab` 能解析出同一个 ClusterIP。做完 `kubectl delete namespace other`。
+
+   参考答案：Pod 的 DNS 搜索域先补自己的命名空间，所以短名只在同一命名空间有效，跨命名空间写 `<service>.<namespace>`。
+
+3. **NetworkPolicy 白名单**：apply 一条策略，选中 `app=api` 的 Pod，只允许带 `role=caller` 标签的 Pod 访问 5678 端口。然后分别执行 `kubectl run t1 --rm -it --image=busybox:1.36 --restart=Never -- wget -qO- -T 3 api` 和 `kubectl run t2 --rm -it --image=busybox:1.36 --restart=Never --labels=role=caller -- wget -qO- -T 3 api`。
+
+   验证：`t1` 超时失败；`t2` 输出 `api`。再执行一次第 1 题的 `curl -s -H 'Host: lab.localhost' localhost:8080/v1`，看它是否还能返回 `api`。
+
+   参考答案：策略选中目标 Pod 后，只放行列出的来源，其余入站一律拒绝。经过 Ingress 的请求来自 `kube-system` 里的 Traefik，不在白名单里，所以第 1 题的请求也会被挡；真实的数据库策略只放行 api、迁移、备份，Ingress 本来就不该直连数据库。注意 Service 的端口是 80，但策略里写的是 Pod 上的端口 5678。

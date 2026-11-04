@@ -602,6 +602,50 @@ systemctl list-timers shelf-agent-nightly.timer
 
 回头看，循环本身从第 2 章以后就没再变过。工具、记忆、MCP、评测、服务，都是插在循环周围的东西，通过 `Model`、`AgentTool`、`approve`、`onEvent` 这几个接口接进来。这也是[《Agent 原理与设计》第 2 章](../agent-principles/02-agent-loop.md)那句话的落地：**复杂度都在循环之外**。
 
+## 动手练习
+
+1. **用 curl 走一遍异步审批**：写一个小脚本，用假模型启动服务（第一轮要写文件，第二轮回答「改好了」），然后用 curl 提交任务、查状态、批准。
+
+   ```typescript
+   // src/try-service.ts，用 npx tsx 运行
+   import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+   import { tmpdir } from "node:os";
+   import path from "node:path";
+   import { reply, scriptedModel } from "./fake-model";
+   import { createAgentService } from "./server";
+   const repo = await mkdtemp(path.join(tmpdir(), "svc-"));
+   await mkdir(path.join(repo, "books/demo"), { recursive: true });
+   await writeFile(path.join(repo, "books/demo/01.md"), "# 旧标题\n");
+   const model = scriptedModel([reply([{ tool: "write_file", input: { path: "books/demo/01.md", content: "# 新标题\n" } }]), reply(["改好了"])]);
+   const svc = createAgentService({ repo, stateDir: path.join(repo, ".state"), token: "t".repeat(32), model });
+   await svc.init();
+   svc.server.listen(8787, "127.0.0.1", () => console.log(repo));
+   ```
+
+   ```bash
+   H="authorization: Bearer $(printf 't%.0s' {1..32})"
+   ID=$(curl -s -X POST localhost:8787/tasks -H "$H" -d '{"prompt":"改标题"}' | jq -r .id)
+   curl -s localhost:8787/tasks/$ID -H "$H" | jq '{status, pendingApproval}'
+   curl -s -X POST localhost:8787/tasks/$ID/approval -H "$H" -d '{"allow":true}' > /dev/null
+   curl -s localhost:8787/tasks/$ID -H "$H" | jq '{status, result}'
+   ```
+
+   验证：第一次查询 `status` 是 `waiting_approval`，`pendingApproval` 是「写入 books/demo/01.md（0.0 KB）」；批准后状态变成 `done`，`result` 是「改好了」；脚本打印的目录里 `books/demo/01.md` 变成「# 新标题」，`.state/traces/` 下有这个任务的运行记录。
+
+   参考答案：审批函数返回的 Promise 一直挂着，直到 HTTP 回复或超时；循环本身完全不知道审批是在终端还是在网络另一端完成的。
+
+2. **试探接口的边界**：在同一个服务上依次试：不带令牌请求 `GET /tasks/$ID`；对已经完成的任务再 `POST /approval`；提交空的 `prompt`。再重启脚本，这次用 `{"allow":"yes"}` 回复审批。
+
+   验证：用 `curl -s -o /dev/null -w '%{http_code}\n'` 看状态码，前三个依次是 `401`、`409`、`400`；用 `"yes"` 回复后文件仍是「# 旧标题」，运行记录里能找到「用户拒绝」。
+
+   参考答案：审批只认 `allow === true`，写错、少字段一律当拒绝，出错的方向是「改不了」而不是「改了没人同意的东西」。
+
+3. **给 systemd unit 的加固打分**（需要一台用 systemd 的 Linux 机器）：装好本章的 `shelf-agent.service` 后运行 `systemd-analyze security shelf-agent.service`，记下总分；在 `[Service]` 里加上 `PrivateDevices=true` 和 `ProtectKernelTunables=true`，`daemon-reload` 后再看一次。
+
+   验证：输出最后一行给出一个 exposure 分数和等级；加了两项之后分数下降，对应的条目从 ✗ 变成 ✓。
+
+   参考答案：`ProtectSystem=strict`、`NoNewPrivileges` 这些已经让分数不错；这个命令的价值是逐项列出还没关的口子，按服务实际需要再收紧，改完确认服务还能正常读写工作区。
+
 ## 接下来读什么
 
 - [《Agent 安全》](../agent-safety/)：本书一路上做了不少安全决定（工作区、审批、白名单、记忆投毒），这本书把它们放进完整的威胁模型里，讲 prompt 注入、沙箱和审计

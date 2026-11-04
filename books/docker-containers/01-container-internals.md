@@ -178,3 +178,25 @@ flowchart TD
 - Node 服务要设内存上限，并显式控制 V8 堆大小，否则可能被 OOM 静默杀掉
 - 写在容器可写层的数据随容器删除而消失，持久数据必须用卷
 - 能访问 docker.sock 就等于有宿主机 root 权限
+
+## 动手练习
+
+下面的题在 Mac 上的 Docker Desktop 或 OrbStack 里就能做。注意它们的「宿主机」是那台 Linux 虚拟机，不是 macOS 本身。
+
+1. **容器里的 PID 1 在外面是谁**：执行 `docker run -d --name s alpine sleep 600`，然后分别执行 `docker exec s ps` 和 `docker top s`。
+
+   验证：容器里 `sleep 600` 的 PID 是 `1`；`docker top` 显示的 PID 是一个普通的大数字。做完 `docker rm -f s`。
+
+   参考答案：PID namespace 让容器里看到一套从 1 开始的进程号，同一个进程在宿主机（虚拟机）里有自己真实的 PID。容器就是一个戴了眼罩的普通进程。
+
+2. **localhost 是谁的**：执行 `docker run -d --name web nginx:alpine`，然后 `docker run --rm alpine wget -qO- -T 3 localhost:80`；再执行 `docker run --rm --network container:web alpine wget -qO- localhost:80`。
+
+   验证：第一条连接失败；第二条打印出 nginx 欢迎页的 HTML。做完 `docker rm -f web`。
+
+   参考答案：每个容器有自己的 NET namespace，`localhost` 指的是自己。`--network container:web` 让新容器加入 web 的网络 namespace，于是两者共享同一个 `localhost`，Kubernetes 里同一个 Pod 的容器就是这样。
+
+3. **cgroup 限制落在哪里**：执行 `docker run --rm --memory 64m --pids-limit 50 alpine sh -c 'cat /sys/fs/cgroup/memory.max /sys/fs/cgroup/pids.max'`，再去掉两个参数重跑一次。
+
+   验证：第一次输出 `67108864` 和 `50`；去掉参数后两行都是 `max`。
+
+   参考答案：`--memory` 和 `--pids-limit` 最终就是写进容器所在 cgroup 的这几个文件，内核按它们执行限制。cgroup v2 下才是这两个文件名，旧的 v1 路径不同。

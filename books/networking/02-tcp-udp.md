@@ -167,3 +167,39 @@ UDP 没有握手，所以「端口通不通」不能用 `nc -vz` 简单判断：
 - 大量 `TIME_WAIT` 靠复用连接解决；大量 `CLOSE_WAIT` 是程序没关连接的 bug
 - 后端的 keep-alive 空闲超时要**长于**前面代理的；长连接要加应用层心跳
 - 防火墙要单独考虑 UDP：DNS、HTTP/3、mDNS 都依赖它
+
+## 动手练习
+
+1. **看 keep-alive 的空闲超时**：把下面的代码存成 `ka.mjs`，用 Node 22/24 运行 `node ka.mjs`。它用同一个 keep-alive agent 发三次请求，间隔分别是 3 秒和 6 秒，打印每次是否复用了旧连接。
+
+   ```js
+   import http from 'node:http';
+   const srv = http.createServer((q, r) => r.end('ok')).listen(3000);
+   const agent = new http.Agent({ keepAlive: true });
+   const get = () => new Promise((res) => {
+     const req = http.get('http://127.0.0.1:3000', { agent }, (r) => {
+       r.resume(); r.on('end', () => res(req.reusedSocket));
+     });
+   });
+   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+   console.log(await get());
+   await sleep(3000); console.log(await get());
+   await sleep(6000); console.log(await get());
+   srv.close(); agent.destroy();
+   ```
+
+   验证：依次打印 `false`、`true`、`false`。
+
+   参考答案：Node 服务端默认 `keepAliveTimeout` 是 5 秒，空闲 3 秒时连接还在，空闲 6 秒时服务端已经关掉，只能新建。把 `srv.keepAliveTimeout = 10_000` 加在 `listen` 前再跑，第三个也会是 `true`。前面有代理时，就是靠这个值比代理的长来避免偶发 502。
+
+2. **造一个 CLOSE_WAIT**：执行 `node -e "require('net').createServer({allowHalfOpen:true}, s => {}).listen(4000)"`，另开终端执行 `nc 127.0.0.1 4000`，然后按 Ctrl+C 退出 nc，再执行 `netstat -an | grep 4000`（Linux 上也可以用 `ss -tan | grep 4000`）。
+
+   验证：看到一条连接处于 `CLOSE_WAIT`，而且不会自己消失；停掉 Node 进程后它才没了。
+
+   参考答案：客户端发了 FIN，服务端程序收到后一直不调用 `end()` / `close()`，连接就卡在 `CLOSE_WAIT`。线上大量 `CLOSE_WAIT` 说明程序漏关连接，查代码而不是调内核参数。
+
+3. **谁主动关闭谁背 TIME_WAIT**：在一次性容器 `docker run --rm -it python:3.12-slim bash` 里执行 `apt-get update && apt-get install -y curl iproute2`，后台起 `python -m http.server 8000 &`，然后 `for i in $(seq 20); do curl -s -o /dev/null http://127.0.0.1:8000/; done; ss -tan state time-wait`。
+
+   验证：列出约 20 条 `TIME-WAIT` 连接；看每条的本地地址是 `:8000` 还是客户端的临时端口。
+
+   参考答案：`http.server` 默认按 HTTP/1.0 回完响应就关连接，主动关闭的是服务端，所以 `TIME-WAIT` 落在 `:8000` 这一侧。换成每个请求都新建连接去调上游的 Node 服务，`TIME-WAIT` 就会堆在调用方，治本的办法是复用连接。

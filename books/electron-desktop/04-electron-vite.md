@@ -245,3 +245,23 @@ onlyBuiltDependencies:
 - 环境变量按前缀进不同产物，密钥用 `MAIN_VITE_`；它们是构建时内联的
 - 出包闸门用 `loadEnv`，和打包读同一份来源
 - 主进程改动用 `--watch` 自动重启；CDP 调试端口只在开发时开
+
+## 动手练习
+
+1. **省掉 `main: {}` 会怎样**：在练习工程里先正常 `pnpm build` 一次，然后把 `electron.vite.config.ts` 里的 `main` 键删掉，在主进程入口加一行 `console.log('MAIN-V2')`，再 `pnpm build`，运行 `grep -c MAIN-V2 out/main/index.js`。
+
+   验证：输出 `0`，`out/main` 还是上一次的产物；把 `main: {}` 加回去重新构建后输出 `1`。
+
+   参考答案：没有 `main` 键时 electron-vite 不构建主进程，旧产物悄悄留着，应用照样能启动。这类不报错的错要靠注释防止有人「清理」配置。
+
+2. **前缀决定变量进哪份产物**：在工程根目录 `.env` 里写 `MAIN_VITE_PROBE=probe-main-7f3a` 和 `VITE_PROBE=probe-all-9c1d`，在主进程和页面里各引用一次 `import.meta.env` 上对应的变量，`pnpm build` 后运行 `grep -rl probe-main-7f3a out/` 和 `grep -rl probe-all-9c1d out/`。
+
+   验证：第一个只出现在 `out/main/` 下；第二个在 `out/main/` 和 `out/renderer/` 下都出现（前提是两边都引用了它）。
+
+   参考答案：`MAIN_VITE_` 只内联进主进程产物，`VITE_` 进全部三份；密钥用前者，打一个探针值再 grep 就能验证。
+
+3. **两份 tsconfig 抓住进程混用**：在 `src/renderer/src/` 里任意组件中写 `console.log(process.env.HOME)`，运行 `pnpm typecheck`。
+
+   验证：`tsconfig.web.json` 那一轮报错，提示找不到名称 `process`（`Cannot find name 'process'`）。
+
+   参考答案：渲染进程的 `types` 只写了 `vite/client`，没有 Node 类型；合成一份 tsconfig 时这行能通过类型检查，到运行时才因为 `process` 未定义而出错。

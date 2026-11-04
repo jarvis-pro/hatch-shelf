@@ -216,3 +216,35 @@ hatch-counter 的业务接口全部是按门店、按用户的，所以一个 pr
 - gzip 只压文本类型；可以用 `gzip_static` 发构建时预压缩的文件
 - 每版一个目录 + `current` 软链原子切换，不用 reload，回滚只是换链
 - proxy_cache 的键默认不含用户身份，按用户返回不同内容的接口不能用
+
+## 动手练习
+
+这一章的练习用 Debian 版的官方镜像（带 GNU 的 `mv -T`），站点文件直接建在容器里：
+
+```bash
+cd ~/nginx-lab && docker rm -f ng 2>/dev/null
+docker run --rm -d --name ng -p 8080:80 -v "$PWD/conf.d:/etc/nginx/conf.d:ro" nginx:1.27
+docker exec ng sh -c 'mkdir -p /srv/site/1/assets /srv/site/2 && echo v1 > /srv/site/1/index.html \
+  && echo "console.log(1)" > /srv/site/1/assets/app-a1b2.js && echo v2 > /srv/site/2/index.html \
+  && ln -s 1 /srv/site/current'
+```
+
+server 块里写 `root /srv/site/current;` 和 `index index.html;`，其余按题目加。
+
+1. **SPA 回退还是 404**：`location /` 里写 `try_files $uri $uri/ /index.html;`，执行 `curl -s -w ' %{http_code}\n' localhost:8080/stores/42`；改成 `try_files $uri $uri/ =404;` 后重试。
+
+   验证：第一次输出 `v1 200`；第二次状态码是 `404`。
+
+   参考答案：回退到 `/index.html` 时任何路径都「存在」，适合前端路由；内容站这么配会让错链永远发现不了。
+
+2. **两类文件两种缓存**：加 `location /assets/ { add_header Cache-Control "public, max-age=31536000, immutable"; }` 和 `location = /index.html { add_header Cache-Control "no-cache"; }`，分别 `curl -sI localhost:8080/assets/app-a1b2.js` 和 `curl -sI localhost:8080/`；再拿 `/` 响应里的 `ETag` 带上 `If-None-Match` 请求一次。
+
+   验证：JS 的响应头是一年加 `immutable`；访问 `/` 也拿到了 `Cache-Control: no-cache`；带 `If-None-Match` 的请求返回 `304 Not Modified`。
+
+   参考答案：`/` 被 `index` 内部重定向到 `/index.html`，所以命中了精确匹配的那段。`no-cache` 不是不缓存，而是每次验证，没变时只回 304。
+
+3. **软链原子切换，不用 reload**：执行 `curl -s localhost:8080/` 看到 `v1`，然后 `docker exec ng sh -c 'cd /srv/site && ln -sfn 2 current.tmp && mv -T current.tmp current'`，不 reload，再 `curl -s localhost:8080/`；回滚时把 `2` 换成 `1` 再做一次。
+
+   验证：切换后直接输出 `v2`，回滚后又是 `v1`，全程没有执行 `nginx -s reload`。
+
+   参考答案：nginx 每个请求都重新解析 `root` 里的路径，软链指向哪里就发哪里；`mv -T` 用 `rename(2)` 覆盖软链，任何时刻 `current` 都是完整的。

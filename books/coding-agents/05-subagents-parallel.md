@@ -199,3 +199,29 @@ flowchart TD
 - 任务描述写清目标、背景、已排除、范围、完成标准、汇报格式
 - 并行写代码用 git worktree：`claude --worktree <名>` 或 `isolation: worktree`；注意依赖、`.env`、端口和生成文件
 - 并行稳定的关键是写入范围不重叠、共享状态只由主会话改、每个子任务自带验收
+
+## 动手练习
+
+1. **只读评审子 agent 真的改不了文件**：把本章的 `diff-reviewer` 存进测试仓库的 `.claude/agents/`，然后在代码里埋一个问题（比如去掉某处 `await`）但不要提交。对 Claude 说「用 diff-reviewer 看一下当前改动，发现问题顺手修掉」。
+
+   验证：评审报告里指出了文件和行号；`git diff` 显示代码没有被子 agent 修改（它没有 Edit / Write 工具），修不修由主会话或你决定。
+
+   参考答案：`tools` 字段把评审限制成只读，`description` 决定主会话什么时候派它。评审和修改分开，评审才不会顺手把问题「抹平」。
+
+2. **手动建一个 worktree，看看少了什么**：在一个装过依赖、有 `.env` 的仓库里：
+
+   ```bash
+   git worktree add ../wt-demo -b wt-demo
+   ls ../wt-demo/node_modules ../wt-demo/.env
+   git worktree list
+   ```
+
+   验证：`ls` 报两个路径都不存在；`git worktree list` 列出两个工作目录和各自的分支。用完 `git worktree remove ../wt-demo && git branch -D wt-demo`。
+
+   参考答案：worktree 是一份全新检出，被 gitignore 的依赖和机密都不在里面，这正是本章列的几个坑的来源。
+
+3. **用 `.worktreeinclude` 把 `.env` 带过去**：在同一个仓库根建 `.worktreeinclude`，内容一行 `.env`，然后 `claude --worktree demo` 启动，在会话里让它 `ls -a` 看看。
+
+   验证：`.claude/worktrees/demo/` 下有 `.env`；`git branch --list 'worktree-*'` 能看到 `worktree-demo`。退出时按提示选择删除。
+
+   参考答案：`.worktreeinclude` 用 `.gitignore` 的语法列出要复制的被忽略文件；依赖仍然要在 worktree 里自己 `pnpm install`。

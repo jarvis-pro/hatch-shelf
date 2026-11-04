@@ -204,3 +204,35 @@ hatch-counter 用三个数据库角色、三条连接串：
 - IDOR：按 ID 取资源时必须带上归属条件，UUID 不是授权
 - Postgres RLS 把租户隔离交给数据库兜底：`SET LOCAL`、`nullif`、非 owner 角色、测试扫描缺一不可
 - 能在启动时拦下的配置错误，就不要留到运行时
+
+## 动手练习
+
+以下练习只在本机或一次性的 Docker 容器里做，服务只监听 `127.0.0.1`。
+
+1. **写一个 IDOR，再修掉**：`pnpm add express`，写一个 `server.mjs`：内存里两张单据，`{ id: '1', owner: 'alice' }` 和 `{ id: '2', owner: 'bob', amount: 999 }`；用 `x-user` 请求头模拟已登录用户；`GET /receipts/:id` 只按 `id` 查。启动后执行 `curl -H 'x-user: alice' http://127.0.0.1:3000/receipts/2`。然后把归属条件加进查询，重启再试。
+
+   验证：修之前 alice 拿到了 bob 那张 `amount: 999` 的单据；修之后同一条命令返回 `Not Found`，而 `curl -H 'x-user: bob' …/receipts/2` 仍然正常。
+
+   参考答案：ID 和归属一起作为查询条件；查不到时回 404 而不是 403，不告诉对方这个 ID 存在。
+
+   ```js
+   import express from 'express';
+   const app = express();
+   const receipts = [{ id: '1', owner: 'alice', amount: 30 }, { id: '2', owner: 'bob', amount: 999 }];
+   app.use((req, _res, next) => { req.user = req.get('x-user'); next(); }); // 仅演示用
+   app.get('/receipts/:id', (req, res) => {
+     const r = receipts.find((x) => x.id === req.params.id && x.owner === req.user);
+     r ? res.json(r) : res.sendStatus(404);
+   });
+   app.listen(3000, '127.0.0.1');
+   ```
+
+2. **亲手验证 RLS 的四个坑**：`docker run --rm -d --name rls -e POSTGRES_PASSWORD=pw postgres:17`，`docker exec -it rls psql -U postgres` 进去后：建一张带 `store_id uuid` 的 `receipts` 表，用两个 `gen_random_uuid()` 生成的店 ID 各插两行；照本章开启 RLS、建带 `nullif` 的策略；`create role app; grant select on receipts to app;`。依次观察：
+   - 以 `postgres`（superuser）直接 `select count(*) from receipts`
+   - `set role app;` 后不设上下文直接查
+   - `begin; select set_config('app.store_id', '<第一家店的 id>', true); select count(*) from receipts; commit;`，提交后再查一次
+   - `reset role;` 回到 postgres，把策略里的 `nullif` 去掉重建，再 `set role app;` 重复上一步，提交后再查
+
+   验证：superuser 看到 4 行（绕过 RLS）；`app` 不设上下文看到 0；事务内看到 2，提交后回到 0；去掉 `nullif` 后，提交后的那次查询报 `invalid input syntax for type uuid` 的错。用完 `docker stop rls`，容器随之删除。
+
+   参考答案：`set_config(..., true)` 只在事务内有效，但同一连接用过一次之后，这个设置会以空字符串的形式留下，所以必须用 `nullif` 把空串抹成 NULL；superuser 和表 owner 默认绕过 RLS，业务连接必须用单独的角色。

@@ -435,6 +435,48 @@ sudo systemctl drestor
 - 370 万参数、100 万字语料、5 分钟训练，val loss 2.34，明显好于 GRU；训练和验证 loss 拉开说明数据不够
 - 温度和 top-k 控制生成的保守程度；模型学到的是统计规律，不是事实
 
+## 动手练习
+
+下面三题都只需要建模型、跑一次前向，不用训练，CPU 上几秒钟。在 `gpt.py` 同目录新建一个脚本，`from gpt import GPT, Config` 即可（`gpt.py` 的入口在 `if __name__ == "__main__":` 里，导入时不会开始训练）。词表大小固定写 1919，方便和[参数都花在哪](#参数都花在哪)的表格对照。
+
+1. **先算参数量**：按「每块约 $12C^2$」和表格里的算法，先手算 `d_model=512`（其余不变）时的总参数量，再运行核对：
+
+   ```python
+   from gpt import GPT, Config
+
+   for d in (256, 512):
+       m = GPT(Config(vocab_size=1919, d_model=d))
+       print(d, sum(p.numel() for p in m.parameters()))
+   ```
+
+   验证：第一行是 `256 3683584`，第二行是 `512 13658624`。
+
+   参考答案：每块精确值是 $12C^2 + 13C$，$C=512$ 时为 3,152,384，4 块共 12,609,536；加上 token embedding $1919\times512$、位置 embedding $128\times512$、最终 LayerNorm $2\times512$。$C$ 翻倍，参数约变成 3.7 倍，块内部分正好接近 4 倍。
+
+2. **去掉权重共享**：把 `self.head.weight = self.tok_emb.weight` 这一行注释掉，再跑练习 1 的脚本。
+
+   验证：`d_model=256` 那一行变成 `4174848`，正好多出 $1919\times256=491{,}264$。
+
+   参考答案：共享时 `head.weight` 和 `tok_emb.weight` 是同一个张量，`model.parameters()` 只算一次；拆开后多了一个独立的 `V × C` 矩阵。词表越大、模型越小，这部分占比越高。
+
+3. **去掉初始化**：恢复权重共享，注释掉 `self.apply(self._init_weights)`，对随机 token 算一次初始 loss，和不注释时比：
+
+   ```python
+   import math, torch
+   from gpt import GPT, Config
+
+   torch.manual_seed(0)
+   m = GPT(Config(vocab_size=1919)).eval()
+   x = torch.randint(1919, (4, 128))
+   y = torch.randint(1919, (4, 128))       # 随机目标，只看初始化
+   _, loss = m(x, y)
+   print(f"{loss.item():.2f}  ln V = {math.log(1919):.2f}")
+   ```
+
+   验证：保留初始化时 loss 在 7.6 左右，和 $\ln V \approx 7.56$ 很接近；去掉后 loss 高出一个数量级以上（作者 CPU 上是三位数）。
+
+   参考答案：`nn.Embedding` 默认按标准正态初始化，共享给输出层后，LayerNorm 输出与它相乘得到的 logits 尺度很大，初始分布远离均匀，模型一开始就「很自信地乱猜」。这就是[初始化](#初始化)一节用 $\ln V$ 检查的意义。
+
 ## 接下来读什么
 
 到这里，你已经亲手实现过深度学习的每个核心零件。导读里的下一站是《大模型原理进阶》：注意力的数学推导、RoPE、KV Cache、MoE、长上下文、对齐方法、量化和可解释性，都可以对照本章的代码来理解。如果更关心怎么把模型用进产品，接着读[《RAG 与知识系统》](../rag-systems/)和[《评测与质量》](../llm-evals/)；想回头补应用层的基本功，可以重读[《大模型应用工程》](../llm-app-engineering/)。

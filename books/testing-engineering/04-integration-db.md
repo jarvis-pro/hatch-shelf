@@ -257,3 +257,30 @@ hatch-shelf 用的是设备上的 SQLite（`expo-sqlite`），它只能在 App �
 - 并发数按数据库连接数算，并把这笔账写在注释里
 - 测试库可以关掉 `fsync`、放在内存盘上，但只能用于测试
 - 迁移要在有数据的库上测，空库测试发现不了加约束和加非空列的问题
+
+## 动手练习
+
+1. **亲眼看回滚隔离的盲区**：用本章的 `docker run ... pg-test` 命令起测试库，`docker exec -it pg-test psql -U postgres`，执行：
+
+   ```sql
+   create table parent (id int primary key);
+   create table child (pid int references parent deferrable initially deferred);
+   begin; insert into child values (1); rollback;
+   begin; insert into child values (1); commit;
+   ```
+
+   验证：第一个事务没有任何报错；第二个在 `commit` 时报 `insert or update on table "child" violates foreign key constraint`。
+
+   参考答案：可延迟约束在提交时才检查。用事务回滚隔离的测试永远走第一条路径，测试是绿的，生产里第一次提交就报错。
+
+2. **模板库不能有活动连接**：在同一个容器里 `create database tpl;`，开一个终端 `psql -U postgres -d tpl` 保持连接，在另一个终端执行 `create database t1 template tpl;`，然后退出第一个终端再执行一次。
+
+   验证：第一次报 `source database "tpl" is being accessed by other users`；关掉连接后成功。
+
+   参考答案：`CREATE DATABASE ... TEMPLATE` 是文件级拷贝，要求模板库静止。所以准备完模板要把连接关干净，测试文件只连自己拷出来的库。
+
+3. **把连接耗尽变成一条清楚的报错**：另起一个容器，启动参数加 `-c max_connections=10`。用 `for i in $(seq 10); do docker exec -d <容器名> psql -U postgres -c "select pg_sleep(60)"; done` 占住连接，再执行一次 `docker exec <容器名> psql -U postgres -c "select 1"`。然后算一笔账：每个并行测试文件占 19 条连接、`max_connections` 是 100 时，最多能开几个并行。
+
+   验证：最后那条命令报 `sorry, too many clients already`。
+
+   参考答案：连接满了以后，新连接是直接失败的；放到测试里，就表现为偶发的红。100 条里默认给超级用户保留 3 条，97 ÷ 19 取整是 5，刚好贴着上限。本章把并发钉在 4，是给 psql、迁移脚本这些别的连接留出余量。

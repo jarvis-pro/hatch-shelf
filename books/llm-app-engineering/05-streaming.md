@@ -137,7 +137,10 @@ export class ChatController {
     });
 
     // 用户关了页面：立刻中止上游请求，不再为没人看的输出付钱
-    req.on("close", () => stream.abort());
+    // 监听 res 而不是 req：req 的 close 在请求体读完时就会触发
+    res.on("close", () => {
+      if (!res.writableFinished) stream.abort();
+    });
 
     stream.on("text", (delta) => send("delta", { text: delta }));
 
@@ -260,3 +263,23 @@ export async function streamChat(
 - **用户断开时中止上游**，否则为没人看的输出付钱
 - 中途出错只能通过事件告知前端；已输出部分不要静默重来
 - 后台任务、结构化数据、短输出不必流式
+
+## 动手练习
+
+1. **`req` 的 close 什么时候触发**：在 Node 22 里写一个 HTTP 服务，读完 POST 请求体后开始每 200 毫秒写一条 `data: tick`，同时监听 `req.on("close")` 和 `res.on("close")` 并打印距请求开始的毫秒数。用 `fetch` 发 POST，1 秒后 `abort()`。
+
+   验证：比较两条日志的时间。在 Node 22 上可以看到 `req` 的 close 在请求体读完后几毫秒内就触发了，而 `res` 的 close 要到客户端断开时（约 1000 毫秒）才触发，此时 `res.writableFinished` 为 `false`。
+
+   参考答案：较新的 Node 里，`IncomingMessage` 的 close 表示「请求这一侧读完了」，不代表连接断开。要感知用户关页面，应监听 `res.on("close")` 并判断 `!res.writableFinished` 再 `stream.abort()`。本章控制器就是按这个写法监听的。
+
+2. **断包的 SSE 解析**：把本章前端的解析逻辑抽成一个函数，喂给它三段人为切开的数据：`'event: delta\ndata: {"te'`、`'xt":"白菜"}\n\nevent: del'`、`'ta\ndata: {"text":"42斤"}\n\n'`。
+
+   验证：`onDelta` 恰好被调用两次，依次收到 `白菜` 和 `42斤`，没有抛出 JSON 解析错误。
+
+   参考答案：网络分块和事件边界无关，所以要把 `split("\n\n")` 的最后一段留在 `buffer` 里等下一块，只解析完整的事件。
+
+3. **看见 nginx 攒包**：用一个本地 Node 服务每秒输出一条 SSE 事件、共 10 条，前面挂一个 Docker 里的 nginx 反向代理（`proxy_pass` 指向 `host.docker.internal`）。先不加 `X-Accel-Buffering` 也不关 `proxy_buffering`，用 `curl -N` 访问 nginx；再在 location 里加上 `proxy_buffering off;` 重载后重试。
+
+   验证：第一次观察输出是否在结束时才成批出现；第二次每秒出现一行。
+
+   参考答案：nginx 默认缓冲上游响应，流式就退化成「憋一会儿蹦一大段」。服务端响应头和 nginx 配置两处都关掉缓冲，哪一处被改掉都还有另一处兜着。

@@ -140,3 +140,23 @@ llama-perplexity -m model-Q4_K_M.gguf -f eval.txt
 - KV Cache 量化到 8 位几乎无损，换来一倍上下文或并发
 - 自己量化：llama.cpp 的 `convert_hf_to_gguf.py` + `llama-quantize`，MLX 用 `mlx_lm.convert`，GPU 端用 LLM Compressor
 - 验证用困惑度粗筛，**用自己的任务评测**定夺，并逐条看格式类错误
+
+## 动手练习
+
+1. **自己量化一个小模型**：在 Mac 上按[自己量化 GGUF](#gguf)一节的流程，把 Hugging Face 上的 `Qwen/Qwen3-0.6B`（无需令牌）转成 F16，再分别量化成 `Q8_0`、`Q4_K_M`、`Q2_K`，`ls -lh` 看大小，并用同一份 `eval.txt`（随便几十 KB 的中文文章）跑 `llama-perplexity`。
+
+   验证：文件大小从 F16 到 `Q2_K` 依次变小；困惑度 `Q8_0` 和 F16 几乎一样，`Q4_K_M` 略高，`Q2_K` 明显更高。
+
+   参考答案：位宽越低误差越大，0.6B 这样的小模型对量化尤其敏感，所以 `Q2_K` 的困惑度涨幅会比大模型更夸张。这也说明「`Q3` 以下只在装不下时用」。
+
+2. **看 KV Cache 量化省了多少**：用上一题的 `Q4_K_M` 文件启动两次 `llama-server -m <文件> -c 32768`，第二次加上 `-ctk q8_0 -ctv q8_0` 并开启 Flash Attention（`-fa` 的写法以 `--help` 为准）。
+
+   验证：在两次的启动日志里找 KV cache 大小（MiB）那一行，第二次约为第一次的一半。
+
+   参考答案：默认 KV 缓存是 F16，每元素 2 字节；`q8_0` 约 1 字节多一点（含缩放因子），所以接近减半。V 缓存量化依赖 Flash Attention，不开会报错或回退。
+
+3. **按场景选格式**：给三个场景各选一种格式并说出理由：A. 18 GB 的 M3 Pro，用 Ollama 跑 14B；B. 一张 L40S（48 GB，Ada 架构），vLLM 高并发服务 8B；C. 一张 RTX 3090（24 GB，Ampere 架构，不支持 FP8），vLLM 跑 32B。
+
+   验证：每个场景写出格式名和一句依据，并对 C 算出 BF16、FP8、4 位三种权重大小。
+
+   参考答案：A 选 GGUF `Q4_K_M`（约 8 GB，留出 KV Cache 空间）；B 选 FP8，原生支持且高并发时比 4 位更合适；C 的 BF16 约 64 GB、FP8 约 32 GB 都放不下，且卡不支持原生 FP8，选 AWQ / GPTQ 4 位（约 18–19 GB），剩下的显存给 KV Cache，`--max-model-len` 要设小一些。

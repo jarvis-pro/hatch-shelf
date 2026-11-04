@@ -428,3 +428,41 @@ func main() {
 - 一个错误只处理一次：中间层包装返回，最外层记录或翻译
 - `errors.Join` 收集多个错误；写入文件时用命名返回值合并 `Close` 的错误
 - `panic` 只用于程序员错误；`recover` 只在边界上兜底；自己起的 goroutine 里的 panic 会让进程崩溃
+
+## 动手练习
+
+1. **把 `%w` 换成 `%v`**：运行下面的程序，然后把 `%v` 改成 `%w`，比较两次输出。
+
+   ```go
+   package main
+
+   import (
+   	"errors"
+   	"fmt"
+   	"io/fs"
+   	"os"
+   )
+
+   func main() {
+   	_, err := os.ReadFile("/nope/book.yaml")
+   	w := fmt.Errorf("load book: %v", err)
+   	fmt.Println(w)
+   	fmt.Println(errors.Is(w, fs.ErrNotExist))
+   }
+   ```
+
+   验证：两次的第一行完全相同（`load book: open /nope/book.yaml: no such file or directory`），第二行用 `%v` 时是 `false`，用 `%w` 时是 `true`。
+
+   参考答案：`%v` 只把下层错误的文字拼进来，链条断了；`%w` 保留了被包装的错误，`errors.Is` 才能顺着 `Unwrap` 找到 `fs.ErrNotExist`。只看日志分辨不出两者，这正是 errorlint 有用的地方。
+
+2. **main 里的 recover 救不了别的 goroutine**：在 `main` 开头写一个 `defer func() { if r := recover(); r != nil { fmt.Println("recovered:", r) } }()`，然后 `go func() { panic("boom") }()`，`time.Sleep(100 * time.Millisecond)` 后打印 `main 结束`。预测输出。
+
+   验证：既看不到 `recovered:` 也看不到 `main 结束`，而是 `panic: boom` 加上 goroutine 栈，`go run` 最后一行是 `exit status 2`。把 `defer recover` 移到 `go func()` 的函数体里，程序会打印 `recovered: boom` 和 `main 结束`。
+
+   参考答案：`recover` 只能拦住**同一个 goroutine** 里沿调用栈传上来的 panic。自己起的 goroutine 要在自己的入口处兜底。
+
+3. **一个错误同时命中两个分支**：在本章「业务错误到 HTTP 状态码」的程序里，往 `errs` 加一项 `errors.Join(fmt.Errorf("get store 7: %w", ErrNotFound), &ValidationError{Field: "name", Msg: "不能为空"})`。预测 `statusOf` 返回什么；再把 `switch` 里 `errors.As` 那个 case 挪到最后（`default` 之前），预测是否变化。
+
+   验证：原顺序下新的一行打印 `422 name: 不能为空`；挪动之后变成 `404 资源不存在`。
+
+   参考答案：`errors.Is` / `errors.As` 会搜索 Join 出来的所有分支，两个 case 都会命中，`switch` 取第一个成立的。多个错误混在一起时，翻译函数里 case 的顺序就是优先级，要有意识地排。

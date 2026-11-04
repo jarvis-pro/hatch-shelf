@@ -254,3 +254,25 @@ export function businessDay(at = new Date(), tz = "Asia/Shanghai") {
 - 短延迟用 `delay` / `startAfter`，取消只是优化，处理函数里用条件更新兜底；能用时间戳比较表达的不要起任务
 - 长延迟不要排进队列：到期时间存业务表，周期任务扫描
 - 存 `timestamptz`，cron 写 `tz`，业务日期用一个函数按业务时区统一计算
+
+## 动手练习
+
+环境：沿用第 5 章的 Redis 容器和 `bullmq` 依赖；第 1 题只需要 Node。
+
+1. **UTC 日期算错一天**：在 Node 里对 `const at = new Date("2026-11-04T23:30:00Z")` 分别打印 `at.toISOString().slice(0, 10)` 和本章的 `businessDay(at)`。再用 `TZ=UTC node -e 'console.log(new Date(2026, 10, 5, 3).toISOString())'` 看「凌晨 3 点」在 UTC 容器里是哪个时刻。
+
+   验证：第一个是 `2026-11-04`，第二个是 `2026-11-05`；第二条命令输出 `2026-11-05T03:00:00.000Z`，即北京时间上午 11 点。
+
+   参考答案：`toISOString` 永远是 UTC 日期，北京时间早上 8 点前会落到前一天；不写 `tz` 的「3 点」按进程时区解释，容器默认 UTC，就差了 8 小时。
+
+2. **调度器 id 保证只有一份**：写一个脚本连续调用 3 次 `queue.upsertJobScheduler("daily", { pattern: "0 3 * * *", tz: "Asia/Shanghai" })`，模拟 3 个实例各自启动，然后打印 `(await queue.getJobSchedulers()).length` 和 `await queue.getDelayedCount()`。
+
+   验证：调度器数量是 `1`，延迟任务数也是 `1`。
+
+   参考答案：调度器以 id 为键存在 Redis 里，重复 `upsert` 只是更新同一份，并且只放一个「下一次执行」的延迟任务。
+
+3. **取消只是优化**：加一个 `delay: 5000`、`jobId: "auto-cancel-1"` 的任务，立刻 `getJob` 并打印 `await job.getState()`，然后 `remove()`，再打印 `await queue.getJob("auto-cancel-1")`。另写一版：把 `delay` 改成 0 并先启动 Worker，再去 `remove()`。
+
+   验证：第一版状态是 `delayed`，删除后 `getJob` 返回 `undefined`，Worker 从未执行；第二版里 Worker 已经执行了任务（处理函数的日志先出现），`remove()` 来得太晚。
+
+   参考答案：任务一旦被取走，删除就拦不住了，所以处理函数要用 `WHERE status = 'pending'` 这样的条件更新兜底。

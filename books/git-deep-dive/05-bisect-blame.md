@@ -262,3 +262,38 @@ flowchart TD
 - 主线有合并提交时用 `--first-parent`
 - blame 加 `-w -M -C`，格式化提交登记在 `.git-blame-ignore-revs`
 - 找某段文本的出现与消失用 `log -S`，追一个函数的演变用 `log -L`
+
+## 动手练习
+
+1. **复现本章的 bisect run**：用下面的脚本在临时目录生成 100 个提交、第 63 个埋了取整 bug 的仓库，再用本章的检查脚本（`fee.js` 改成 `fee.mjs`，脚本放在 `lab` 外面）自动定位。
+
+   ```bash
+   git init -q -b main lab && cd lab
+   echo 'export const fee = (n) => n * 0.06;' > fee.mjs
+   git add . && git commit -qm 'feat: fee'
+   for i in $(seq 1 99); do
+     echo "$i" > step.txt
+     [ "$i" = 63 ] && echo 'export const fee = (n) => Math.round(n * 0.06);' > fee.mjs
+     git add -A && git commit -qm "chore: step $i"
+   done
+   ```
+
+   验证：`git bisect start HEAD HEAD~99 && git bisect run ../check.sh` 最后输出 `... is the first bad commit`，提交消息是 `chore: step 63`；中间 `running` 出现 7 次左右。
+
+   参考答案：好坏只看退出码，脚本在仓库外，所以每次切换提交都不受影响。结束后 `git bisect reset`。
+
+2. **退出码 1 和 125 的差别**：改造上面的脚本，让第 55 个提交新增一个有语法错误的 `broken.mjs` 并在 `fee.mjs` 里 import 它，第 63 个提交删掉它、同时引入取整 bug。先用原检查脚本跑一次，再把 import 失败改成退出 125 跑一次。
+
+   验证：原脚本给出的「第一个坏提交」是 `chore: step 55`，是错的；改用 125 后输出 `The first bad commit could be any of:` 加一串候选，最后是 `We cannot bisect more!`。
+
+   参考答案：import 失败也被当成了「坏」，bisect 就把无关的语法错误认成了凶手。返回 125 后结论变成「无法确定」，候选里包含真正的 step 63，这比一个错的确定答案有用。检查脚本可以写成：
+
+   ```bash
+   node -e 'import("./fee.mjs").then(m => process.exit(m.fee(10) === 0.6 ? 0 : 1), () => process.exit(125))'
+   ```
+
+3. **用 -S 跳过 bisect**：在第 1 题的仓库里，不用 bisect，一条命令找出 `Math.round` 是哪个提交引入的。
+
+   验证：`git log -S 'Math.round' --oneline` 只输出一行，消息是 `chore: step 63`。
+
+   参考答案：知道「坏代码长什么样」时，pickaxe 直接找出这段文本出现次数变化的提交，比二分更快；不知道原因、只知道现象时才需要 bisect。

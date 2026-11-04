@@ -263,3 +263,25 @@ tmux attach -t work   # 重新连回
 - 三个标准流 stdin / stdout / stderr，`>`、`2>&1`、`|` 把小命令组合成大工具
 - 变量引用加双引号，`rm -rf` 配合 `${VAR:?}` 防止变量为空
 - `Ctrl+R`、`Tab`、`man` 是效率三件套；ssh 配 `~/.ssh/config`、端口转发和 tmux
+
+## 动手练习
+
+下面的题在本机终端或一次性容器 `docker run --rm -it ubuntu:24.04 bash` 里做都可以。
+
+1. **看见展开**：建一个空目录，进去执行 `touch a.log b.log`，然后执行 `echo rm *.log`；再执行 `rm *.log` 删掉两个文件后，重复一次 `echo rm *.log`。
+
+   验证：第一次打印 `rm a.log b.log`；第二次打印 `rm *.log`，星号原样保留。
+
+   参考答案：通配符由 Shell 在执行前展开，`echo` 收到的已经是文件列表；没有匹配时 bash 默认把模式原样传下去，这也是脚本里 `for f in *.log` 在空目录会拿到字面量 `*.log` 的原因。
+
+2. **重定向的顺序**：分别执行 `ls /nope > a.txt 2>&1` 和 `ls /nope 2>&1 > b.txt`，比较终端输出和两个文件的内容。
+
+   验证：第一条终端上什么也没有，`cat a.txt` 看到 `No such file or directory`；第二条错误直接打在终端上，`wc -c b.txt` 是 `0`。
+
+   参考答案：重定向从左到右处理。第二条执行 `2>&1` 时 1 号还指向终端，于是 2 号也指向终端，之后 `> b.txt` 只改了 1 号。
+
+3. **让空变量提前失败**：执行 `bash -c 'DIR=; echo rm -rf "${DIR:?}/"; echo after'; echo "exit=$?"`（只 `echo`，不真删）。
+
+   验证：看到 `DIR: parameter null or not set`，`after` 没有打印，最后一行是 `exit=1`。
+
+   参考答案：`${VAR:?}` 在变量为空或未设置时打印错误并让非交互 Shell 退出，后面的命令都不会执行；去掉 `:?` 再试，会打印出 `rm -rf /`。

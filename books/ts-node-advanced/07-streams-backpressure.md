@@ -240,3 +240,57 @@ console.log("saved copy.log");
 - 一律用 `node:stream/promises` 的 `pipeline`，它处理背压、错误传播和清理；不要再用 `.pipe()`
 - 异步生成器是写 Transform 最简单的方式，`for await` 和 `yield` 自带背压
 - HTTP 下载要处理客户端中途断开；`fetch` 的 Web Stream 用 `Readable.fromWeb` 转换，Node 项目的 `lib` 不要带 DOM
+
+## 动手练习
+
+1. **调高水位线**：把本章 `bp.mjs` 的 good 版本缩成 2000 块（省时间），给 `new Writable({...})` 加上 `highWaterMark: 1024 * 1024`，打印 `w.writableHighWaterMark` 和缓冲峰值。先不加跑一次，再加上跑一次。
+
+   验证：不加时输出 `hwm 64 KB，峰值 64 KB`；加上后输出 `hwm 1024 KB，峰值 1024 KB`。
+
+   参考答案：背压生效时缓冲刚好涨到水位线就停，峰值由 `highWaterMark` 决定。调高它能减少暂停次数，代价是每个流多占内存；有很多并发流时（比如每个下载请求一个），这个数要乘以并发数来估算。
+
+2. **'data' 事件不会等你**：
+
+   ```js
+   // data.mjs —— node data.mjs data / node data.mjs iter
+   import { Readable } from "node:stream";
+   import { setTimeout as sleep } from "node:timers/promises";
+   const src = Readable.from([1, 2, 3]);
+   if (process.argv[2] === "data") {
+     src.on("data", async (n) => { console.log("start", n); await sleep(10); console.log("end", n); });
+   } else {
+     for await (const n of src) { console.log("start", n); await sleep(10); console.log("end", n); }
+   }
+   ```
+
+   预测两种模式的输出顺序。
+
+   验证：`data` 模式是 `start 1`、`start 2`、`start 3`、`end 1`、`end 2`、`end 3`；`iter` 模式是 `start 1`、`end 1`、`start 2`、`end 2`、`start 3`、`end 3`。
+
+   参考答案：事件监听器的返回值（这里是 Promise）会被忽略，流照样推下一块，异步处理全部并发涌进来；`for await` 在循环体结束前不会取下一块，自带背压。
+
+3. **生成器里抛错，pipeline 负责收拾**：
+
+   ```js
+   // perr.mjs
+   import { Readable, Writable } from "node:stream";
+   import { pipeline } from "node:stream/promises";
+   async function* check(src) {
+     for await (const line of src) {
+       if (line.includes("BAD")) throw new Error(`bad line: ${line}`);
+       yield line;
+     }
+   }
+   const out = new Writable({ objectMode: true, write(c, _e, cb) { console.log("wrote", c); cb(); } });
+   try {
+     await pipeline(Readable.from(["a", "b", "BAD c", "d"]), check, out);
+   } catch (e) {
+     console.log("caught:", e.message, "| out destroyed?", out.destroyed);
+   }
+   ```
+
+   预测输出。
+
+   验证：依次输出 `wrote a`、`wrote b`、`caught: bad line: BAD c | out destroyed? true`，`d` 不会被写出。
+
+   参考答案：中间环节抛出的错误会让 `pipeline` 销毁所有流并 reject，一个 `try / catch` 就能统一处理；用 `.pipe()` 串的话，下游流会一直开着。

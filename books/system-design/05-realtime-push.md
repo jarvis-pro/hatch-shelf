@@ -71,49 +71,18 @@ hatch-counter 的文档把「断了不补发」列为推版本号的**主要原�
 
 ## 服务端：一条 SSE 连接
 
-NestJS 有 `@Sse()` 装饰器，返回一个 Observable 即可。但它对心跳、断开清理、写之前先订阅这些细节控制得不够细，下面直接用底层的响应对象写（Express 适配器）：
+NestJS 有 `@Sse()` 装饰器，返回一个 Observable 即可。但它对心跳、断开清理、写之前先订阅这些细节控制得不够细，hatch-counter 直接用底层的响应对象手写。完整的端点代码和为什么不用 `@Sse()`，见[《NestJS 后端架构》为什么 hatch-counter 不用 @Sse()](../nestjs-backend/08-realtime.md#为什么-hatch-counter-不用-sse)。从设计的角度，只需要看清其中的顺序：
 
 ```typescript
-import { Controller, Get, Req, Res } from "@nestjs/common";
-import type { Request, Response } from "express";
+// 先订阅、再读快照：读快照期间提交的变化先攒着，发完快照再补，一条不漏
+const buffered: string[][] = [];
+let ready = false;
+const unsubscribe = hub.subscribe(storeId, (domains) =>
+  ready ? send("changed", { domains }) : buffered.push(domains));
 
-@Controller("v1")
-export class EventsController {
-  constructor(private hub: Hub, private versions: VersionsService) {}
-
-  @Get("events")
-  async events(@Req() req: Request, @Res() res: Response, @StoreId() storeId: string) {
-    res.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no", // 告诉 nginx 别攒缓冲
-    });
-
-    const send = (event: string, data: unknown) =>
-      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-
-    // 先订阅、再读快照：读快照期间提交的变化先攒着，发完快照再补，一条不漏
-    const buffered: string[][] = [];
-    let ready = false;
-    const unsubscribe = this.hub.subscribe(storeId, (domains) => {
-      if (ready) send("changed", { domains });
-      else buffered.push(domains);
-    });
-
-    send("snapshot", await this.versions.snapshot(storeId));
-    ready = true;
-    for (const domains of buffered) send("changed", { domains });
-
-    // 注释行当心跳：中间的 nginx、NAT 会悄悄掐掉空闲连接
-    const heartbeat = setInterval(() => res.write(": ping\n\n"), 25_000);
-
-    req.on("close", () => {
-      clearInterval(heartbeat);
-      unsubscribe();
-    });
-  }
-}
+send("snapshot", await versions.snapshot(storeId));
+ready = true;
+for (const domains of buffered) send("changed", { domains });
 ```
 
 几个要点：
@@ -197,43 +166,7 @@ await sql.listen("store_versions", (payload) => {
 
 ## 客户端：读流、重连、看门狗
 
-浏览器原生的 `EventSource` 有个限制：**不能带自定义请求头**，没法加 `Authorization`。hatch-counter 因此用 `fetch` 读流：
-
-```typescript
-export async function connect(
-  url: string,
-  token: string,
-  onEvent: (event: string, data: unknown) => void,
-  signal: AbortSignal,
-) {
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
-    signal,
-  });
-  if (!res.ok || !res.body) throw new Error(`连接失败：${res.status}`);
-
-  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
-  let buffer = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += value;
-    let sep: number;
-    while ((sep = buffer.indexOf("\n\n")) !== -1) {
-      const block = buffer.slice(0, sep);
-      buffer = buffer.slice(sep + 2);
-      let event = "message";
-      let data = "";
-      for (const line of block.split("\n")) {
-        if (line.startsWith("event: ")) event = line.slice(7);
-        else if (line.startsWith("data: ")) data += line.slice(6);
-        // 以冒号开头的是心跳注释，忽略
-      }
-      if (data) onEvent(event, JSON.parse(data));
-    }
-  }
-}
-```
+浏览器原生的 `EventSource` 有个限制：**不能带自定义请求头**，没法加 `Authorization`。hatch-counter 因此用 `fetch` 拿到响应体，按空行切出一条条事件，读流的代码见[《NestJS 后端架构》客户端：为什么不用 EventSource](../nestjs-backend/08-realtime.md#客户端为什么不用-eventsource)。
 
 重连逻辑决定了这套东西在真实网络下好不好用。hatch-counter 的客户端做了这几件事：
 
@@ -276,3 +209,35 @@ App 切到后台时，系统很快就会挂起它，长连接随之断开。所�
 - 变化来源交给数据库触发器 + `NOTIFY`：事务性、自动合并，多实例天然支持
 - 客户端用 `fetch` 读流以便带令牌；退避加抖动、看门狗、醒来重连；推送没连上时不用缓存
 - 移动端后台不保持长连接，回到前台重连对快照；后台提醒交给系统推送
+
+## 动手练习
+
+1. **手写一条 SSE**：把下面的代码存成 `sse.mjs` 运行，另开终端 `curl -N localhost:8787`，看一会儿后按 Ctrl+C 断开 curl。
+
+   ```javascript
+   import http from "node:http";
+   let version = 0;
+   http.createServer((req, res) => {
+     res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store" });
+     res.write(`event: snapshot\ndata: ${JSON.stringify({ expenses: version })}\n\n`);
+     const change = setInterval(() => res.write(`event: changed\ndata: ${JSON.stringify({ expenses: ++version })}\n\n`), 2000);
+     const heartbeat = setInterval(() => res.write(": ping\n\n"), 5000);
+     req.on("close", () => { clearInterval(change); clearInterval(heartbeat); console.log("closed"); });
+   }).listen(8787);
+   ```
+
+   验证：curl 先打出一条 `event: snapshot`，之后每 2 秒一条 `event: changed`，中间夹着 `: ping` 心跳行；断开 curl 后服务端打印 `closed`。
+
+   参考答案：SSE 就是一个不结束的普通 HTTP 响应，冒号开头的行是注释，可以当心跳用。把 `req.on("close", ...)` 删掉再连、断几次，定时器会一直跑下去，这就是本章说的「断开时不清理会泄漏」。
+
+2. **顺序反了会丢什么**（分析题）：有人把服务端改成先读版本快照、发出去，再订阅这家店的变化。画一条时间线，说明在什么时刻提交的写入会被这个客户端错过，以及后果。
+
+   验证：时间线上标出「读快照」「另一个请求提交」「开始订阅」三个点的先后。
+
+   参考答案：在读完快照之后、开始订阅之前提交的变化，既不在快照里，也收不到 `changed`；客户端会一直用着那块旧缓存，直到下一次那块再变或者断线重连，而且不报任何错。先订阅、把期间的通知攒着、发完快照再补，就合上了这个缝。
+
+3. **选推送方式**（分析题）：一个门店应用有四个需求：A. 别人改了开支，我开着的页面要跟上；B. 让大模型生成经营周报，要逐字显示；C. 有待审批的单据时提醒店主，即使 App 没打开；D. 一个汇率看板，十分钟更新一次。各用什么技术。
+
+   验证：对照「通知变了 / 推数据流 / 双向协作」三种需求先归类，再选技术。
+
+   参考答案：A 用 SSE 推版本号；B 用 SSE 推数据流（周报生成是一次性的，断了重新生成即可）；C 用系统推送只负责叫醒，数据照样走接口取；D 短轮询就够。如果 A 改成「两个人同时编辑同一张单据、要看到对方的光标」，就成了双向协作，才轮到 WebSocket 和冲突处理。

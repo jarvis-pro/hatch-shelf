@@ -156,3 +156,23 @@ Release 包里跑的是字节码，崩溃栈里的位置是字节码偏移，没
 - Hermes 不是浏览器也不是 Node：WebCrypto、`Buffer`、`fs` 都没有；`EXPO_PUBLIC_*` 是构建时内联的
 - 需要 polyfill 时放在入口**第一行**，缺什么在启动时明确报出来
 - 开发包性能不代表 Release 包；调试用 React Native DevTools（Metro 里按 `j`）
+
+## 动手练习
+
+1. **确认引擎**：在 React Native DevTools 的 Console 里执行 `typeof HermesInternal` 和 `HermesInternal.getRuntimeProperties()`。
+
+   验证：第一个输出 `"object"`；第二个返回一个对象，里面能看到 Hermes 的版本相关字段（具体键名以实际输出为准）。
+
+   参考答案：`HermesInternal` 是 Hermes 注入的全局对象，浏览器和 Node 里都没有，可以用它判断代码是不是跑在 Hermes 上。
+
+2. **把 polyfill 放到第二行**：在练习项目里新建 `src/needs-crypto.ts`，模块顶层执行 `export const seed = crypto.getRandomValues(new Uint8Array(4));`。入口里先 `import "./src/needs-crypto"`，再 `import "./src/polyfills"`（polyfill 内容同本章），重载 App；然后把两行顺序对调再重载。
+
+   验证：第一次启动报 `ReferenceError`，指向 `crypto`；对调后正常启动。
+
+   参考答案：import 按书写顺序执行，`needs-crypto` 在模块初始化时就用到了 `crypto`，那时 polyfill 还没跑。顺序是语义的一部分。
+
+3. **`EXPO_PUBLIC_*` 是字面量**：在项目根目录建 `.env`，写 `EXPO_PUBLIC_GREETING=hello`，在组件里分别打印 `process.env.EXPO_PUBLIC_GREETING` 和 `process.env['EXPO_PUBLIC_' + 'GREETING']`，重启 Metro 后看日志。
+
+   验证：第一行打印 `hello`，第二行打印 `undefined`。
+
+   参考答案：Babel 只在构建时把写死的 `process.env.EXPO_PUBLIC_XXX` 替换成字面量，动态拼出来的键在运行时没有 `process.env` 可读。

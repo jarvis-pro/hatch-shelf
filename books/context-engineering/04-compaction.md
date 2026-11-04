@@ -270,3 +270,33 @@ messages.push({ role: "assistant", content: response.content });
 - 自己实现摘要时切点要落在 assistant 消息上，避免拆散 `tool_use` / `tool_result`
 - 服务端压缩要把完整 `content` 追加回历史
 - 同一件事里用 `/compact`，换一件事用 `/clear`；真正的长任务靠持续维护的交接文件，而不是临时摘要
+
+## 动手练习
+
+1. **截断时说清楚省略了多少**：用本章的 `truncateOutput` 处理一段 10 万行的文本。
+
+   ```javascript
+   const text = Array.from({ length: 100000 }, (_, i) => String(i + 1)).join("\n");
+   const out = truncateOutput(text);
+   console.log(out.length, out.match(/省略中间约 (\d+) 行/)[1], out.split("\n")[0], out.split("\n").at(-1));
+   ```
+
+   验证：输出长度约 8000 字符，省略行数约 98440，第一行是 `1`，最后一行是 `100000`。
+
+   参考答案：保留开头和结尾，错误信息通常在结尾；提示里写明省略了多少、怎么拿全，模型就不会把残缺的内容当成全部。
+
+2. **清理旧结果后配对仍然完整**：造一段有 10 轮工具调用的历史（每轮一条带 `tool_use` 的 assistant 消息和一条带 `tool_result` 的 user 消息），用 `clearOldToolResults(messages, 6)` 处理。
+
+   验证：前 4 个 `tool_result` 的内容变成占位符，后 6 个原样保留；消息条数和每个 `tool_use_id` 都没有变化。
+
+   参考答案：只改内容不删消息，`tool_use` 和 `tool_result` 才能一一配对；删掉一半，API 会直接报错。
+
+3. **算出锯齿的账，再调一调阈值**：沿用本章的假设（初始 3000，每轮加 2000，超过阈值压缩回 9000），算 40 轮的累计输入和压缩次数，阈值分别取 2 万、3 万、6 万。
+
+   ```bash
+   node -e 'for (const T of [20000, 30000, 60000]) { let c = 3000, s = 0, k = 0; for (let n = 1; n <= 40; n++) { s += c; c += 2000; if (c > T) { c = 9000; k++ } } console.log(T, s, k) }'
+   ```
+
+   验证：阈值 3 万时累计 `690000`、压缩 3 次，和本章的图一致；2 万时累计 `528000`、压缩 6 次；6 万时累计 `1108000`、压缩 1 次。
+
+   参考答案：阈值越低越省 token，但压缩次数翻倍，每次都丢信息、都要重建缓存、摘要调用本身也花钱。这笔账只算了输入，没算质量，所以还要看压缩后 agent 有没有「失忆」。

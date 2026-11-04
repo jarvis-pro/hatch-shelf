@@ -351,7 +351,7 @@ echo "备份完成：$file（$(du -h "$file" | cut -f1)）"
 - `umask 077`：备份文件权限自动是 600
 - 输出一行结果，进 journald，`journalctl -u pg-backup` 就能看到每天的备份大小。大小突然变成几十字节，说明出问题了
 
-只在同一台机器上的备份防不住机器本身出事。至少定期把备份传到另一个地方（对象存储、另一台机器），并且**定期演练恢复**：从没恢复过的备份不算备份。
+只在同一台机器上的备份防不住机器本身出事。把它加密送到异地、让失败可见、定期演练恢复，见[《一人运维手册》3-2-1 原则](../production-ops/02-backup-dr.md#3-2-1-原则)。
 
 ## 用 ShellCheck 检查
 
@@ -385,3 +385,31 @@ hatch-counter 的分工就是这样：机器上执行的部署脚本用 Bash（�
 - `[[ "$s" =~ $RE ]]` 校验输入，不认识的参数直接报错
 - `trap EXIT` 做清理，`trap ERR` 做回滚，回滚函数先摘掉 trap；改文件用「写临时文件再 mv」
 - `flock` 保证同一时刻只跑一个；用 ShellCheck 检查；逻辑复杂了就换 TypeScript
+
+## 动手练习
+
+1. **空备份是怎么来的**：执行 `bash -c 'false | gzip > /tmp/x.gz; echo $?'`，再执行 `bash -c 'set -o pipefail; false | gzip > /tmp/x.gz; echo $?'`。
+
+   验证：第一条输出 `0`，第二条输出 `1`；`ls -l /tmp/x.gz` 能看到一个只有几十字节的 gzip 文件。
+
+   参考答案：没有 `pipefail` 时管道的退出码只看最后一个命令。把 `false` 换成连不上数据库的 `pg_dump`，就是「每天备份成功、文件全是空的」。
+
+2. **`local` 吞掉了失败**：把下面的脚本存成 `t.sh` 运行，再把 `local out=$(false)` 改成两行 `local out` 和 `out=$(false)` 重跑。
+
+   ```bash
+   #!/usr/bin/env bash
+   set -euo pipefail
+   f() { local out=$(false); echo "还在跑"; }
+   f
+   echo "结束"
+   ```
+
+   验证：第一次打印 `还在跑` 和 `结束`，`echo $?` 是 `0`；改后什么都不打印，退出码是 `1`。`shellcheck t.sh` 会对原写法给出 SC2155 警告。
+
+   参考答案：`local` 自己的退出码是 0，掩盖了命令替换的失败，`-e` 看不到；声明和赋值分开后，赋值语句的退出码就是 `false` 的。
+
+3. **用 flock 互斥**：在 Linux 或容器（macOS 默认没有 `flock`）里执行 `flock -n /tmp/demo.lock sleep 30 &`，紧接着执行 `flock -n /tmp/demo.lock echo 拿到锁 || echo 已经有一个在跑了`；再把第二条的 `-n` 去掉重试。
+
+   验证：带 `-n` 时立刻输出 `已经有一个在跑了`；去掉 `-n` 后命令会卡住，等后台的 `sleep` 结束才输出 `拿到锁`。
+
+   参考答案：`-n` 是拿不到锁就放弃，适合定时任务；不带 `-n` 是排队等待，适合手动执行的回滚这类必须做完的操作。

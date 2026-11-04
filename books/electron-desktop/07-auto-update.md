@@ -187,3 +187,25 @@ pnpm exec wrangler r2 object put "my-updates/myapp/mac/arm64/latest-mac.yml" \
 - 灰度用 `stagingPercentage`，回滚靠发更高版本号的修复版
 - 本地数据要能从任意旧版本迁移
 - 用户只有自己时，不做自动更新是合理的选择
+
+## 动手练习
+
+真正装上一次更新需要开发者证书（付费账号）；下面三题不需要。
+
+1. **自己核对清单里的哈希**：在练习工程的 `electron-builder.yml` 里加上本章的 `publish`（`provider: generic`，`url` 随便填一个 `https://` 占位地址），mac target 改成 `zip`，运行 `pnpm build && pnpm exec electron-builder --mac zip --publish never`。打开 `release/latest-mac.yml`，再运行 `openssl dgst -sha512 -binary release/<文件名>.zip | base64`。
+
+   验证：`latest-mac.yml` 里有 `version`（等于 `package.json` 的版本）、`files` 和 `sha512`；`openssl` 算出的值和清单里对应文件的 `sha512` 一字不差。另外打出的 `.app/Contents/Resources/app-update.yml` 里能看到你填的 `url`。
+
+   参考答案：客户端下载 zip 后就是这样校验完整性的；清单是「开关」，内容由打包生成，不要手改。
+
+2. **复现「退出被拦住」**：在第 5 章「关窗只藏起来」的练习工程里，加一个菜单项直接调用 `app.quit()`，但**不**经过 `before-quit` 设标志（比如把 `before-quit` 的监听先注释掉）。点这个菜单项，然后 `pgrep -fl Electron`。
+
+   验证：窗口消失了，但进程还在；恢复 `before-quit` 置位后，同一个菜单项能让进程真正退出。
+
+   参考答案：`quitAndInstall` 也是先关所有窗口再退出，`close` 处理函数把它拦成「藏起来」就会卡住。改写过退出流程的应用，调用前要先 `markQuitting()`。
+
+3. **发版事故推演**（分析题）：你的发布脚本先传 `latest-mac.yml`，再传 zip；这次 zip 传到一半网络断了。同时 CDN 对所有文件都缓存 24 小时。说出接下来 24 小时内客户端会遇到什么，以及该怎么改脚本和缓存策略。
+
+   验证：答案要覆盖「清单先到」和「清单被缓存」两个问题。
+
+   参考答案：清单一出现，客户端就去下它指向的 zip，拿到 404 或残缺文件，`sha512` 校验失败，更新报错；修好重传后，CDN 仍给出旧清单或错误响应长达一天。改法：先传安装包、最后传清单；清单设短缓存或不缓存，带版本号的安装包设长缓存。

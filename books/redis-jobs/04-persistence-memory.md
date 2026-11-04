@@ -223,3 +223,25 @@ find /backup/redis -name 'queue-*.rdb' -mtime +7 -delete
 - 上线前用 `MEMORY USAGE` 量一下、算一下；碎片率小于 1 说明在用 swap
 - 用 `--bigkeys` 找大键，删大键用 `UNLINK`
 - 从旧备份恢复队列会重复执行任务；关键业务事实要在 Postgres 里留痕，能用 SQL 补救
+
+## 动手练习
+
+下面都在一次性容器里做，用完 `docker rm -f` 删掉。造数据用 `redis-cli DEBUG POPULATE`，所以容器启动时加 `--enable-debug-command yes`。
+
+1. **noeviction 时写入报错**：`docker run --rm -d --name rq -p 6379:6379 redis:7.4-alpine redis-server --enable-debug-command yes --maxmemory 20mb --maxmemory-policy noeviction`，然后 `docker exec rq redis-cli DEBUG POPULATE 500000 job 100`，再执行一次 `SET x 1`。
+
+   验证：`SET` 返回以 `OOM command not allowed when used memory > 'maxmemory'` 开头的错误；`DBSIZE` 不再增长；`GET` 之类的读命令照常可用。
+
+   参考答案：`noeviction` 下内存到上限后拒绝写入，已有数据一个不丢，这正是队列需要的行为。
+
+2. **allkeys-lru 时静默淘汰**：用同样的命令起一个 `--maxmemory-policy allkeys-lru` 的容器，同样 `DEBUG POPULATE 500000 job 100`，再循环写几千个新键。
+
+   验证：写入全部成功；`INFO stats` 里的 `evicted_keys` 大于 0；`DBSIZE` 明显少于写入总数。
+
+   参考答案：内存满时 Redis 按近似 LRU 删掉旧键腾地方，客户端收不到任何错误。如果这些键是 BullMQ 的任务数据，队列结构就被悄悄破坏了。
+
+3. **AOF 与重启**：起两个带数据卷的容器，一个 `--appendonly yes`，另一个 `--save "" --appendonly no`，各写 `SET k v`，然后对两个容器执行 `docker restart`，再 `GET k`。
+
+   验证：开 AOF 的容器返回 `"v"`，`docker exec <容器> ls /data/appendonlydir` 能看到 base 和 incr 文件；全关的容器返回 `(nil)`。
+
+   参考答案：开了 AOF 的实例重启时重放日志恢复数据；持久化全关的实例就是纯内存，适合缓存，不适合队列。

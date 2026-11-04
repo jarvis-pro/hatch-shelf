@@ -290,3 +290,23 @@ hatch-recordwall 的桌面端用的是另一条路：带着 `RECORDWALL_CDP_PORT
 - 如果每个界面操作背后都是可调用的函数，可以在跑着的 App 里直接执行代码来验证
 - Electron 按进程分层；通道表用元测试守住，整体启动用 Playwright 的实验性 Electron 支持，按 URL 挑窗口
 - 自动化覆盖不到的写成固定的发版清单，覆盖安装那一条最不能省
+
+## 动手练习
+
+1. **脱离 App 测一个 WebView 页面**：在装了 Playwright 的目录里写一个 `reader.html`：脚本里定义 `window.__shelf = { receive(m) { ... } }`，收到 `{ type: "load", markdown }` 时把内容放进 `<pre>`，再 `window.ReactNativeWebView.postMessage(JSON.stringify({ type: "rendered" }))`；页面加载时先发一条 `{ type: "ready" }`。照本章的写法，用 `addInitScript` 挂一个记录消息的假 `ReactNativeWebView`，`page.goto(pathToFileURL("reader.html").href)` 后调用 `receive`。
+
+   验证：用 `expect.poll` 读 `__sent` 的类型列表，最终等于 `["ready", "rendered"]`。
+
+   参考答案：`addInitScript` 在页面脚本之前执行，所以页面一加载就能找到假桥。只要协议是字符串化的 JSON，RN 那一端就可以用浏览器里的一个数组替代，阅读器的逻辑不需要模拟器。
+
+2. **写一条通道表元测试并看它红**：建 `ipc-map.ts`，内容是 `export type IpcMap = { "books:list": () => string[]; "books:delete": (id: string) => void };`；建 `handlers.ts`，只写 `handle("books:list", () => [])`。用 Vitest 写一条测试：用 `readFileSync` 读两个文件，正则 `/"([a-z]+:[a-z]+)"\s*:/g` 取声明的通道、`/handle\("([a-z]+:[a-z]+)"/g` 取实现的通道，断言「声明了却没实现」的列表为空。
+
+   验证：测试失败，提示缺少 `books:delete`；在 `handlers.ts` 补上 `handle("books:delete", () => {})` 后通过。
+
+   参考答案：编译器只检查调用方传的类型，不知道主进程那边有没有注册。正则扫源码虽然粗糙，但不启动 Electron 就守住了这条约定。
+
+3. **给需求分层**：一个 Expo 记账 App 要验证四件事：金额字符串解析成分；输满 6 位验证码才能点「登录」；从首页点进账单详情再返回，列表滚动位置不变；从上一个 TestFlight 版本升级后，本地数据库里的账单都还在。按本章的分层表，给每件事选一层和工具，并说明为什么不放在更上面一层。
+
+   验证：每件事都能说出「它依赖什么」以及「为什么上一层测不到」。
+
+   参考答案：金额解析是纯逻辑，用 Vitest。验证码按钮是组件状态，用 RN Testing Library；如果逻辑能抽成纯函数，就回到 Vitest。返回后滚动位置依赖原生导航和列表，只能用 Maestro 在模拟器里走一遍。升级后数据还在，依赖旧版本真实写下的数据，自动化流程默认从全新安装开始，所以写进发版手动清单的「覆盖安装」一条。

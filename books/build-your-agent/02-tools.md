@@ -532,3 +532,50 @@ it("拒绝逃出工作区的路径", async () => {
 - 区分「工具正常返回了坏消息」（校验没过）和「工具坏了」（超时、命令不存在），前者是普通结果，后者走 `is_error`
 - 只读工具并行、写工具串行并审批；同轮结果按调用顺序放进一条消息
 - 审批默认拒绝，拒绝信息要告诉模型不要绕路重试；取消后历史仍然合法
+
+## 动手练习
+
+1. **加一个替换式的编辑工具**：本章说 `write_file` 改一行也要输出整个文件。用 `defineTool` 写一个 `edit_file`，参数是 `path`、`old`、`new`，要求 `old` 在文件里恰好出现一次。
+
+   ```typescript
+   defineTool({
+     name: "edit_file",
+     description: "把文件里的一段原文替换成新文本。old 必须恰好出现一次；先 read_file 看过原文。需要用户批准。",
+     input: z.object({ path: z.string(), old: z.string().min(1), new: z.string() }),
+     risk: "write",
+     describe: ({ path: rel }) => `编辑 ${rel}`,
+     run: async ({ path: rel, old, new: next }) => {
+       const abs = await ws.resolve(rel);
+       const text = await readFile(abs, "utf8");
+       const n = text.split(old).length - 1;
+       if (n !== 1) throw new Error(`old 在 ${rel} 里出现了 ${n} 次，需要恰好 1 次。多带几行上下文再试`);
+       await writeFile(abs, text.replace(old, () => next), "utf8");
+       return `已编辑 ${rel}`;
+     },
+   }),
+   ```
+
+   验证：用假模型测：文件内容是「第一行\n第一行\n」时，`old: "第一行"` 得到 `is_error` 且内容含「出现了 2 次」；`approve` 返回 `true`、`old` 唯一时文件被改对。
+
+   参考答案：恰好一次的要求让模型必须带足上下文，避免改错位置；`replace` 的第二个参数用函数，是为了让 `new` 里的 `$&` 之类的字符原样写入，不被当成替换模式。
+
+2. **同轮结果按调用顺序回填**：写两个只读工具，`slow` 等 50 毫秒再返回 `"slow"`，`fast` 立即返回 `"fast"`；假模型在同一轮先调 `slow` 再调 `fast`。
+
+   ```typescript
+   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+   const mk = (name: string, ms: number) => defineTool({ name, description: name, input: z.object({}),
+     risk: "read", run: async () => (await sleep(ms), name) });
+   const model = scriptedModel([reply([{ tool: "slow", input: {} }, { tool: "fast", input: {} }]), reply(["好"])]);
+   await runAgent({ model, system: "s", tools: [mk("slow", 50), mk("fast", 0)], task: "x" });
+   expect(resultsOf(model.requests[1]).map((r) => r.content)).toEqual(["slow", "fast"]);
+   ```
+
+   验证：测试通过，虽然 `fast` 先执行完。
+
+   参考答案：`executeTools` 并行执行只读工具，但最后按 `calls` 的顺序从 Map 里取结果，放进同一条 user 消息。
+
+3. **证明 `root + path.sep` 不能省**：在临时目录里建 `books/` 和同级的 `books-evil/a.md`，以 `books/` 为工作区根目录，断言 `ws.resolve("../books-evil/a.md")` 被拒绝。然后把 `inside` 里的 `root + path.sep` 改成 `root` 再跑。
+
+   验证：原代码下测试通过；改掉之后测试失败，`resolve` 返回了 `books-evil` 里的路径。
+
+   参考答案：`/x/books-evil` 以字符串 `/x/books` 开头，只比前缀会把兄弟目录当成自己的子目录。zip slip 检查里也有同样的坑。

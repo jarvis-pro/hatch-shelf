@@ -349,3 +349,25 @@ nginx 装在宿主机上、由 systemd 管，而不是放进 compose，hatch-cou
 - 默认 10 秒内启动超过 5 次会被判定失败；`RestartSec` 太短会让服务很快停在 `failed`
 - 生产服务用 `User=` 降权，`EnvironmentFile=` 放密钥，`LimitNOFILE=` 和 `MemoryMax=` 限资源，`ProtectSystem=strict` 加固
 - timer 比 cron 多了日志、补跑和统一管理；容器的重启交给 Docker，不要重复监管
+
+## 动手练习
+
+普通的 `docker run ubuntu` 容器里没有 systemd，下面的题要在一台一次性虚拟机里做，比如 `multipass launch 24.04 --name lab` 后 `multipass shell lab`，或 OrbStack 里新建一台 Ubuntu 机器。做完删掉虚拟机即可。
+
+1. **撞上启动频率限制**：写 `/etc/systemd/system/crash.service`，`[Service]` 里只有 `ExecStart=/bin/false` 和 `Restart=always`，`daemon-reload` 后 `start` 它，过几秒看 `systemctl status crash`；再用 `sudo systemctl edit crash` 加上 `RestartSec=5`，`reset-failed` 后重新 `start`。
+
+   验证：第一次状态停在 `failed`，`journalctl -u crash` 里有 `Start request repeated too quickly`；加了 `RestartSec=5` 后状态在 `activating (auto-restart)` 和失败之间循环，不会停在 `failed`。
+
+   参考答案：默认 100 毫秒重启间隔下，10 秒内很快用完 5 次额度；间隔 5 秒时 10 秒内最多启动 3 次，永远触发不了限制。
+
+2. **ExecStart 不经过 Shell**：写一个 `Type=oneshot` 的 `echo-test.service`，`ExecStart=/bin/echo hello > /tmp/out.txt`，启动一次。
+
+   验证：`ls /tmp/out.txt` 报不存在；`journalctl -u echo-test` 里看到的是整行 `hello > /tmp/out.txt`。
+
+   参考答案：systemd 直接 exec 程序，`>` 和 `/tmp/out.txt` 只是传给 `echo` 的普通参数。要重定向就写进脚本，或用 `ExecStart=/bin/bash -c 'echo hello > /tmp/out.txt'`。
+
+3. **看 ProtectSystem 的效果**：用临时单元试加固选项，不必写文件：`sudo systemd-run -P -p ProtectSystem=strict touch /etc/x`；再 `sudo mkdir -p /srv/t` 后执行 `sudo systemd-run -P -p ProtectSystem=strict -p ReadWritePaths=/srv/t touch /srv/t/x`。
+
+   验证：第一条输出 `Read-only file system`，`/etc/x` 不存在；第二条成功，`ls /srv/t/x` 能看到文件。
+
+   参考答案：`ProtectSystem=strict` 把整个文件系统对这个服务挂成只读，只有 `ReadWritePaths=` 列出的目录可写，即使以 root 运行也一样。

@@ -235,6 +235,59 @@ vllm serve Qwen/Qwen3-8B --enable-lora --lora-modules receipt=./out/receipt-lora
 - 导出链路：合并 → GGUF 量化 → Ollama，或 vLLM 直接加载 / 挂适配器；**检查 chat template**，量化后重新评测
 - 上线走影子模式和灰度，保留 API 兜底和人工核对，线上修正继续回流成训练数据
 
+## 动手练习
+
+1. **从核单记录造偏好对，并检查差异是否集中**：沿用[第 8 章练习](08-datasets.md#动手练习)造的 `records.jsonl` 和 `build_dataset.py`，把正文的 `to_preference` 存成 `pref_fn.py`，运行下面的脚本。
+
+   ```python
+   import json
+   from pathlib import Path
+   from build_dataset import SYSTEM, load, valid
+   from pref_fn import to_preference
+
+   pairs = []
+   for rec in load(Path("records.jsonl")):
+       if valid(rec) and rec["model_rows"] != rec["final_rows"]:
+           p = to_preference(rec, SYSTEM)
+           good = json.loads(p["chosen"][0]["content"])[0]
+           bad = json.loads(p["rejected"][0]["content"])[0]
+           print(rec["id"], "差异格子数", sum(a != b for a, b in zip(good, bad)))
+           pairs.append(p)
+   print(len(pairs), "对")
+   ```
+
+   验证：共 17 对；其中 16 对只差 1 个格子（数量），`r-02` 差 3 个格子。
+
+   参考答案：`r-02` 是练习里人为制造的「重复提交」，它的 `final_rows` 被换成了另一张单子的内容，于是 `chosen` 和 `rejected` 根本不是同一张单子。这种对教给模型的不是「数字要读对」，而是噪声。构造偏好数据前也要像 SFT 数据一样去重、过滤，差异超过阈值的对单独人工看。
+
+2. **复现模板不一致**：拿一个 Ollama 上的小 Instruct 模型（如 `qwen3:0.6b` 一类，以模型库为准），先 `ollama show --template <模型>` 看它自带的模板，再写一个 Modelfile：`FROM <模型>` 加一行 `TEMPLATE "{{ .Prompt }}"`，`ollama create bad-tpl -f Modelfile`，用同一个问题分别问原模型和 `bad-tpl`。
+
+   验证：`bad-tpl` 的回答出现正文说的典型症状之一：停不下来、自己续写出下一轮对话、或答非所问；原模型正常。
+
+   参考答案：`{{ .Prompt }}` 把问题原样送进去，没有角色标记和结束标记，模型不知道该以 assistant 身份回答、何时停止。导出微调模型时用 `ollama show --template` 核对，就是为了防止这种情况。
+
+3. **为数据蒸馏写一个过滤器**：写函数 `check(output, columns)`，要求 JSON 能解析、每行列数和 `columns` 一致、`数量 × 单价 = 金额`（误差 0.01 内）。先预测下面 5 个教师输出哪些能通过，再运行验证：①`[["1","土豆","斤","30","2.5","75"]]` ②`[["1","土豆","斤","30","2.5","57"]]` ③`[["1","土豆","斤","30","2.5"]]` ④`[["1","土豆","斤","30","2.5","75"]`（少一个括号） ⑤`[["1","土豆","斤",null,"2.5","75"]]`。
+
+   验证：只有 ① 通过。
+
+   参考答案：② 合计不符，③ 列数不对，④ 解析失败，⑤ 的 `null` 转数字失败。注意 ⑤：system prompt 允许看不清写 `null`，所以真实使用时 `null` 行应该放行给人工审，而不是直接丢弃，按你的业务决定。
+
+   ```python
+   import json
+
+   def check(output: str, columns: list[str]) -> bool:
+       try:
+           rows = json.loads(output)
+       except json.JSONDecodeError:
+           return False
+       if not isinstance(rows, list) or not all(isinstance(r, list) and len(r) == len(columns) for r in rows):
+           return False
+       try:
+           return all(abs(float(r[3]) * float(r[4]) - float(r[5])) < 0.01 for r in rows)
+       except (TypeError, ValueError):
+           return False
+   ```
+
 ## 接下来读什么
 
 到这里，你已经能判断一个功能该不该自己部署模型、该不该微调，也能把整条链路跑通。接下来：

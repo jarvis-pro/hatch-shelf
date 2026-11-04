@@ -230,3 +230,34 @@ Anthropic 的 API 也提供了一个现成的记忆工具（类型名 `memory_20
 - 「索引常驻 + 细节按需」能把每轮成本降一个数量级；记忆工具的参数要校验
 - 写入时去重，冲突按「代码 > 更具体 > 更新 > 用户明说」裁决，定期整理，删除留给人确认
 - 按「改坏了会不会报错」决定项目记忆的加载强度，能交给测试的就不写进记忆
+
+## 动手练习
+
+1. **确认记忆工具挡住了路径穿越**：把本章的 `runMemoryTool` 存下来，分别用合法和非法的 `name` 调用。
+
+   ```typescript
+   await runMemoryTool("memory_write", { name: "prefer-pnpm", description: "用 pnpm", scope: "所有项目", body: "所有项目用 pnpm。" });
+   console.log(await loadIndex());
+   await runMemoryTool("memory_read", { name: "../../etc/hosts" }).catch((e) => console.log("拒绝：", e.message));
+   ```
+
+   验证：索引里出现一行 `- prefer-pnpm: 用 pnpm`；第二次调用打印「拒绝：name 只能包含小写字母、数字、连字符」，没有读出任何文件。
+
+   参考答案：记忆工具的参数来自模型，模型的输入又可能受外部内容影响；`NAME_RE` 把名字限定成一个文件名，路径就拼不出目录之外。
+
+2. **量出「索引常驻」省了多少**：写个脚本在 `memory/` 下生成 40 条记忆，每条 description 一句话、正文三五百字，然后比较 `loadIndex()` 的长度和全部文件的总长度。
+
+   ```bash
+   node -e 'const fs=require("fs");fs.mkdirSync("memory",{recursive:true});for(let i=0;i<40;i++)fs.writeFileSync(`memory/m-${i}.md`,`---\nname: m-${i}\ndescription: 第 ${i} 条偏好的一句话摘要\n---\n\n`+"这是一条记忆的正文，写清楚做什么以及为什么。".repeat(20))'
+   cat memory/*.md | wc -c
+   ```
+
+   验证：用 `(await loadIndex()).length` 得到索引长度，和 `wc -c` 的总量相比只占很小一部分（一般不到十分之一）。
+
+   参考答案：常驻成本只和索引行数有关，细节按需读取；条目越多，差距越大。
+
+3. **按裁决规则选出生效的记忆**：在 hatch-shelf 里工作时，下面四条记忆都和包管理器有关，哪条说了算？(a) `scope: 所有项目`、`source: 用户明确要求`、`updated: 2026-03`：用 npm；(b) `scope: hatch-shelf`、`source: agent 写入`、`updated: 2026-05`：用 pnpm；(c) `scope: hatch-shelf`、`source: 用户明确要求`、`updated: 2026-09`：用 pnpm 并且 hoisted；(d) 仓库里有 `pnpm-lock.yaml` 和 `.npmrc` 写着 `node-linker=hoisted`。
+
+   验证：按本章「代码 > 更具体 > 更新 > 用户明说」的顺序逐条说理由。
+
+   参考答案：先看代码，(d) 已经说明是 pnpm 加 hoisted；记忆里 (b)(c) 比 (a) 范围更具体，所以 (a) 在这里不生效；(c) 比 (b) 更新、又是用户明说，和代码一致，(c) 生效，(b) 可以在整理时合并进 (c)。

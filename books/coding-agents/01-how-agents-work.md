@@ -23,19 +23,7 @@
 
 ## agent loop：一圈一圈地转
 
-所有编码 agent 的核心都是同一个循环：
-
-```mermaid
-flowchart TD
-  A[你的任务] --> B[模型思考：下一步做什么]
-  B --> C{要调用工具吗}
-  C -- 要 --> D[调用工具：读文件、搜索、编辑、跑命令]
-  D --> E[工具结果追加进上下文]
-  E --> B
-  C -- 不要 --> F[给你一段回复，本轮结束]
-```
-
-每转一圈，模型只做一件小事：读一个文件、搜一个符号、改一处代码、跑一条命令。工具的结果（文件内容、命令输出、报错）被原样塞回上下文，模型据此决定下一圈干什么。
+所有编码 agent 的核心都是同一个循环：模型决定调用一个工具（读文件、搜符号、改代码、跑命令），程序执行后把结果原样塞回上下文，模型据此决定下一圈干什么，直到它不再调用工具。循环的结构和停止条件见[《Agent 原理与设计》第 2 章](../agent-principles/02-agent-loop.md#循环的骨架)。
 
 这意味着两件事：
 
@@ -176,3 +164,23 @@ flowchart LR
 - 启动时加载的东西（CLAUDE.md、常驻 rules、记忆索引、Skill 描述）每轮都在，要精简；子目录 CLAUDE.md、按路径的 rules、Skill 正文按需进入
 - 权限分模式和规则两层，规则按 deny → ask → allow 匹配；新版终端会话默认从 `auto` 开始，`claude -p` 默认 Manual；`bypassPermissions` 只该在隔离环境里用
 - 你的工作变成写规矩、设闸门、派活与验收；同一个错出现第二次，就该沉淀成规矩或闸门
+
+## 动手练习
+
+1. **预测权限规则的判定**：在一个测试仓库的 `.claude/settings.json` 里写下 allow `Bash(git log *)`、`Bash(pnpm test *)` 和 deny `Bash(git push *)`，用 `claude --permission-mode default` 启动。先预测，再让 Claude 依次执行：`git log --oneline -3`、`git status`、`git push origin main`、`git log -1 && touch x.txt`。
+
+   验证：第一条直接执行；第二条弹出确认；第三条被拒绝，Claude 收到拒绝原因；第四条也弹出确认。
+
+   参考答案：规则按 deny → ask → allow 匹配；`git status` 不在任何规则里，交给模式决定，Manual 下要问；复合命令要每一段都被允许才自动放行，`touch` 那段没被允许。
+
+2. **看上下文怎么被吃掉**：在一个测试仓库里生成一个大文件 `seq 1 3000 > big.txt`，开一个新会话先输入 `/context` 记下各部分占用，然后让 Claude「读一下 big.txt 并告诉我最后一行」，再输入一次 `/context`。
+
+   验证：第二次对话（messages）那一栏明显变大，其余几栏（系统提示词、工具、记忆文件）基本不变。
+
+   参考答案：读进来的文件内容会一直留在对话里，后面每一轮都带着它；这就是长会话越用越挤的原因，也是第 5 章把大量读取交给子 agent 的理由。
+
+3. **plan 模式只规划不动手**：在一个测试仓库里用 `claude --permission-mode plan` 启动，让它「把 utils.ts 里的 formatDate 改名为 formatDay，所有调用处一起改」。
+
+   验证：它读文件、列出计划和受影响的文件，但没有改任何东西，`git status` 显示工作区干净；你批准计划后它才开始编辑。
+
+   参考答案：plan 模式把「想清楚」和「动手」分开，适合影响面大的改动；批准前顺便核对它列出的调用处是否齐全。

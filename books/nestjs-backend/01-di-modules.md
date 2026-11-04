@@ -281,3 +281,23 @@ CommonJS 不等于完全无感，迁移指南点名了两处：
 - 模块是可见性边界：`@Global()` 要克制，导出清单就是接口，用「注入不到就启动失败」来挡住越界依赖
 - 出现循环依赖先改边界，`forwardRef` 只是掩盖
 - 生命周期钩子配合 `enableShutdownHooks()` 才能在容器里优雅退出；NestJS 12 调整了钩子调用顺序，别依赖跨模块的先后
+
+## 动手练习
+
+1. **tsx 丢掉的元数据**：`nest new` 一个 CommonJS 项目，在 `src/main.ts` 的 `bootstrap()` 开头加一行 `console.log(Reflect.getMetadata("design:paramtypes", AppController))`（`AppController` 从 `./app.controller` 导入）。先 `pnpm build && node dist/main.js` 跑一次，再用 `pnpm dlx tsx src/main.ts` 跑一次。
+
+   验证：tsc 编译的那次打印 `[ [class AppService] ]`；tsx 那次打印 `undefined`。再观察 tsx 跑起来后 `curl localhost:3000` 的结果，和编译产物那次对比。
+
+   参考答案：esbuild 不输出 `emitDecoratorMetadata`，容器读不到构造参数类型，`AppService` 注不进去。所以服务端要用 tsc、SWC 这类能输出元数据的编译器。
+
+2. **模块边界挡住注入**：`nest g module foo && nest g service foo`，然后在 `AppController` 的构造函数里加一个参数 `private readonly foo: FooService`。先不动 `FooModule`，启动；再给 `FooModule` 加上 `exports: [FooService]`，重新启动。
+
+   验证：第一次启动失败，报错里有 `Nest can't resolve dependencies of the AppController`，并点名 `FooService` 在 `AppModule` 的上下文里找不到；加上 `exports` 后正常启动。
+
+   参考答案：`AppModule` 已经 import 了 `FooModule`（`nest g module` 会自动加），但没导出的 provider 对外不可见。导出清单就是模块的接口。
+
+3. **没有 shutdown hooks 就收不到 SIGTERM**：让 `AppService` 实现 `OnModuleDestroy`，在 `onModuleDestroy()` 里 `console.log("closing pool")`。`pnpm build && node dist/main.js &`，然后 `kill -TERM $!`。再在 `main.ts` 的 `app.listen()` 之前加 `app.enableShutdownHooks()`，重复一遍。
+
+   验证：第一次进程直接退出，没有 `closing pool`；第二次先打印 `closing pool` 再退出。
+
+   参考答案：不调用 `enableShutdownHooks()`，Nest 不监听信号，`SIGTERM` 按 Node 的默认行为直接结束进程，关闭类钩子一个都不跑。容器里 `docker stop` 发的就是它。

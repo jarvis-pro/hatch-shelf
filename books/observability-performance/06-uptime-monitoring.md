@@ -69,23 +69,7 @@ hatch-counter 的 `/v1/health` 是一个就绪检查：它真的去执行一次 
 
 ## 自托管：Uptime Kuma
 
-**Uptime Kuma** 是最流行的自托管可用性监控工具：单个容器、内置 SQLite、有 Web 界面，支持 HTTP、关键字、TCP、DNS、证书到期、Docker 容器、推送式心跳等多种探测，通知渠道覆盖 Telegram、企业微信、飞书、钉钉、邮件等几十种，还能生成公开的状态页。
-
-在**另一台机器**上部署：
-
-```yaml
-# 探测机上的 compose.yaml
-services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:${KUMA_TAG}
-    restart: unless-stopped
-    volumes:
-      - kuma-data:/app/data
-    ports:
-      - "127.0.0.1:3001:3001"   # 前面用 nginx 加 HTTPS，或只通过 SSH 隧道访问
-volumes:
-  kuma-data:
-```
+**Uptime Kuma** 是最流行的自托管可用性监控工具：单个容器、内置 SQLite、有 Web 界面，支持 HTTP、关键字、TCP、DNS、证书到期、推送式心跳等多种探测，还能生成公开的状态页。它要部署在**被监控机器之外**；部署、管理界面的保护、通知渠道和「谁监控谁」的安排见[《自托管工具栈》部署 Uptime Kuma](../self-hosting/04-monitoring.md#部署-uptime-kuma)。这里只讲探测本身怎么设计。
 
 建议的探测配置：
 
@@ -96,8 +80,6 @@ volumes:
 | 官网 | 5 分钟 | 2 次 | 静态站，变化少 |
 | 证书到期 | 每天 | - | 剩余 14 天时通知 |
 | 数据库端口 5432 | 1 小时 | - | 期望连不上，连上了反而要告警 |
-
-Uptime Kuma 的管理界面有完整的控制权，必须设置强密码，最好不要直接暴露在公网。
 
 ## 心跳监控：发现「没有发生的事」
 
@@ -142,7 +124,7 @@ Healthchecks 还支持在开始时 ping `/start`、失败时 ping `/fail`，这�
 
 ## 状态页
 
-如果你的产品有付费用户，一个公开的状态页能减少很多「是不是挂了」的咨询，也体现专业。Uptime Kuma 自带状态页功能，可以选择公开哪些监控项。
+如果你的产品有付费用户，一个公开的状态页能减少很多「是不是挂了」的咨询，也体现专业。Uptime Kuma 自带状态页功能，可以选择公开哪些监控项；公开时不要把整个 Kuma 开到公网，做法见[《自托管工具栈》公开的状态页](../self-hosting/04-monitoring.md#公开的状态页)。
 
 状态页要**和主服务分开部署**：主服务挂的时候，正是用户最需要看状态页的时候。放在探测机上，或者用第三方服务的状态页。
 
@@ -154,3 +136,23 @@ Healthchecks 还支持在开始时 ping `/start`、失败时 ping `/fail`，这�
 - 探测点必须在被监控机器之外；第三方服务加自托管互为备份；探测点放在用户所在的网络
 - 定时任务用心跳监控：成功后报到，超时未报到即告警；告警系统自己也要有心跳
 - 状态页和主服务分开部署
+
+## 动手练习
+
+1. **写一个会说实话的健康检查**：本机 `docker run -d --name pg-health -e POSTGRES_PASSWORD=dev -p 5432:5432 postgres:16`，再写一个 Node 服务（`npm i pg`），`/health` 执行一次 `select 1`：成功回 200，失败回 503 且回包只有 `{"ok":false}`，原因只打印到控制台。
+
+   验证：`curl -s -o /dev/null -w '%{http_code}\n' localhost:3000/health` 先输出 `200`；`docker stop pg-health` 后再执行输出 `503`，回包里看不到连接串或错误消息。做完 `docker rm -f pg-health`。
+
+   参考答案：每次请求新建一个 `pg.Client`，`connect()` 和 `query("select 1")` 包在 `try/catch` 里，并给连接设几秒超时（`connectionTimeoutMillis`），避免数据库无响应时探测一直挂着。状态码才是探测工具看的东西。
+
+2. **心跳监控抓住「没发生的事」**：`docker run -d --name kuma -p 3001:3001 louislam/uptime-kuma:1` 起一个本地 Uptime Kuma，建一个 Push 类型监控，心跳间隔设 60 秒，复制它的推送地址。写一个脚本：开头 `set -euo pipefail`，然后执行 `false`（模拟备份失败），最后一行 `curl -fsS "$PUSH_URL"`。
+
+   验证：先手动 `curl` 一次推送地址，监控变成 UP；之后每分钟运行一次脚本，几分钟后监控变成 DOWN。做完 `docker rm -f kuma`。
+
+   参考答案：`set -e` 让脚本在 `false` 处退出，`curl` 永远走不到，心跳服务就收不到报到。任务失败不需要它主动报错，「没来报到」本身就是信号。
+
+3. **检查证书和反向探测端口**：对你自己的域名执行 `echo | openssl s_client -connect 你的域名:443 -servername 你的域名 2>/dev/null | openssl x509 -noout -enddate`；再从**另一台机器**执行 `nc -zv -w 3 你的服务器IP 5432`。
+
+   验证：第一条输出 `notAfter=` 开头的一行到期时间；第二条应该是超时或连接被拒，如果显示 `succeeded` 或 `open`，说明数据库端口对外开放了，要立刻检查防火墙和 Docker 端口映射。
+
+   参考答案：这两项正是外部探测里最容易被忽略的：证书自动续期悄悄失败，以及 Docker 端口映射绕过防火墙。把它们配进 Uptime Kuma，就不必再手动执行。

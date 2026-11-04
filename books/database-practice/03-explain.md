@@ -232,3 +232,23 @@ QUERY PLAN
 - 用不用索引按比例决定，「有索引没用上」未必是错
 - 估算错是选错计划的主因：多列相关用 `CREATE STATISTICS`，批量导入后手动 `ANALYZE`
 - 比较优化效果看页数，不只看毫秒
+
+## 动手练习
+
+1. **用不用索引按比例决定**：沿用第 2 章练习的 `sales` 表（或者重新造一张，`amount_cents` 取 `(random() * 6000)::int`），建 `create index amount_idx on sales (amount_cents);` 并 `analyze sales;`，然后对比 `explain select id from sales where amount_cents > 1000;` 和 `... where amount_cents > 5995;`。
+
+   验证：第一条是 `Seq Scan`（或其并行版本），估算 `rows` 接近总行数的六分之五；第二条换成 `Bitmap Index Scan on amount_idx`（或 `Index Scan`），估算 `rows` 在一千左右。
+
+   参考答案：要拿走大部分行时，逐行回表的随机读比顺序读完整张表更贵；只拿 0.1% 时索引划算。「有索引没用上」先看选择率。
+
+2. **列相关让估算偏离**：照本章「列之间有相关性」一节建 `orders_demo`，跑 `explain analyze select * from orders_demo where city_id = 5 and warehouse_id = 5;`，再建 `create statistics od_stats (dependencies) on city_id, warehouse_id from orders_demo;`、`analyze orders_demo;` 后重跑。
+
+   验证：第一次估算 `rows=20` 左右、实际 `rows=2000`；建扩展统计并 ANALYZE 后，估算变成两千左右。
+
+   参考答案：优化器默认假设两列独立，把两个 1% 的选择率相乘；`dependencies` 统计告诉它 `warehouse_id` 由 `city_id` 决定，乘法就不再成立。
+
+3. **SQLite 的额外排序**：本地运行 `sqlite3 :memory:`，建 `CREATE TABLE progress (book_id TEXT, chapter_file TEXT, updated_at INTEGER, PRIMARY KEY (book_id, chapter_file));`，对 `SELECT chapter_file FROM progress WHERE book_id = 'x' ORDER BY updated_at DESC LIMIT 1;` 做 `EXPLAIN QUERY PLAN`；再建 `CREATE INDEX progress_by_time ON progress (book_id, updated_at);` 后重看。
+
+   验证：第一次是 `SEARCH progress USING INDEX sqlite_autoindex_progress_1 (book_id=?)` 加一行 `USE TEMP B-TREE FOR ORDER BY`；建索引后只剩 `SEARCH progress USING INDEX progress_by_time (book_id=?)`，临时排序消失。
+
+   参考答案：新索引在 `book_id` 相同的范围内已按 `updated_at` 排好，倒着读第一项就是答案。一本书只有几十章时这个索引不值得建，练习只是为了看清 `USE TEMP B-TREE` 的含义。

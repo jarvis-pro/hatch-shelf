@@ -262,3 +262,23 @@ const rows = [...q].length >= 3
 - 原子写入：写临时目录 → 旧的挪开 → 新的就位 → 删旧的
 - 迁移用 `PRAGMA user_version` + 只追加的数组，每条迁移和版本号同一事务；需要隔离的批量写用 `withExclusiveTransactionAsync`
 - 中文全文搜索可以用 FTS5 trigram，短查询退回 `LIKE`；敏感数据放钥匙串
+
+## 动手练习
+
+1. **外键默认不生效**：在 Mac 终端运行 `sqlite3 /tmp/fk.db`，建表 `CREATE TABLE b(id TEXT PRIMARY KEY); CREATE TABLE c(book_id TEXT REFERENCES b(id) ON DELETE CASCADE);`，插入 `b` 一行、`c` 两行指向它，执行 `DELETE FROM b;` 后 `SELECT count(*) FROM c;`。然后重新插入，先执行 `PRAGMA foreign_keys = ON;` 再删一次。
+
+   验证：第一次 `count(*)` 是 `2`；打开外键后再删，是 `0`。
+
+   参考答案：SQLite 默认不执行外键约束，而且这个开关是按连接的，所以书架在每次打开数据库后都执行一次 `PRAGMA foreign_keys = ON`。
+
+2. **trigram 的三字门槛**：在 `sqlite3` 里执行 `CREATE VIRTUAL TABLE s USING fts5(body, tokenize='trigram'); INSERT INTO s VALUES ('React Native 新架构');`，分别查 `SELECT count(*) FROM s WHERE s MATCH '"新架构"';` 和 `... MATCH '"架构"';`，再试 `SELECT count(*) FROM s WHERE body LIKE '%架构%';`。
+
+   验证：三字查询返回 `1`；两字的 `MATCH` 返回 `0`；`LIKE` 返回 `1`。
+
+   参考答案：trigram 按三个字符一组建索引，不足三个字符的查询匹配不到，所以书架对短查询退回 `LIKE`。判断长度要用 `[...q].length` 按码点计数。
+
+3. **让 lint 抓住漏写的 await**：在书架 App 任意一个 `async` 函数里临时加一行 `new File(Paths.cache, 'x.txt').write('hi');`（不写 `await`），在仓库根目录运行 `pnpm lint`。
+
+   验证：报 `@typescript-eslint/no-floating-promises`，指向这一行；前面加 `await`（或改用 `writeSync`）后通过。
+
+   参考答案：SDK 58 里 `write()` 返回 Promise，不等它就继续 `rename` 会产生竞态。这条规则把「忘了 await」变成编译期错误，不要用 `eslint-disable` 绕过。

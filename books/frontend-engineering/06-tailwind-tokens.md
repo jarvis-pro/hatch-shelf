@@ -231,3 +231,51 @@ hatch-counter 的 `cn()` 就是前两个的组合，第 7 章讲组件时会看�
 - `@theme inline` 让工具类直接引用底层变量，从而跟随局部主题作用域
 - 引用其他变量的派生令牌，要在每个主题作用域上重新声明
 - 令牌按用途划分粒度：同一颜色用于文字和大面积底色要分开
+
+## 动手练习
+
+在空目录里 `pnpm add -D tailwindcss @tailwindcss/cli`，准备一个 `src/app.jsx` 和一个 `in.css`，用 `pnpm tailwindcss -i in.css -o out.css` 生成 CSS，直接读 `out.css` 核对。
+
+1. **拼接出来的类名不会生成**：`src/app.jsx` 写：
+
+   ```jsx
+   const color = "red";
+   export const A = () => <div className={`bg-${color}-500`} />;
+   export const B = () => <div className="bg-green-500" />;
+   ```
+
+   `in.css` 只有一行 `@import "tailwindcss";`。生成后执行 `grep -c bg-red-500 out.css` 和 `grep -c bg-green-500 out.css`。
+
+   验证：前者为 `0`，后者大于 `0`。把 `A` 改成查表写法（`const bg = { red: "bg-red-500" }`，`className={bg[color]}`）后再生成，`bg-red-500` 出现了。
+
+   参考答案：扫描器把源文件当文本找完整的类名，模板字符串里只有 `bg-` 和 `-500` 两个片段，拼不出 `bg-red-500`。
+
+2. **@theme 和 @theme inline 生成的东西不同**：`in.css` 写成：
+
+   ```css
+   @import "tailwindcss";
+   :root { --primary: #c4532b; --success: #2f8f58; }
+   .dark { --primary: #da6840; --success: #62cc8f; }
+   @theme { --color-primary: var(--primary); }
+   @theme inline { --color-success: var(--success); }
+   ```
+
+   `app.jsx` 里用到 `bg-primary` 和 `text-success`，生成后在 `out.css` 里找这两个类。
+
+   验证：`.bg-primary` 的声明是 `background-color: var(--color-primary)`；`.text-success` 的声明是 `color: var(--success)`。
+
+   参考答案：不带 `inline` 时，工具类引用的是 `--color-primary`，而它在 `:root` 上就已经被解析成浅色值；带 `inline` 时，工具类直接引用 `--success`，在元素自己的位置解析，能跟随祖先的 `.dark`。
+
+3. **在浏览器里看局部深色预览**：把练习 2 的 `out.css` 引进一个 HTML 页面：
+
+   ```html
+   <link rel="stylesheet" href="out.css" />
+   <p class="bg-primary text-success">外面</p>
+   <div class="dark"><p class="bg-primary text-success">里面</p></div>
+   ```
+
+   打开页面，用 DevTools 的 Computed 面板分别看两个 `<p>` 的 `background-color` 和 `color`。
+
+   验证：两个 `<p>` 的背景色都是 `#c4532b`（`rgb(196, 83, 43)`）；文字色外面是 `#2f8f58`，里面变成 `#62cc8f`。
+
+   参考答案：`bg-primary` 走 `--color-primary`，在 `:root` 就定死了，`.dark` 改 `--primary` 影响不到它；`text-success` 直接读 `--success`，跟着最近的作用域走。要让局部主题生效，引用其他变量的令牌就要用 `@theme inline`。

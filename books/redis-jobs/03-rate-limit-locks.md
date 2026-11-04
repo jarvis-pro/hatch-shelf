@@ -375,3 +375,25 @@ await sql.begin(async (tx) => {
 - 锁的最小写法：`SET NX PX` + 随机 token + Lua 比较后删除；长任务续租并检查 `signal`
 - 租约锁在持锁方暂停时不能保证互斥；为了正确性必须让存储层用 fencing token 或条件更新兜底
 - 大多数互斥需求用唯一约束、`SKIP LOCKED`、乐观并发或 advisory lock 解决，不需要 Redis 锁
+
+## 动手练习
+
+环境：`docker run --rm -d --name r3 -p 6379:6379 redis:7.4-alpine`，需要 Postgres 的题再起 `docker run --rm -d --name p3 -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17`。
+
+1. **固定窗口的边界突发**：用本章的 `fixedWindow`（上限 10、窗口 60 秒），先等到某一分钟的第 58 秒左右连发 10 次，再在下一分钟的第 1 秒连发 10 次，统计通过次数。
+
+   验证：两批共 20 次全部 `allowed: true`；`redis-cli --scan --pattern 'rl:*'` 能看到两个窗口编号不同的键。
+
+   参考答案：计数器按窗口编号分键，跨过边界就是一个全新的计数器，所以 3 秒内放过了两倍限额。换成滑动窗口脚本重复同样的操作，第二批应全部被拒。
+
+2. **不用 Lua 的滑动窗口会超发**：把滑动窗口脚本拆成三条独立命令（`ZREMRANGEBYSCORE`、`ZCARD`、`ZADD`），在 Node 里用 `Promise.all` 同时发 50 个请求，上限设 10；再换回 `defineCommand` 注册的 Lua 版本跑一遍。
+
+   验证：拆开的版本通过数大于 10（每次运行不同），`ZCARD` 也大于 10；Lua 版本通过数恰好是 `10`。
+
+   参考答案：拆开后多个请求都在别人 `ZADD` 之前执行了 `ZCARD`，都看到「还没满」；Lua 脚本执行期间 Redis 不穿插其他命令，判断和写入是一步。
+
+3. **直接 DEL 删掉别人的锁**：用 redis-cli 模拟两个进程：A 执行 `SET lock:x A PX 3000 NX`，等 4 秒，B 执行 `SET lock:x B PX 30000 NX`；然后 A 执行 `DEL lock:x`，再看 `GET lock:x`。接着重做一遍，A 改用 `EVAL "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end return 0" 1 lock:x A`。
+
+   验证：第一遍 `GET lock:x` 返回 `(nil)`，B 的锁没了；第二遍 `EVAL` 返回 `(integer) 0`，`GET lock:x` 仍是 `"B"`。
+
+   参考答案：A 的锁过期后 B 加上了自己的锁，A 不比较 token 就删，删的是 B 的锁；比较 token 的 Lua 只会删自己加的。

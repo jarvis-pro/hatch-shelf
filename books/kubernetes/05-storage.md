@@ -284,7 +284,7 @@ spec:
 - **先写 `.tmp` 再改名**：中途失败不会留下一个看起来完整的残缺文件
 - **标签 `postgres-backup`**：和第 4 章 NetworkPolicy 的白名单对上，否则连不上库
 
-这份备份仍然在同一块盘上，只防误操作，不防磁盘损坏和机器丢失。还要再加一步把文件传到异地，比如对象存储。可以在同一个 Job 里再加一个容器用 rclone 之类的工具上传，凭证放 Secret。**以及定期做恢复演练**：没恢复过的备份，等于没有备份。
+这份备份仍然在同一块盘上，只防误操作，不防磁盘损坏和机器丢失。异地加密、防删和恢复演练的通用做法见[《一人运维手册》3-2-1 原则](../production-ops/02-backup-dr.md#3-2-1-原则)；放到集群里，就是在同一个 Job 里再加一个容器负责上传，凭证放 Secret。
 
 手动触发一次来验证：
 
@@ -318,3 +318,25 @@ kubectl -n counter logs -f job/backup-manual-1
 - Postgres 清单要注意：`PGDATA` 子目录、`/dev/shm` 内存卷、只用就绪探针、足够的优雅停机时间
 - **PVC 不是备份**：CronJob 定时 `pg_dump`，再传到异地，并定期恢复演练
 - 单机场景下，K8s 里的 Postgres 不比 Compose 里的更安全，只是换了管理方式
+
+## 动手练习
+
+只在本机练习集群里做，先确认 `kubectl config current-context`，沿用 `lab` 命名空间。这里删的都是练习数据。
+
+1. **Delete 和 Retain**：建一个 PVC `scratch`（`storageClassName: local-path`，1Gi，RWO）和一个挂载它、执行 `sh -c 'echo hello > /data/f && sleep 3600'` 的 busybox Pod。Pod 跑起来后执行 `kubectl get pv` 记下 PV 名，然后删掉 Pod 和 PVC，再 `kubectl get pv`。换成正文里的 `local-path-retain` StorageClass 重做一遍。
+
+   验证：用 `local-path` 时删掉 PVC 后那个 PV 消失；用 `local-path-retain` 时 PV 还在，STATUS 是 `Released`。做完手动 `kubectl delete pv <名字>` 清理。
+
+   参考答案：动态供给的 PV 继承 StorageClass 的回收策略，默认 Delete 会连数据一起删。数据库的 PVC 用 Retain，手滑删了 PVC 至少数据还在。
+
+2. **StatefulSet 的固定身份**：apply 一个 2 副本的 StatefulSet `idt`（配一个同名的 headless Service），容器 `busybox:1.36`，命令 `["sh", "-c", "[ -f /data/id ] || hostname > /data/id; sleep 3600"]`，用 `volumeClaimTemplates` 给每个 Pod 一个 `/data`。等两个 Pod 起来后执行 `kubectl delete pod idt-0`，等它重建，再 `kubectl exec idt-0 -- cat /data/id` 和 `kubectl get pvc`。
+
+   验证：重建后的 Pod 名还是 `idt-0`，文件里是 `idt-0`；PVC 列表里是 `data-idt-0` 和 `data-idt-1` 两个，删 Pod 前后没有变化。
+
+   参考答案：StatefulSet 按序号给 Pod 固定名字，并让同一个序号永远挂回自己那块 PVC。Deployment 做不到这一点，所以数据库用 StatefulSet。
+
+3. **concurrencyPolicy 的效果**：建一个每分钟触发一次、每次 `sleep 90` 的 CronJob（`schedule: "*/1 * * * *"`，容器 `busybox:1.36`，`restartPolicy: Never`），先设 `concurrencyPolicy: Forbid`，观察三四分钟 `kubectl get cronjob` 的 ACTIVE 列和 `kubectl get jobs`；再改成 `Allow` 观察同样长的时间。
+
+   验证：`Forbid` 时 ACTIVE 最多是 `1`，有些分钟没有新 Job；`Allow` 时会出现 ACTIVE 为 `2` 的时刻。做完删除这个 CronJob。
+
+   参考答案：上一次没跑完时，`Forbid` 直接跳过这一次，`Allow` 会并行起一个新的。备份这种会压数据库的任务用 `Forbid`。

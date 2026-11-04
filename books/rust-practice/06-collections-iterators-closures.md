@@ -412,3 +412,35 @@ fn main() {
 - `collect()` 的目标类型决定结果；`Result` 的迭代器可以收集成 `Result<Vec<T>, E>`
 - 闭包按捕获方式实现 `Fn` / `FnMut` / `FnOnce`；跨线程时用 `move` 把所有权交给闭包
 - 实现 `next` 一个方法，就得到全部迭代器适配器
+
+## 动手练习
+
+1. **切到汉字中间**：把[字符串：UTF-8 的代价](#字符串utf-8-的代价)一节的程序跑一遍，记下 `len()` 和 `chars().count()` 的值；然后取消 `&s[0..6]` 那一行的注释，预测是编译错误还是运行时错误。
+
+   验证：原程序前两行输出 `11` 和 `7`。取消注释后 `cargo build` 能通过，`cargo run` 时 panic，信息以 `byte index 6 is not a char boundary` 开头，并指出它落在 `'入'` 里面。`s.get(0..6)` 那一行则安全地打印 `None`。
+
+   参考答案：切片范围是运行时的值，编译器无法检查是否落在字符边界上，只能在运行时 panic。处理外部输入时用 `get` 拿到 `Option`。
+
+2. **看清惰性求值的顺序**：在本章「惰性」一节的例子上加两处打印，预测输出的每一行：
+
+   ```rust
+   let files = vec!["01-a.md", "README", "02-b.md", "03-c.md"];
+   let result: Vec<String> = files
+       .iter()
+       .inspect(|f| println!("看 {f}"))
+       .filter(|f| f.ends_with(".md"))
+       .map(|f| { println!("转 {f}"); f.to_uppercase() })
+       .take(2)
+       .collect();
+   println!("{result:?}");
+   ```
+
+   验证：依次输出 `看 01-a.md`、`转 01-a.md`、`看 README`、`看 02-b.md`、`转 02-b.md`，最后是 `["01-A.MD", "02-B.MD"]`；`03-c.md` 从未出现。再把 `.collect()` 删掉（连同 `let result` 和最后一行），会看到 `unused` 警告，而且什么都不打印。
+
+   参考答案：元素一个一个流过整条链，而不是每一步处理完整个数组；`take(2)` 拿够之后不再向上游要元素。没有消费者时整条链不会执行。
+
+3. **去掉 move**：把「move 闭包」一节的 `thread::spawn(move || ...)` 里的 `move` 删掉，预测 `cargo check` 的结果。
+
+   验证：报 `error[E0373]`，说闭包可能比当前函数活得更久，却借用了 `ids`，并建议加上 `move`。
+
+   参考答案：`thread::spawn` 要求闭包是 `'static` 的，新线程可能在 `main` 的局部变量释放后还在跑，所以不能借用，只能拿走所有权。

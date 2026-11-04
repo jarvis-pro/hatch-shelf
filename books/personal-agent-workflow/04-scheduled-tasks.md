@@ -215,3 +215,23 @@ loginctl enable-linger "$USER"              # 用户未登录时也让用户级 
 - 调度器和 agent 之间加一层**包装脚本**：PATH、锁、超时、日志、按约定的首行决定是否通知
 - 新任务先手动触发一次验证环境；plist 里写绝对路径
 - 无人值守时预先声明最小权限，凭据放在 600 文件或钥匙串里，不进 prompt 和 Git
+
+## 动手练习
+
+1. **不调模型也能测包装脚本**：复制一份 `agent-job.sh`，把 `claude -p ... --max-turns 30` 那一行换成 `sleep 20`，`LOG_DIR` 改到临时目录。在两个终端里几乎同时运行 `bash agent-job.sh demo /dev/null`。
+
+   验证：第二个立刻退出，`demo.skipped.log` 里多了一行「上一次还在运行，跳过」；第一个结束后锁目录 `/tmp/agent-job-demo.lock` 消失，再运行一次能正常进入。
+
+   参考答案：`mkdir` 要么成功要么失败，不会两个进程同时成功，所以能当锁；`trap ... EXIT` 保证正常退出和出错退出都会释放。
+
+2. **超时到底返回什么**：在终端运行 `perl -e 'alarm shift; exec @ARGV' 2 sleep 5; echo $?`。
+
+   验证：约 2 秒后输出 `142`。
+
+   参考答案：进程被 SIGALRM（14 号信号）杀掉，shell 报告的退出码是 128 + 14。包装脚本里 `CODE -ne 0` 会把它当成失败并通知，你在通知里看到 142 就知道是超时而不是 agent 自己报错。
+
+3. **先算清楚什么时候触发**：在 Linux 服务器上运行 `systemd-analyze calendar '*-*-* 23:30:00'` 和 `systemd-analyze calendar 'Sun *-*-* 09:00:00'`；在 Mac 上用一个只执行 `date >> /tmp/launchd-demo.txt` 的 plist 走一遍本章的 bootstrap、kickstart、bootout。
+
+   验证：`systemd-analyze` 输出里有 `Next elapse:`，时间是下一个 23:30 和下一个周日 9 点；Mac 上 kickstart 后 `/tmp/launchd-demo.txt` 多出一行时间，bootout 后 `launchctl list | grep` 你的 Label 不再有结果。
+
+   参考答案：写 timer 之前先用 `systemd-analyze calendar` 校验表达式，比等到半夜看它有没有跑可靠得多；plist 同理，先 kickstart 一次。

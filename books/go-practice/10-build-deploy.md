@@ -342,3 +342,23 @@ CI 流水线的组织方式（tag 触发、制品上传）和其他语言没有�
 - 镜像用多阶段构建 + distroless/static，十几 MB，自带 CA 证书和时区；健康检查用程序自己的子命令
 - 只有一个服务时 systemd 比 Docker 更轻；传文件用「先传 .new 再 mv」保证原子替换
 - 容器里设 `GOMEMLIMIT`；CLI 发布交给 GoReleaser
+
+## 动手练习
+
+1. **-X 拼错了不会报错**：准备一个只有 `var version = "dev"` 和 `fmt.Println(version)` 的 `main` 包，分别用 `-ldflags "-X main.version=v1.2.3"` 和 `-ldflags "-X main.Version=v1.2.3"`（大写 V）构建并运行。预测两次输出。
+
+   验证：第一次打印 `v1.2.3`，第二次打印 `dev`，而且第二次构建没有任何警告。
+
+   参考答案：`-X` 按完整的「包路径.变量名」赋值，找不到这个名字时链接器静默忽略。发布脚本里最好在构建后跑一次 `./bin/xxx -version` 或 `go version -m` 核对一下。
+
+2. **在 Mac 上跑 Linux 二进制**：用 `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o app-linux .` 构建，先用 `file app-linux` 看类型，再直接 `./app-linux` 运行。如果手边有 Docker，再试 `docker run --rm --platform linux/amd64 -v "$PWD":/w busybox /w/app-linux`。
+
+   验证：`file` 显示 `ELF 64-bit LSB executable, x86-64, ... statically linked`；在 macOS 上直接运行报 `exec format error`（退出码 126）；在 linux/amd64 的 busybox 容器里能正常输出（Apple Silicon 上由 Docker 的模拟层运行）。
+
+   参考答案：交叉编译只是换了目标平台的文件格式和指令集，产物要在目标系统上运行；`CGO_ENABLED=0` 保证它静态链接，连 busybox 这种没有 glibc 的镜像都能跑。
+
+3. **多一个空格，文件就没嵌进去**：建一个 `static/index.html`，在 `main.go` 里写 `// go:embed static`（`//` 后多一个空格）和 `var staticFiles embed.FS`，然后打印 `fs.ReadDir(staticFiles, "static")` 的条目数和错误。预测输出，再删掉空格重跑。
+
+   验证：有空格时输出 `0 open static: file does not exist`，编译不会报错；删掉空格后输出 `1 <nil>`。
+
+   参考答案：`//go:embed` 是编译器指令，`//` 和 `go` 之间不能有空格；有空格就只是一行普通注释，`embed.FS` 保持零值（空文件系统）。线上表现是页面全部 404，所以值得在测试里读一次嵌入的文件。

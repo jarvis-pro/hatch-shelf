@@ -96,14 +96,7 @@ flowchart TB
 
 ## MCP、命令行和 Skills 怎么分工
 
-给 agent 扩展能力有好几种方式。在编码 agent 的场景下，它们的分工大致如下：
-
-| 方式 | 本质 | 适合 | 书库的例子 |
-|---|---|---|---|
-| 命令行（经由 shell） | 模型直接跑现成的命令 | 已有成熟 CLI、agent 有 shell 权限 | `pnpm shelf-pack check books/<id>` |
-| MCP server | 标准化的工具服务 | 没有 shell 的宿主；需要细粒度权限、结构化输出；要给多个 agent 共用 | `shelf-books` 的四个工具 |
-| Skill | 打包的做事方法和脚本 | 多步流程、需要领域知识的任务 | 「写一本新书」：按 `books/AGENTS.md` 的规范起草、配图、自检 |
-| 项目记忆（CLAUDE.md） | 每次都加载的约定 | 每次都要知道的规则 | 「改了 reader-web 要重新 build:assets」 |
+项目记忆、Skill、MCP、子 agent、hooks 各自适合放什么，总的选型表见[《Agent 原理与设计》第 8 章](../agent-principles/08-mcp-and-skills.md#怎么选项目记忆skillmcp子-agent)。这里补上那张表没有的一项：**命令行**。在编码 agent 的场景下，模型能经由 shell 直接跑现成的命令（书库里就是 `pnpm shelf-pack check books/<id>`），它和 MCP server（`shelf-books` 的四个工具）、Skill（「写一本新书」的流程）经常是替代关系。
 
 几个判断：
 
@@ -179,6 +172,26 @@ MCP 生态里也有把 Skills 通过 MCP 分发的官方扩展 Skills over MCP�
 - 已有 CLI 且有 shell 时先用 CLI；跨宿主复用做成 MCP；需要方法时写 Skill；三者可以组合
 - 不同角色拿最小工具集
 - 工具演进像公开 API：加参数给默认值，改名保留过渡期，改描述后重新评测
+
+## 动手练习
+
+1. **量一量工具定义有多重**：在第 5 章的测试里加一段：`const { tools } = await client.listTools()`，对每个工具打印 `Buffer.byteLength(JSON.stringify(t))`、描述的字节数和字符数（`t.description.length`）。
+
+   验证：每个工具的定义在几百到一千多字节之间，总和与本章表格的量级一致；描述的字节数约为字符数的 2–3 倍（中文每字 3 字节）。
+
+   参考答案：这些字节每一轮都会发给模型。改一个字会让宿主的缓存前缀失效，所以描述要一次写好、少改，改了就重新评测。
+
+2. **把六个工具并成三个**：一个 server 有 `list_ai_books`、`list_tech_books`、`get_book_brief`、`get_book_full`、`lint_book_yaml`、`lint_book_chapters`。按「用参数代替工具」和「按任务合并」重新设计，写出新工具的名字和参数。
+
+   验证：合并后不超过 3 个工具；每个被合并掉的工具都能由新工具的某组参数表达；没有一个参数是「切换成完全不同的行为」的开关。
+
+   参考答案：`list_books(category?)`、`get_book(bookId, detail: "brief" | "full")`、`check_book(bookId)`。两个 lint 总是一起跑、模型也不关心中间结果，合成一个；`detail` 只改变返回的详细程度，不改变工具做什么，所以可以是参数。
+
+3. **给改名设计过渡期**：要把 `check_book` 改名为 `lint_book`。写出过渡期内两个工具的描述和行为，以及什么时候可以删掉旧名。
+
+   验证：过渡期内旧调用照常成功；旧工具的描述第一句写明已弃用和新名字；返回结果里提示新名字；宿主权限规则里的 `mcp__shelf-books__check_book` 在删除旧名前已经更新。
+
+   参考答案：旧工具内部直接调用新工具的实现，结果末尾加一行「check_book 已更名为 lint_book，此名称将在下个主版本移除」；server 主版本号加一时删除，同时发 `notifications/tools/list_changed`。改名属于破坏性变更，`version` 要按语义化版本递增。
 
 ## 接下来读什么
 

@@ -277,3 +277,42 @@ GlitchTip、Umami、Forgejo 各带一个 Postgres，内存上限加起来 768M�
 - GlitchTip 的 web、worker、migrate 用 YAML 锚点共用镜像和环境变量；事件保留 30 天控制库的大小
 - 配好后用不在内网里的手机验证：管理界面打不开、上报能收到
 - Umami 放进底座只改网络、卷名、备份钩子、入口和内存上限几处；各服务的 Postgres 不合并
+
+## 动手练习
+
+前两题沿用[第 2 章练习](02-foundation.md#动手练习)里的 `edge` 网络、`whoami` 和 `edge-caddy` 容器，用 whoami 代替 GlitchTip，只验证 Caddy 的放行规则。
+
+1. **只放行上报路径**：把 `Caddyfile` 改成：
+
+   ```text
+   :80 {
+   	@ingest path_regexp ^/api/[0-9]+/(envelope|store)/$
+   	handle @ingest {
+   		request_body {
+   			max_size 2MB
+   		}
+   		reverse_proxy whoami:80
+   	}
+   	handle {
+   		respond 403
+   	}
+   }
+   ```
+
+   reload 后先预测，再用 `curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8080<路径>` 依次请求 `/api/12/envelope/`、`/api/12/envelope`、`/api/abc/store/`、`/login`。
+
+   验证：依次是 `200`、`403`、`403`、`403`。
+
+   参考答案：正则要求项目编号是数字、末尾带斜杠，其他路径一律落到兜底的 403，登录页对公网根本不存在。升级 GlitchTip 后如果 SDK 改了上报路径，这里也要跟着改，所以正文要求用不在内网的手机实测。
+
+2. **限制单次上报的大小**：执行 `head -c 3000000 /dev/zero | curl -s -o /dev/null -w '%{http_code}\n' --data-binary @- localhost:8080/api/12/envelope/`，再把 `3000000` 改成 `1000000` 重试。
+
+   验证：3MB 的请求返回 `413`；1MB 的返回 `200`。
+
+   参考答案：DSN 是公开的，上报接口挡不住别人发，只能限制每次发多大、每个项目多快，再用磁盘告警兜底。
+
+3. **YAML 锚点和 profile**：在一个空目录里写一个 compose，用 `x-common: &common` 定义 `image: alpine:3.20` 和 `environment: { APP_VERSION: "1.0" }`，三个服务 `web`、`worker`、`migrate` 都 `<<: *common`，命令分别是 `sleep 600`、`sleep 600`、`echo migrated`，`migrate` 加 `profiles: [migrate]`。执行 `docker compose up -d`、`docker compose ps -a --format '{{.Service}}'`，再执行 `docker compose run --rm migrate`。
+
+   验证：`ps` 只列出 `web` 和 `worker`；`run` 输出 `migrated`。把锚点里的版本改成 `1.1` 后，`docker compose config | grep APP_VERSION` 三处都变了。做完 `docker compose down`。
+
+   参考答案：锚点让三个容器共用一份镜像和环境变量，升级时只改一处，不会出现 web 和 worker 版本不一致；profile 让一次性的迁移容器不被平时的 `up` 拉起。

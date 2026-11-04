@@ -317,3 +317,32 @@ flowchart TB
 - 私有仓库用 `docker-registry` 类型的 Secret 加 `imagePullSecrets`，凭证用只读令牌
 - 迁移改成带版本号的 **Job**：`backoffLimit: 0` 不盲目重试，`kubectl wait` 等它完成再发布
 - K8s 版发布是「新的没就绪就不替换」，比「替换失败再退回」少了一段空窗
+
+## 动手练习
+
+只在本机练习集群里做，先确认 `kubectl config current-context`，并沿用[第 2 章练习](02-core-objects.md#动手练习)的 `lab` 命名空间。
+
+1. **不加引号的数字**：apply 一个 `data` 里写着 `PORT: 3000`（不加引号）的 ConfigMap，看报错；改成 `PORT: "3000"` 再 apply。
+
+   验证：第一次被拒绝，报错里能看出字段期望的是字符串而拿到的是数字；加了引号后创建成功。
+
+   参考答案：ConfigMap 的 `data` 只接受字符串，YAML 把裸写的 `3000` 解析成数字。`true`、`yes`、`on` 在一些解析器里会变成布尔值，统一加引号最省心。
+
+2. **改了配置，环境变量不跟着变**：执行 `kubectl create configmap greet --from-literal=GREETING=hi`，再 apply 一个 Deployment：镜像 `busybox:1.36`，命令 `["sleep", "3600"]`，`envFrom` 引用 `greet`，同时把 `greet` 作为卷挂到 `/etc/greet`。然后：
+
+   ```bash
+   kubectl exec deploy/greet-demo -- sh -c 'printenv GREETING; cat /etc/greet/GREETING; echo'
+   kubectl create configmap greet --from-literal=GREETING=bye --dry-run=client -o yaml | kubectl apply -f -
+   # 等一两分钟后再执行一次第一条命令，然后：
+   kubectl rollout restart deploy/greet-demo && kubectl rollout status deploy/greet-demo
+   ```
+
+   验证：改完等一会儿，环境变量仍是 `hi`，挂载的文件已经变成 `bye`；`rollout restart` 之后环境变量也是 `bye`。
+
+   参考答案：环境变量只在容器启动时读一次；卷里的文件会被 kubelet 异步更新，但应用要自己重新读。启动时读配置的服务，改完配置就要滚动重启。
+
+3. **迁移失败时脚本该怎么等**：apply 一个必然失败的 Job：`backoffLimit: 0`，`restartPolicy: Never`，容器 `busybox:1.36` 执行 `["sh", "-c", "echo migrating; exit 1"]`，名字叫 `migrate-demo`。然后执行 `kubectl wait --for=condition=complete job/migrate-demo --timeout=20s; echo "exit=$?"`，再执行 `kubectl wait --for=condition=failed job/migrate-demo --timeout=20s`。
+
+   验证：第一条等满 20 秒后超时，`exit=1`；第二条几乎立刻返回 `condition met`；`kubectl get pods -l job-name=migrate-demo` 只有 1 个 Pod，`kubectl logs job/migrate-demo` 输出 `migrating`。
+
+   参考答案：等 `complete` 的脚本要到超时才发现失败；`backoffLimit: 0` 保证失败的迁移不会被自动重试。发布脚本里可以同时等 `complete` 和 `failed`，哪个先到按哪个处理。

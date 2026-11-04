@@ -188,3 +188,23 @@ hatch-recordwall 的桌面端用自定义协议给 `<audio>` 提供本地文件�
 - HTTP/2 仍受 TCP 队头阻塞影响；HTTP/3 基于 QUIC（UDP），按流独立、握手更少、支持连接迁移
 - HTTP/3 靠 `Alt-Svc` 发现，失败静默退回；记得放行 **UDP** 443，或交给 CDN
 - 流式输出要关掉代理缓冲、调长读超时；媒体文件服务要支持 Range 和 206
+
+## 动手练习
+
+1. **手写一个 HTTP 请求**：执行 `printf 'GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n' | nc example.com 80`；再把 `Host` 那一行去掉重发。
+
+   验证：第一次先是状态行 `HTTP/1.1 200 OK`，接着是头部、一个空行、HTML 正文；去掉 `Host` 后多数服务器回 `400 Bad Request`。
+
+   参考答案：HTTP/1.1 是文本协议，头部以空行结束；`Host` 是必填的，一个 IP 上的多个站点靠它区分。
+
+2. **看 ALPN 协商出的版本**：执行 `curl -sI https://www.cloudflare.com -o /dev/null -w '%{http_version}\n'`，再加 `--http1.1` 执行一次；最后执行 `curl -sv https://www.cloudflare.com -o /dev/null 2>&1 | grep -i alpn`。
+
+   验证：前两条分别输出 `2` 和 `1.1`；第三条能看到客户端提议了 `h2` 和 `http/1.1`，服务端选定了 `h2`。
+
+   参考答案：协议版本在 TLS 握手里协商，不需要额外请求。curl 默认不主动尝试 HTTP/3，所以这里看不到 `3`。
+
+3. **Range 与 206**：起一个 nginx 静态服务 `docker run --rm -d --name rng -p 8080:80 nginx:alpine`，执行 `curl -s -D - -o /dev/null -H 'Range: bytes=0-99' http://localhost:8080/`。
+
+   验证：状态行是 `HTTP/1.1 206 Partial Content`，响应头里有 `Content-Range: bytes 0-99/` 和 `Content-Length: 100`。做完 `docker rm -f rng`。
+
+   参考答案：静态文件服务支持 Range 时只回请求的那一段。自己实现文件服务时如果总是回 200 和整个文件，播放器拖动进度条就得等整个文件传完。

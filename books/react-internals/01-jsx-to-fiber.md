@@ -203,3 +203,45 @@ createRoot(document.getElementById("root")!).render(
 - **双缓冲**：current 树对应屏幕，workInProgress 树在后台构建，提交时整体切换，没画完的版本可以直接丢弃
 - 一次更新分**渲染**（纯计算、可中断）、**提交**（改 DOM、同步）、**被动 effect** 三段；组件必须纯、副作用进 effect，都源于这个划分
 - StrictMode 的双重调用是在检查渲染是否纯，判断标准是「重复执行一次有没有改变外部世界」
+
+## 动手练习
+
+以下练习用 `pnpm create vite rx --template react-ts` 建一个项目，`pnpm dev` 后在浏览器控制台看输出。模板的 `main.tsx` 默认包着 `<StrictMode>`。
+
+1. **把元素打印出来**：在 `App.tsx` 顶层（组件外面）加一行：
+
+   ```tsx
+   const el = <span className="badge" ref={() => {}}>{3}</span>;
+   console.log(el.$$typeof, el.type, Object.keys(el.props));
+   ```
+
+   预测三样东西：`$$typeof` 是什么、`type` 是什么、`props` 里有哪些键。
+
+   验证：输出 `Symbol(react.transitional.element)`、`span`，以及 `["className", "ref", "children"]`。
+
+   参考答案：JSX 只是生成一个普通对象；React 19 里 `ref` 和其他属性一样放进了 `props`，所以函数组件能直接从 props 拿到它。
+
+2. **数一数 StrictMode 下的调用**：把 `App` 换成下面的组件，预测控制台的输出顺序：
+
+   ```tsx
+   import { useEffect } from "react";
+
+   export default function App() {
+     console.log("render");
+     useEffect(() => {
+       console.log("effect");
+       return () => console.log("cleanup");
+     }, []);
+     return <p>hello</p>;
+   }
+   ```
+
+   验证：依次是 `render`、`render`、`effect`、`cleanup`、`effect`（Chrome 里第二个 `render` 显示为灰色）。去掉 `main.tsx` 里的 `<StrictMode>` 后只剩 `render`、`effect`；`pnpm build && pnpm preview` 的生产构建里同样只有一次。
+
+   参考答案：StrictMode 只在开发模式生效：渲染函数调两次检查是否纯，挂载后多做一轮「清理再建立」检查 effect 的清理是否完整。
+
+3. **一个不纯的渲染**：在模块顶层写 `let renders = 0;`，组件里 `renders++` 后渲染 `<p>{renders}</p>`。预测开发模式下页面首次显示的数字，再关掉 StrictMode 对比。
+
+   验证：StrictMode 下页面显示 `2`，关掉后显示 `1`。
+
+   参考答案：组件函数改了外部变量，跑两次结果就不同，这正是 StrictMode 想暴露的问题。用本章的标准自查：重复执行一次，外部世界变了，就不该放在渲染阶段；计数这类需求应该放进 ref 加 effect，或者干脆不需要。

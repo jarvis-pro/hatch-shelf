@@ -253,6 +253,44 @@ it("有人提交就推，推的是换了版的那几块", async () => {
 - 测试名写规则和理由，断言 code 而不是文案
 - **元测试**扫描全集来守约定：对查询结果做健全性检查、豁免名单反查、断言信息写后果
 
+## 动手练习
+
+1. **用 overrideProvider 换掉依赖**：在 `nest new` 生成的 `app.controller.spec.ts` 里，给 `Test.createTestingModule` 接上 `.overrideProvider(AppService).useValue({ getHello: () => "fake" })`，断言 `appController.getHello()` 等于 `"fake"`。CommonJS 模板默认用 Jest，Node 版本不够时会报 `ERR_REQUIRE_ASYNC_MODULE`（见第 1 章）。
+
+   验证：`pnpm test` 通过；去掉 `overrideProvider` 后这条断言失败，实际值是 `Hello World!`。
+
+   参考答案：测试容器和应用容器是同一套依赖注入，换依赖不用改源码。
+
+2. **测的应用不是部署的应用**：在 `main.ts` 的 `app.listen()` 之前加 `app.setGlobalPrefix("v1")`，然后跑模板自带的 e2e 测试（CommonJS 模板是 `pnpm test:e2e`，它请求 `GET /` 并期望 `Hello World!`），再 `pnpm build && node dist/main.js` 后 `curl -i localhost:3000/`。
+
+   验证：e2e 测试照样通过，而真实启动的服务对 `/` 回 404，`/v1` 才回 `Hello World!`。
+
+   参考答案：`createNestApplication()` 不执行 `main.ts`。把这类配置抽进一个 `configureApp(app)`，`main.ts` 和测试都调用它；改完后 e2e 测试应该先变红，把请求改成 `/v1` 才变绿。
+
+3. **元测试：每个路由都要表态**：沿用第 3 章练习里的 `@Public()`，再定义一个权限装饰器（元数据键记作 `PERM`），先给模板自带的 `getHello` 标上 `@Public()`。在 e2e 测试里遍历所有控制器方法，断言每个路由方法都标了其中一个（`DiscoveryModule`、`DiscoveryService`、`MetadataScanner`、`Reflector` 从 `@nestjs/core` 导入，`PATH_METADATA` 从 `@nestjs/common/constants` 导入）。然后新加一个什么都没标的端点。
+
+   ```ts
+   const mod = await Test.createTestingModule({ imports: [AppModule, DiscoveryModule] }).compile();
+   const [discovery, scanner, reflector] = [mod.get(DiscoveryService), mod.get(MetadataScanner), mod.get(Reflector)];
+   const bad: string[] = [];
+   let routes = 0;
+   for (const w of discovery.getControllers()) {
+     const proto = Object.getPrototypeOf(w.instance);
+     for (const name of scanner.getAllMethodNames(proto)) {
+       if (Reflect.getMetadata(PATH_METADATA, proto[name]) === undefined) continue; // 不是路由
+       routes++;
+       const targets = [proto[name], w.metatype];
+       if (!reflector.getAllAndOverride(PUBLIC, targets) && !reflector.getAllAndOverride(PERM, targets)) bad.push(`${w.name}.${name}`);
+     }
+   }
+   expect(routes).toBeGreaterThan(0); // 查询本身写错时别悄悄变绿
+   expect(bad).toEqual([]);
+   ```
+
+   验证：新端点加上之前测试通过；加上之后测试失败，失败信息里列出那个方法的 `控制器.方法` 名。
+
+   参考答案：逐个端点写测试会漏掉以后新加的；扫描全集才守得住「每个路由都要表态」。`routes > 0` 那行就是本章说的健全性检查。
+
 ## 接下来读什么
 
 测试守住的很多规矩落在数据库上，而业务代码碰数据库的方式本身也有一套约定：service 怎么拿连接、事务怎么跨 service 传递、事务里的错误在哪接住。最后一章[数据访问与事务](10-data-transactions.md)讲这些。

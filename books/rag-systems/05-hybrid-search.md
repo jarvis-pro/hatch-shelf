@@ -236,3 +236,23 @@ export async function hybridSearch(
 - 两路分数不可比，用 **RRF** 只按名次融合，$k = 60$、等权是好的起点
 - 一条 SQL 完成两路检索 + 融合；`SET LOCAL hnsw.ef_search` 不小于每路条数；过滤条件放进每一路里
 - 多轮对话要做**查询改写**；多查询、HyDE 等手段先用评测证明有效再加
+
+## 动手练习
+
+1. **看分词结果**：把本章的 `tokens`、`toTsQuery` 复制出来，在 Node 22 里分别处理 `pgvector 的 hnsw.ef_search 默认是 40`、`proxy_buffering 在哪本书里讲过` 和 `!!!`。
+
+   验证：第一条连起来是 `pgvector 的 hnsw ef search 默认 是 40`；第二条的查询里有 `proxy | buffering`，后面跟着一串单字或词；`!!!` 得到空数组，`toTsQuery` 返回 `null`（具体切分以你的 Node 自带的 ICU 数据为准）。
+
+   参考答案：标识符按非字母数字字符拆开，查询时 `proxy` 和 `buffering` 就能分别匹配到存进去的词位。整句没有可用的词时返回 `null`，避免把空字符串之外的奇怪内容交给 `to_tsquery`。
+
+2. **手算 RRF**：$k = 60$，运行 `node -p 'const r = (...x) => x.reduce((s, n) => s + 1 / (60 + n), 0); [r(1, 3), r(2), r(1), r(40, 40)].map(v => v.toFixed(5))'`。
+
+   验证：输出 `[ '0.03227', '0.01613', '0.01639', '0.02000' ]`。前两个和本章配图里 A、F 的分数一致。
+
+   参考答案：最后一项说明，两路都只排第 40 的文档，也比只在一路排第 1 的文档分高。RRF 奖励「被两种方法同时认可」；如果评测显示某一路明显更可靠，再给它加权，而不是改成按原始分数相加。
+
+3. **中文全文检索要先分词**：在 pgvector 容器里依次执行 `SELECT to_tsvector('simple', '向量数据库的索引参数');` 和 `SELECT to_tsvector('simple', '向量 数据库 的 索引 参数') @@ to_tsquery('simple', '索引 | 召回');`，再试 `SELECT to_tsvector('simple', '向量数据库的索引参数') @@ to_tsquery('simple', '索引');`。
+
+   验证：第一条只得到一个词位 `'向量数据库的索引参数':1`；第二条返回 `t`；第三条返回 `f`。
+
+   参考答案：`simple` 配置按空格和标点切词，不认识中文词边界。在应用层分好词、用空格连起来存进 `seg`，再由它生成 `tsvector`，中文关键词才能匹配。

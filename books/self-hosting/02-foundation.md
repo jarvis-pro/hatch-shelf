@@ -212,7 +212,7 @@ docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 ## 统一备份
 
-[《一人运维手册》第 2 章](../production-ops/02-backup-dr.md)已经讲了怎么用 restic 搭一套异地、加密、带心跳的备份，工具机直接沿用那里的 `/etc/restic/env` 和仓库初始化步骤。本节解决的是工具机特有的问题：**十几个服务，怎么用一个脚本备份全部，而且新加服务时不用改主脚本**。
+[《一人运维手册》搭一套异地加密备份](../production-ops/02-backup-dr.md#搭一套异地加密备份)已经讲了怎么用 restic 搭一套异地、加密、带心跳的备份，工具机直接沿用那里的 `/etc/restic/env` 和仓库初始化步骤。本节解决的是工具机特有的问题：**十几个服务，怎么用一个脚本备份全部，而且新加服务时不用改主脚本**。
 
 ### 约定：每个服务一个备份钩子
 
@@ -324,3 +324,33 @@ restic 的仓库放在云对象存储上，和工具机多半是同一个云账�
 - 每个容器设内存上限，避免一个服务拖垮整台机器
 - 统一备份：每个服务一个只负责导出的 `backup.sh`，主脚本统一上传；任何一个钩子失败都不发成功心跳
 - 心跳服务放在工具机之外；恢复演练按服务轮流做
+
+## 动手练习
+
+本书的练习都在本机 Docker 里起一次性实例，不碰真实的工具机，也不需要域名。先建一个练习目录 `mkdir -p ~/selfhost-lab && cd ~/selfhost-lab`，做完删掉对应的容器、卷和网络即可。
+
+1. **服务不映射端口，只走共享网络**：执行 `docker network create edge` 和 `docker run -d --name whoami --network edge traefik/whoami`；写一个 `Caddyfile`，内容是 `:80 {`、`reverse_proxy whoami:80`、`}` 三行，再执行 `docker run -d --name edge-caddy --network edge -p 8080:80 -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2`。然后 `curl -s localhost:8080` 和 `docker ps --format '{{.Names}} {{.Ports}}'`。
+
+   验证：`curl` 输出里有 `Hostname:` 等 whoami 的回显；`docker ps` 里 whoami 的端口列是空的（或只有容器内的 `80/tcp`，没有 `0.0.0.0:` 映射），只有 edge-caddy 映射了 8080。
+
+   参考答案：服务只在 `edge` 网络里可见，Caddy 用容器名找到它，宿主机上一个端口都没开。
+
+2. **只对内网开放**：把 `Caddyfile` 改成先写 `@outside not remote_ip 100.64.0.0/10` 和 `respond @outside 403`，再写 `reverse_proxy whoami:80`，然后 `docker exec edge-caddy caddy reload --config /etc/caddy/Caddyfile` 并 `curl -s -o /dev/null -w '%{http_code}\n' localhost:8080`；再把 `100.64.0.0/10` 换成 `private_ranges` 重试。
+
+   验证：第一次是 `403`；换成 `private_ranges` 后是 `200`。
+
+   参考答案：从 Mac 访问时，Caddy 看到的来源是 Docker 网关的私网地址，不在 Tailscale 的 `100.64.0.0/10` 里。真实工具机上只有经过内网来的请求能通过，公网来的一律 403。
+
+3. **备份钩子与一次恢复演练**：在 `~/selfhost-lab/svc` 下用 `postgres:16-alpine` 起一个 compose 项目（`POSTGRES_USER=app`、`POSTGRES_PASSWORD=lab`、`POSTGRES_DB=app`），建一张表并插入 100 行：`docker compose exec -T postgres psql -U app -c 'create table t(x int); insert into t select generate_series(1,100);'`。照本章的 GlitchTip 钩子写一个 `backup.sh`，把库导出到 `~/selfhost-lab/_dumps/svc/svc.dump`。然后：
+
+   ```bash
+   bash backup.sh && ls -l ../_dumps/svc
+   docker run -d --name restore -e POSTGRES_PASSWORD=lab postgres:16-alpine && sleep 5
+   docker exec -i restore pg_restore -U postgres --no-owner -d postgres < ../_dumps/svc/svc.dump
+   docker exec restore psql -U postgres -tAc 'select count(*) from t'
+   docker compose stop postgres; bash backup.sh; echo "exit=$?"; ls -l ../_dumps/svc
+   ```
+
+   验证：恢复出来的表有 `100` 行；停掉数据库后再跑钩子，`exit` 非 0，`svc.dump` 还是之前那份（时间没变），旁边多了一个 `.tmp`。做完 `docker rm -f restore && docker compose down -v`。
+
+   参考答案：导出先写 `.tmp` 再改名，失败时不会覆盖上一份好的备份；主脚本看到钩子失败就不发心跳，你才会知道。备份有没有用，只能靠恢复出来数一数行数来证明。

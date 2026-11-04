@@ -335,3 +335,33 @@ pgvector 的天花板比大多数一人公司会碰到的高得多。可以这�
 - 几万行精确检索就够；更大时默认用 **HNSW**，主要调 `hnsw.ef_search`，它同时限制单次扫描返回的行数
 - 带过滤的查询用 0.8.0 起的**迭代索引扫描**，或部分索引、分区；用 `EXPLAIN ANALYZE` 确认执行计划
 - 超过 2000 维用 `halfvec` 或表达式索引；上亿规模再考虑专门的向量数据库
+
+## 动手练习
+
+以下三题都在一次性容器里做：`docker run --rm -d --name pgv -e POSTGRES_PASSWORD=pw -p 5432:5432 pgvector/pgvector:pg16`，用 `docker exec -it pgv psql -U postgres` 进入，做完 `docker stop pgv` 即可清掉。先准备数据：
+
+```sql
+CREATE EXTENSION vector;
+CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
+INSERT INTO items (embedding)
+  SELECT ARRAY[random(), random(), random()]::vector FROM generate_series(1, 100000);
+CREATE INDEX ON items USING hnsw (embedding vector_cosine_ops);
+```
+
+1. **排序写法决定能否用索引**：分别对 `ORDER BY embedding <=> '[1,0,0]' LIMIT 10` 和 `ORDER BY 1 - (embedding <=> '[1,0,0]') DESC LIMIT 10` 两种写法执行 `EXPLAIN ANALYZE`。
+
+   验证：第一种的计划里有 `Index Scan using items_embedding_idx`；第二种没有索引扫描，而是对全表做 `Seq Scan` 后再排序，耗时明显更长。
+
+   参考答案：pgvector 的索引只服务于「距离升序 + LIMIT」这个形状。要展示相似度，在 `SELECT` 里算 `1 - 距离`，`ORDER BY` 仍按距离升序。
+
+2. **操作符类要对得上**：索引建的是 `vector_cosine_ops`，现在用 L2 距离 `<->` 查询：`EXPLAIN SELECT id FROM items ORDER BY embedding <-> '[1,0,0]' LIMIT 10;`
+
+   验证：计划里看不到 HNSW 索引，走的是全表扫描。再建一个 `vector_l2_ops` 的索引后重新 `EXPLAIN`，就能看到它被用上。
+
+   参考答案：每种距离对应一个操作符类，建索引和查询必须用同一种。对归一化过的向量，三种距离排序一样，统一用一种就不会踩这个坑。
+
+3. **`ef_search` 限制返回行数**：执行 `SET hnsw.ef_search = 40;` 后运行 `SELECT count(*) FROM (SELECT id FROM items ORDER BY embedding <=> '[1,0,0]' LIMIT 100) t;`，再把 `ef_search` 设为 200 重跑。
+
+   验证：第一次的结果不超过 `40`，第二次是 `100`。如果第一次就是 100，用 `EXPLAIN` 确认这条查询是否真的走了索引。
+
+   参考答案：一次 HNSW 索引扫描最多返回 `ef_search` 个候选。混合检索每一路取 40–50 个候选时，`ef_search` 至少要设到这个数，否则候选会被悄悄截短。

@@ -688,3 +688,27 @@
 
 - 03-before-going-live.md 开播门槛列表：快手只补了「2025-02 新入驻达人 0 元保证金带货」（媒体报道，链接到 douyin-kuaishou 06#快手电商），快手开播 / 带货的粉丝门槛仍未查到官方说明。
 
+
+## 十三、全库体检第五轮：去重与练习（2026-11-04）
+
+50 本技术书 428 章新增「动手练习」，共约 1270 题。给出具体输出的题大多在本机实跑过；以下几类没有实跑，题里只写了要观察的现象，读者照做时若与题目不符，以实际为准并回来改题：
+
+- [ ] 需要 Docker 的题（本机当时 Docker 未运行）：Postgres / pgvector（llm-app 07、llm-evals 07、llmops 03/04/08、rag 03/04/05、database-practice、database-ops、system-design 03–08）、容器 OOM / PID 1、observability-performance 的 Prometheus / Alertmanager 镜像 tag（凭记忆）
+- [ ] rust-practice 全部练习未编译（本机无 rustc），只写了有把握的错误码
+- [ ] 凭记忆写死的输出：k6 阈值失败退出码 99、`ERR_PNPM_OUTDATED_LOCKFILE`、SOPS `MAC mismatch`、OpenTofu `Instance cannot be destroyed`、Redis 的 OOM / NOPERM 前缀
+- [ ] deepseek-harness 练习按书中 0.2.1 行为写，未装 DSH 验证；kubernetes、self-hosting、nginx-gateway、networking、linux-essentials 的练习均未在真机跑过
+
+出题过程中发现的正文问题：
+
+- [x] `llm-app-engineering/05-streaming.md` 控制器用 `req.on("close")` 中止上游：POST 请求体读完后 req 的 close 立即触发。已改为 `res.on("close")` + `!res.writableFinished`。其他书里 GET 型 SSE 的 `req.on("close")` 实测在客户端断开时才触发，未改
+- [x] `agent-safety/06` 查「污染后被拒」会话的 jq 管道永远匹配不上，已改为 `(.event.decision // .event.type)`
+- [ ] `nestjs-backend/01`：去掉 `emitDecoratorMetadata` 后正文说启动报错，实际可能是注入成 undefined、请求 500；`02`「AsyncLocalStorage 包在订阅外面会拿到 undefined」在新版 Nest 下可能不成立
+- [ ] `computer-systems` 伪共享：M3 Pro 缓存行 128 字节，实测隔开 64 字节已不再互相拖慢，正文「隔开一个缓存行」的说法可补一句
+- [ ] `deep-learning-basics/08` 的 `targets.view(-1)` 遇到不连续张量会报错（书中流程碰不到）；`02`「卡住次数」手写版与 nn 版结果不同；`05` 第 3 题「打乱像素后 CNN 领先缩小」未验证
+- [ ] 书中代码的边界 bug 改成了练习题、正文未改：`tools-and-mcp/05` `read_chapter` offset 越界、`context-engineering/05` `runSearch` 返回「第 11–10 处」、`agent-safety/06` redact 漏 `export` 前缀和小写 YAML 键、`coding-agents/06` boundary 正则漏动态 `import()` / `require()`
+
+去重：
+
+- [ ] `system-design/04` 的 65 行 worker 循环保留：redis-jobs 06 在它之上扩展、自身没有 worker 代码。是否把它搬进 redis-jobs 由作者决定
+- [ ] `agent-principles/01` autonomy-spectrum（系统形态谱系）和 `build-your-agent/07` approval-matrix（同一工具在三种运行方式下的处理）与主图内容不同，保留
+- [ ] 有效时薪统一到 skills-to-business 04 的口径（可计费 48%）后，opc-transition 02/03/08、employee-to-owner 04 的日费率、报价、项目款、记账示例都按新口径重算了，建议通读一遍这几章

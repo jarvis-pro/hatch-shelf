@@ -657,3 +657,23 @@ Registry 负责的只有两件事：命名空间验证和元数据托管。**代
 - 用进程内的真实客户端测试，覆盖正常路径和错误路径；Inspector 用来手动调试
 - 用 `.mcp.json` 或 `claude mcp add` 接入 Claude Code；stdout 不能有任何非协议输出
 - 想给别人用时：代码发到 npm 等包仓库，元数据用 `mcp-publisher` 登记到官方 Registry；Registry 只验证名字归属，不担保代码安全
+
+## 动手练习
+
+1. **看 pnpm 往 stdout 塞了什么**：在一个临时目录建 `package.json`，加一个脚本 `"hi": "node -e \"console.log('{}')\""`，分别运行 `pnpm run hi 2>/dev/null` 和 `pnpm --silent run hi 2>/dev/null`。
+
+   验证：第一条在 `{}` 之前多出两行以 `> ` 开头的脚本信息（包名、版本、要执行的命令）和一个空行；第二条只输出 `{}`。
+
+   参考答案：`2>/dev/null` 已经丢掉了 stderr，剩下的都是 stdout，这几行就会混进 MCP 的协议通道。所以 `.mcp.json` 里必须加 `--silent`，或者绕开 pnpm 直接用 `npx tsx` 启动。
+
+2. **给符号链接加一个测试**：在按本章搭好的 `shelf-mcp` 里新增一个测试：在临时目录建一个假书库，里面放一个正常的书目录和一个指向书库外部目录的符号链接 `evil`，用 `SHELF_BOOKS_DIR` 指向这个临时目录后调用 `read_chapter`（`bookId: "evil"`）。
+
+   验证：测试通过：结果 `isError` 为 `true`，文本包含 `指向 books 目录之外`；把 `bookDir` 里的 `startsWith` 检查注释掉后，这个测试失败。
+
+   参考答案：`evil` 能通过字符集正则，只有 `realpath` 加前缀比较能拦住它，这就是本章说的「两道防线」。`BOOKS_ROOT` 在模块加载时读取环境变量，所以要在导入 `server.ts` 之前设置好 `SHELF_BOOKS_DIR`（例如放在单独的测试文件里，或用 vitest 的 `env` 配置）。
+
+3. **找出一个分页边界 bug**：用 Inspector 或测试调用 `read_chapter`，`offset` 填一个大于章节总行数的值（比如 5000）。
+
+   验证：当前代码返回一个正常结果，头部类似 `本次 5001-135 行，已到结尾`，正文为空，`isError` 不是 `true`。
+
+   参考答案：`offset` 越界是模型能修正的输入错误，应该在处理函数里判断 `offset >= lines.length` 时返回 `toolError(new ToolInputError(...))`，文本说明总行数和最大可用的 `offset`。修完后补一条测试断言 `isError` 为 `true`、文本里包含总行数。

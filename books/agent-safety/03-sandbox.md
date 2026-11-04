@@ -240,3 +240,29 @@ exit $FAIL
 - 挂 docker.sock、privileged、host 网络、挂家目录，任何一条都会让隔离失效
 - 凭证默认不给，给就给专用、最小、短期的；更好的是设计成 agent 不需要钥匙
 - 用自检脚本验证沙箱，不通过就不启动
+
+## 动手练习
+
+1. **搭出容器沙箱并跑自检**：在一个测试仓库里按本章放好 `sandbox/compose.yaml`、`sandbox/squid.conf` 和 `sandbox/sandbox-selftest.sh`（仓库里要有 `.claude/` 和 `.git/hooks/` 两个目录），启动后在容器里跑自检。
+
+   ```bash
+   docker compose -f sandbox/compose.yaml up -d
+   docker compose -f sandbox/compose.yaml exec agent bash sandbox/sandbox-selftest.sh; echo "exit=$?"
+   docker compose -f sandbox/compose.yaml exec agent curl -sI https://registry.npmjs.org | head -1
+   ```
+
+   验证：自检每一行都是「已阻止」，最后 `exit=0`；经代理访问 npm 镜像能拿到 HTTP 状态行。
+
+   参考答案：白名单内的域名走代理可以访问，白名单外的被 squid 拒绝，绕过代理直连因为 `internal` 网络没有路由而失败。
+
+2. **故意配错一处，看自检能否发现**：把 compose 文件里 `sandbox` 网络的 `internal: true` 删掉，`docker compose up -d` 重建后再跑一次自检。
+
+   验证：「绕过代理直连」这一行变成「未阻止」，脚本退出码变成 `1`。改回来后恢复全部「已阻止」。
+
+   参考答案：代理环境变量只是「建议」，进程可以不理会；真正的出站控制靠没有出口的网络。这也说明每次改配置都要重新跑自检，配错不会报错。
+
+3. **在 Linux 上用 bubblewrap 体验 OS 级沙箱**（需要一台 Linux 机器，`sudo apt install bubblewrap`）：在一个有 `.claude/` 和 `.git/hooks/` 的临时 git 仓库里运行本章的 `sandbox.sh`，进去后依次执行 `ls -A ~`、`touch .claude/x`、`touch ok.txt`、`curl -sS https://example.com`。
+
+   验证：`ls -A ~` 没有输出；`touch .claude/x` 报 `Read-only file system`；`touch ok.txt` 成功；`curl` 报无法解析域名或连接失败（如果系统没装 curl，它会先报找不到命令）。
+
+   参考答案：家目录是空的 tmpfs，配置目录只读挂载，`--unshare-all` 给了一个只有回环接口的网络命名空间。如果启动时报用户命名空间相关的权限错误，查一下发行版对非特权用户命名空间的限制。

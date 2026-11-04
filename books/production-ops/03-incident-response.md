@@ -212,3 +212,23 @@ hatch-counter 的部署文档里有一节「出事了」，就是一份很好的
 - 用户沟通要早、要诚实，提前准备好**模板和渠道**，状态页不与主服务同机
 - 写一份按症状索引的**应急手册**，放在服务器之外也能看到的地方，每次事故后补充
 - 安全事件：先切断、轮换密钥、保留证据、**重建而不是清理**
+
+## 动手练习
+
+1. **给事故定级**：按本章的分级表，给下面四件事各定一个级别并写出第一个动作：A. 晚上 11 点，外部探测报警，全站 502，一小时前刚发过版；B. 一位用户说导出 CSV 报错，其他人没反馈；C. 图片上传全部失败，但记账、查询正常；D. 日志里看到一条陌生 IP 的 ssh 登录成功记录。
+
+   验证：对照本章「什么算事故」和「先止血，再找原因」，每一项都能说出依据。
+
+   参考答案：A 是 P1，最近有变更，直接回滚，不先分析；B 是 P3，排进工作计划；C 是 P2，有绕行办法，醒着时尽快处理；D 影响面看似为零，但属于安全事件，一律按 P1：先在安全组上切断，再从另一台干净的机器轮换密钥。
+
+2. **在一次性容器里演一次磁盘满**：起一个数据目录很小的库 `docker run -d --name pgfull --tmpfs /var/lib/postgresql/data:size=100m -e POSTGRES_PASSWORD=t postgres:16-alpine`，等它就绪后用 `docker exec pgfull sh -c 'dd if=/dev/zero of=/var/lib/postgresql/data/filler bs=1M'` 把剩余空间填满，再执行 `docker exec pgfull psql -U postgres -c 'create table t as select generate_series(1,1000000)'`。全程照本章格式记时间线，然后止血。
+
+   验证：建表失败，报错里有 `No space left on device`；删掉 `filler` 后同一条语句成功。你手上有一份五六行、带时间的记录。
+
+   参考答案：止血是 `docker exec pgfull rm /var/lib/postgresql/data/filler`，先恢复再追问「谁写满的」。练完 `docker rm -f pgfull`。重点不在命令，而在一边操作一边记时间线，体会它在复盘时有多省事。
+
+3. **补一行应急手册**：给第 2 题的现象写一行「症状 → 多半是 → 怎么办」，要求症状是你出事时第一眼能看到的东西，处理里给出可以直接复制的命令。
+
+   验证：把这一行给一个没看过这道题的人，他只看这一行就能定位到磁盘问题并知道先跑什么。
+
+   参考答案：例如「api 反复重启，日志里 `connection refused postgres:5432`」→「postgres 起不来，常见原因是磁盘满」→「`df -h` 看根分区；满了先 `docker image prune -a` 释放空间，再 `docker compose ps` 确认 postgres 恢复 healthy」。症状写现象而不写原因，因为出事时你只知道现象。

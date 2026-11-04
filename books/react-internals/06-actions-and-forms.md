@@ -242,3 +242,53 @@ flowchart TD
 - `useOptimistic` 在 Action 期间显示临时值，结束后自动回到真实 state，失败无需手写回滚；只用于反映用户意图的操作
 - Action 只管界面状态，**重复提交的正确性靠服务端幂等**，客户端用请求号配合
 - 字段多、要实时校验的表单，受控组件 + `useTransition` 往往比 form action 更合适
+
+## 动手练习
+
+1. **失败也会清空输入**：
+
+   ```tsx
+   function RenameForm() {
+     const [msg, action] = useActionState(async (_prev: string, fd: FormData) => {
+       await new Promise((r) => setTimeout(r, 300));
+       return "名字重复：" + fd.get("name"); // 模拟服务端校验失败
+     }, "");
+     return (
+       <form action={action}>
+         <input name="name" />
+         <button type="submit">保存</button>
+         <p>{msg}</p>
+       </form>
+     );
+   }
+   ```
+
+   输入「牛肉」后提交，预测 300 ms 后输入框里还剩什么。
+
+   验证：下方显示 `名字重复：牛肉`，输入框被清空。给 `useActionState` 的返回值加上 `values`，按本章「记一笔账」的写法用 `defaultValue` 加 `key` 回填后，失败时输入框保留「牛肉」。
+
+   参考答案：`<form action={fn}>` 在 Action 结束后无条件重置非受控字段，它不知道你返回的是成功还是失败。
+
+2. **连点两次会执行两次**：给 `useActionState` 的函数加上日志：
+
+   ```tsx
+   const [n, dispatch, isPending] = useActionState(async (prev: number) => {
+     console.log("start", prev + 1);
+     await new Promise((r) => setTimeout(r, 1000));
+     console.log("end", prev + 1);
+     return prev + 1;
+   }, 0);
+   // <form action={dispatch}><button>提交 {n}</button></form>
+   ```
+
+   一秒内快速点两下按钮，预测日志顺序和最终的 `n`。
+
+   验证：日志依次为 `start 1`、`end 1`、`start 2`、`end 2`，最终显示 `2`。给按钮加上 `disabled={isPending}` 后，快速连点只会执行一次。
+
+   参考答案：`useActionState` 按顺序排队执行每次 dispatch，后一次拿到前一次的结果，它不去重。防重复提交要靠禁用按钮，最终的正确性要靠服务端幂等。
+
+3. **乐观值自动撤回**：按本章的 `PaidToggle` 写一个开关，把 `api.expenses.markPaid` 换成 `await new Promise((_, rej) => setTimeout(() => rej(new Error("网络断了")), 1000))`，在 `catch` 里 `console.log` 错误。点一次开关并盯住它。
+
+   验证：开关立刻变成「已付」，1 秒后自动跳回「未付」，控制台打印错误；代码里没有任何一行把它设回去。
+
+   参考答案：乐观值只在 Action 进行期间生效，Action 一结束（无论成败）就回到真实的 `paid`，而 `paid` 从来没被改过。

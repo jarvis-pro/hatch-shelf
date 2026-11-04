@@ -170,4 +170,24 @@ TestFlight 是 Apple 官方的测试分发渠道。上传的构建经过处理�
 - 构建号在同一版本下必须递增；出口合规、权限文案、隐私清单在 `app.json` 里提前写好
 - TestFlight 构建 **90 天过期**；内部测试免审核，外部测试首个构建要过 Beta 审核
 
+## 动手练习
+
+1. **看描述文件里装了什么**：用 `pnpm app ios --device` 给真机构建一次，在 `~/Library/Developer/Xcode/DerivedData/` 下找到产物 `.app`，运行 `security cms -D -i <App>.app/embedded.mobileprovision | plutil -p -`，再运行 `codesign -d --entitlements - <App>.app`。
+
+   验证：描述文件输出里有 `TeamIdentifier`、`ExpirationDate`、`Entitlements` 和 `ProvisionedDevices`（列着你的设备 UDID）；`codesign` 输出的每一项 entitlement 都能在描述文件的 `Entitlements` 里找到。
+
+   参考答案：描述文件把团队、App ID、证书、设备和能力绑在一起；签进 App 的 entitlements 必须是它允许的子集，否则安装或启动时被拒。没有付费账号时，`ExpirationDate` 大约在 7 天后。
+
+2. **构建号和展示版本分开**：在练习项目里照抄本章唱片墙的 `app.config.js`，分别运行 `npx expo config --type public --json | jq '.version, .ios.buildNumber'` 和 `MOBILE_BUILD=202611041 npx expo config --type public --json | jq '.version, .ios.buildNumber'`。
+
+   验证：第一次两行相同，都是 `package.json` 的版本；第二次 `buildNumber` 变成 `"202611041"`，`version` 不变。
+
+   参考答案：重传只需要构建号变大，展示版本是给人看的，不该被重传推着走。
+
+3. **审一遍权限文案**：对书架 App 的构建产物运行 `plutil -p <App>.app/Info.plist | grep -E 'UsageDescription|ITSAppUsesNonExemptEncryption'`。
+
+   验证：能看到 `NSLocalNetworkUsageDescription` 和它的中文说明，以及 `ITSAppUsesNonExemptEncryption => false`；如果出现了 App 实际用不到的权限说明（比如麦克风），找出是哪个依赖的插件加进来的。
+
+   参考答案：每条说明都要讲清「用来做什么」；用不到的权限通过对应库的插件参数关掉（如 `expo-audio` 的 `microphonePermission: false`），而不是手改 Info.plist。
+
 到这里，一个 Expo App 从运行时原理到装进别人手机的完整链路就走完了。接下来可以读[《Electron 桌面应用》](../electron-desktop/)，它和这本书是同一类问题在桌面端的版本：多进程、桥接、签名和分发；如果对 React 本身的调和与并发机制还想深入，读[《React 19 原理与模式》](../react-internals/)；移动端的密钥存储、传输安全等话题，在[《应用安全》](../app-security/)的移动端安全一章里展开。

@@ -192,3 +192,35 @@ hatch-shelf 的 `shelf-pack push` 有一个很好的现实例子：PIN 错误时
 - 不要把路径、堆栈、密钥放进错误；stdio 下日志只写 stderr
 - 空结果、部分成功、带警告的成功不是错误
 - 写操作要幂等，执行要有超时，超时信息要说明操作是否可能已生效
+
+## 动手练习
+
+1. **把四条报错改成可行动的**：按「哪里错 + 为什么 + 下一步」改写：A. `Error: ENOENT: no such file or directory, open '/srv/books/agnet-principles/book.yaml'`；B. `Invalid date`（模型传了 `since: "上周"`）；C. `429 Too Many Requests`；D. `Forbidden`（PIN 错误）。
+
+   验证：每条改写都引用了模型传入的值（或说明了收到什么）、给出了下一步，并明确能否重试；A 的改写里不再出现服务器绝对路径。
+
+   参考答案：A「没有 id 为 "agnet-principles" 的书，先调用 list_books 查看可用的 id」；B「since 要求 YYYY-MM-DD 格式，收到 "上周"，请换算成具体日期」；C「请求过于频繁，等 30 秒后可以重试」（等待时间以上游返回为准）；D「PIN 错误，已停止，不要重试，请让用户在手机上确认 PIN」。
+
+2. **哪些该标 isError**：判断下面五种结果要不要 `isError: true`，以及给模型的文本里该写什么：① 搜索「RAG」没有匹配；② 批量推送 5 本成功 4 本；③ `check_book` 通过但有 2 条提示；④ 推送超时；⑤ 参数 `limit` 传了 `-1`。
+
+   验证：只有 ④ 和 ⑤ 标 `isError`；①、②、③ 都是正常结果，但文本分别给出了现有分类、逐条的成败、警告内容。
+
+   参考答案：`isError` 只表示「这次调用的目的没达成」。④ 的文本要说明手机可能已经收到；⑤ 在 schema 里加 `.min(1)` 就会由 SDK 自动生成错误，不用进处理函数。
+
+3. **用幂等键挡住重复执行**：写一个 `createOrder(requestId, item)`，同一个 `requestId` 第二次调用时返回第一次的结果而不新建记录。连续用同一个 `requestId` 调用两次，再用新的 `requestId` 调用一次。
+
+   验证：订单总数是 2，前两次调用返回的订单号相同。
+
+   参考答案：真实服务里 `done` 要放在数据库里（带唯一约束），并设过期时间；内存版只用来看清语义。
+
+   ```ts
+   const done = new Map<string, { orderId: string }>();
+   let seq = 0;
+   function createOrder(requestId: string, item: string) {
+     const hit = done.get(requestId);
+     if (hit) return hit;                    // 重试：原样返回上次的结果
+     const r = { orderId: `o${++seq}` };     // 这里才真正写入
+     done.set(requestId, r);
+     return r;
+   }
+   ```

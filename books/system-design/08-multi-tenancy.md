@@ -232,3 +232,34 @@ hatch-counter 的一条大前提：门店停用、到期**照样能登录，拦�
 - 「新加 X 必须做 Y、忘了不报错」的规矩，用扫描测试守住
 - 跨租户运营用只返回汇总的 `SECURITY DEFINER` 函数，记得 `REVOKE FROM PUBLIC` 和固定 `search_path`
 - 缓存、对象存储、队列、日志、推送、限流都要带租户维度；停用拦在业务上不拦在登录上；租户要能导出自己的数据
+
+## 动手练习
+
+1. **亲眼看 RLS 和 owner 绕过**：用 `docker run -d --name pgr -e POSTGRES_PASSWORD=pg postgres:17` 起库，`docker exec -it pgr psql -U postgres` 进去执行：
+
+   ```sql
+   CREATE TABLE expenses (id serial PRIMARY KEY, store_id uuid NOT NULL, amount int);
+   INSERT INTO expenses (store_id, amount) VALUES
+     ('00000000-0000-0000-0000-00000000000a', 10), ('00000000-0000-0000-0000-00000000000b', 20);
+   ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY t ON expenses USING (store_id = nullif(current_setting('app.store_id', true), '')::uuid);
+   CREATE ROLE app; GRANT SELECT ON expenses TO app;
+   ```
+
+   然后依次：以 postgres 身份 `SELECT count(*) FROM expenses;`；`SET ROLE app;` 后再查一次；最后 `BEGIN; SELECT set_config('app.store_id', '00000000-0000-0000-0000-00000000000a', true); SELECT * FROM expenses; COMMIT;`。
+
+   验证：postgres 身份查到 2 行；切到 app 后是 0 行；设了上下文的事务里只看到 amount 为 10 的那一行。
+
+   参考答案：超级用户和表的 owner 默认绕过 RLS，所以应用连接必须用别的角色。想看 `nullif` 的作用：`RESET ROLE` 后把策略重建成不带 `nullif` 的版本，再 `SET ROLE app` 在同一个会话里查，会报 `invalid input syntax for type uuid: ""`，因为事务结束后这个设置回到了空字符串。
+
+2. **选隔离模型**（分析题）：A. 一个人做的面向小餐馆的点单 SaaS，预计几百家店，要看哪些店活跃、哪些快到期；B. 给三家医院做的系统，合同要求每家数据单独存放、单独备份和恢复；C. 本地优先的个人笔记 App，每个用户的数据只在自己设备上，偶尔同步。各选哪种模型。
+
+   验证：每个选择说清隔离强度从哪来、跨租户运营要付多少成本。
+
+   参考答案：A 共享表 + RLS，运维像单租户、跨租户统计便宜；B 每租户一个库，合同要求压过运维成本，三家的迁移和备份还管得过来；C 每用户一个 SQLite 是自然的，因为几乎没有跨用户运营的需求。如果 A 的客户里出现一家连锁、要求单独的库，可以只给它单独部署一套，不必把所有租户都改成每家一个库。
+
+3. **新功能要带租户的地方**（分析题）：给门店系统加一个「会员积分」功能：新表 `member_points`、积分变化时推送、每晚过期积分的定时任务、积分海报图存对象存储、积分查询加缓存。列出每一处要怎么带上租户维度，以及哪一处忘了最不容易发现。
+
+   验证：对照本章「租户维度渗透到每一层」的表，每一行都有对应的处理。
+
+   参考答案：表要带 `store_id`、开 RLS、写策略（扫描测试会兜住忘了这一步）；推送按门店订阅；定时任务一家店一个任务，worker 里用 `withStore()`；对象键用 `{storeId}/` 前缀；缓存键带门店 id。最不容易发现的是缓存键漏了门店，因为它不报错，只会让 A 店看到 B 店的积分。

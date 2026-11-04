@@ -241,3 +241,23 @@ export default {
 - `git add -p` 拆出原子提交，`stash --keep-index` 验证暂存的那一半
 - 一个人默认主干开发；短期实验、agent 并行、移动端紧急修复时才开分支
 - 远程 main 禁止强推和删除；公司和个人项目用 `includeIf` 分开身份
+
+## 动手练习
+
+1. **不动全局配置试 includeIf**：在临时目录下建 `work/repo` 和 `home/repo` 两个仓库，写一个临时的全局配置文件（默认邮箱 `me@example.com`，`includeIf "gitdir:<临时目录>/work/"` 引入另一个只含 `email = me@company.example` 的文件），用 `GIT_CONFIG_GLOBAL=<该文件>` 让 Git 读它，然后在两个仓库里分别查看生效的邮箱。
+
+   验证：`git config --show-origin --get user.email` 在 `work/repo` 里输出公司邮箱和被 include 的文件路径，在 `home/repo` 里输出 `me@example.com`。
+
+   参考答案：`GIT_CONFIG_GLOBAL` 让实验不碰真实的 `~/.gitconfig`。`gitdir:` 按仓库的真实路径匹配，macOS 上 `/tmp` 实际是 `/private/tmp`，写 `/tmp/...` 会匹配不上，路径要写 `/private/tmp/...` 或放在家目录下。
+
+2. **忘了设身份就失败**：另写一个只含 `[user]` 下 `useConfigOnly = true` 的临时全局配置，用它在一个没有本地身份的仓库里提交。
+
+   验证：提交失败，最后一行是 `fatal: no email was given and auto-detection is disabled`。
+
+   参考答案：`useConfigOnly` 禁止 Git 用主机名猜邮箱，没有显式配置就拒绝提交，这正是防止公司仓库里混入个人邮箱的兜底。
+
+3. **拆出原子提交**：在一个已提交的文件里同时做两处不相干的修改（文件开头改一个常量、结尾加一个函数，中间隔开十几行，让它们成为两个块），用 `git add -p` 只暂存第一处，再用 `stash --keep-index` 确认暂存的那一半能单独通过检查（比如 `node --check` 这个文件）。
+
+   验证：`git diff --staged` 只含第一处；`git stash push --keep-index --include-untracked` 后工作区文件里看不到第二处；`git stash pop` 后第二处回来。
+
+   参考答案：`add -p` 里对第一块按 `y`、第二块按 `n`；两处靠得太近被合成一块时，按 `s` 拆分或 `e` 手动编辑。

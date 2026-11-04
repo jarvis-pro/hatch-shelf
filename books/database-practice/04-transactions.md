@@ -265,3 +265,25 @@ await db.transaction(async (tx) => {
 - 可重复读和可串行化靠报错 + 重试，事务代码要能整体重放、不含外部副作用
 - 错误按 SQLSTATE 判断（`40001`、`40P01`、`23505`），并沿 `cause` 链查找
 - 固定加锁顺序防死锁；事务要短，绝不在事务里等网络
+
+## 动手练习
+
+以下题目都要在 `pg-lab` 里开两个终端，各自运行 `docker exec -it pg-lab psql -U postgres`，下文称会话 A 和会话 B。先建表：`create table stock (id int primary key, qty int); insert into stock values (1, 10);`。
+
+1. **复现丢失更新**：A 执行 `begin; select qty from stock where id = 1;`（看到 10）；B 执行 `begin; select qty from stock where id = 1; update stock set qty = 8 where id = 1; commit;`；A 再执行 `update stock set qty = 7 where id = 1; commit;`（7 是 A 按 10 − 3 自己算出来的）。然后把 qty 重置为 10，A、B 改成 `update stock set qty = qty - 3`、`qty - 2` 再按同样的交错跑一遍。
+
+   验证：第一轮最终 `select qty` 是 `7`，两个会话都没有报错；第二轮是 `5`。
+
+   参考答案：「先读再写」时 A 写回的是基于旧读数算出的值；`qty = qty - n` 让第二个 `UPDATE` 等第一个提交后基于最新值重算。
+
+2. **可重复读会让你失败**：重置为 10。A 执行 `begin isolation level repeatable read; select qty from stock where id = 1;`；B 执行 `update stock set qty = qty - 2 where id = 1;`（自动提交）；A 执行 `update stock set qty = qty - 3 where id = 1;`。
+
+   验证：A 报 `ERROR:  could not serialize access due to concurrent update`；A `rollback` 后查到 `qty = 8`。
+
+   参考答案：A 的快照在第一条 `select` 时取定，它要改的行在快照之后被别人改过，可重复读选择报错（SQLSTATE `40001`），由应用整体重试。
+
+3. **写偏斜**：建 `create table duty (name text primary key, on_duty bool); insert into duty values ('阿琳', true), ('建华', true);`。A、B 都执行 `begin isolation level repeatable read; select count(*) from duty where on_duty;`，然后 A `update duty set on_duty = false where name = '阿琳';`，B `update duty set on_duty = false where name = '建华';`，两边依次 `commit`。重置数据后，把隔离级别换成 `serializable` 再来一遍。
+
+   验证：可重复读下两边都提交成功，`select count(*) from duty where on_duty` 为 `0`；可串行化下其中一方（通常是后提交的一方）报 `could not serialize access due to read/write dependencies among transactions`，最终在岗 1 人。
+
+   参考答案：两个事务改的是不同的行，没有写冲突，可重复读察觉不到；可串行化跟踪了「读了对方要改的东西」这种依赖，中止其中一个。

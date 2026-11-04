@@ -236,3 +236,23 @@ SQLite 没有行级的多版本，它在 WAL 模式下实现的是**页级**的�
 - HOT 更新不动索引，前提是不改被索引的列且同页有空间：频繁更新的列别乱建索引
 - 热点行要拆成追加明细或集中在提交时处理；大批量改动要分批
 - 加常量默认值的列只改元数据，易变默认值会重写整表
+
+## 动手练习
+
+1. **一次 UPDATE 写了一个新版本**：在 `pg-lab` 里照本章建表 `t` 并插入两行，执行 `select ctid, xmin, xmax, * from t;`；然后 `update t set qty = 11 where id = 1;` 再查一次。
+
+   验证：`id = 1` 那行的 `ctid` 从 `(0,1)` 变成了 `(0,3)`，`xmin` 变成一个更大的事务号；`id = 2` 那行不变。事务号的具体数值每台机器不同。
+
+   参考答案：更新不覆盖原地，而是把旧版本标记死亡（写上 `xmax`）、在别处写一个新版本，所以物理位置和创建事务都变了。想看旧版本还在页里，用本章的 `heap_page_items(get_raw_page('t', 0))`。
+
+2. **长事务挡住 VACUUM**：建 `create table big as select g as id, 0 as n from generate_series(1, 10000) g;`。会话 A 执行 `begin isolation level repeatable read; select count(*) from big;` 后挂着不动；会话 B 执行 `update big set n = n + 1;` 和 `vacuum verbose big;`。然后 A `commit`，B 再 `vacuum verbose big;`。
+
+   验证：第一次 VACUUM 输出的 `tuples:` 一行里 `10000 are dead but not yet removable`；A 提交后再 VACUUM，变成 `10000 removed`、`0 are dead but not yet removable`。
+
+   参考答案：A 的快照可能还要看那 1 万个旧版本，VACUUM 不能删；只要有一个老事务开着，整个库的清理都会被它拖住。
+
+3. **HOT 更新**：新建 `create table h (id int primary key, qty int, note text); insert into h select g, g, 'x' from generate_series(1, 100) g; create index on h (qty);`，执行 `update h set note = 'y' where id <= 10;` 和 `update h set qty = qty + 1000 where id > 90;`，然后查 `select n_tup_upd, n_tup_hot_upd from pg_stat_user_tables where relname = 'h';`。
+
+   验证：`n_tup_upd` 是 `20`，`n_tup_hot_upd` 接近 `10`（统计在事务结束后才汇总，刚执行完看不到就过一两秒再查）。
+
+   参考答案：只改无索引的 `note` 且同页有空位时是 HOT 更新，索引不用动；改了有索引的 `qty`，每个索引都要为新版本插一项。

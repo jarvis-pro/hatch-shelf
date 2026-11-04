@@ -245,3 +245,51 @@ setup("登录", async ({ page }) => {
 - jsdom 没有布局，测真实尺寸用 Vitest 浏览器模式或 Playwright
 - Playwright 覆盖少数关键流程；依赖自动等待，不写固定延时；登录态用 storageState 复用
 - 对编码 agent 来说，快速可靠的测试是它判断对错的唯一客观信号
+
+## 动手练习
+
+1. **零依赖的单元测试**：在一个 `package.json` 写了 `"type": "module"` 的目录里建 `src/margin.ts` 和 `tests/margin.test.ts`：
+
+   ```ts
+   // src/margin.ts
+   export function marginRate(revenueCents: number, costCents: number): number {
+     if (revenueCents === 0) return 0;
+     return Math.round(((revenueCents - costCents) / revenueCents) * 1000) / 10;
+   }
+   ```
+
+   ```ts
+   // tests/margin.test.ts
+   import { test } from "node:test";
+   import assert from "node:assert/strict";
+   import { marginRate } from "../src/margin.ts";
+
+   test("毛利率保留一位小数", () => assert.equal(marginRate(10000, 6750), 32.5));
+   test("没有营业额时为 0", () => assert.equal(marginRate(0, 500), 0));
+   ```
+
+   在 Node 22.18 以上运行 `node --test --test-reporter=spec "tests/**/*.test.ts"`（更老的版本在前面加 `--import tsx`）。然后删掉 `if (revenueCents === 0) return 0;` 再跑。
+
+   验证：第一次两条都通过（`pass 2`、`fail 0`）；删掉那一行后第二条失败，输出里有 `expected: 0` 和 `actual: -Infinity`。
+
+   参考答案：业务口径写成纯函数，测试就不需要浏览器、不需要任何测试框架。边界条件（除以 0）在这一层一行就能钉住，放到端到端测试里要慢上百倍。
+
+2. **jsdom 没有布局**：在装了 `jsdom` 的目录里运行：
+
+   ```js
+   // layout.cjs
+   const { JSDOM } = require("jsdom");
+   const dom = new JSDOM(`<div style="width:300px;height:40px">x</div>`);
+   const el = dom.window.document.querySelector("div");
+   console.log(el.getBoundingClientRect().width, dom.window.getComputedStyle(el).width);
+   ```
+
+   验证：输出 `0 300px`：计算样式里能读到你写的宽度，但几何尺寸是 0。
+
+   参考答案：jsdom 只模拟 DOM 和样式解析，没有布局引擎。依赖真实尺寸的组件（比如本章提到的 `ScrollBox`）在 jsdom 里的测试会得到错误的结论，要用 Vitest 浏览器模式或 Playwright。
+
+3. **自动等待和它的上限**（需要 `pnpm add -D @playwright/test` 和 `pnpm exec playwright install chromium`）：做一个页面，按钮点击后 `setTimeout` 1.5 秒才插入一行文字「保存成功」。写一条 Playwright 测试：点击按钮后 `await expect(page.getByText("保存成功")).toBeVisible();`。跑通后把延迟改成 6 秒再跑。
+
+   验证：1.5 秒时测试通过，代码里没有任何 `waitForTimeout`；6 秒时测试失败，错误信息说明在 5000 ms 的默认超时内没等到元素可见。用 `--ui` 模式重跑，能逐步看到断言在重试。
+
+   参考答案：`expect(...).toBeVisible()` 会反复检查直到满足或超时，等多久由页面实际状态决定，比固定等待又快又稳。默认超时是一个上限，确实慢的操作应该在这条断言上单独放宽（`{ timeout: 10_000 }`），而不是到处加固定延时。

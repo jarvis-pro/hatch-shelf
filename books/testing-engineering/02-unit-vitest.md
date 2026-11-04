@@ -288,3 +288,31 @@ Vitest 5 在这里改了三处默认行为，从 4 升级时要留意：
 - 换个方式喂输入、结果应该不变，是很强的测试思路；推广开就是性质测试
 - 快照只给小而稳定的输出，优先内联快照
 - monorepo 里可以各包各跑，也可以用 `projects` 统一调度
+
+## 动手练习
+
+1. **用表格把边界排出来**：在空目录 `pnpm add -D vitest`，按下面的实现写 `size-format.ts`，再把本章 `formatBytes` 的 `it.each` 表格抄进 `size-format.test.ts`，运行 `npx vitest run`。然后把 `999.6 * 1024` 那一行的期望改成 `"1.0 MB"` 再跑。
+
+   ```typescript
+   export function formatBytes(bytes: number): string {
+     const kb = bytes / 1024;
+     if (kb < 1000) return `${Math.max(1, Math.round(kb))} KB`;
+     return `${(kb / 1024).toFixed(1)} MB`;
+   }
+   ```
+
+   验证：第一次 6 条全部通过；第二次恰好 1 条失败，报告里 Expected 是 `"1.0 MB"`、Received 是 `"1000 KB"`。
+
+   参考答案：999.6 KB 小于阈值，走 KB 分支后四舍五入成 1000。想显示成 MB，就要先取整再比较阈值（`Math.round(kb) < 1000`），改完让这一行通过、其余行不变。
+
+2. **看假时钟抓住「过早触发」**：实现一个最简单的防抖 `createSaver(write, ms)`（每次 `update` 清掉旧计时器，`setTimeout(() => write(last), ms)`），把本章「连续滚动只在停下 1 秒后写一次进度」的测试原样跑通。然后故意把实现里的 `ms` 换成 `ms / 2`，分别用原测试和「`update` 两次后直接 `vi.runAllTimers()` 再断言调用一次」的写法各跑一次。
+
+   验证：原测试在 `advanceTimersByTime(999)` 之后的 `not.toHaveBeenCalled()` 处失败；`runAllTimers` 的写法仍然通过。
+
+   参考答案：`runAllTimers` 只看最终结果，看不到「什么时候」触发，所以测不出提前写入。只推进关心的那几段时间，才能把时间点本身变成断言。
+
+3. **让 fast-check 找一个反例**：`pnpm add -D fast-check`，写一条性质测试断言「用逗号拼接再拆开等于原数组」：`fc.property(fc.array(fc.string()), (xs) => { expect(xs.join(",").split(",")).toEqual(xs); })`，放进 `fc.assert` 运行。
+
+   验证：测试失败，输出里有 `Counterexample`，给出的反例很短，通常是空数组 `[]` 或含逗号的字符串。
+
+   参考答案：空数组拼成 `""`，拆开得到 `[""]`；元素里本身有逗号时会被多拆一刀。这正是「解析与序列化互逆」类性质最容易抓到的问题，真实的 CSV 要靠引号转义解决。

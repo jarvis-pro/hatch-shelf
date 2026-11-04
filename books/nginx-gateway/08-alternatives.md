@@ -168,3 +168,17 @@ hatch-counter 用 nginx，是因为它需要的几样东西恰好都是 nginx �
 - OpenResty、Angie 等分支兼容 nginx 配置，概念全部通用
 - Cloudflare 代理或 Tunnel 可以把入口交给托管服务，但要处理真实 IP 和流式响应的差异
 - 选择看「特殊规则」的多少：规则少选最省心的，规则多选表达力最强的
+
+## 动手练习
+
+1. **看 Caddy 自动 HTTPS**：在空目录里写一个只有三行的 `Caddyfile`：`localhost {`、`respond "hello from caddy"`、`}`。执行 `docker run --rm -d --name cd -p 8443:443 -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2`，然后 `curl -vk https://localhost:8443/ 2>&1 | grep -iE 'issuer|hello'`。
+
+   验证：输出 `hello from caddy`；证书的签发者是 Caddy 自己的本地 CA（名字里有 `Caddy Local Authority`）。做完 `docker rm -f cd`。
+
+   参考答案：没写一行证书配置，Caddy 就给 `localhost` 签了证书并开好了 443。对公网域名它走的是 ACME，一样不用配；代价是证书存在它的数据目录里，迁移时要一起搬。
+
+2. **给三个项目选入口**：A 是一个 API 加一个 Vite 前端，新项目，没有限流以外的特殊规则；B 是一台机器上 15 个容器，每周都有服务增减；C 是 hatch-counter 这样有维护开关、cookie 门禁、只给锁着的请求限流的老项目。各选什么，理由是什么？
+
+   验证：每个项目给出一个工具和一句理由，理由落在「特殊规则多少」和「服务是否动态增减」上。
+
+   参考答案：A 选 Caddy，十几行配置、证书全自动；如果需要按 IP 限流，要接受装插件或在后端做。B 选 Traefik，路由跟着容器 label 走，不用每次改中心配置。C 继续用 nginx，它的特殊规则都是 nginx 的强项，迁移只会换来更绕的写法。

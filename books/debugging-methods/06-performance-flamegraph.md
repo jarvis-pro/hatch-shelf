@@ -217,3 +217,40 @@ dev client 的开发菜单里有性能监视器，可以实时看两个线程的
 - hatch-shelf 设置页卡顿：每次聚焦在 JS 线程上同步遍历上千个文件，堵住了 Tab 动画
 - 修复是让原生侧计算、并且只在书库变化时计算；直觉上可疑的 SQLite 查询其实只占一条细线
 - Node 用 `--cpu-prof` 或 inspector 录制；React 用 Profiler 看渲染次数；RN 先分 JS 线程还是 UI 线程
+
+## 动手练习
+
+1. **在火焰图里找平顶**：下面的脚本有两个函数在耗 CPU。先猜哪个更宽，再用 `node --cpu-prof --cpu-prof-dir=prof hot.mjs` 跑一次，把 `prof/` 下生成的 `.cpuprofile` 拖进 Chrome DevTools 的 Performance 面板（或用 VS Code 打开）。
+
+   ```javascript
+   function fib(n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }
+   function format(rows) { return rows.map((r) => `${r}`).join(","); }
+   const rows = Array.from({ length: 1000 }, (_, i) => i);
+   for (let i = 0; i < 200; i++) format(rows);
+   console.log(fib(35));
+   ```
+
+   验证：`prof/` 下有一个 `CPU.<日期>.<时间>.<pid>...cpuprofile` 文件；Bottom-Up 视图按自身时间排序，`fib` 排在最前，`format` 只占很小一块。
+
+   参考答案：`fib` 递归调用自己，火焰图上是一座很高的塔，自身时间都落在 `fib` 上。如果你猜的是 `format`，这正是本章说的：先测量，再优化。
+
+2. **测出正则回溯的增长**：运行下面的脚本，看耗时随 `n` 怎么变。
+
+   ```javascript
+   for (let n = 20; n <= 26; n++) {
+     const s = "a".repeat(n) + "b";
+     const t0 = performance.now();
+     /^(a+)+$/.test(s);
+     console.log(n, (performance.now() - t0).toFixed(0) + "ms");
+   }
+   ```
+
+   验证：从 21 起，`n` 每加 1，耗时大约翻一倍（具体毫秒数随机器不同）。
+
+   参考答案：嵌套量词 `(a+)+` 在匹配失败时要尝试所有切分方式，数量随长度指数增长。改成 `/^a+$/` 后耗时都接近 0。服务端碰到用户输入驱动的正则时，这类问题在火焰图上是正则引擎的一个宽平顶。
+
+3. **看分布而不是单次**：把练习 1 的 `fib(35)` 包上 `performance.now()` 打点，连续运行 10 次，记下中位数和最大值；再在 `fib` 里每次调用都加一行 `console.log` 并把输出重定向到 `/dev/null`（把 `n` 改成 22，免得等太久），对比耗时。
+
+   验证：10 次的数字有波动，最大值明显高于中位数；加了日志后同样的计算慢了很多倍。
+
+   参考答案：单次测量不能当结论；热路径里的日志本身会成为最大的开销，剖析和打点都要在去掉临时日志后重新测一次。

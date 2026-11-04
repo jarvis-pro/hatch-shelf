@@ -156,16 +156,7 @@ sudo ufw enable
 
 ### Docker 绕过 ufw
 
-一个很多人踩过的坑：compose 里写 `ports: - "5432:5432"`，ufw 明明没放行 5432，外网却能连上数据库。原因是 Docker 发布端口时**直接往 iptables 里插规则**，这些规则在 ufw 的规则之前生效。
-
-最可靠的做法是只把端口绑定到本机：
-
-```yaml
-ports:
-  - "127.0.0.1:3000:3000"
-```
-
-或者干脆不发布端口，容器之间走 compose 的内部网络。hatch-counter 的 Postgres 就完全没有映射端口，需要连库时用 `docker compose exec postgres psql`。
+compose 里写 `ports: - "5432:5432"`，ufw 明明没放行 5432，外网却能连上数据库：Docker 发布端口时直接往 iptables 里插规则，在 ufw 之前生效。排障时遇到「ufw 拒绝了、外网却能连」先想到这一条；原理和正确的发布方式（不发布或绑 `127.0.0.1`）见[《容器技术》Docker 会绕过防火墙](../docker-containers/05-network-storage.md#docker-会绕过防火墙)。
 
 ## 典型场景演练
 
@@ -257,6 +248,26 @@ sudo timedatectl set-timezone Asia/Shanghai
 - 网络从内向外查：`ss -tlnp` 看监听地址，本机 `curl` 后端，再看防火墙和 DNS
 - 云上有安全组和本机防火墙两层；Docker 发布的端口会绕过 ufw，敏感端口只绑 127.0.0.1
 - 502 先本机 curl 后端；服务起不来先看 `journalctl -u`；终端能跑 systemd 不行多半是环境不同
+
+## 动手练习
+
+1. **服务在跑，外面却连不上**：执行 `docker run -d --name web -p 8000:8000 python:3.12-alpine python -m http.server 8000 --bind 127.0.0.1`，在本机 `curl -sS localhost:8000`；再用 `docker exec web netstat -tln` 看监听地址。然后删掉容器，把 `--bind` 改成 `0.0.0.0` 重来。
+
+   验证：第一次 `curl` 失败（连接被重置或收到空响应），`netstat` 里是 `127.0.0.1:8000`；改成 `0.0.0.0` 后 `curl` 返回目录列表的 HTML。做完 `docker rm -f web`。
+
+   参考答案：端口映射把流量送进容器的网卡，而进程只在容器自己的回环地址上监听，所以收不到。排查顺序就是本章说的：先看监听地址，再看防火墙。
+
+2. **用 strace 看进程卡在哪**：在一次性容器 `docker run --rm -it ubuntu:24.04 bash` 里 `apt-get update && apt-get install -y strace curl`，然后执行 `strace -f -e trace=connect curl -s http://127.0.0.1:9/`。
+
+   验证：输出里有一行 `connect(` 开头、以 `ECONNREFUSED (Connection refused)` 结尾的系统调用。
+
+   参考答案：没有任何日志的程序，也能从系统调用看出它在连谁、为什么失败。换成 `-e trace=openat` 看文件，找 `ENOENT` 就知道它在找哪个不存在的文件。
+
+3. **systemd 下的环境不一样**：在带 systemd 的一次性虚拟机里，先 `export FOO=hello`，再分别执行 `printenv FOO` 和 `sudo systemd-run -P printenv FOO`；最后对比 `echo $PATH` 和 `sudo systemd-run -P printenv PATH`。
+
+   验证：`printenv FOO` 输出 `hello`，`systemd-run` 那条什么都不输出；两个 `PATH` 不一样。
+
+   参考答案：systemd 启动的服务不继承你的 Shell 环境，也不读 `~/.bashrc`。服务需要的变量要写进 unit 的 `Environment=` 或 `EnvironmentFile=`。
 
 ## 接下来读什么
 

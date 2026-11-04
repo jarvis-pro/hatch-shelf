@@ -171,3 +171,25 @@ sequenceDiagram
 - 沙箱（Electron 20 起默认开）决定 preload 有没有 Node；关掉要有理由和补偿措施
 - **preload 的 `fetch` 和页面一样受同源策略管**，要绕开 CORS 必须到主进程用 `net.fetch`
 - 本书以 Electron 44 为准，API 细节请对照所用版本的官方文档
+
+## 动手练习
+
+练习用一个最小工程即可：`pnpm create @quick-start/electron`（electron-vite 官方模板，选 React + TypeScript），`pnpm dev` 启动。
+
+1. **页面里有没有 Node**：窗口打开后按 `Cmd+Option+I` 打开 DevTools，在 Console 里执行 `typeof require`、`typeof process`、`Object.keys(window.api ?? {})`（模板的 preload 会暴露 `window.api` 和 `window.electron`）。
+
+   验证：前两个是 `"undefined"`；第三个列出 preload 交出来的键。
+
+   参考答案：渲染进程默认 `nodeIntegration: false`、`contextIsolation: true`，页面只能拿到 `contextBridge` 交出来的东西。
+
+2. **preload 绕不开 CORS**：另开终端运行一个不带 CORS 头的服务：`node -e "require('http').createServer((q,s)=>s.end('ok')).listen(3001)"`。先在页面 Console 里 `await fetch('http://localhost:3001')`；再在主进程加 `ipcMain.handle('ping', async () => (await net.fetch('http://localhost:3001')).text())`，preload 暴露 `ping: () => ipcRenderer.invoke('ping')`，页面调用 `await window.api.ping()`。
+
+   验证：页面直接 `fetch` 抛 `TypeError: Failed to fetch`，Console 里有 CORS 报错；走主进程的 `ping` 返回 `"ok"`。
+
+   参考答案：开发时页面的源是 `http://localhost:5173`，跨源请求受同源策略管；preload 和页面在同一个 Chromium 渲染进程里，同样受限。只有主进程的 `net.fetch` 不受页面同源策略约束。
+
+3. **主进程阻塞冻住整个应用**：在主进程加一个 `ipcMain.handle('block', () => { const t = Date.now(); while (Date.now() - t < 5000) {} })`，页面调用它后立刻拖动窗口、点菜单。
+
+   验证：5 秒内窗口拖不动、菜单打不开，之后恢复。把忙循环挪到渲染进程里做，窗口仍能拖动（只有页面本身卡住）。
+
+   参考答案：主进程跑着 UI 消息循环，所有窗口都依赖它；这就是「主进程要尽量薄」的原因。

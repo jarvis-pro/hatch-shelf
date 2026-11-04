@@ -368,3 +368,23 @@ SDK 2.x 在注册工具时可以用 `scopeChallenge: requireScopes('books:push')
 - 个人远程 server：长随机令牌 + HTTPS + 只监听本地 + 校验 Host 头
 - 多用户用 OAuth 2.1：server 是资源服务器，必须提供资源元数据、校验受众、禁止令牌透传；scope 可细到工具并支持升级授权
 - 工具返回的内容可能携带提示注入；写操作要人确认，不可信内容与高权限工具分开
+
+## 动手练习
+
+1. **exec 和 execFile 的差别**：设 `const id = "x; echo PWNED"`，分别用 `exec(\`echo ${id}\`)` 和 `execFile("echo", [id])` 执行，打印各自的 stdout。
+
+   验证：`exec` 的输出是两行 `x` 和 `PWNED`；`execFile` 的输出是原样的一行 `x; echo PWNED`。
+
+   参考答案：`exec` 把整条字符串交给 shell 解析，分号后面成了第二条命令；`execFile` 把参数作为数组直接交给程序，不经过 shell。`push_book` 即使已经用正则限定了 `bookId`，仍然用 `execFile`，两道防线互不依赖。
+
+2. **为什么先比长度**：运行 `node -e 'require("crypto").timingSafeEqual(Buffer.from("ab"), Buffer.from("abc"))'`。
+
+   验证：抛出 `ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH`，消息是 `Input buffers must have the same byte length`。
+
+   参考答案：`timingSafeEqual` 只能比较等长的缓冲区，所以本章的 `verifyAccessToken` 先判断 `a.length !== b.length`，否则一个长度不对的令牌会让处理函数抛出意外异常，而不是返回干净的 401。长度不同时直接拒绝会泄露「长度不对」这一点信息，对 64 个十六进制字符的随机令牌来说无关紧要。
+
+3. **预测权限规则的结果**：一个项目的 `.claude/settings.json` 写着 `allow: ["mcp__shelf-books__*"]`、`ask: ["mcp__shelf-books__push_book"]`、`deny: ["mcp__shelf-books__check_*"]`。按 deny → ask → allow 的顺序，预测模型调用 `list_books`、`push_book`、`check_book` 时各会怎样；再假设 server 下个版本新增了 `delete_book`，它会怎样。
+
+   验证：`list_books` 自动放行，`push_book` 询问，`check_book` 被拒绝，`delete_book` 自动放行。有 Claude Code 和第 5 章的 server 时，可以照这份配置实际调用一遍核对。
+
+   参考答案：最后一条就是本章不建议 `allow` 整个 server 的原因：新工具没经过你的审查就被放行了。把 `allow` 改成逐个列出三个只读工具，`delete_book` 就会回到默认的询问。

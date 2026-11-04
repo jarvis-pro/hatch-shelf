@@ -196,3 +196,23 @@ AI 工作中的典型流程是：在 notebook 里试验 prompt 和数据处理�
 - `%timeit`、`%%time`、`%autoreload 2` 是最常用的魔法命令
 - 隐藏状态是最大的坑：分享前一定「重启并全部运行」，或用 `jupyter execute` 验证
 - 提交前用 nbstripout 去输出，或用 jupytext 管理文本版本；marimo 从机制上解决了隐藏状态
+
+## 动手练习
+
+1. **制造一次隐藏状态**：在 JupyterLab 里新建 notebook，单元格 1 写 `numbers = [1, 2, 3]` 并运行，单元格 2 写 `sum(numbers)` 并运行；然后把单元格 1 改成 `nums = [1, 2, 3]` 再运行一次，回到单元格 2 再运行。保存后在终端执行 `uv run --with jupyter jupyter execute 文件名.ipynb`，再看 `echo $?`。
+
+   验证：在 JupyterLab 里单元格 2 仍然输出 `6`；命令行执行时报 `NameError: name 'numbers' is not defined`，退出码不是 0。
+
+   参考答案：旧变量 `numbers` 还活在内核里，所以交互时看不出问题；`jupyter execute` 起的是全新内核，从头按顺序跑，暴露了隐藏状态。不想手动点，也可以写一个 `# %%` 格式的 `.py`，用 `uvx jupytext --to notebook demo.py` 转成 notebook 再执行。
+
+2. **用 %timeit 重做第 4 章的对比**：在 notebook 里定义 `xs = list(range(1_000_000))` 和 `arr = np.arange(1_000_000, dtype=np.float64)`，分别运行 `%timeit sum(x * x for x in xs)` 和 `%timeit (arr * arr).sum()`。
+
+   验证：两行都会输出「平均值 ± 标准差 per loop」以及运行了多少轮；NumPy 那一行的单位比纯 Python 小一到两个数量级（具体数字因机器而异）。
+
+   参考答案：`%timeit` 自动决定重复次数并给出统计，比[第 4 章](04-numpy.md)手写的 `timeit.timeit(...) / 10` 省事，结论应该和那里一致。
+
+3. **提交前去掉输出**：拿第 1 题能跑通的版本，`jupyter execute --inplace` 让输出写回文件，用 `grep -c '"output_type"' 文件名.ipynb` 数一下输出条数；再运行 `uvx nbstripout 文件名.ipynb` 后数一次。
+
+   验证：第一次计数大于 0，nbstripout 之后是 0，文件里每个代码单元格的 `"outputs"` 都变成了 `[]`。
+
+   参考答案：`.ipynb` 是把输出也存进去的 JSON，nbstripout 只保留源码，diff 才干净，也避免把数据带进 Git。`uvx nbstripout --install` 则是把同样的处理装成 Git 过滤器，每次提交自动执行。

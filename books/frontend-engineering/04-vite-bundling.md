@@ -227,3 +227,46 @@ Vite 还会自动给入口块的静态依赖生成 `<link rel="modulepreload">`�
 - 页面与接口同源（开发靠代理、线上靠 nginx）能省掉 CORS
 - `build.target` 只降级语法不补 API；兼容线要显式钉死，不随工具默认值漂移
 - 打进前端包的一切都是公开的，`VITE_` 变量里不能放密钥
+
+## 动手练习
+
+在一个空目录里 `pnpm add -D vite`，放一个 `index.html`（`<button id="b">导出</button><script type="module" src="/src/main.js"></script>`），再准备一个体积较大的模块 `src/heavy.js`（可以用一行 Node 脚本生成两万个字符串的数组，导出一个 `exportAll()` 函数）。
+
+1. **静态引用把大模块拖进入口块**：`src/main.js` 先写成静态导入：
+
+   ```js
+   import { exportAll } from "./heavy.js";
+   document.getElementById("b").onclick = () => console.log(exportAll());
+   ```
+
+   运行 `pnpm vite build`，记下 `dist/assets/` 里有几个 JS 文件、各多大。然后改成只在点击时动态导入：
+
+   ```js
+   document.getElementById("b").onclick = () =>
+     import("./heavy.js").then((m) => console.log(m.exportAll()));
+   ```
+
+   再构建一次。
+
+   验证：静态导入时只有一个 `index-*.js`，体积和 `heavy.js` 相当（几百 KB）；动态导入后变成两个文件：`index-*.js` 只有几 KB，`heavy-*.js` 单独成块。浏览器打开 `pnpm vite preview`，Network 面板里 `heavy-*.js` 要点了按钮才下载。
+
+   参考答案：打包器按 `import()` 切块。只要有一处静态引用，这个模块就会回到入口块的依赖图里，这正是本章 ExcelJS 规则的原因。
+
+2. **哪些环境变量进了包**：在项目根建 `.env`：
+
+   ```text
+   VITE_PUBLIC_NAME=shop-demo
+   SECRET_KEY=sk-should-not-leak
+   ```
+
+   在 `main.js` 里 `console.log(import.meta.env.VITE_PUBLIC_NAME, import.meta.env.SECRET_KEY)`，构建后执行 `grep -l shop-demo dist/assets/*.js` 和 `grep -c sk-should-not-leak dist/assets/*.js`。
+
+   验证：第一条找到入口块文件；第二条计数为 `0`，页面里 `SECRET_KEY` 打印为 `undefined`。
+
+   参考答案：只有 `VITE_` 前缀的变量会被替换进客户端代码；反过来说，凡是 `VITE_` 开头的值都等于公开发布，密钥不能这样命名。
+
+3. **target 只降级语法**：在 `main.js` 里写 `let cfg; cfg ??= { a: 1 };`，分别用默认配置和 `pnpm vite build --target es2019` 构建，执行 `grep -c '??=' dist/assets/index-*.js`。再加一行 `[1, 2, 3].findLast((x) => x < 3)`，用 `--target es2019` 构建后搜 `findLast`。
+
+   验证：默认目标下产物里保留 `??=`；`es2019` 目标下计数为 `0`（被改写成了等价的老语法）。`findLast` 在两种目标下都原样留在产物里。
+
+   参考答案：`??=` 是语法，可以降级；`findLast` 是运行时 API，构建工具不会替你补上，在不支持的浏览器上会抛 `TypeError`。所以兼容线要同时管语法和 API。

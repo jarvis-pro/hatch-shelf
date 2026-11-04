@@ -207,7 +207,7 @@ logpath = /var/log/nginx/error.log
 
 ## 端口审计：你以为开了什么，和实际开了什么
 
-在本系列里，Docker 发布端口会绕过 ufw 这个坑已经被强调了好几次。光知道不够，要**定期检查**，因为某次改 compose 时顺手写一句 `ports: "5432:5432"` 是很容易发生的事。
+Docker 发布端口会绕过 ufw（原理见[《容器技术》Docker 会绕过防火墙](../docker-containers/05-network-storage.md#docker-会绕过防火墙)）。光知道不够，要**定期检查**，因为某次改 compose 时顺手写一句 `ports: "5432:5432"` 是很容易发生的事。
 
 ```bash
 # 机器上：谁在监听，监听在哪个地址
@@ -311,3 +311,25 @@ apt 的配置文件按文件名顺序读取，后读的覆盖先读的，所以�
 - **定期做端口审计**，机器内用 `ss`，机器外用 `nmap`，两边都只该看到 22/80/443
 - 自动安全更新之后还要处理**重启**、容器镜像和系统大版本这几件事
 - 云账号和邮箱才是真正的 root，必须开两步验证、用最小权限的子账号和钥匙
+
+## 动手练习
+
+以下练习都会改系统配置，请在一次性容器或虚拟机里做，不要在线上机器上试。
+
+1. **让 sshd 自己说出生效的配置**：`docker run --rm -it ubuntu:24.04 bash` 进容器，`apt update && apt install -y openssh-server`，`mkdir -p /run/sshd && ssh-keygen -A`，然后把本章「补充的 sshd 配置」写进 `/etc/ssh/sshd_config.d/10-hardening.conf`，再故意加一行拼错的 `MaxAuthTrys 3`。
+
+   验证：`sshd -t` 报错并指出那一行；删掉拼错的行后 `sshd -t` 无输出，`sshd -T | grep -Ei 'allowusers|maxauthtries'` 显示 `allowusers deploy` 和 `maxauthtries 3`。
+
+   参考答案：`sshd -t` 只做语法检查，`sshd -T` 打印合并所有文件后的最终值。改完先 `-t` 再 reload，能避免一个拼写错误让 sshd 起不来、把自己锁在门外。
+
+2. **用 fail2ban-regex 检验过滤器**：同样在一次性容器里 `apt install -y fail2ban`，写一个 `/tmp/auth.log`，内容是三行形如 `Nov  4 10:00:01 web sshd[1234]: Failed password for invalid user admin from 203.0.113.5 port 52100 ssh2` 的记录（秒数和端口可以不同），再加一行 `Accepted publickey for deploy from 198.51.100.7 port 52200 ssh2`（同样带时间和 `sshd[...]` 前缀），运行 `fail2ban-regex /tmp/auth.log sshd`。
+
+   验证：输出的统计里匹配行数是 3，匹配到的地址是 `203.0.113.5`，`Accepted` 那一行没被算进去。
+
+   参考答案：fail2ban 只认过滤器正则匹配到的失败记录；成功登录不计数，所以只用密钥正常登录不会把自己封掉。新写 jail 前先用 `fail2ban-regex` 对着真实日志跑一遍，确认过滤器真的能匹配。
+
+3. **复现「Docker 绕过防火墙」**：在一台一次性的 Linux 虚拟机上装好 Docker，`ufw default deny incoming && ufw allow 22 && ufw enable`，然后 `docker run -d --name r1 -p 6379:6379 redis:7-alpine`，用本章 `ss -tulpn | awk ...` 那条命令看对外端口，再从另一台机器 `nmap -Pn -p 6379 <虚拟机 IP>`。之后改成 `-p 127.0.0.1:6379:6379` 重来一次。
+
+   验证：第一次 `ss` 结果里出现 `0.0.0.0:6379`，nmap 显示 `6379/tcp open`，尽管 ufw 没放行它；第二次 `ss` 结果里不再有 6379，nmap 显示 `closed` 或 `filtered`。
+
+   参考答案：Docker 发布端口时直接写 iptables 的 NAT 和 FORWARD 规则，流量不经过 ufw 管的 INPUT 链。根本的办法是服务只绑 127.0.0.1，并且定期从机器外面扫一遍。

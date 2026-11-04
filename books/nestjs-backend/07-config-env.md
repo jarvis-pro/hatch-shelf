@@ -239,3 +239,23 @@ hatch-counter 选前者，主要是因为迁移脚本、测试辅助、Nest 应�
 - 运营人员要随时改的配置放数据库，不放环境变量，也不留环境变量兜底
 - 发给客户端的密钥等于公开；日志、审计、公开端点里不出现密钥
 - `@nestjs/config` 和自写加载函数都可以，关键是校验与 fail-fast，而不是选哪个库
+
+## 动手练习
+
+1. **环境变量的两个陷阱**：运行 `FLAG=false PORT= node -e 'console.log(Boolean(process.env.FLAG), Number(process.env.PORT))'`。
+
+   验证：输出 `true 0`。
+
+   参考答案：环境变量全是字符串，`"false"` 是非空串所以为真；空串转数字是 `0`，「没填」被静默读成了一个合法值。前者要用 schema 解析成布尔，后者要先把空串当成没填。
+
+2. **一次列全所有问题**：照本章写一个最小的 `loadConfig()`：zod schema 里 `PORT: z.coerce.number().int().positive()`、`JWT_SECRET: z.string().min(16)`，`safeParse` 失败时把所有 issue 拼进一条错误。在 `main.ts` 开头调用它，然后 `PORT=abc JWT_SECRET=short node dist/main.js`。
+
+   验证：进程启动失败，错误里同时列出 `PORT` 和 `JWT_SECRET` 两行，没有先报一个、改完再报下一个。
+
+   参考答案：启动时一次性解析，失败就拒绝启动，问题一次列全。之后全应用只读这个解析好的对象。
+
+3. **trust proxy 填多了会怎样**：用 `NestFactory.create<NestExpressApplication>(AppModule)` 建应用，加一个返回 `req.ip` 的端点。直连（前面没有任何代理）时，分别在 `app.set("trust proxy", 0)` 和 `app.set("trust proxy", 1)` 下请求 `curl -H "X-Forwarded-For: 1.2.3.4" localhost:3000/ip`。
+
+   验证：设成 0 时返回本机回环地址；设成 1 时返回 `1.2.3.4`。
+
+   参考答案：跳数比实际代理层数多，客户端自己写进 `X-Forwarded-For` 的那段就被当成了真实 IP，按 IP 限流形同虚设。填少了则所有人共用代理的 IP。两边都会出事，所以生产环境必须显式填写。

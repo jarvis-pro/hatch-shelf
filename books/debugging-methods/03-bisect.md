@@ -248,3 +248,41 @@ git bisect reset
 - 代码、数据、配置、依赖版本都可以二分：每次恢复或去掉一半，看问题在哪一半
 - 找到提交后读它的改动；跑完记得 `git bisect reset`
 - 提交越小越单一，二分的结论越精确
+
+## 动手练习
+
+1. **bisect 一个埋好的 bug**：在临时目录里造一个 40 个提交的仓库，第 23 个提交让 `add` 在 `a > 100` 时多加 1。然后不看提交记录，用 `git bisect run` 找出它。
+
+   ```bash
+   git init -q bisect-demo && cd bisect-demo
+   echo 'export const add = (a, b) => a + b;' > calc.mjs
+   for i in $(seq 1 40); do
+     [ $i -eq 23 ] && echo 'export const add = (a, b) => (a > 100 ? a + b + 1 : a + b);' > calc.mjs
+     echo "$i" > notes.txt
+     git add -A && git commit -qm "step $i"
+   done
+   git bisect start HEAD "$(git rev-list --max-parents=0 HEAD)"
+   git bisect run node -e 'import("./calc.mjs").then((m) => process.exit(m.add(200, 1) === 201 ? 0 : 1))'
+   ```
+
+   验证：输出末尾是 `<哈希> is the first bad commit`，下面一行是 `step 23`；中间的 `Bisecting:` 行不超过 6 行。最后记得 `git bisect reset`。
+
+   参考答案：40 个候选最多 $\lceil \log_2 40 \rceil = 6$ 步。判断命令的退出码就是约定：相等时 0（好），否则 1（坏）。
+
+2. **对数据二分**：生成一个 1000 行的 JSONL，其中一行是坏的；只用 `sed -n '起,止p'` 切片和下面的检查命令，找出坏行的行号。
+
+   ```bash
+   node -e 'for (let i = 0; i < 1000; i++) console.log(i === 613 ? "{bad" : JSON.stringify({ i }))' > data.jsonl
+   check() { node -e 'require("fs").readFileSync(0, "utf8").trim().split("\n").forEach((l) => JSON.parse(l))'; }
+   sed -n '1,500p' data.jsonl | check && echo good || echo bad
+   ```
+
+   验证：最后定位到第 614 行（`sed -n '614p' data.jsonl` 输出 `{bad`），用了大约 10 轮。
+
+   参考答案：`JSON.parse` 的报错不告诉你是第几行，所以只能靠「这一半好不好」逐步缩小：1–500 好，就查 501–750，依此类推。这和本章对 `shelf-pack check` 的书单二分是同一个做法。
+
+3. **让无法判断的提交跳过**：在练习 1 的仓库里，再造几个让 `calc.mjs` 语法错误的提交（例如第 10–12 步写成 `export const add = (a, b) =>`，第 13 步改回正确的版本），把判断写成一个脚本：`node --check calc.mjs` 失败就 `exit 125`，否则按原来的方式判好坏。重新二分。
+
+   验证：结果仍然是 `step 23`；`git bisect log` 里能看到 `git bisect skip` 的记录（如果二分路径恰好落在那几个提交上）。
+
+   参考答案：如果语法错误的提交被判成「坏」，二分会被引向第 10 步附近，得出错误结论。125 告诉 git「这一步不算数」，它会换一个相邻提交继续。

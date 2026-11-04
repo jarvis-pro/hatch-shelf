@@ -199,3 +199,23 @@ description: 根据多个仓库的提交记录生成中文周报。用户说「�
 - `claude -p` 让 agent 可以被脚本调用；非交互时权限要提前收紧，并用 `--max-turns` 防止跑飞
 - 有副作用的批量操作用**两段式**：agent 产出计划文件，人审阅，确定的脚本执行，默认 dry-run
 - 同样的背景解释到第二次，就沉淀成 skill 或斜杠命令；skill 的 `description` 决定它能不能被想起
+
+## 动手练习
+
+1. **先演练两段式的执行端**：在临时目录建 `inbox/`，放三个空文件 `a.png`、`b.pdf`、`c.txt`，手写一份 `plan.csv`（表头 `old,new,dir`，其中一行的 `old` 写成不存在的 `d.png`）。把本章 `apply-plan.sh` 第一行的 `cd ~/Downloads/inbox` 改成你的临时目录，先不带参数运行，再加 `--run` 运行，最后再加 `--run` 运行一次。
+
+   验证：第一次只打印 `a.png -> ../sorted/...` 这类行和 `跳过，不存在：d.png`，`ls inbox` 文件一个没少；第二次文件被移进 `sorted/`；第三次全部显示 `跳过，不存在`。
+
+   参考答案：默认 dry-run、`mv -n` 不覆盖、不存在就跳过，让这个脚本可以放心重跑。手写计划代替 agent 写的计划，正好说明执行端和判断端是解耦的。
+
+2. **让结果能被脚本解析**（需要 Claude Code 账号或 API key）：在任意 Git 仓库里运行 `git log -5 --oneline | claude -p "把这些提交按类型归类，只输出 Markdown" --max-turns 1 --output-format json | jq -r '.result'`。
+
+   验证：终端输出的是一段 Markdown 正文，而不是 JSON；去掉 `| jq -r '.result'` 再运行，能看到包住结果的 JSON 对象和其中的 `result` 字段。
+
+   参考答案：材料从标准输入进来，agent 不需要任何工具，`--max-turns 1` 足够。参数名以 `claude --help` 为准。
+
+3. **写一个会被想起的 skill**：把你最近交代过两次以上的一件事（比如提交消息格式、周报格式）写成 `.claude/skills/<名字>/SKILL.md`，`description` 里写清「做什么」和「用户怎么说时用」。新开一个会话，用一句不提 skill 名字的话触发它。
+
+   验证：agent 的回复或工具调用里能看到它读取了这个 SKILL.md，产出符合你写的格式；把 `description` 改成含糊的一句「一些格式规则」后重试，观察它是否还会主动加载。
+
+   参考答案：skill 平时只有名字和描述在上下文里，agent 靠描述判断要不要读全文，所以触发语和描述的匹配程度决定了它能不能被想起。

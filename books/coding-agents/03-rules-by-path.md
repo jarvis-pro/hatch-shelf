@@ -99,15 +99,7 @@ hatch-counter 的 CLAUDE.md 专门为这个盲区写了两句：
 
 ## rules、子目录 CLAUDE.md、Skills 怎么选
 
-Claude Code 里能「按需加载说明」的不止 rules 一种。放在一起比较：
-
-| | 带 paths 的 rules | 子目录 CLAUDE.md | Skills |
-|---|---|---|---|
-| 放哪儿 | `.claude/rules/*.md` | 任意子目录 | `.claude/skills/<名>/SKILL.md` |
-| 何时加载 | 碰到匹配 glob 的文件 | 碰到那个子目录里的文件 | 你输入 `/名字`，或模型判断任务相关 |
-| 启动成本 | 零 | 零 | 每个 Skill 的一行描述 |
-| 匹配粒度 | 任意 glob，可跨目录 | 只能是一个目录 | 按任务语义 |
-| 适合 | 横跨多处的关注点、某类文件的约定 | 子项目自带的说明（比如 `books/`） | 流程、操作手册、参考资料 |
+记忆、Skill、MCP、子 agent、hooks 的总体分工见[《Agent 原理与设计》第 8 章](../agent-principles/08-mcp-and-skills.md#怎么选项目记忆skillmcp子-agent)。在 Claude Code 里，能「按需加载说明」的有三种，区别主要在加载时机：带 `paths` 的 rules 在碰到匹配 glob 的文件时加载，可以跨目录；子目录 CLAUDE.md 只在碰到那个目录里的文件时加载；Skills（`.claude/skills/<名>/SKILL.md`）按任务语义加载，你输入 `/名字` 或模型判断相关时才读全文，启动时只占一行描述。
 
 ![几种机制按何时生效和约束力分布：权限 deny 和 hooks、测试是强制的；CLAUDE.md、常驻 rules 一直在上下文里但只是建议；paths rules 和 Skills 用到才加载，也只是建议](assets/mechanism-map.svg)
 
@@ -200,3 +192,33 @@ flowchart TD
 - 和文件相关的用 rules 或子目录 CLAUDE.md，流程类用 Skill，绝不能错的另加 hook 或测试
 - `~/.claude/rules/` 放个人跨项目习惯；rules 失效是静默的，目录变动后记得同步 paths
 - 跨项目复用的 Skill、子 agent、hooks、MCP 配置可以打包成插件，从 marketplace 安装；它不装 CLAUDE.md 和 rules，启用的插件每轮都占上下文
+
+## 动手练习
+
+1. **写一份带 paths 的 rule 并看它何时加载**：在测试仓库里建 `.claude/rules/api.md`，frontmatter 写 `paths: ["api/**"]`，正文写「api 下新建的 TS 文件第一行写 `// owner: api`」，再建一个 `api/a.ts`。新会话里先 `/context`，然后让 Claude 读 `api/a.ts`，再 `/context`；最后让它「在 api 下新建 b.ts，导出一个 add 函数」。
+
+   验证：读文件之前记忆文件一栏没有 `api.md`，之后有；新建的 `api/b.ts` 第一行是 `// owner: api`。
+
+   参考答案：带 `paths` 的 rule 靠文件工具碰到匹配的文件触发，触发后对后续操作一直生效。
+
+2. **验证加载盲区**：新开一个会话，只让 Claude「用 grep -rn 找出 api 目录里所有的 export」，完成后看 `/context`。
+
+   验证：`api.md` 没有出现在记忆文件里。
+
+   参考答案：`grep -r` 不算读某个具体文件，不会触发按路径加载。凡是「不碰文件就要做的事」，在 CLAUDE.md 里写一句「做 X 之前先读 Y」。
+
+3. **给 rules 写一个 paths 体检脚本**：rules 失效是静默的。写一个脚本，列出每份 rule 里一个文件都匹配不到的 glob（Node 22 以上有 `fs.globSync`）。
+
+   ```javascript
+   import { globSync, readdirSync, readFileSync } from "node:fs";
+   for (const f of readdirSync(".claude/rules", { recursive: true }).filter((f) => f.endsWith(".md"))) {
+     const fm = readFileSync(`.claude/rules/${f}`, "utf8").match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
+     const globs = [...fm.matchAll(/^\s*-\s*"?([^"\n]+?)"?\s*$/gm)].map((m) => m[1]);
+     for (const g of globs)
+       if (globSync(g, { exclude: (p) => p.includes("node_modules") }).length === 0) console.log(`${f}: ${g} 没有匹配到任何文件`);
+   }
+   ```
+
+   验证：在仓库根运行，正常时没有输出；把 `api/` 改名成 `server/` 后再跑，输出 `api.md: api/** 没有匹配到任何文件`。
+
+   参考答案：目录挪了而 glob 没跟上，rule 永远不会加载，也不会报错。这个脚本可以挂到 pre-commit 或定期跑一次。

@@ -305,3 +305,23 @@ export async function scoreBook(work: string, bookDir: string): Promise<Score[]>
 - 自己写的 agent：工具背后接假实现，跑完检查最终状态；「交给人拍板」这类产品原则可以写成过程约束
 - 编码 agent：用无头模式在临时副本里跑，用仓库现成的检查命令和规范里的硬规则评结果，最小权限
 - 任务少而精、每个重复几次；先确认任务可完成；失败时读运行记录
+
+## 动手练习
+
+1. **给两次运行打分**：用本章的 `scoreRun` 和 `ambiguous-name` 这条样例，手写两份 `AgentRun`：第一份先调 `search_ingredient` 拿到两个候选，然后直接 `create_restock_draft` 选了西红柿；第二份只搜了一次，`finalText` 是「档案里有西红柿和圣女果，你说的番茄是哪一样？」，没有生成草稿（`drafts` 为空数组）。
+
+   验证：第一份 `outcome` 为 0、`search_before_write` 为 1；第二份 `outcome` 为 1。再造一份没搜就写的运行，`search_before_write` 为 0。
+
+   参考答案：结果分和过程约束各管一件事：第一份在流程上没问题，但它替店主做了选择，违反了「交给人拍板」的产品原则，所以结果判错。
+
+2. **格式检查本身对不对**：把本章 `scoreBook` 里数 H1 和查字符画的两段逻辑抽出来，分别喂给它们：一段正文只有一个 `# 标题`、另带一个含 `# 注释` 的 bash 代码块；一段含 `┌──┐` 的文本；一段含 `A │ B` 的文本。
+
+   验证：去掉代码块后 H1 数为 1（不去掉是 2）；`┌──┐` 被判为字符画，`A │ B` 不会。
+
+   参考答案：评分器也需要测试（第 4 章）。只有一个竖线不足以判定是画框，所以正则要求制表符至少连续 3 个；这条规则仍可能漏掉用 `+---+` 画的框，可以在样例里补一条看看它的表现。
+
+3. **轮数上限的表现**（需要 Claude Code 订阅或 API key）：在一个临时目录里放一个空的 `books/demo/`，运行 `claude -p "在 books/demo/ 下写三章短文" --output-format json --max-turns 2 --tools "Read,Write" --allowedTools "Read,Write" --no-session-persistence`。
+
+   验证：用 `jq '.subtype, .num_turns, .is_error'` 查看输出，观察到 `subtype` 为 `error_max_turns`，或者任务在两轮内结束；命令的退出码可以用 `echo $?` 看。字段名以你本机的 `claude --help` 和官方文档为准。
+
+   参考答案：评测脚本不能只看退出码，要把 `subtype` 一起记下来，这样「没做完」和「做错了」在报告里是两种失败。每步 95% 可靠时 10 步全对约 60%（`node -p '0.95 ** 10'` 输出约 `0.599`），轮数上限要留出余量。

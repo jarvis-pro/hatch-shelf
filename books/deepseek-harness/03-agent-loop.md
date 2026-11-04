@@ -160,3 +160,31 @@ sequenceDiagram
 - 模型只能请求工具，执行前后都要过流水线；结果按调用顺序交回，失败的调用也会补上结果
 - 上下文快满时先剪枝工具结果、再摘要替换，原始记录仍在日志里
 - 循环的每个关键位置都是插件可以挂钩的事件
+
+## 动手练习
+
+1. **用假模型跑通最朴素的循环**：把本章开头那段循环改成能直接运行的 `loop.mjs`：`llm.chat` 依次返回三段预先写好的回复（第一段调用 `slow`、`fast` 两个工具，第二段调用一个会抛错的 `boom`，第三段不调工具、文字为「完成」），工具用 `setTimeout` 模拟耗时。打印步骤数和所有工具结果。
+
+   验证：输出步骤数 3；工具结果的顺序是 `a`、`b`、`c`，其中 `c` 是一条错误文本，而不是让整个循环崩掉。
+
+   参考答案：执行工具那一段改成并发执行、按调用顺序收集，并且每个调用都捕获错误、补上一条结果：
+
+   ```js
+   const results = await Promise.all(reply.toolCalls.map(async (c) => {
+     try { return { id: c.id, content: await tools[c.name](c.args) }; }
+     catch (e) { return { id: c.id, content: `错误：${e.message}`, isError: true }; }
+   }));
+   for (const r of results) messages.push({ role: "tool", ...r });
+   ```
+
+2. **结果按调用顺序交回**：在上一题里让 `slow` 等 50 毫秒、`fast` 立即返回，并在每个工具完成时打印一行「完成：名字」。
+
+   验证：「完成」的打印顺序是先 `fast` 后 `slow`，但 `messages` 里两条工具结果的顺序仍是 `a`（slow）、`b`（fast）。
+
+   参考答案：`Promise.all` 返回的数组顺序与输入一致，和完成先后无关。DSH 的工具流水线保证的就是这一点：执行可以并发，交回给模型的顺序可预测。
+
+3. **观察中途引导**（需要 API key）：在 DSH 里给一个会跑好几步的任务（例如「逐个读 packages 下每个包的 package.json，列出依赖」），在它干活的过程中再发一句「只看 dependencies，不要 devDependencies」。完成后打开 Trajectory。
+
+   验证：你的第二句话没有打断正在进行的那一步，而是出现在之后某一步开始前的输入里；它之后的回复遵守了新要求。
+
+   参考答案：消息先进收件箱，由驱动器在下一步开始前取出。如果你想要的是「立刻停下」，应该用取消，而不是再发一句话。

@@ -173,3 +173,34 @@ recordwall 的例子说明了 REST 一个常被忽视的好处：**它就是 HTT
 - 有第三方、非 TS 客户端或发出去就改不了的客户端，就用 REST + OpenAPI
 - 实时推送用 SSE / WebSocket，只推「什么变了」，数据仍走普通接口拉取
 - 选 REST 等于直接用上 HTTP 基础设施的能力：缓存、条件请求、CDN
+
+## 动手练习
+
+1. **给三个场景选方案**：① 一个人做的记账网页，Next.js 前后端同仓库同时部署，没有 App；② 健身工作室预约系统，有 iOS App，计划半年后开放给合作的小程序；③ 你在 Node 主服务旁边加了一个 Python 写的图片识别服务，只有主服务调用它。按[怎么选](#怎么选)的流程图给出选择和关键判断。
+
+   验证：每个选择都能说出流程图里是哪一个判断把它分出来的。
+
+   参考答案：① tRPC 可以（同仓库、同时发布、全 TS），用 REST 也不算错；② REST + OpenAPI（App 发出去就改不了，还要给第三方）；③ 内部服务间调用，跨语言，简单场景用 HTTP + JSON 即可，调用量大、接口多时再考虑 gRPC。
+
+2. **验证「tRPC 不保护已发出去的 App」**：在一个 tRPC 示例项目里，把 `expenses.list` 的输入从 `limit` 改名为 `pageSize`，客户端同步改好、`tsc` 通过。然后用 `curl` 模拟老版本 App，按旧参数调用：`curl 'localhost:3000/trpc/expenses.list?input=%7B%22limit%22%3A5%7D'`。
+
+   验证：`tsc` 没有任何报错，但 `curl` 的结果和改名前不同：zod 默认剥掉未知键，`limit` 被忽略、`pageSize` 取默认值，老客户端收到的条数变了而没有任何错误。
+
+   参考答案：编译期检查只覆盖本次编译的代码；已安装的 App 是另一份旧代码，没有契约文件可比较，这类行为变化只能靠约定和监控发现。
+
+3. **只推「什么变了」**：写一个 SSE 接口 `GET /events`，每 3 秒推一条 `data: {"type":"expenses","version":N}`，用 `curl -N localhost:3000/events` 观察。
+
+   验证：终端里每隔约 3 秒出现一行 `data: ...`，`version` 递增，连接一直不断开。
+
+   参考答案：
+
+   ```javascript
+   let v = 0;
+   require("node:http").createServer((req, res) => {
+     res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
+     const t = setInterval(() => res.write(`data: ${JSON.stringify({ type: "expenses", version: ++v })}\n\n`), 3000);
+     req.on("close", () => clearInterval(t));
+   }).listen(3000);
+   ```
+
+   客户端收到通知后用普通的 `GET /expenses` 拉数据，权限和分页只写一次。

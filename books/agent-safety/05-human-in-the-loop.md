@@ -224,3 +224,46 @@ hatch-counter 的工具链里有群通知工具，发版结果会推到群里。
 - 度量批准率和决策时间，高频总被批准的移出确认；优先用计划审批和结果审批代替逐条确认
 - 远程审批用带认证的 POST，通知只放摘要，超时即拒绝
 - 准备不依赖 agent 配合的中止开关，吊销专用凭证是最后一道
+
+## 动手练习
+
+1. **验证批准绑定参数、只能用一次**：把本章的 `approvals.ts` 存下来，依次执行：`propose` 一个 `git_push { remote: 'origin', branch: 'fix/x' }`，`decide` 批准，然后调用三次 `consume`：分支改成 `main`、参数相同但键的顺序反过来、再用一次原参数。
+
+   ```typescript
+   import { propose, decide, consume } from './approvals.ts';
+   const store = new Map();
+   const a = propose(store, 'git_push', { remote: 'origin', branch: 'fix/x' }, ['3 个提交']);
+   decide(store, a.id, true, 'me');
+   console.log(consume(store, a.id, 'git_push', { remote: 'origin', branch: 'main' }));
+   console.log(consume(store, a.id, 'git_push', { branch: 'fix/x', remote: 'origin' }));
+   console.log(consume(store, a.id, 'git_push', { remote: 'origin', branch: 'fix/x' }));
+   ```
+
+   验证：三行依次是「参数与批准时不一致」、`{ ok: true }`、「没有有效的批准」。
+
+   参考答案：哈希基于键排序后的规范化 JSON，键顺序不影响；参数改一个字就失效；用过一次状态变成 `used`，不能复用。
+
+2. **先演练再执行**：在一次性目录里准备 `src/`（含 `a.txt`）和 `dst/`（含 `a.txt` 和多余的 `old.txt`），用 `rsync -av --delete --dry-run src/ dst/` 生成确认内容，再看 `dst/`。
+
+   验证：演练输出里有 `deleting old.txt`；之后 `ls dst` 仍然能看到 `old.txt`。（macOS 自带的 rsync 版本不同，输出格式可能略有差异，在 Linux 或容器里做最稳。）
+
+   参考答案：演练结果就是「由代码生成的事实」，可以直接作为确认界面的内容；人看到「会删除 old.txt」再决定。
+
+3. **从批准记录里找确认疲劳**：把下面五行存成 `approvals.jsonl`，算出批准率、平均决策时间，并按命令分组。
+
+   ```text
+   {"cmd":"pnpm test","approved":true,"ms":900}
+   {"cmd":"pnpm test","approved":true,"ms":700}
+   {"cmd":"git push","approved":true,"ms":8000}
+   {"cmd":"edit .claude/settings.json","approved":false,"ms":15000}
+   {"cmd":"pnpm test","approved":true,"ms":600}
+   ```
+
+   ```bash
+   jq -s '{rate: ((map(select(.approved)) | length) / length), avg_ms: (map(.ms) | add / length)}' approvals.jsonl
+   jq -sc 'group_by(.cmd)[] | {cmd: .[0].cmd, n: length, approved: (map(select(.approved)) | length)}' approvals.jsonl
+   ```
+
+   验证：第一条输出 `rate` 为 `0.8`、`avg_ms` 为 `5040`；分组里 `pnpm test` 是 `n: 3, approved: 3`。
+
+   参考答案：`pnpm test` 每次都被批准，而且都在一秒内点掉，应该移进白名单；修改 `.claude/settings.json` 被拒绝过，这类确认正在发挥作用，要保留。

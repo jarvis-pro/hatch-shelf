@@ -301,3 +301,25 @@ services:
 - 用 ACL 给应用一个去掉清库、改配置等危险命令的用户，替代 `rename-command`
 - 数据文件不向后兼容；队列实例升级或切换前先排空，缓存实例空着启动即可
 - 许可证：作为自己 SaaS 的内部组件用 Redis 一般没问题；新项目可选 Valkey、只用共有命令，切换只是换镜像
+
+## 动手练习
+
+环境：`docker run --rm -d --name r9 -p 6379:6379 redis:7.4-alpine`，命令行用 `docker exec -it r9 redis-cli`。
+
+1. **ACL 挡住清库**：用默认用户执行 `ACL SETUSER app on >apppw ~* &* +@all -flushall -flushdb -config`，然后 `docker exec -it r9 redis-cli --user app --pass apppw`，依次执行 `SET a 1`、`FLUSHALL`、`CONFIG GET maxmemory`。
+
+   验证：`SET` 返回 `OK`；后两条返回以 `NOPERM` 开头的错误；用默认用户执行 `GET a` 仍是 `"1"`。
+
+   参考答案：ACL 按命令粒度去掉权限，应用连接即使被利用或误操作，也执行不了清库和改配置。
+
+2. **用 SLOWLOG 抓慢命令**：执行 `CONFIG SET slowlog-log-slower-than 1000`（1 毫秒），再执行一个空转的脚本 `EVAL "local i=0 while i<5000000 do i=i+1 end return i" 0`，然后 `SLOWLOG GET 1`。执行脚本期间在另一个终端跑 `redis-cli PING`。
+
+   验证：`SLOWLOG GET 1` 的记录里能看到 `eval` 及其参数，耗时字段（微秒）远大于 1000；另一个终端的 `PING` 要等脚本结束才返回 `PONG`。
+
+   参考答案：单线程执行命令，一个慢脚本会让所有客户端排队；`SLOWLOG` 把超过阈值的命令记下来，是排查「偶尔慢几百毫秒」的第一站。
+
+3. **最老等待任务的年龄**：用第 5 章的 BullMQ 环境，不启动 Worker，每隔 10 秒加一个任务，共加 3 个；然后运行本章 `sample()` 里那两行（`getJobCounts` 和 `getJobs(["waiting", "prioritized"], 0, 0, true)`）并打印。
+
+   验证：`waiting` 为 `3`；最老任务的年龄大约是从加第一个任务到现在经过的秒数（至少 20 秒）。启动 Worker 处理完后再采样，年龄回到 `0`。
+
+   参考答案：`getJobs(..., true)` 按升序取最前面的任务，就是最早入队的那个；它的等待时长同时能反映 worker 挂了、太慢、被卡住几种情况，比等待数更适合做告警。

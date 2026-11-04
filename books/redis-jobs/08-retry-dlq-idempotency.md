@@ -344,3 +344,25 @@ async relayOutbox() {
 - 入队侧去重：BullMQ `jobId`（只在任务存在期间有效）、Postgres 部分唯一索引、pg-boss `singletonKey`
 - 处理侧幂等：自己的库用条件更新和带唯一键的流水；第三方用业务标识当幂等键；不支持时先记后做，缝怎么处理是业务决定
 - BullMQ 要和业务数据一致就得 outbox；需要 outbox 时，多半直接用 Postgres 队列更简单
+
+## 动手练习
+
+环境：沿用第 5 章的 Redis 容器和 `bullmq` 依赖，第 6 章的 Postgres 容器。
+
+1. **UnrecoverableError 不消耗重试**：队列默认 `attempts: 5`，处理函数在 `job.data.kind === "bad"` 时抛 `new UnrecoverableError("4xx")`，否则抛普通 `Error`；两种任务各加一个，在 `failed` 事件里打印 `job.data.kind`、`job.attemptsMade`。
+
+   验证：`bad` 只打印一次，`attemptsMade` 为 `1`；另一个最终打印到 `attemptsMade` 为 `5`。两者最后都处在 `failed` 状态。
+
+   参考答案：`UnrecoverableError` 让任务直接进入 `failed`，剩余的重试次数不再使用；普通错误按 `attempts` 走完全部重试。
+
+2. **jobId 去重有前提**：加一个 `jobId: "receipt-9001"`、`removeOnComplete: true` 的任务，任务还在 `wait`（先不启动 Worker）时再 `add` 同一个 `jobId`，看 `getWaitingCount()`；然后启动 Worker 让它完成，再 `add` 一次同一个 `jobId`。
+
+   验证：第一次重复 `add` 后等待数仍是 `1`；任务完成并被删除后再 `add`，处理函数又执行了一次。
+
+   参考答案：`jobId` 只在任务还存在于 Redis 时起去重作用，任务被 `removeOnComplete` 删掉后就能再次加入，「只做一次」要靠处理函数的幂等。
+
+3. **流水唯一键挡住重复扣减**：在 Postgres 里建 `CREATE TABLE points_ledger (member_id int, delta int, source_key text UNIQUE);`，把本章那条 `INSERT ... ON CONFLICT (source_key) DO NOTHING` 连续执行 3 次（`member_id = 1`），再查 `SELECT sum(delta) FROM points_ledger WHERE member_id = 1`。
+
+   验证：第一次 psql 显示 `INSERT 0 1`，后两次显示 `INSERT 0 0`；汇总结果是 `10`。
+
+   参考答案：同一个 `source_key` 只能记一笔，任务重复执行时插入被唯一约束忽略，余额由流水汇总，自然不会加两次。

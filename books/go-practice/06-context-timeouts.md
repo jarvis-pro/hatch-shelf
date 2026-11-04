@@ -412,3 +412,34 @@ level=INFO msg="worker stopped"
 - `signal.NotifyContext` 把 SIGINT / SIGTERM 变成 context 取消
 - `context.Value` 只放请求 id、用户、租户这类请求范围的数据，键用未导出类型
 - 优雅退出：停止取新任务，手上的任务用 `WithoutCancel` + 宽限期，任务本身要幂等
+
+## 动手练习
+
+1. **子 context 活不过父亲**：父 context 设 50ms 超时，从它派生一个 1 秒超时的子 context，等子 context 结束并打印原因和用时。
+
+   ```go
+   parent, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+   defer cancel()
+   child, cancel2 := context.WithTimeout(parent, time.Second)
+   defer cancel2()
+
+   start := time.Now()
+   <-child.Done()
+   fmt.Println(child.Err(), time.Since(start).Round(10*time.Millisecond))
+   ```
+
+   验证：输出 `context deadline exceeded 50ms`（用时在 50ms 附近），而不是等满 1 秒。
+
+   参考答案：父 context 到期时会取消所有子孙；子 context 的截止时间取自己和父亲中较早的那个。
+
+2. **丢掉 cancel 会被 vet 发现**：写一行 `ctx, _ := context.WithTimeout(context.Background(), time.Second)` 并使用 `ctx`，运行 `go vet`。
+
+   验证：vet 报 `the cancel function returned by context.WithTimeout should be called, not discarded, to avoid a context leak`；改成 `ctx, cancel := ...` 加 `defer cancel()` 后不再报。
+
+   参考答案：在父 context 结束之前，没有被 cancel 的子 context 和它的计时器不会被释放。vet 的 lostcancel 检查专门抓这种写法。
+
+3. **用 kill 代替 docker stop**：把本章 `signal.NotifyContext` 的示例编译成 `./sig`，在一个终端里运行，另一个终端执行 `kill -TERM <pid>`（`pgrep sig` 查 pid），或者直接按 Ctrl-C。然后把 `signal.NotifyContext` 那两行删掉、`select` 里改成只等 `time.After`，再发一次 SIGTERM。
+
+   验证：第一次输出 `收到信号，开始清理` 且 `echo $?` 为 `0`；删掉之后进程被直接杀死，看不到这一行，shell 里退出码是 `143`（128 + 15）。
+
+   参考答案：`NotifyContext` 接管了 SIGTERM，把它变成 context 取消，程序可以走自己的清理路径；没接管时使用默认行为，进程立刻结束，`defer` 也不会执行。

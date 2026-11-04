@@ -276,3 +276,36 @@ Nest 也提供基于 socket.io 的适配器（`@nestjs/platform-socket.io`），
 - PostgreSQL 的 `LISTEN/NOTIFY` 是事务性的，适合做小规模的消息总线；监听用独立连接，断过就让所有客户端重连
 - 心跳要短于链路上最短的空闲超时，客户端要有看门狗；令牌到期、权限变化时服务端主动断开并说明原因
 - nginx 要关缓冲、调读超时；浏览器端用 `fetch` 读流以带上鉴权头，重连要指数退避加抖动
+
+## 动手练习
+
+1. **@Sse() 的线上格式**：照本章写 `ProgressController`，在 `interval(1000)` 后面再接一个 `finalize(() => console.log("unsubscribed"))`。用 `curl -N localhost:3000/v1/progress` 看几秒，然后按 Ctrl+C。
+
+   验证：每秒收到一条消息，里面有 `event: tick` 和 `data: {"n":0}` 这样的行，消息之间隔一个空行；Ctrl+C 之后服务端打印 `unsubscribed`。
+
+   参考答案：`@Sse()` 替你写响应头、按 SSE 格式序列化，并在客户端断开时取消订阅。观察一下 Nest 有没有自动加 `id:` 行。
+
+2. **NOTIFY 是事务性的**：起一个 PostgreSQL 容器，开两个 `psql` 会话。A 执行 `LISTEN store_versions;`。B 执行 `BEGIN; NOTIFY store_versions, 'stock'; ROLLBACK;`，然后在 A 里随便执行一句 `select 1;`。再让 B 用 `COMMIT` 结尾重复一次。
+
+   验证：回滚那次，A 什么通知都没收到；提交那次，A 执行 `select 1;` 后打印 `Asynchronous notification "store_versions" with payload "stock" received`。
+
+   参考答案：通知在提交时才发出，回滚的事务不发，所以推出去的版本号一定对应真写成了的数据。psql 只在执行下一条命令时才显示收到的通知。
+
+3. **心跳要短于读超时**：写一个每 10 秒才推一条的 `@Sse("slow")` 端点。用下面的配置起一个 nginx 容器（`docker run --rm -p 8080:8080 -v "$PWD/sse.conf:/etc/nginx/conf.d/default.conf" nginx`；Linux 上加 `--add-host=host.docker.internal:host-gateway`），然后 `time curl -N localhost:8080/slow`。之后用 `merge` 再加一个每 3 秒一条的 `ping` 事件，重复一遍。
+
+   ```nginx
+   server {
+     listen 8080;
+     location / {
+       proxy_pass http://host.docker.internal:3000;
+       proxy_http_version 1.1;
+       proxy_set_header Connection "";
+       proxy_buffering off;
+       proxy_read_timeout 5s;
+     }
+   }
+   ```
+
+   验证：没有 ping 时，一条消息都没收到，curl 在 5 秒左右就结束了；加上 ping 之后连接一直保持，第 10 秒能收到真正的消息。
+
+   参考答案：`proxy_read_timeout` 是两次读之间的空闲上限，不是整条连接的寿命。心跳把空闲间隔压到超时以下。

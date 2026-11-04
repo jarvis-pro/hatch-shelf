@@ -263,3 +263,23 @@ App 里的服务跑不进测试，但页面本身可以测：在测试里起一�
 - `page.route` 只拦第三方和模拟故障，不拦自己的正常接口；它拦不到服务端发出的请求
 - 浏览器时钟和服务端时钟是两回事；截图对比只用在少数稳定页面
 - 不写固定等待，失败保留 trace，重试后通过的测试要处理
+
+## 动手练习
+
+1. **web-first 断言和读一次的区别**：在空目录运行 `pnpm create playwright` 只装 Chromium，写一条测试：`await page.setContent('<p id="t">加载中</p><script>setTimeout(() => document.getElementById("t").textContent = "完成", 500)</script>')`，然后分别用 `expect(await page.locator("#t").textContent()).toBe("完成")` 和 `await expect(page.locator("#t")).toHaveText("完成")` 断言，`npx playwright test` 各跑一次。
+
+   验证：第一种失败，Received 是 `"加载中"`；第二种通过。
+
+   参考答案：`textContent()` 只读一次，页面还没更新就比较了；web-first 断言会在超时内反复重试。看到想加 `waitForTimeout(600)` 的冲动时，换成第二种写法。
+
+2. **用 route 模拟故障，测前端的错误处理**：页面内容是一段脚本，`fetch("https://api.example.com/items")` 成功时把 `#msg` 写成「已加载」，`catch` 里写成「加载失败，请重试」。测试里在 `setContent` 之前加 `await page.route("https://api.example.com/**", (r) => r.abort("timedout"))`，断言 `#msg` 的文字；再把 abort 换成 `r.fulfill({ json: [] })` 跑一次。
+
+   验证：第一次页面显示「加载失败，请重试」，第二次显示「已加载」；两次都没有真的访问 `api.example.com`。
+
+   参考答案：拦截让「网络坏了」变成可重复的输入，检查的是前端有没有合理的提示。注意它只能拦浏览器发出的请求，服务端发出的请求要在服务端那边替换。
+
+3. **从 trace 里读出失败现场**：在 `playwright.config.ts` 的 `use` 里设 `trace: "retain-on-failure"`，故意让第 1 题的第一种写法失败，然后运行 `npx playwright show-trace` 打开 `test-results/` 下生成的 `trace.zip`。
+
+   验证：trace 查看器里能按时间轴看到每一步操作，以及断言失败那一刻的 DOM 快照，`#t` 的文字是「加载中」。
+
+   参考答案：CI 里把 `test-results/` 作为产物上传，偶发失败时不用重现，直接看当时的页面和网络。通过的测试不保留 trace，平时不占空间。

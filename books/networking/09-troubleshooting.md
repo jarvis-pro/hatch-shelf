@@ -267,6 +267,26 @@ TLS 加密后，`tcpdump` 只能看到 IP、端口、握手过程和数据包大
 - `mtr` 只认一直延续到终点的丢包；中间某跳丢包而终点不丢，通常只是不回应 ICMP
 - `tcpdump` 是最终裁判：有没有 SYN、谁回了 RST、有没有重传；生产上要加过滤和数量限制，抓包文件注意保密
 
+## 动手练习
+
+1. **分阶段计时找出慢在哪**：起一个每次故意慢 1 秒的服务 `node -e "require('http').createServer((q,r)=>setTimeout(()=>r.end('ok'),1000)).listen(3000)"`，执行 `curl -s -o /dev/null -w 'connect %{time_connect}\nttfb %{time_starttransfer}\ntotal %{time_total}\n' http://127.0.0.1:3000/`；再对 `https://example.com/` 用本章的 `~/.curl-timing` 测一次。
+
+   验证：本机服务的 `connect` 接近 0，`ttfb` 在 1 秒左右；example.com 的 `connect - dns` 和 `tls - connect` 是几十到几百毫秒的量级，`ttfb - tls` 相对较小。
+
+   参考答案：本机那次的时间几乎全在 `ttfb - connect`，说明慢在应用；远程站点的时间主要花在握手往返上，说明慢在距离。
+
+2. **在线路上看 SYN 和 RST**：在 Mac 上执行 `sudo tcpdump -nn -i lo0 'tcp port 9 or tcp port 3000'`（Linux 用 `-i lo`），另开终端先 `curl -s http://127.0.0.1:9/`，再 `curl -s http://127.0.0.1:3000/`（保持上题的服务在跑）。
+
+   验证：访问 9 端口时只有两行，一个 `Flags [S]` 紧跟一个 `Flags [R.]`；访问 3000 时看到 `[S]`、`[S.]`、`[.]` 三次握手，后面是 `[P.]` 数据和 `[F.]` 挥手。
+
+   参考答案：端口没人监听时内核直接回 RST，就是客户端看到的 `Connection refused`。服务器上抓到 SYN 进来却没有 SYN-ACK，才是防火墙或队列的问题。
+
+3. **用 --resolve 指定连哪台**：先 `dig +short example.com` 取一个 IP，执行 `curl -sv --resolve example.com:443:<这个 IP> https://example.com/ -o /dev/null 2>&1 | grep -E 'Trying|verify'`；再把 IP 换成 `1.1.1.1` 重试。
+
+   验证：第一次 `Trying` 后面是你指定的 IP，证书校验通过；第二次也连向 `1.1.1.1`，但证书校验失败（报域名不匹配一类的错误）。
+
+   参考答案：`--resolve` 只替换解析结果，SNI 和证书校验仍按 URL 里的域名进行。迁移服务器时用它对新机器做真实测试；连到一台没有这个域名证书的机器，就会像第二次那样失败。
+
 ## 接下来读什么
 
 这本书讲的是「网络本身」。接下来按导读的运维路线，建议读[《Nginx 与反向代理》](../nginx-gateway/)：本书里反复出现的反代、缓冲、超时、证书续期，在那里会按配置项系统展开。之后是[《部署与 CI/CD》](../deploy-release/)和[《一人运维手册》](../production-ops/)，把这些知识放进真正的发布和值守流程里。如果对容器网络还不够熟，可以回头补[《容器技术》](../docker-containers/)的网络与存储卷一章。

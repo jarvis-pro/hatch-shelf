@@ -218,3 +218,32 @@ nginx 的 `sendfile on;` 就是开这个功能，这是静态文件交给 nginx 
 - TCP 是字节流，`data` 事件不对应消息边界，协议解析要写成增量状态机
 - 发送缓冲区满了要停下来，`write()` 返回 `false` 时等 `drain`
 - io_uring 用共享环形队列批量提交，对文件也有效，但在 Node、Docker 里的支持受限
+
+## 动手练习
+
+1. **一个请求到底分几块到**：用 `node:net` 写一个 TCP 服务，在 `data` 事件里数块数和总字节数、`end` 时打印。然后 `head -c 10000000 /dev/urandom | curl -s --data-binary @- localhost:<端口>` 发一个 10 MB 的请求（curl 收不到 HTTP 响应，加 `-m 3` 让它超时退出即可）。
+
+   验证：打印的块数是几十到几百，总字节数比 10000000 多出一百多字节（那是 HTTP 请求头）；多跑几次，块数不完全一样。
+
+   参考答案：块的边界由接收缓冲区和网络节奏决定，和 HTTP 的结构无关，所以本章的解析器要写成增量状态机。
+
+   ```js
+   import net from "node:net";
+   net.createServer((s) => {
+     let n = 0, total = 0;
+     s.on("data", (c) => { n++; total += c.length; });
+     s.on("end", () => console.log("chunks", n, "bytes", total));
+   }).listen(8098);
+   ```
+
+2. **看见线程池的 4 个槽位**：同时发起 8 个 `crypto.pbkdf2("pw", "salt", 300_000, 32, "sha256", cb)`，在每个回调里打印从开始到完成的毫秒数；再用 `UV_THREADPOOL_SIZE=8` 运行一次。
+
+   验证：默认设置下完成时间分成两拨，后 4 个大约是前 4 个的两倍；设成 8 后 8 个的完成时间挤在一起。作者的 M3 Pro 上是约 35 ms 和约 65 ms 两拨。
+
+   参考答案：线程池只有 4 个线程，第 5–8 个任务要等前面的做完才能开始。同一时刻如果还有 `fs` 或 `dns.lookup` 的任务，它们也排在这条队里。
+
+3. **撞上 fd 上限**：在一个子 shell 里把上限调小再打开文件：`bash -c 'ulimit -n 64; node -e "const fs=require(\"fs\"); const a=[]; try { for (let i=0;i<100;i++) a.push(fs.openSync(\"/etc/hosts\",\"r\")) } catch (e) { console.log(e.code, a.length) }"'`。
+
+   验证：输出 `EMFILE` 和一个比 64 小的数（作者机器上是 53）。
+
+   参考答案：Node 启动时自己已经占用了十来个 fd（标准输入输出、epoll / kqueue 实例、唤醒用的管道等），所以能再打开的比上限少。生产服务报 `EMFILE` 时，先用 `lsof -p <pid> | wc -l` 看是不是有 fd 没关，再考虑调高上限。

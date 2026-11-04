@@ -230,3 +230,40 @@ model.fc = nn.Linear(model.fc.in_features, 5)        # 换成自己的 5 分类�
 - 卷积 + 池化逐层扩大感受野，特征从边缘组合成部件
 - 小 CNN 5 轮 90.5%，超过 MLP；参数大头在全连接层，可用全局平均池化替代
 - PyTorch 图像张量是 `(B, C, H, W)`；实战优先用预训练模型微调或直接调多模态 API
+
+## 动手练习
+
+1. **先算再跑**：用[形状计算](#形状计算)的公式，先在纸上算出下面三个卷积对 28×28 输入的输出边长，再运行核对：
+
+   ```python
+   import torch
+   from torch import nn
+
+   x = torch.randn(1, 1, 28, 28)
+   for conv in (nn.Conv2d(1, 8, 5),
+                nn.Conv2d(1, 8, 3, padding=1, stride=2),
+                nn.Conv2d(1, 8, 5, stride=2)):
+       print(conv(x).shape, sum(p.numel() for p in conv.parameters()))
+   ```
+
+   验证：三行的形状依次是 `(1, 8, 24, 24)`、`(1, 8, 14, 14)`、`(1, 8, 12, 12)`，参数量依次是 208、80、208。
+
+   参考答案：$28-5+1=24$；$\lfloor(28+2-3)/2\rfloor+1=14$；$\lfloor(28-5)/2\rfloor+1=12$，第三个是向下取整的例子。参数量 $8\times1\times k\times k+8$，和步长、填充无关。
+
+2. **用全局平均池化瘦身**：把 `SmallCNN` 的 `head` 换成 `nn.AdaptiveAvgPool2d(1)`、`nn.Flatten()`、`nn.Linear(64, n_classes)`，重跑 `cnn.py`。
+
+   验证：第一行打印 `19658 parameters`，约为原来的 1/21；再看 5 轮后的准确率和 90.5% 差多少。
+
+   参考答案：卷积和 BatchNorm 共 $320+18496+192=19008$，新的头 $64\times10+10=650$。全连接大头没了，参数量骤降；准确率是否下降、降多少，取决于两层卷积提取的特征够不够用，以你跑出的数字为准。
+
+3. **打乱像素**：用一个固定的像素排列同时处理训练集和测试集，分别喂给第 3 章的 MLP 和本章的 CNN（去掉随机翻转）：
+
+   ```python
+   perm = torch.randperm(784, generator=torch.Generator().manual_seed(0))
+   shuffle = transforms.Lambda(lambda x: x.reshape(-1)[perm].reshape(1, 28, 28))
+   tfm = transforms.Compose([transforms.ToTensor(), shuffle])
+   ```
+
+   验证：MLP 的准确率和不打乱时基本一样；CNN 的准确率下降，对 MLP 的领先明显缩小甚至消失。
+
+   参考答案：MLP 一上来就拍平，像素顺序对它只是换了一种第一层权重的排列，学得出来的东西完全相同。CNN 依赖「相邻像素相关」这个先验，打乱后 3×3 窗口里看到的是互不相干的像素，卷积的优势就没了。这正是本章开头[MLP 看图的问题](#mlp-看图的问题)表格里第二行说的事。

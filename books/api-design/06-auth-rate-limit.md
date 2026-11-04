@@ -250,3 +250,23 @@ GET /usage
 - 网关按 IP 限流，应用按调用方身份限流；单实例用内存令牌桶就够
 - 被限流回 429 + `Retry-After` + `rate_limited`，客户端按它等待，只在一层重试
 - 配额和限流用不同的错误码，配额用完不要让客户端重试；提供用量查询接口；失败的操作不扣配额
+
+## 动手练习
+
+1. **预测令牌桶的放行数**：把本章的 `TokenBucketLimiter`（rate 5、burst 20）拷进 `bucket.ts`，用固定的 `now` 调用：先在 `now = 0` 连续 `take("a", 0)` 25 次，再在 `now = 1000` 连续调用 10 次。先写下预测，再用 `npx tsx bucket.ts` 跑。
+
+   验证：第一轮前 20 次返回 `0`，后 5 次返回 `1`；第二轮前 5 次返回 `0`，后 5 次返回 `1`。
+
+   参考答案：桶满时有 20 个令牌可以一次花掉（突发），被拒的请求不扣令牌；过了 1 秒按 rate 补回 5 个，所以长期平均速率是每秒 5 个。
+
+2. **生成并验证 API key**：用本章的 `generateApiKey` 和 `verifyApiKey`，以一个 `Map` 充当 `repo`（按 `prefix` 存行）。生成一个 key，分别验证原 key、改掉最后一个字符的 key、改掉前缀里一个字符的 key。
+
+   验证：只有原 key 返回行，另外两个返回 `null`；打印 `key.length` 和 `prefix`，能看到 `prefix` 是 `hck_live_` 加上 7 个随机字符。
+
+   参考答案：前缀用于定位行和在列表里给人认，哈希比对才是验证；SHA-256 输出定长 32 字节，`timingSafeEqual` 不会因为长度不同抛错。数据库泄露时只有哈希，无法还原出能用的 key。
+
+3. **给错误分类**：判断以下情况回什么状态码和错误码：① 令牌签名对、已过期；② API key 只有 `expenses:read`，调了 `POST /expenses`；③ 一个 key 一秒内发了 50 个请求；④ 门店本月识别 200 次已用完；⑤ 请求里没有 `Authorization` 头。
+
+   验证：对照[401 和 403](#401-和-403)、[配额](#配额)两节自查，特别是客户端拿到后会不会进入「续期—重试」循环。
+
+   参考答案：① 401 `token_invalid`；② 403 `insufficient_scope`，带 `requiredScope`；③ 429 `rate_limited` + `Retry-After`；④ 429 或 403 `quota_exceeded`，不给几秒级的 `Retry-After`；⑤ 401，带 `WWW-Authenticate: Bearer`。

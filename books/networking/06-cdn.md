@@ -171,3 +171,23 @@ Cloudflare Workers + R2 这类边缘平台，可以理解为「CDN 节点上能�
 - 缓存键默认包含查询字符串；慎用 `Vary`；用响应头里的命中状态和 `age` 验证
 - 事故清单：私人数据被缓存、真实 IP 丢失或被伪造、HTTP 回源导致重定向循环、ACME 挑战被拦、源站被绕过
 - 境内节点需要备案，以最新规定为准；边缘平台可以替代「CDN + 源站」的部分场景
+
+## 动手练习
+
+1. **看一次 CDN 命中**：对一个公共 CDN 上的固定版本文件连续请求两次：`curl -sI https://cdn.jsdelivr.net/npm/react@18.3.1/package.json | grep -iE 'cache-control|^age|x-cache|cf-cache-status'`。
+
+   验证：`cache-control` 里是一个很长的 `max-age`；有 `age` 头，两次请求之间它在增大或保持一个较大的值；命中状态头（各家名字不同）显示 `HIT`。
+
+   参考答案：带版本号的文件内容不会变，CDN 可以长期缓存；`age` 说明这份副本在边缘已经待了多久，不是刚从源站取的。
+
+2. **304 是怎么省流量的**：起一个 nginx `docker run --rm -d --name etag -p 8080:80 nginx:alpine`，执行 `curl -sI http://localhost:8080/` 记下 `ETag`，再执行 `curl -sI -H 'If-None-Match: <刚才的 ETag，含引号>' http://localhost:8080/`。
+
+   验证：第二次的状态行是 `304 Not Modified`，没有正文。做完 `docker rm -f etag`。
+
+   参考答案：`no-cache` 就是「每次都带着 ETag 来问」，内容没变时源站只回 304，省掉正文传输。
+
+3. **审一份缓存配置**：某站点三个路径的响应头如下：`/assets/index-3f9a1c.js` 是 `Cache-Control: no-store`；`/index.html` 是 `Cache-Control: public, max-age=86400`；`/api/me`（返回当前登录用户信息）是 `Cache-Control: public, max-age=60`，CDN 规则是「缓存所有内容」。指出每一条的问题并给出改法。
+
+   验证：能说出三处问题，并给出对应的头。
+
+   参考答案：带哈希的 JS 应该 `public, max-age=31536000, immutable`，现在每次都重新下载；`index.html` 缓存一天会让用户拿旧 HTML 去请求已删除的旧 JS，应改为 `no-cache`；`/api/me` 会把 A 的数据缓存给 B，应改为 `private, no-store`，CDN 规则也应改成只缓存 `/assets/*` 的白名单。

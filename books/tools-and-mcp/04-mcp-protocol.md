@@ -313,3 +313,33 @@ sequenceDiagram
 - 新旧两代通过探测共存；SDK 2.x 的 server 默认双代兼容
 - 传输：stdio 用于本地子进程，**stdout 只写协议消息**；Streamable HTTP 用于远程服务，现在可以无状态横向扩展
 - 核心之外的能力以官方扩展提供，按 `extensions` 字段协商；MCP Apps 用「工具 + `ui://` 资源」在对话里渲染沙箱化的交互界面，宿主不支持时工具结果本身仍要完整可用
+
+## 动手练习
+
+1. **一行 console.log 毁掉 stdio**：不用 SDK，写一个最小的「宿主」：用 `spawn` 启动子进程，按行读它的 stdout，每行 `JSON.parse`，解析失败就打印「协议错误」。子进程先 `console.log("server started")`，再往 stdout 写一行 JSON-RPC 响应。运行后把子进程的 `console.log` 改成 `console.error` 再运行。
+
+   验证：第一次输出一行「协议错误：不是 JSON-RPC → server started」，然后才是正常消息；改成 `console.error` 后只剩正常消息，`server started` 出现在终端的 stderr 里。
+
+   参考答案：stdio 传输按行分隔消息，stdout 上的每一行都会被当成协议消息。真实宿主遇到这种行时，可能直接断开连接。
+
+   ```js
+   import { spawn } from "node:child_process";
+   import { createInterface } from "node:readline";
+   const child = spawn("node", [process.argv[2]]);
+   createInterface({ input: child.stdout }).on("line", (line) => {
+     try { console.log("收到消息", JSON.parse(line)); }
+     catch { console.log("协议错误：不是 JSON-RPC →", line); }
+   });
+   ```
+
+2. **认出消息的类型**：判断下面五条各是请求、响应还是通知，并指出哪条不符合 MCP 的约束：A. `{"jsonrpc":"2.0","id":7,"method":"tools/list","params":{}}`；B. `{"jsonrpc":"2.0","method":"notifications/tools/list_changed"}`；C. `{"jsonrpc":"2.0","id":null,"method":"tools/call","params":{"name":"x"}}`；D. `{"jsonrpc":"2.0","id":7,"result":{"tools":[]}}`；E. `{"jsonrpc":"2.0","id":7,"error":{"code":-32602,"message":"Unknown tool: x"}}`。
+
+   验证：A 请求、B 通知、C 不合法、D 和 E 是响应。
+
+   参考答案：MCP 要求请求的 `id` 不能是 `null`。D 作为 2026-07-28 版的结果还缺 `resultType` 和列表结果要求的 `ttlMs`、`cacheScope`，按新版规范也不完整；E 是协议错误，模型通常看不到。
+
+3. **把隐藏状态改成显式句柄**：一个旧的数据库 server 有三个工具：`open_db(path)`、`query(sql)`、`close_db()`，`query` 默认作用于「上次打开的那个库」。按本章「无状态对工具设计意味着什么」重新设计这组工具。
+
+   验证：新设计里每个后续工具都有一个显式的句柄参数；`path` 不再是模型可传的参数（改由配置决定可选的库）；描述里写明句柄的有效期和过期后的处理方式。
+
+   参考答案：例如 `open_db({ name })` 返回 `{ dbHandle, expiresAt }`，`query({ dbHandle, sql })`，`close_db({ dbHandle })`；句柄用足够随机的值；过期或未知的句柄返回可行动的工具错误「句柄已过期，请重新调用 open_db」。

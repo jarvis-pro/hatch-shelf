@@ -254,3 +254,34 @@ Radix 团队也发布了一个统一的 `radix-ui` 包，一次安装所有组�
 - 浮层走 Portal：逃出裁剪和层叠上下文，但也够不到外层的容器查询
 - shadcn 的组件代码归你维护；外部 `className` 交给 `cn()` 合并以便覆盖
 - 关闭动画期间数据被清空会导致内容塌陷，冻结关闭时的取值
+
+## 动手练习
+
+1. **cn() 合并了什么，没合并什么**：在任意目录 `pnpm add clsx tailwind-merge`，运行：
+
+   ```js
+   // cn.mjs
+   import { clsx } from "clsx";
+   import { twMerge } from "tailwind-merge";
+   console.log(clsx("h-9 px-4 bg-primary", "h-11"));
+   console.log(twMerge(clsx("h-9 px-4 bg-primary", "h-11")));
+   console.log(twMerge("shadow-sm shadow-card"));
+   ```
+
+   先写下三行预测，再 `node cn.mjs`。
+
+   验证：第一行是 `h-9 px-4 bg-primary h-11`（两个高度都在）；第二行是 `px-4 bg-primary h-11`；第三行原样输出 `shadow-sm shadow-card`，两个都保留。
+
+   参考答案：`clsx` 只负责拼接，冲突要靠 `twMerge` 按 Tailwind 的分组去重，后者胜出。`shadow-card` 是项目自定义的令牌，`tailwind-merge` 默认不知道它属于阴影组，就不会把它和 `shadow-sm` 当成冲突。这时要用 `extendTailwindMerge` 告诉它自定义的阴影名，否则两个类同时生效，又回到看 CSS 生成顺序的老问题。
+
+2. **检查 Dialog 替你做的事**：在一个装了 shadcn Dialog 的 Vite 项目里（`npx shadcn add dialog button input`），做一个带两个输入框的弹窗。只用键盘操作：Tab 到触发按钮、回车打开、连按 Tab、按 Esc。然后删掉 `DialogTitle` 再打开一次，看控制台。
+
+   验证：打开后焦点落在弹窗内，连按 Tab 只在弹窗内的输入框和按钮之间循环；按 Esc 关闭后焦点回到触发按钮（按钮有焦点框）。DevTools Elements 面板里能看到 `role="dialog"`、`aria-labelledby` 指向标题的 id，以及触发按钮上 `aria-expanded` 随开关变化。删掉标题后，控制台出现 Radix 提示缺少 `DialogTitle` 的错误信息。
+
+   参考答案：焦点陷阱、焦点归还和 ARIA 关联都由 Radix 处理；标题是屏幕阅读器朗读这个弹窗的依据，设计上不要可见标题时应视觉隐藏而不是删掉。
+
+3. **去掉 Portal 看裁剪**：在一个 `overflow: hidden`、高 80px 的卡片里放一个 Radix Popover（`npx shadcn add popover`），弹出内容高 200px。先正常使用，再把 `popover.tsx` 里包住 `PopoverPrimitive.Content` 的 `PopoverPrimitive.Portal` 去掉（只是实验，改完记得还原）。
+
+   验证：有 Portal 时弹层完整显示，Elements 面板里它挂在 `<body>` 末尾；去掉后弹层被卡片裁掉一大半，DOM 位置也回到了卡片内部。给卡片加上 `opacity: 0.99` 后，再在旁边放一个 `relative z-10` 的元素，无 Portal 版本的弹层还会被它盖住。
+
+   参考答案：Portal 让浮层脱离祖先的 `overflow` 裁剪和层叠上下文，这是第 2 章两个问题的通用解法；代价是它也脱离了外层的容器查询。

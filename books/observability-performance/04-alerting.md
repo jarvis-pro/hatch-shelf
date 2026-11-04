@@ -298,3 +298,41 @@ Alertmanager 里给 `severity="heartbeat"` 单独路由到心跳服务的 webhoo
 - Alertmanager 负责分组、抑制、静默和路由；page 走会响的手机渠道
 - 配完要人为触发测试，静默必须有结束时间，每月清理一次告警
 - 告警系统和业务在同一台机器上，必须有外部探测或死人开关兜底
+
+## 动手练习
+
+1. **用 promtool 给告警规则写单元测试**：新建 `rules.yml`，写一条不带 annotations 的 `HighErrorRate`（5xx 比例 > 5%，且总速率 > 0.2/s，`for: 5m`，`severity: page`）。再写 `test.yml`：低流量时每分钟 1 个 500、2 个 200；高流量时每分钟 60 个 500、120 个 200。用 `docker run --rm -v "$PWD":/w -w /w --entrypoint promtool prom/prometheus:v3.5.0 test rules test.yml` 运行。
+
+   验证：两种流量下的期望都写对时，promtool 输出 `SUCCESS`；把低流量那组的 `exp_alerts` 改成期望告警，会看到 `FAILED` 和实际与期望的差异。
+
+   参考答案：低流量时错误比例是 33%，但总速率只有 0.05/s，最小流量条件把它挡掉了；高流量时 3/s，持续 5 分钟后告警触发。高流量那组的测试写法：
+
+   ```yaml
+   rule_files: [rules.yml]
+   tests:
+     - interval: 1m
+       input_series:
+         - series: 'http_request_duration_seconds_count{status="500"}'
+           values: '0+60x20'
+         - series: 'http_request_duration_seconds_count{status="200"}'
+           values: '0+120x20'
+       alert_rule_test:
+         - eval_time: 15m
+           alertname: HighErrorRate
+           exp_alerts:
+             - exp_labels: { severity: page }
+   ```
+
+   低流量那组把 `values` 换成 `'0+1x20'` 和 `'0+2x20'`，`exp_alerts: []`。
+
+2. **算 for 的代价**：一条规则 `expr` 每 15 秒评估一次，`for: 5m`。故障从 10:00:00 开始，表达式从 10:00:15 起一直为真。最早几点能收到通知（Alertmanager 的 `group_wait` 是 30 秒）？
+
+   验证：答案在 10:05:45 左右，而不是 10:00 刚过。
+
+   参考答案：10:00:15 进入 pending，持续满 5 分钟到 10:05:15 变成 firing，再经过 `group_wait` 30 秒才发出第一条通知。实际还要加上抓取间隔和 `rate()` 窗口带来的滞后。这就是 page 级别的 `for` 不宜超过几分钟的原因。
+
+3. **测试通知链路和静默**：`docker run --rm -p 9093:9093 prom/alertmanager:v0.28.1` 起一个带默认配置的 Alertmanager。另开终端，用同一个镜像里的 amtool（`docker run --rm --entrypoint amtool prom/alertmanager:v0.28.1 …`）执行 `alert add alertname=TestAlert severity=page --alertmanager.url=http://host.docker.internal:9093` 发一条测试告警，再执行 `silence add alertname=TestAlert --duration=10m --comment=维护 --alertmanager.url=http://host.docker.internal:9093` 加静默。
+
+   验证：浏览器打开 `http://localhost:9093`，先能在告警列表看到 `TestAlert`；加静默后它从默认列表消失（勾选显示已静默的告警才能看到），Silences 页里那条静默带有 10 分钟后的结束时间。
+
+   参考答案：静默按标签匹配告警，到期自动失效。每次都显式写 `--duration`，让静默的结束时间和维护窗口对齐；时长写得过长或反复续期，静默就会变成事实上的永久屏蔽。

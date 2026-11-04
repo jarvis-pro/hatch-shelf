@@ -224,6 +224,40 @@ Workers 也支持按比例灰度发布新版本、平台保留版本历史可以
 - Electron 按分发范围选签名档位；自动更新要留急刹和最低版本线
 - Worker 发版像服务端但更轻；`pnpm deploy` 是内置命令，脚本换个名字
 
+## 动手练习
+
+1. **versionCode 为什么要设上限**：用 Node 把本章的算法跑在几个版本号上，先不加 `> 99` 的检查：
+
+   ```bash
+   node -e '
+   const code = (v) => { const [a,b,c] = v.split(".").map(Number); return a*10000 + b*100 + c; };
+   for (const v of ["1.2.3", "1.0.100", "1.1.0", "1.99.99", "2.0.0"]) console.log(v, code(v));'
+   ```
+
+   验证：`1.2.3` 是 `10203`；`1.0.100` 和 `1.1.0` 都是 `10100`；`1.99.99` 是 `19999`，小于 `2.0.0` 的 `20000`。
+
+   参考答案：补丁号超过 99 会进位撞上下一个次版本，系统会认为两个包是同一版、拒绝覆盖或顺序错乱。所以本章在超出范围时直接抛错，提醒你换算法，而不是悄悄出一个撞号的包。
+
+2. **keystore 经 base64 进 secret 再解出来，还是同一把**：用 Docker 里的 JDK 生成一把测试 keystore，再模拟 CI 的编码和解码：
+
+   ```bash
+   docker run --rm -v "$PWD":/w -w /w eclipse-temurin:21 keytool -genkeypair \
+     -keystore test.keystore -alias app -keyalg RSA -keysize 2048 -validity 10000 \
+     -storepass testpass -keypass testpass -dname "CN=Shelf Test"
+   base64 -i test.keystore | base64 -d > decoded.keystore
+   shasum -a 256 test.keystore decoded.keystore
+   ```
+
+   验证：两行 sha256 相同；再用 `keytool -list -v -keystore decoded.keystore -storepass testpass` 能看到 `CN=Shelf Test` 和证书指纹（Linux 上 `base64 -i` 换成 `base64 -w0`）。
+
+   参考答案：base64 只是把二进制转成一行文本，方便存进 secret，内容不变。这把只用于练习的 keystore 用完就删；真正的发布 keystore 按本章要求多处备份，密码分开存。
+
+3. **`pnpm deploy` 不会执行你的脚本**：新建目录 `pnpm init`，在 `package.json` 的 `scripts` 里加 `"deploy": "echo DEPLOYED"` 和 `"ship": "echo SHIPPED"`，分别运行 `pnpm deploy`、`pnpm run deploy`、`pnpm ship`。
+
+   验证：`pnpm deploy` 不打印 `DEPLOYED`（观察它报了什么错或做了什么）；`pnpm run deploy` 打印 `DEPLOYED`；`pnpm ship` 打印 `SHIPPED`。
+
+   参考答案：pnpm 的内置命令优先于同名脚本，只有显式 `pnpm run` 才一定走脚本。给发版脚本起一个不和内置命令重名的名字，比要求自己每次记得写 `run` 更可靠。
+
 ---
 
 到这里，「把代码送上线」这件事已经完整了。接下来按书架导读里运维路线的顺序，建议读[《一人运维手册》](../production-ops/)：服务器加固、备份与容灾演练、事故响应和复盘，把这本书里反复提到的「出事了怎么办」系统化；然后是[《可观测性与性能》](../observability-performance/)，让你在用户报告之前先知道线上出了问题；最后是[《PostgreSQL 运维》](../database-ops/)，补上本书一直绕开的那块：数据库本身的备份、PITR 和升级。对 Cloudflare 和 Serverless 感兴趣，可以接着读《云与边缘》；想把服务器配置也变成代码，读[《基础设施即代码》](../iac-gitops/)。

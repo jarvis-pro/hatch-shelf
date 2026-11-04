@@ -311,3 +311,23 @@ test("添加通行密钥后可以用它登录", async ({ page }) => {
 - App 端靠关联域名文件双向声明；安卓的 origin 是证书指纹，所有签名证书都要加进 `expectedOrigin`
 - 最划算的用法是敏感操作的再验证和后台的第二因素；C 端早期保留手机号兜底
 - 用虚拟认证器做端到端测试，重点测挑战和归属这些自己写的逻辑
+
+## 动手练习
+
+1. **rpID 必须匹配当前域名**：用 `npx serve` 在本机起一个空页面，用 Chrome 打开 `http://localhost:3000`，在 DevTools 的 WebAuthn 面板里勾选「Enable virtual authenticator environment」并添加一个支持 resident key 的认证器。在控制台调用 `navigator.credentials.create`，`rp.id` 分别填 `"localhost"` 和 `"example.com"`（`challenge` 和 `user.id` 用 `crypto.getRandomValues(new Uint8Array(16))`，`pubKeyCredParams: [{ type: "public-key", alg: -7 }]`）。
+
+   验证：`localhost` 的那次返回一个 `PublicKeyCredential`，WebAuthn 面板里多出一条凭据；`example.com` 的那次抛出 `SecurityError`。
+
+   参考答案：rpID 只能是当前域名或它的上级域名，这条规则由浏览器执行，钓鱼网站拿不到你域名下的 Passkey。也因此 rpID 定下之后就不能改。
+
+2. **看一眼服务端要验的 `clientDataJSON`**：接着上一题，把成功返回的凭据存成 `cred`，执行 `JSON.parse(new TextDecoder().decode(cred.response.clientDataJSON))`。
+
+   验证：能看到 `type: "webauthn.create"`、`origin: "http://localhost:3000"`，以及一个 base64url 形式的 `challenge`，它解码后正是你传进去的那 16 个字节。
+
+   参考答案：`verifyRegistrationResponse` 的 `expectedChallenge`、`expectedOrigin` 比对的就是这几个字段。挑战一次性、存库，是为了保证这份响应是对你刚发出的那次请求的回答。
+
+3. **算安卓的 origin**：假设签名证书的 SHA-256 指纹是 `00:01:02:...:1F`（32 个字节依次为 0 到 31），用本章的 `androidOrigins` 写法算出它对应的 origin。
+
+   验证：结果是 `android:apk-key-hash:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8`。
+
+   参考答案：去掉冒号按十六进制解成字节，再做 base64url（无填充）。真实项目里调试版和发布版证书各算一个，都放进 `expectedOrigin`。

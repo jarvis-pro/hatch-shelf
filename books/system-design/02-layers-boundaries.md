@@ -218,3 +218,37 @@ hatch-counter 用的是另一种形式：每个现行文档末尾一节「为什
 - 外部依赖包成适配器，选哪一家只在一处判
 - 别为一个人的项目照搬四层架构；Drizzle 之上不必再包 Repository
 - 决策写下来：结论、理由、比过的方案、重新考虑的条件
+
+## 动手练习
+
+1. **把规则测在数据库外面**：把本章的 `deductByRecipe` 去掉类型注解存成 `recipe.mjs`（加 `export`），再写一个 `recipe.test.mjs`，至少覆盖「一杯拿铁卖两份」和「没有配方的商品」两种情况，运行 `node --test`。
+
+   验证：输出里 pass 数等于用例数、fail 为 0，全程没有启动任何数据库。
+
+   参考答案：纯函数只吃参数、只吐返回值，测试就是构造输入、比较输出。
+
+   ```javascript
+   import test from "node:test";
+   import assert from "node:assert/strict";
+   import { deductByRecipe } from "./recipe.mjs";
+
+   const recipes = new Map([["latte", [{ ingredientId: "milk", qty: 200 }]]]);
+   test("两杯拿铁扣 400 牛奶", () => {
+     assert.deepEqual(deductByRecipe([{ itemId: "latte", count: 2 }], recipes), [{ ingredientId: "milk", qty: -400 }]);
+   });
+   test("没有配方的商品不扣库存", () => {
+     assert.deepEqual(deductByRecipe([{ itemId: "water", count: 3 }], recipes), []);
+   });
+   ```
+
+2. **砍掉多余的层**（分析题）：一个人维护的 NestJS + Drizzle 项目，每个接口是 Controller → AppService → DomainService → Repository（包一层 Drizzle），每张表还有 DTO、Entity、VO 三个类，给开支加一个「备注」字段要改七个文件。用「这一层挡住了哪种变化」逐层判断，给出精简后的结构。
+
+   验证：精简后加同一个字段，数一下要改几处，并能说出留下的每一层各挡住了什么。
+
+   参考答案：Controller（HTTP 细节）和一个 service（规则与事务边界）留下；只有一个实现的 DomainService 和只是改名的 Repository 去掉，复杂查询抽到同模块的 `*-sql.ts`；三套类合成一个 zod schema 推导类型。如果数据其实来自两种存储（比如一部分在 Postgres、一部分在第三方 API），Repository 那层就挡住了真实的变化，值得保留。
+
+3. **写一条决策记录**（分析题）：项目目前单实例，你决定会话存 Postgres、不上 Redis。按本章的模板写一条记录。
+
+   验证：记录里有结论、理由、比过的方案，并且「重新考虑的条件」是一个能观察到的信号，而不是「以后用户多了」。
+
+   参考答案：理由写少一个要部署和监控的服务、会话读写量对库压力很小；比过 Redis 和纯签名令牌；重新考虑的条件写成「有了多个实例，且会话读写在 `pg_stat_statements` 里排进最贵的几条」。条件没出现，就不用反复纠结。

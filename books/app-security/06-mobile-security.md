@@ -200,3 +200,23 @@ Electron 的渲染进程本质上也是一个 WebView，只是权限更大。基
 - 不可信输入的处理：单一管线、判断逻辑集中在可测试的纯函数里、每道检查对应一种攻击（zip slip、zip 炸弹、类型白名单）
 - 设备上开监听端口要收窄暴露面：只在需要时开、随机 PIN、错误次数上限、最小接口集，并清楚自己接受了哪些风险
 - WebView 纵深防御：不渲染原始 HTML、CSP 禁网络、只允许加载自身、桥接消息按类型校验、SVG 只作为图片加载
+
+## 动手练习
+
+1. **`EXPO_PUBLIC_*` 进了 bundle**：在一个练习用的 Expo 项目里（`npx create-expo-app@latest` 新建即可），根目录 `.env` 写一行 `EXPO_PUBLIC_FAKE_KEY=sk-fake-should-not-ship-123`，在任一页面里显示 `process.env.EXPO_PUBLIC_FAKE_KEY`。运行 `npx expo export --platform web`，然后 `grep -r "sk-fake-should-not-ship-123" dist/`。
+
+   验证：grep 在导出的 JS 文件里找到了这串字符。把页面里引用它的那行删掉再导出，grep 就找不到了。
+
+   参考答案：Metro 在打包时把引用到的 `EXPO_PUBLIC_*` 替换成字面量，iOS 和 Android 的 bundle 也一样。会放进这个前缀的值，都要按「明天出现在公网上」来评估。
+
+2. **造一个 zip slip 包，让检查函数拦下**：用 Python 造一个恶意 zip：`python3 -c "import zipfile; z = zipfile.ZipFile('evil.zip', 'w'); z.writestr('../escape.txt', 'x'); z.writestr('book/01.md', '# ok'); z.close()"`，用 `unzip -l evil.zip` 看条目名。再把本章的 `isSafeEntryPath` 抄进一个文件，用 `node:test` 写测试，至少覆盖 `../escape.txt`、`a/../../b`、`/etc/passwd`、`a\..\b`（JS 字符串里写成 `'a\\..\\b'`）、`C:/x`、`book/01.md`、`a/..b/c`。最后用 fflate 的 `unzipSync` 读出 `evil.zip` 的条目名，逐个过一遍检查函数。
+
+   验证：`unzip -l` 列出的条目名就是 `../escape.txt`；测试里前五个返回 `false`，后两个返回 `true`；读 `evil.zip` 时只有 `book/01.md` 通过。
+
+   参考答案：zip 的条目名是做包的人随便写的字符串；`a/..b/c` 是用来确认你按路径段比较，而不是简单地搜 `..` 子串而误伤正常文件名。
+
+3. **CSP 拦住网络请求**：在本机新建 `reader.html`，`<head>` 里放 `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data: blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">`，`<body>` 里放一张 `https://example.com/x.png` 的图片和一段内联脚本 `fetch('https://example.com').then(() => document.title = 'fetched', (e) => document.title = 'blocked')`。用桌面浏览器直接打开这个文件，打开开发者工具的 Console 和 Network。
+
+   验证：标签页标题变成 `blocked`；Console 里有两条 CSP 违规提示（一条是图片，一条是 connect），Network 面板里这两个请求没有真正发出（Chrome 会标成 `blocked:csp`）。把 meta 标签删掉再刷新，对比两者的差别。
+
+   参考答案：`default-src 'none'` 且没有 `connect-src`，`fetch` 和远程图片都被浏览器在发出前拦下；这是渲染层之后的又一层，即使有脚本混进来也送不出数据。

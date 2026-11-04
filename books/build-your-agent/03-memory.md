@@ -347,3 +347,37 @@ it("会话存盘后恢复：第二次请求带着第一次的完整历史，前�
 - 长期笔记放在新会话的第一条消息里，不放 system；恢复的会话保持原有前缀
 - 写进长期记忆的东西以后每次都会被信任，所以 `remember` 也要人批准
 - 先用最简单的形式（一个文件、全量加载），规模上来再换索引加按需读取
+
+## 动手练习
+
+1. **system 或工具变了就拒绝恢复**：本章建议在会话文件旁边存一份 system 和工具定义的哈希。实现它：新会话时写 `<id>.meta`，恢复时比对。
+
+   ```typescript
+   import { createHash } from "node:crypto";
+   const fingerprint = (system: string, tools: Tool[]) =>
+     createHash("sha256").update(JSON.stringify({ system, tools })).digest("hex");
+   // 新会话：await writeFile(path.join(dir, `${id}.meta`), fingerprint(SYSTEM, defs));
+   // 恢复时：
+   const saved = await readFile(path.join(dir, `${id}.meta`), "utf8").catch(() => null);
+   if (saved && saved !== fingerprint(SYSTEM, defs)) throw new Error("system 或工具定义已变，请开新会话");
+   ```
+
+   验证：跑一次任务拿到会话 id；在 `prompt.ts` 里改一个字，再 `--resume` 这个 id，得到「请开新会话」的错误；改回来后能正常恢复。
+
+   参考答案：前缀变了，缓存不会命中，回传的思考块也可能被拒绝，与其让 API 报一个难懂的 400，不如在本地提前拦下。
+
+2. **让「崩溃时最多丢最后一行」成立**：手工造一个最后一行被截断的会话文件，看 `load` 会怎样，再修好它。
+
+   ```bash
+   printf '%s\n%s\n%s' '{"role":"user","content":"a"}' '{"role":"assistant","content":[{"type":"text","text":"b"}]}' '{"role":"us' > .agent/sessions/<一个合法的 uuid>.jsonl
+   ```
+
+   验证：原来的 `load` 在 `JSON.parse` 处抛异常；改成「只有最后一行解析失败时跳过它」之后，`load` 返回 2 条消息。
+
+   参考答案：还要再多想一步：如果截断后最后一条完整消息是带 `tool_use` 的 assistant 消息，它的 `tool_result` 丢了，直接恢复会让 API 报「tool_use 没有对应的 tool_result」。所以修好之后还应检查末尾，把没有结果的 `tool_use` 那条也去掉。
+
+3. **观察服务端上下文编辑**（需要 API key）：把 `contextEdits` 的 `trigger` 临时调到 30000、`keep` 调到 2、`clear_at_least` 调到 5000，在 `anthropicModel` 返回前打印 `res.context_management?.applied_edits`，然后给一个要读很多章节的任务，比如「逐章读 agent-principles，列出每章的小节数」。
+
+   验证：输入 token 低于 30000 时打印为空；超过之后，`applied_edits` 里记录了这一轮清掉的工具调用数和 token 数，下一轮的 `input_tokens` 明显回落。
+
+   参考答案：你发送的 `messages` 一个字都没变，删减发生在服务端；被清掉的章节模型需要时会重新调用 `read_file`。实验完把参数改回原值。

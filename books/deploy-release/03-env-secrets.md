@@ -202,3 +202,28 @@ hatch-counter 还白捡了一道闸门：迁移脚本和服务端走的是同一
 - 一个消费方一把钥匙、权限精确到资源；进客户端包的钥匙默认会泄漏
 - `VITE_` / `EXPO_PUBLIC_` 变量是构建时内联的明文，客户端没有真正的秘密
 - 服务端启动时校验配置，缺项立即退出，报错只列键名
+
+## 动手练习
+
+1. **base64 密码为什么会弄坏连接串**：用 Node 解析两条连接串，一条的密码含 `/`，一条是 hex：
+
+   ```bash
+   node -e "console.log(new URL('postgres://app:ab/c+d=@postgres:5432/app').password)"
+   node -e "console.log(new URL('postgres://app:'+require('crypto').randomBytes(16).toString('hex')+'@postgres:5432/app').password)"
+   ```
+
+   验证：第一条抛出 `TypeError: Invalid URL`；第二条打印出一串 32 位的 `[0-9a-f]`。
+
+   参考答案：URL 的 authority 在第一个 `/` 处结束，于是 `app:ab` 被当成「主机:端口」，端口不是数字就解析失败；有些客户端不报错而是解析出错的密码，结果就是「认证失败」。hex 只有数字和 a–f，不需要转义。
+
+2. **`umask 077` 先于写文件**：在临时目录里分别执行 `echo x > a.env` 和 `(umask 077; echo x > b.env)`，再看两份文件的权限（macOS 用 `stat -f '%Lp %N' *.env`，Linux 用 `stat -c '%a %n' *.env`）。
+
+   验证：`a.env` 是 `644`（默认 umask 为 022 时），`b.env` 是 `600`。
+
+   参考答案：umask 在文件创建的那一刻决定权限，所以 `b.env` 从来没有对其他用户可读过；先建再 `chmod 600` 中间有一个可读的窗口。放在子 shell 里是为了不影响当前 shell 后续创建的文件。
+
+3. **配置校验只报键名**：新建目录 `pnpm init && pnpm add zod`，把本章的 `Config` 和 `loadConfig` 放进 `config.mjs`（去掉类型标注），末尾调用 `loadConfig({ NODE_ENV: "production", DATABASE_URL: "postgres://a:b@h/db", JWT_SECRET: "short-secret-value", OSS_ACCESS_KEY_ID: "x", TRUST_PROXY: "1" })`，运行 `node config.mjs`。
+
+   验证：抛出的错误是 `配置不完整或格式不对：JWT_SECRET`，输出里找不到 `short-secret-value`。把 `TRUST_PROXY` 改成 `"abc"` 再跑，键名列表里多出 `TRUST_PROXY`。
+
+   参考答案：zod 的 `issues[].path` 只给出键名，不拼接原值；自己写校验时也照这个原则只打印键名和规则，值一律不进日志。

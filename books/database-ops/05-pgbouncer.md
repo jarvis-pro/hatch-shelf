@@ -228,3 +228,46 @@ SHOW SERVERS;
 - 用 `SET LOCAL` / `set_config(..., true)`、`pg_advisory_xact_lock`；RLS 上下文必须是事务级的
 - PgBouncer ≥ 1.21 设 `max_prepared_statements` 后支持驱动的协议级预备语句，更老的版本要在驱动里关掉
 - 业务连接走 PgBouncer，迁移和备份直连；关注 `SHOW POOLS` 的 `cl_waiting` 和 `maxwait`
+
+## 动手练习
+
+在一个空目录里搭一套一次性环境。为了少写认证配置，这里让 Postgres 和 PgBouncer 都用 trust 认证，**只能用于本机练习**。做完 `docker rm -f pb pb-pg; docker network rm pbnet` 清理。
+
+```bash
+docker network create pbnet
+docker run -d --name pb-pg --network pbnet -e POSTGRES_HOST_AUTH_METHOD=trust postgres:16-alpine -c max_connections=10
+mkdir -p pb && echo '"postgres" ""' > pb/userlist.txt
+cat > pb/pgbouncer.ini <<'EOF'
+[databases]
+postgres = host=pb-pg port=5432 dbname=postgres
+[pgbouncer]
+listen_addr = 0.0.0.0
+listen_port = 6432
+auth_type = trust
+auth_file = /pb/userlist.txt
+pool_mode = transaction
+default_pool_size = 1
+admin_users = postgres
+EOF
+docker run -d --name pb --network pbnet -v "$PWD/pb:/pb:ro" alpine:3.20 \
+  sh -c 'apk add --no-cache pgbouncer >/dev/null && pgbouncer -u nobody /pb/pgbouncer.ini'
+```
+
+经过 PgBouncer 连接：`docker exec -it pb-pg psql -h pb -p 6432 -U postgres postgres`。
+
+1. **会话级设置串到别人头上**：池子只有 1 个真实连接。在终端 A 经 PgBouncer 连上，执行 `SELECT set_config('app.store_id', 'store-B', false);` 后保持不退出；在终端 B 另开一个连接，执行 `SELECT current_setting('app.store_id', true);`。然后把 A 里的 `false` 改成 `true` 重做（先 `docker restart pb` 清掉残留）。
+
+   验证：用 `false` 时，B 读到了 `store-B`，尽管 B 从没设置过；用 `true` 时，B 读到空值。
+
+   参考答案：事务模式下两个客户端共用同一个真实连接，会话级设置留在连接上，就被下一个借到连接的人看到了。`set_config(..., true)` 等价于 `SET LOCAL`，事务结束即清除，这是 RLS 上下文必须用事务级设置的原因。
+
+2. **max_connections 和排队**：`pb-pg` 的 `max_connections` 是 10。先直连起 15 个并发会话，再经 PgBouncer 起 15 个，对比结果；经 PgBouncer 那一轮运行期间，在管理控制台 `docker exec -it pb-pg psql -h pb -p 6432 -U postgres pgbouncer` 里执行 `SHOW POOLS;`。
+
+   ```bash
+   # 直连；把 -h pb-pg -p 5432 换成 -h pb -p 6432 就是经过 PgBouncer
+   for i in $(seq 15); do docker exec pb-pg psql -h pb-pg -p 5432 -U postgres -c "SELECT pg_sleep(2)" postgres & done; wait
+   ```
+
+   验证：直连那一轮有几个会话报 `sorry, too many clients already`；经 PgBouncer 那一轮全部成功，但总耗时约 15 × 2 = 30 秒，`SHOW POOLS` 里 `sv_active` 为 1，`cl_waiting` 有十几个，`maxwait` 在增长。
+
+   参考答案：PgBouncer 把 15 个客户端连接复用到 1 个真实连接上，数据库不再被连接数打爆，代价是排队。把 `default_pool_size` 改成 5 后在控制台执行 `RELOAD;` 再跑，总耗时会降到 6 秒左右，这就是「池子开多大」要观察 `cl_waiting` 和 `maxwait` 来调的原因。

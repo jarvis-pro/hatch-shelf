@@ -188,3 +188,25 @@ data:                 # 不同 kind 这里不同：多数是 spec，ConfigMap �
 - 集群 = 控制面（apiserver、etcd、scheduler、controller-manager）+ 节点（kubelet、容器运行时、kube-proxy），组件都通过 apiserver watch 协作
 - 一切都是带 `apiVersion` / `kind` / `metadata` / `spec` 的 API 对象，生产清单只用 GA 版本
 - K8s 不会自动让应用可扩展、让数据库高可用，也不省钱
+
+## 动手练习
+
+本章没有要敲的清单。第 1 题先在纸上预测，等[第 2 章起好练习集群](02-core-objects.md#先起一个练习集群)后再回来验证；所有练习只在本机的 k3d / kind 集群里做，动手前先用 `kubectl config current-context` 确认连的不是生产集群。
+
+1. **预测控制循环**：一个 `replicas: 2` 的 Deployment 正常运行。依次发生：(a) 你 `kubectl delete pod` 删掉其中一个 Pod；(b) 你执行 `kubectl scale deployment <名字> --replicas=3`；(c) 你直接改 Pod 的标签，让它不再匹配 Deployment 的 selector。每一步之后，集群里会有几个带原标签的 Pod？
+
+   验证：在练习集群里 `kubectl create deployment demo --image=nginx:alpine --replicas=2`，按顺序操作，每步后用 `kubectl get pods -l app=demo` 和 `kubectl get pods --show-labels` 观察。第 (c) 步可以用 `kubectl label pod <某个 Pod> app=orphan --overwrite`。
+
+   参考答案：(a) 后很快又回到 2 个；(b) 后是 3 个；(c) 后带 `app=demo` 的 Pod 仍是 3 个，因为控制器发现少了一个就补一个，被改标签的那个变成「孤儿」继续运行，要手动删除。控制器只认「符合 selector 的实际数量」和期望数量的差。
+
+2. **判断能不能开两个副本**：某个 NestJS 服务把登录会话存在进程内存的 Map 里，用户上传的图片写到容器内的 `/app/uploads`，每天凌晨的对账任务用 `setInterval` 在服务里触发。把 `replicas` 从 1 改成 2，会出现哪些问题？各怎么改？
+
+   验证：能指出三个问题，并各给出一种改法。
+
+   参考答案：会话只在某个副本里，请求落到另一个副本就「掉登录」，改成 Redis 或 JWT；上传文件只存在某个副本的容器里，另一个副本读不到，而且容器重建就丢，改成对象存储或共享卷；对账任务在两个副本里各跑一次，改成独立的 CronJob（第 5 章）或加分布式锁。这些都是 K8s 不会替你解决的。
+
+3. **API 对象按组划分**：起好练习集群后执行 `kubectl api-resources | grep -E '^(pods|deployments|cronjobs|ingresses|configmaps) '`，再执行 `kubectl explain deployment.spec.replicas`。
+
+   验证：每一行的 APIVERSION 列分别是 `v1`、`apps/v1`、`batch/v1`、`networking.k8s.io/v1`；`explain` 打印出这个字段的类型和说明。
+
+   参考答案：核心对象在 `v1`，其余按 API 组划分。写清单时拿不准字段，用 `kubectl explain` 查当前集群版本的权威定义，比凭记忆或搜索可靠。

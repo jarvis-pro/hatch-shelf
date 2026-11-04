@@ -206,3 +206,25 @@ flowchart TD
 - 各服务的小型 Postgres 升大版本用「导出、换新卷、导入」，删卷前先验证 dump
 - 整机迁移照着 README 做，别忘了 Caddy 的证书卷和 runner 的凭据，旧机器观察一周再释放
 - 每个工具在进入时就写好退出计划；收入起来后退出自托管是正常的演进；每年复盘一次，下线没人用的工具
+
+## 动手练习
+
+都在本机的一次性 compose 项目里做，用的是演练数据。
+
+1. **升级、记录、回滚**：在 `~/selfhost-lab/web` 下建 `.env`（`WEB_TAG=1.26-alpine`）和 compose（一个 `nginx:${WEB_TAG}` 服务，带 `healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"], interval: 2s }`），`docker compose up -d --wait`。然后按本章脚本的思路手动走一遍：记下旧版本，`sed` 改成 `1.27-alpine`，`docker compose pull && docker compose up -d --wait`，往 `UPGRADES.log` 追加一行；最后把版本改回去再 `up -d --wait`。
+
+   验证：每一步后 `docker compose exec web nginx -v` 分别显示 1.26 和 1.27 的版本号，回滚后又是 1.26；`UPGRADES.log` 里有一行 `1.26-alpine -> 1.27-alpine`。做完 `docker compose down`。
+
+   参考答案：没有数据库迁移的服务，回滚就是把版本改回去。先 `pull` 再 `up`，拉不下来时旧版本还在跑；`--wait` 依赖健康检查判断新版本是否真的起来了。
+
+2. **Postgres 大版本不能直接换镜像**：在 `~/selfhost-lab/pg` 下用 `postgres:${PG_TAG}`（`.env` 里 `PG_TAG=16-alpine`）和一个具名卷 `pg-data` 起库，建一张表插几行。然后直接把 `PG_TAG` 改成 `17-alpine`，`docker compose up -d` 后看 `docker compose logs postgres | tail`。再按正文的步骤改回 16 导出、删卷、改成 17、起空库、`pg_restore`，最后数一下行数。
+
+   验证：直接换镜像时容器反复退出，日志里说数据目录由 16 版初始化、与当前服务器不兼容；走「导出、换新卷、导入」后，17 版里的行数和原来一致。做完 `docker compose down -v`。
+
+   参考答案：数据目录格式和大版本绑定，换镜像不会自动升级数据。小库用 dump 最简单，删卷前一定要先确认 dump 能恢复。
+
+3. **整机迁移漏了什么**：迁移工具机时，你恢复了 `/srv/tools` 和所有 `pg-data` 的 dump，但忘了 Caddy 的 `caddy-data` 卷和 runner 的 `runner-data` 卷。新机器上线后会出现什么现象？怎么补救？
+
+   验证：两个卷各说出一个现象和一个补救办法。
+
+   参考答案：没有 `caddy-data`，Caddy 会为每个域名重新申请证书，域名多时可能撞上 CA 的频率限制，部分站点暂时没有有效证书；补救是从 restic 恢复这个卷，或者等频率限制过去。没有 `runner-data`，runner 丢了注册凭据，连不上 Forgejo，CI 任务一直排队；补救是在 Forgejo 后台删掉旧 runner、重新注册。把这两条补进 README 的迁移清单。

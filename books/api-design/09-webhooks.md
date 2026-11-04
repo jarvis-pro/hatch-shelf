@@ -322,3 +322,34 @@ Webhook **不保证顺序**。重试会让先发生的事件晚到；多个 work
 - 持续失败的端点自动停用并通知；提供投递日志、手动重发、测试事件和事件列表接口
 - 用户填 URL 就有 SSRF：只允许 https，连接时检查解析出的 IP，不跟随重定向
 - 接收别人的 Webhook：验签、去重、先落库后处理、关键数据回查确认、不依赖顺序、定期对账
+
+## 动手练习
+
+1. **签名往返，再故意弄坏它**：把本章的 `signWebhook`、`parseSecret`、`verifyWebhook` 放进一个文件。密钥用 `"whsec_" + randomBytes(24).toString("base64")`，原始请求体用带空格的 `'{"id": "evt_1", "amount": 3200}'`。依次验证：① 原样验签；② 把请求体 `JSON.stringify(JSON.parse(body))` 后再验；③ 时间戳改成 10 分钟前；④ 签名头里放「旧密钥签名 + 新密钥签名」，`secrets` 只给新密钥。
+
+   验证：① `true`；② `false`；③ `false`；④ `true`。
+
+   参考答案：② 失败是因为重新序列化去掉了空格，字节变了，所以接收端必须拿原始请求体验签；③ 超过 5 分钟容差，防重放；④ 多签名让轮换期间新旧密钥都能通过。
+
+2. **算出重试的总跨度**：不看图，按本章的 `SCHEDULE_MIN` 算出一共投递几次、最后一次距首次多久，再写一行 Node 验证：`node -e 'const s=[1,5,30,120,360,720,1440,1440];console.log(s.length+1, s.reduce((a,b)=>a+b)/60)'`。
+
+   验证：输出 `9 68.6`，即 9 次投递，最后一次在首次之后 68.6 小时（2 天 20 小时 36 分），和本章的图一致。
+
+   参考答案：首次投递不在表里，所以次数是表长加 1；间隔逐渐拉长，用不多的次数覆盖到两三天的故障。
+
+3. **让乱序变得无害**：接收方本地有 `Map<id, {version, amount}>`。依次收到 `expense.updated`（version 2，amount 3500）、`expense.created`（version 1，amount 3200）、同一个 `expense.updated` 重发一次。写一个 ≤10 行的 `apply(event)`，让最终状态正确。
+
+   验证：三次调用后 `amount` 是 `3500`、`version` 是 `2`；打印每次是否真的写入，只有第一次写入。
+
+   参考答案：
+
+   ```typescript
+   const store = new Map<string, { version: number; amount: number }>();
+   function apply(ev: { data: { object: { id: string; version: number; amount: number } } }) {
+     const o = ev.data.object;
+     const cur = store.get(o.id);
+     if (cur && cur.version >= o.version) return false; // 旧的或重复的，忽略
+     store.set(o.id, { version: o.version, amount: o.amount });
+     return true;
+   }
+   ```

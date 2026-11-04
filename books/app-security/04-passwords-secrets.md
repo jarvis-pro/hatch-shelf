@@ -241,3 +241,38 @@ export function loadConfig(raw = process.env) {
 - 短码的安全完全靠限流：6 位码限 5 次、按号每天 10 条，一年也只有约 1.8% 的成功率
 - TOTP 二十行就能实现，同样要限流和防重放，种子要按最高级别保护
 - 密钥先分级：客户端里的都是公开的，服务端限定其权限；身份级密钥留在本机；启动时拒绝开发密钥
+
+## 动手练习
+
+1. **快哈希和慢哈希差多少**：在本机运行下面这段，再把最后一行的 `maxmem` 删掉重跑一次。
+
+   ```js
+   import { createHash, scryptSync } from 'node:crypto';
+   const t = (label, fn) => { const s = performance.now(); fn(); console.log(label, (performance.now() - s).toFixed(2), 'ms'); };
+   t('sha256       ', () => createHash('sha256').update('hunter2').digest());
+   t('scrypt N=2^14', () => scryptSync('hunter2', 'salt', 32, { N: 2 ** 14 }));
+   t('scrypt N=2^17', () => scryptSync('hunter2', 'salt', 32, { N: 2 ** 17, r: 8, p: 1, maxmem: 256 * 1024 * 1024 }));
+   ```
+
+   验证：sha256 远小于 1 毫秒，两档 scrypt 慢出几个数量级，N 每大 8 倍耗时也大致跟着涨（具体毫秒数取决于你的机器）；删掉 `maxmem` 后抛出 `ERR_CRYPTO_INVALID_SCRYPT_PARAMS`，信息里有 `memory limit exceeded`。想对比 Argon2id 的话，另装 `argon2` 包用同样的方式计时。
+
+   参考答案：攻击者每猜一次也要付同样的代价，这就是慢哈希的意义；这组参数约需 128 MiB，超过了 Node 默认的 `maxmem`，所以本章的代码要显式放宽。顺带算一下：你的登录接口如果同时来 20 个请求，内存峰值是多少。
+
+2. **用 RFC 的测试向量验 TOTP**：把本章的 `base32Decode`、`hotp`、`verifyTotp` 抄进 `totp.mjs`。RFC 6238 的测试密钥是 ASCII 字符串 `12345678901234567890`，base32 编码为 `GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ`；RFC 给出 T=59 秒时的 8 位码 `94287082`，取后 6 位就是 `287082`。依次运行：
+   - `verifyTotp(S, '287082', 59_000)`
+   - `verifyTotp(S, '287082', 149_000)`（晚了 90 秒）
+   - `verifyTotp(S, '287083', 59_000)`
+
+   验证：三行依次是 `true`、`false`、`false`。
+
+   参考答案：149 秒对应第 4 个时间片，容忍窗口只覆盖第 3–5 片，所以过期了。有了测试向量，以后改实现也能马上知道有没有改坏；再加一个「同一时间片的码只能用一次」的测试，就补上了本章说的防重放。
+
+3. **空字符串骗过配置自检**：`pnpm add zod`，把本章的 `loadConfig` 存成 `config.ts`（Node 22.18 以上或 Node 24 可以直接 `node config.ts` 运行），用下面这组配置调用它：`NODE_ENV: 'production'`、`JWT_SECRET: 'dev-' + 'x'.repeat(40)`、两条连接串都写成 `postgres://app@db/x`、`TRUST_PROXY: ''`。
+
+   验证：抛出的错误里列出了 JWT_SECRET 和数据库角色两条，**没有** TRUST_PROXY 那一条。改完之后再跑，三条都在。
+
+   参考答案：`z.coerce.number()` 把 `''` 转成了 0，必填检查被静默跳过，正是本章说的 hatch-counter 踩过的坑。在转换前把空串当成没填：
+
+   ```ts
+   TRUST_PROXY: z.preprocess((v) => (v === '' ? undefined : v), z.coerce.number().int().min(0).optional()),
+   ```

@@ -322,3 +322,23 @@ export class Budget {
 - 租户配额放 Postgres，用 `INSERT … ON CONFLICT DO UPDATE … WHERE … RETURNING` 原子地检查并占用；整条链失败要退回额度
 - 全局预算按分钟汇总花费，超了先关非核心功能；供应商控制台的花费上限是最后一道防线
 - 不需要实时结果的任务进队列，不要在网关里排长队
+
+## 动手练习
+
+1. **令牌桶的突发和速率**：用本章的 `TokenBucket` 建一个 `new TokenBucket(6, 0.5)`，在同一个同步循环里连续 `take()` 12 次，打印每次的结果。
+
+   验证：前 6 次是 `{ ok: true }`，第 7 次起是 `{ ok: false, waitMs: … }`，`waitMs` 约为 2000。
+
+   参考答案：容量 6 决定一下子能放过多少，每秒 0.5 个决定之后多久补一个，正好对应本章配图里的「每 2 秒 1 个」。
+
+2. **并发闸门的排队超时**：用本章的 `Semaphore` 建一个 `max = 2` 的闸门，同时启动 3 个任务，每个任务 `acquire(500)` 后占用 1 秒再释放。
+
+   验证：两个任务约 1 秒后完成；第三个在约 500 毫秒时以「排队超时」失败，错误的 `kind` 是 `busy`。
+
+   参考答案：每秒 2 张单、每张 10 秒，在途就有 20 个（利特尔法则），视觉接口往往先撞并发上限。排队超时算 `busy`，交给降级链换下一家。
+
+3. **配额不会超发**：在 Docker 的 Postgres 里建本章的 `llm_quota_usage` 表，把占额度的 SQL 里的参数换成字面值（租户随便写一个 UUID、上限写 3）存成 `reserve.sql`。用 `seq 20 | xargs -P 20 -I{} psql "$DATABASE_URL" -qAt -f reserve.sql` 并发执行 20 次。
+
+   验证：输出里恰好出现 3 个数字（1、2、3，顺序不定），其余执行没有输出；`SELECT used FROM llm_quota_usage` 为 `3`。
+
+   参考答案：检查和占用在同一条 `INSERT … ON CONFLICT DO UPDATE … WHERE` 里完成，冲突行被行锁串行化。如果拆成先 `SELECT` 再 `UPDATE`，并发时会有多个请求同时看到「还剩 1 个」。

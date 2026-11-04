@@ -179,6 +179,26 @@ useEffect(() => {
 - Compiler 和 `memo` 主要解决多余渲染，对「依赖真的变了」的重渲染帮助有限，那要靠虚拟化和推迟
 - 改完用同一场景重新测量，用数字说话
 
+## 动手练习
+
+1. **数一数 effect 级联的提交**：把本章「effect 级联」的反模式写完整（`items` 初始为 `[1, 2]`，一个按钮往里追加两个数，`filtered` 取偶数，`total` 求和），用 `<Profiler id="p" onRender={() => console.log("commit")}>` 包住组件。点一次按钮，数 `commit`；再改成在渲染中用 `useMemo` 直接算出 `total`，删掉两个 effect 和两个多余的 state，重试。
+
+   验证：级联写法点一次打印 3 次 `commit`，派生写法只打印 1 次，两者显示的 `total` 相同（从 `[1, 2]` 追加 `3, 4` 后都是 `6`）。在 React DevTools Profiler 里录同一次点击，顶部的提交柱条也分别是 3 根和 1 根。
+
+   参考答案：每个 effect 里的 setState 都要在提交之后再触发一轮渲染和提交；派生数据在渲染中算，一次就完成。
+
+2. **开发构建和生产构建差多少**：做一个渲染 3000 行 `<tr>` 的表格，每行三列，加一个按钮让所有行的某一列加 1。分别在 `pnpm dev` 和 `pnpm build && pnpm preview` 下，用 Chrome Performance 面板录制点击，记下这次交互的长任务时长；再开 4x CPU 降速各录一次。
+
+   验证：同一操作在开发构建下明显更慢（StrictMode 双重渲染再加上开发期检查），生产构建下的数字才是用户实际感受到的；4x 降速后两者都会超过 50 ms，被标成长任务。具体数字因机器而异，记下自己的四个数。
+
+   参考答案：性能结论必须在生产构建上得出。开发模式下慢几倍很正常，按开发模式的数字去优化，常常会优化错地方。
+
+3. **actualDuration 和 baseDuration**：给第 4 章练习 2 里的 `SlowList`（每次渲染忙等 100 ms）包上 `<Profiler>`，`onRender` 里打印 `actualDuration` 和 `baseDuration`。分别在「传 `q`」和「传 `deferred`」两种写法下快速输入几个字，比较紧急渲染那几次提交里两个数的关系。
+
+   验证：传 `q` 时每次提交的 `actualDuration` 都在 100 ms 左右，与 `baseDuration` 接近；传 `deferred` 时，紧急渲染那些提交的 `actualDuration` 接近 0（`SlowList` 被跳过），而 `baseDuration` 仍是 100 ms 左右，只有最后那次低优先级提交才花满 100 ms。
+
+   参考答案：`baseDuration` 是「全部不跳过」的估算，`actualDuration` 是实际花的时间，两者的差就是 bailout 省下的部分。差距小说明记忆化没有起作用。
+
 ## 接下来读什么
 
 这本书讲的是 React 本身。React 跑在浏览器里，渲染之后的布局、绘制、合成，Vite 的构建和拆包，Web Vitals 的度量方式，这些属于平台和工程层面，接下来可以读[《前端工程化与 Web 平台》](../frontend-engineering/)。如果要把同样的 React 知识带到手机上，[《React Native 与 Expo》](../rn-expo/)会讲 Fabric 新架构如何复用本书的 Fiber 和并发机制，以及 Hermes、原生模块这些移动端特有的部分。

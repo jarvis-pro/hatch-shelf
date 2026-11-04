@@ -199,3 +199,33 @@ export class EventBuffer implements OnApplicationShutdown {
 - Postgres 每连接一个进程，连接贵，必须用连接池，池子不是越大越好；避免 idle in transaction
 - Electron、RN、WKWebView 都用进程或线程划分边界；WebView 内容进程可能被系统回收，要能重新拉起
 - 优雅退出：SIGTERM 后停止接收、等请求、落盘、关连接池，宽限期要和容器配置对上
+
+## 动手练习
+
+1. **线程池是懒创建的**：用本章的方法数一个空跑 Node 进程的线程数，再数一个先调用过一次 `fs.readFile` 的 Node 进程（`node -e 'require("fs").readFile("/etc/hosts", () => {}); setTimeout(() => {}, 3000)' &`）。
+
+   验证：在作者的 Mac 上分别是 7 和 11；你的数字可能不同，但第二个应该比第一个多出 libuv 线程池的 4 个（设了 `UV_THREADPOOL_SIZE` 则是那个数）。
+
+   参考答案：线程池在第一次有任务时才启动。用 `UV_THREADPOOL_SIZE=8` 再跑一次第二条命令，差值会变成 8。
+
+2. **PID 1 不理 SIGTERM**：只在 Docker 里做。运行 `docker run -d --name p1 node:22-alpine node -e 'setInterval(() => {}, 1000)'`，用 `time docker stop p1` 计时；再加上 `--init` 换个名字重复一次。
+
+   验证：不加 `--init` 时 `docker stop` 约 10 秒才返回，`docker inspect -f '{{.State.ExitCode}}' p1` 是 137；加 `--init` 后不到 1 秒返回。做完 `docker rm` 掉两个容器。
+
+   参考答案：没有注册 `SIGTERM` 处理函数的 PID 1 不会被默认动作杀掉，只能等宽限期结束被 `SIGKILL`。tini 当 PID 1 时会把信号转给 Node，Node 作为普通进程按默认动作退出。
+
+3. **优雅退出的最小版**：写一个每个请求要 3 秒才返回的 HTTP 服务，收到 `SIGTERM` 时 `server.close()` 并在回调里退出。启动后先 `curl` 一个请求（放后台），0.5 秒后对服务 `kill -TERM`，再立刻 `curl` 一次。
+
+   验证：第一个请求仍然拿到响应；第二个 `curl` 连接被拒（退出码 7）；服务在第一个请求完成后打印退出信息并退出。
+
+   参考答案：
+
+   ```js
+   import http from "node:http";
+   const server = http.createServer((req, res) => {
+     setTimeout(() => res.end("done\n"), 3000);
+   }).listen(8099);
+   process.on("SIGTERM", () => {
+     server.close(() => process.exit(0)); // 不再接收新连接，等已有请求结束
+   });
+   ```

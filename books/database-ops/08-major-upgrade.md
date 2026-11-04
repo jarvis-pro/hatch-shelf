@@ -220,3 +220,42 @@ PostgreSQL 18 于 2025 年发布。如果你从 16 直接升到 18，流程同�
 - 恢复后必须 `vacuumdb --analyze-in-stages`；验证完成再放开写入
 - 升级后旧的物理备份和 WAL 归档作废，立即做新备份
 - 升到 18 注意官方镜像的挂载点变成 `/var/lib/postgresql`
+
+## 动手练习
+
+全部用一次性容器和卷，做完执行 `docker rm -f old new; docker volume rm up16 up17; docker network rm upnet` 清理。先准备一个 16 的「旧库」：
+
+```bash
+docker network create upnet
+docker run -d --name old --network upnet -e POSTGRES_PASSWORD=x -v up16:/var/lib/postgresql/data \
+  postgres:16-alpine -c wal_level=logical
+sleep 5
+docker exec old psql -U postgres -c "CREATE TABLE t (id serial PRIMARY KEY, v text)" \
+  -c "INSERT INTO t (v) SELECT 'row' FROM generate_series(1, 10000)"
+```
+
+1. **直接换标签会怎样**：`docker stop old`，用同一个卷起 17：`docker run --rm -v up16:/var/lib/postgresql/data postgres:17-alpine`。然后 `docker start old`。
+
+   验证：17 的容器立刻退出，日志里有 `database files are incompatible with server`，并说明数据目录由 16 初始化；`docker start old` 之后 `SELECT count(*) FROM t` 仍然是 `10000`。
+
+   参考答案：大版本数据文件格式不兼容，Postgres 拒绝打开而不是改写，所以改回旧标签就能恢复。
+
+2. **dump / restore 彩排**：起一个用新卷的 17：`docker run -d --name new --network upnet -e POSTGRES_PASSWORD=x -v up17:/var/lib/postgresql/data postgres:17-alpine`，用 **17 的** `pg_dump` 从 `old` 导出、恢复进 `new`，再执行 `vacuumdb --all --analyze-in-stages`，给每一步计时。
+
+   验证：`new` 上 `SHOW server_version;` 以 `17.` 开头，`SELECT count(*) FROM t` 是 `10000`；`vacuumdb` 之后 `SELECT last_analyze FROM pg_stat_user_tables WHERE relname = 't';` 有值；卷 `up16` 原封不动，随时可以换回去。
+
+   参考答案：
+
+   ```bash
+   docker exec new sh -c 'PGPASSWORD=x pg_dump -h old -U postgres -d postgres -Fc' > up.dump
+   docker exec -i new pg_restore -U postgres -d postgres --clean --if-exists --exit-on-error < up.dump
+   docker exec new vacuumdb -U postgres --all --analyze-in-stages
+   ```
+
+   记下的耗时就是真实升级的停机时间下限。
+
+3. **逻辑复制不复制序列**：接着上一题，把 `new` 里的表清空后订阅 `old`：`old` 上执行 `CREATE PUBLICATION up FOR ALL TABLES;`；`new` 上执行 `TRUNCATE t RESTART IDENTITY;`（模拟只导了表结构、序列从 1 开始的新库）和 `CREATE SUBSCRIPTION up CONNECTION 'host=old user=postgres password=x dbname=postgres' PUBLICATION up;`。等数据追平后，在 `new` 上执行 `INSERT INTO t (v) VALUES ('after-switch');`。
+
+   验证：订阅后 `new` 上 `count(*)` 追到 `10000`；在 `old` 上新插入的行几秒内出现在 `new`；但在 `new` 上直接插入报 `duplicate key value violates unique constraint "t_pkey"`。
+
+   参考答案：逻辑复制只同步行，不同步序列，`new` 上 `t_id_seq` 还停在 1。切换前要按 `SELECT setval('t_id_seq', (SELECT max(id) FROM t));` 把每个序列推到当前最大值。

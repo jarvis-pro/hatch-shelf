@@ -4,7 +4,7 @@
 
 ## 先看 hatch-counter 的做法
 
-按《软件架构与系统设计》里记录的做法，hatch-counter 的后台任务可以分成三类，都用不到 Redis：
+按[《软件架构与系统设计》第 4 章](../system-design/04-queues-jobs.md#postgres-当队列)里记录的做法（本章说的「手写版」队列表和 worker 循环也在那里），hatch-counter 的后台任务可以分成三类，都用不到 Redis：
 
 | 任务 | 现在的做法 | 光谱上的位置 |
 |---|---|---|
@@ -273,3 +273,31 @@ flowchart TD
 - pg-boss 的 `singleton` / `short` / `stately` 策略在数据库层面实现互斥，替代大部分锁
 - 能和业务数据同事务入队是 Postgres 队列的核心优势；pg-boss 通过 `db` 适配器做到
 - 单实例不需要 Redis；多实例先看 Postgres 能不能接住；真到吞吐瓶颈或要 BullMQ 特有功能时再上
+
+## 动手练习
+
+环境：`docker run --rm -d --name p6 -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17`，开两个终端都执行 `docker exec -it p6 psql -U postgres`，先建一张最小的队列表：
+
+```sql
+CREATE TABLE jobs (id bigserial PRIMARY KEY, kind text NOT NULL,
+  status text NOT NULL DEFAULT 'queued', updated_at timestamptz DEFAULT now());
+INSERT INTO jobs (kind) SELECT 'demo' FROM generate_series(1, 5);
+```
+
+1. **SKIP LOCKED 让两个 worker 互不等待**：终端 A 执行 `BEGIN; SELECT id FROM jobs WHERE status = 'queued' ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED;` 不提交；终端 B 执行同一条 `SELECT`（也在 `BEGIN` 里）。再把 B 的语句去掉 `SKIP LOCKED` 重试一次。
+
+   验证：带 `SKIP LOCKED` 时 A 拿到 `1`、B 立即拿到 `2`；去掉后 B 卡住不返回，直到 A `COMMIT` 或 `ROLLBACK`。
+
+   参考答案：`FOR UPDATE` 锁住 A 取到的行，`SKIP LOCKED` 让 B 跳过被锁的行去拿下一条，所以多个 worker 不会取到同一个任务，也不会排队等锁。
+
+2. **入队跟着事务回滚**：在一个事务里 `INSERT INTO jobs (kind) VALUES ('receipt')`，然后 `ROLLBACK`；再查 `SELECT count(*) FROM jobs WHERE kind = 'receipt'`。
+
+   验证：结果是 `0`。
+
+   参考答案：任务和业务数据在同一个事务里，业务回滚时任务一起消失，不会出现「订单没写成、收据任务却发了」。BullMQ 的 `add()` 做不到这一点，需要 outbox。
+
+3. **NOTIFY 在提交时才送达**：按本章建好 `jobs_notify` 触发器，终端 B 执行 `LISTEN jobs_new;`；终端 A 执行 `BEGIN; INSERT INTO jobs (kind) VALUES ('x');`，此时在 B 里随便执行一条 `SELECT 1;`，然后 A `COMMIT`，B 再执行一次 `SELECT 1;`。
+
+   验证：A 提交前 B 没有收到通知；提交后 B 的输出里出现一行 `Asynchronous notification "jobs_new" with payload "x" received from server process with PID ...`。
+
+   参考答案：`NOTIFY` 在事务提交时才发出，worker 被唤醒时新任务一定已经可见；psql 只在执行命令后才显示收到的通知，所以要再敲一条语句。

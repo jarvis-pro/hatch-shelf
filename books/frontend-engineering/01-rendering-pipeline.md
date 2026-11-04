@@ -184,3 +184,40 @@ flowchart TD
 - 动画只用 `transform` 和 `opacity`，它们只触发合成；`will-change` 克制使用
 - 主线程只有一条，超过 50ms 的任务就是长任务，会直接拖慢交互响应
 - 在 DevTools 里开 CPU 降速录制，开发机的性能会掩盖用户的真实体验
+
+## 动手练习
+
+以下练习用一个本地 HTML 文件即可，`npx serve .` 或直接用浏览器打开，在 Chrome DevTools 里观察。
+
+1. **阻塞脚本挡住第一帧**：
+
+   ```html
+   <!doctype html>
+   <html>
+     <head>
+       <script>
+         const end = Date.now() + 2000;
+         while (Date.now() < end); // 模拟一段 2 秒的同步脚本
+       </script>
+     </head>
+     <body><h1>内容</h1></body>
+   </html>
+   ```
+
+   刷新页面，数一下看到「内容」用了多久；再把这段脚本挪到 `</body>` 之前，或改成外链并加 `defer`（`<script defer src="busy.js">`）重试。
+
+   验证：放在 `<head>` 里时页面空白约 2 秒才出现标题；挪到底部或加 `defer` 后标题立刻出现，2 秒的忙等发生在之后（这段时间里页面能看但点不动）。Performance 面板里能看到一个约 2000 ms、标着红色三角的长任务。
+
+   参考答案：普通 `<script>` 阻塞解析，解析器停在 `<head>` 里，`<h1>` 还没进 DOM，自然画不出来。挪走只是让第一帧先出来，主线程该忙的时间一点没少。
+
+2. **制造并修好布局抖动**：页面里放 1000 个 `<div class="row">`，在按钮的点击处理里运行本章「坏」的那段循环，用 `performance.now()` 前后计时并 `console.log`；再换成「好」的写法计时。两种写法都在 Performance 面板里各录一次。
+
+   验证：「坏」写法耗时明显更长（通常是「好」写法的数十倍以上，具体看机器），Performance 面板里这次点击的任务被大量紫色 Layout 块切碎，Summary 或任务详情里出现 Forced reflow 警告并指向读 `offsetWidth` 的那一行；「好」写法只有一次布局。
+
+   参考答案：每轮先写 `height` 再读下一个元素的 `offsetWidth`，浏览器只能当场重算布局，1000 轮就是约 1000 次布局；先批量读再批量写，布局推迟到这一帧末尾只算一次。
+
+3. **用 Paint flashing 区分重绘和合成**：做两个方块，一个用 `transition: left 1s` 来回移动，一个用 `transition: transform 1s` 移动相同距离。打开 DevTools 的 Rendering 面板，勾选 Paint flashing，触发两个动画。
+
+   验证：`left` 的方块在动画全程不断闪绿（每帧都在重绘），`transform` 的方块在移动过程中基本不闪。录一段 Performance，`left` 动画每帧都有 Layout 和 Paint，`transform` 动画只有合成。
+
+   参考答案：`left` 是几何属性，每帧从布局开始重跑；`transform` 只影响合成，位图不用重画。动画只用 `transform` 和 `opacity`，就是为了跳过前面两段。

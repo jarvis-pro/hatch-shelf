@@ -38,10 +38,12 @@ export type Entry =
 export interface BookTransfer {
   /** 0–1，只增不减；书和原声全部收完才到 1 */
   ratio: number;
+  /** 已经收到的字节数（「8.1 / 13.1 MB」） */
+  received: number;
   /** 已经收完的原声章数 */
   audioDone: number;
-  /** 正在传的是书的包还是原声；没有在传时为 null */
-  uploading: 'book' | 'audio' | null;
+  /** 正在传（或最近一次传）的是书的包还是原声；两个文件之间的空档里沿用上一个，文案不闪 */
+  uploading: 'book' | 'audio';
   /** 当前文件已经收完，正在放上书架 */
   importing: boolean;
   done: boolean;
@@ -124,8 +126,9 @@ function updateBooks() {
     const now = live[live.length - 1];
     books[item.id] = {
       ratio: done ? 1 : Math.min(0.99, Math.max(prev?.ratio ?? 0, raw)),
+      received: done && item.bytes ? item.bytes : Math.min(item.bytes ?? Infinity, Math.max(prev?.received ?? 0, f.bytes + inflight)),
       audioDone: f.audio,
-      uploading: now ? (now.audio ? 'audio' : 'book') : null,
+      uploading: now ? (now.audio ? 'audio' : 'book') : (prev?.uploading ?? (item.kind === 'audio' ? 'audio' : 'book')),
       importing: live.some((u) => u.ratio >= 1),
       done,
     };

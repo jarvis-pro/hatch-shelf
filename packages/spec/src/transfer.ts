@@ -82,7 +82,10 @@ export interface SessionItem {
   audioChapters?: number;
   /** 这本书这次要传的总字节数（书的包 + 原声），接收页据此把整本书算成一条进度 */
   bytes?: number;
-  /** 手机上还没有这本书时，确认框和接收页用这些画封面 */
+  /** 书的章数和书库里录好的原声章数，确认框里显示 */
+  chapters?: number;
+  hasAudio?: boolean;
+  /** 确认框里显示简介、分类；手机上还没有这本书时也用来画文字封面 */
   subtitle?: string;
   category?: string;
   /** 封面缩略图 `data:image/jpeg;base64,…`，不超过 COVER_THUMB_MAX；没有时画文字封面 */
@@ -131,6 +134,8 @@ export function isSessionRequest(v: unknown): v is SessionRequest {
         typeof i.detail === 'string' &&
         (i.audioChapters === undefined || typeof i.audioChapters === 'number') &&
         (i.bytes === undefined || typeof i.bytes === 'number') &&
+        (i.chapters === undefined || typeof i.chapters === 'number') &&
+        (i.hasAudio === undefined || typeof i.hasAudio === 'boolean') &&
         optString(i.subtitle) &&
         optString(i.category) &&
         isThumb(i.cover),

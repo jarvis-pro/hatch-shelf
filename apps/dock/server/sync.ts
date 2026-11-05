@@ -79,8 +79,8 @@ async function plan(phone: Phone, entries: LibEntry[], ids: string[]): Promise<S
     const detail = [kind === 'new' ? `${e.manifest.chapters.length} 章` : kind === 'update' ? '内容有更新' : '', chapters.length ? `补 ${chapters.length} 章原声` : '']
       .filter(Boolean)
       .join(' · ');
-    // 手机上还没有的书带上分类和封面缩略图，确认框里才画得出封面
-    const look = kind === 'new' ? { subtitle: e.manifest.subtitle, category: e.manifest.category } : {};
+    // 确认框里显示简介、分类、章数和是否含原声；封面缩略图只给手机上还没有的书（见下方 cover）
+    const look = { subtitle: e.manifest.subtitle, category: e.manifest.category, chapters: e.manifest.chapters.length, hasAudio: !!e.audio };
     steps.push({
       item: { id, title: e.manifest.title, kind, detail, audioChapters: chapters.length, ...look, state: 'queued', bytes: (zip?.length ?? 0) + aBytes, sent: 0 },
       zip,
@@ -113,13 +113,15 @@ export async function startPush(entries: LibEntry[], key: string, addr: string, 
 }
 
 async function run(phone: Phone, steps: Step[], j: Job, signal: AbortSignal) {
-  const items = steps.map(({ item: { id, title, kind, detail, audioChapters, bytes, subtitle, category }, cover }) => ({
+  const items = steps.map(({ item: { id, title, kind, detail, audioChapters, bytes, chapters, hasAudio, subtitle, category }, cover }) => ({
     id,
     title,
     kind,
     detail,
     audioChapters,
     bytes,
+    chapters,
+    hasAudio,
     subtitle,
     category,
     cover,

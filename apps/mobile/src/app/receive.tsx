@@ -1,7 +1,7 @@
 import type { SessionItem } from '@shelf/spec';
 import { router } from 'expo-router';
-import { BookDown, ChevronDown, ChevronRight, CircleAlert, DatabaseBackup, Highlighter, Laptop, Power, RotateCcw, type LucideIcon } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { BookDown, ChevronDown, ChevronRight, CircleAlert, DatabaseBackup, Headphones, Highlighter, Laptop, Power, RotateCcw, type LucideIcon } from 'lucide-react-native';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, type BookRow } from '@/db/queries';
@@ -210,32 +210,74 @@ function IconTile({ icon: Icon, color, tint }: { icon: LucideIcon; color: string
   );
 }
 
-function Tag({ label, color }: { label: string; color: string }) {
+/** 带底色的小标签；底色是 tint（默认同文字色）的 8% */
+function Tag({ label, color, tint, weight = '700' }: { label: string; color: string; tint?: string; weight?: '600' | '700' }) {
   return (
-    <View style={[styles.tag, { backgroundColor: `${color}1A` }]}>
-      <Text style={{ color, fontSize: 11, fontWeight: '700' }}>{label}</Text>
+    <View style={[styles.tag, { backgroundColor: `${tint ?? color}14` }]}>
+      <Text style={{ color, fontSize: 11, fontWeight: weight }}>{label}</Text>
     </View>
   );
 }
 
+/** 已更新用的绿：浅色模式下文字比底色深一档，保证对比 */
+const updatedTag = (t: Theme): [string, string] => [t.dark ? t.success : '#0B7A3B', '#12A150'];
+
 /** 接收中那一行的标签 */
 const kindTag = (t: Theme, i: SessionItem): [string, string] =>
-  i.kind === 'new' ? ['新书', t.accent] : i.kind === 'update' ? ['更新', t.success] : ['原声', t.accent];
+  i.kind === 'new' ? ['新书', t.accent] : i.kind === 'update' ? ['更新', updatedTag(t)[0]] : ['原声', t.accent];
 
-/** 确认框右侧的说明：新书 / 有更新 / 补 N 章原声 */
+/** 确认框右侧的标签：新书 / 有更新 / 补 N 章原声（设计稿 B1） */
 const kindLabel = (t: Theme, i: SessionItem): [string, string] =>
-  i.kind === 'new' ? ['新书', t.accent] : i.kind === 'update' ? ['有更新', t.updated] : [i.audioChapters ? `补 ${i.audioChapters} 章原声` : '补原声', t.highlight];
+  i.kind === 'new'
+    ? ['新书', t.accent]
+    : i.kind === 'update'
+      ? ['有更新', t.dark ? t.updated : '#B26A00']
+      : [i.audioChapters ? `补 ${i.audioChapters} 章原声` : '补原声', t.dark ? t.highlight : '#7C4DFF'];
+
+/** 确认框里一本书的元信息：分类 · 章数 · 含原声 · 大小 */
+function SheetMeta({ item }: { item: SessionItem }) {
+  const t = useTheme();
+  const parts: ReactNode[] = [];
+  const text = (key: string, v: string) => (
+    <Text key={key} style={[styles.sheetMetaText, { color: t.fg3 }]}>
+      {v}
+    </Text>
+  );
+  const series = categoryLabel(item.category ?? null);
+  if (series) parts.push(text('c', series));
+  if (item.kind === 'new' && item.chapters) parts.push(text('n', `${item.chapters} 章`));
+  if (item.kind === 'update') parts.push(text('n', '内容有更新'));
+  const audio = item.kind === 'audio' ? (item.audioChapters ? `${item.audioChapters} 章原声` : '原声') : item.hasAudio ? '含原声' : null;
+  if (audio)
+    parts.push(
+      <View key="a" style={styles.row3}>
+        <Headphones size={11} color={t.fg3} />
+        {text('at', audio)}
+      </View>,
+    );
+  if (item.bytes) parts.push(text('b', mb(item.bytes)));
+  return (
+    <View style={styles.sheetMeta}>
+      {parts.flatMap((p, i) => (i ? [text(`d${i}`, '·'), p] : [p]))}
+    </View>
+  );
+}
 
 /** 原声按章一个包传：已经收了 done 章，正在传下一章 */
 const audioStep = (item: SessionItem | null | undefined, done: number) =>
   item?.audioChapters ? `第 ${Math.min(done + 1, item.audioChapters)} / ${item.audioChapters} 章` : '原声';
 
-function Progress({ ratio }: { ratio: number }) {
+/** 进行中那一行右侧：已收 / 总共 MB 和百分比（设计稿 C） */
+function Bytes({ transfer, total }: { transfer: BookTransfer; total?: number }) {
   const t = useTheme();
   return (
-    <View style={styles.row8}>
-      <ProgressBar value={ratio} track={`${t.accent}1F`} fill={t.accent} style={styles.flex} />
-      <Text style={{ color: t.fg3, fontSize: 11, fontVariant: ['tabular-nums'] }}>{Math.round(ratio * 100)}%</Text>
+    <View style={styles.row4}>
+      {total ? (
+        <Text style={{ color: t.fg3, fontSize: 11, fontVariant: ['tabular-nums'] }}>
+          {mbOf(transfer.received, total)} / {mb(total)}
+        </Text>
+      ) : null}
+      <Text style={{ color: t.accent, fontSize: 11, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{Math.round(transfer.ratio * 100)}%</Text>
     </View>
   );
 }
@@ -263,6 +305,7 @@ function BookItem({ id, item, transfer, entry }: { id: string; item?: SessionIte
   const title = entry?.result.title ?? item?.title ?? id;
   let label: string;
   let color: string;
+  let tint: string | undefined;
   let detail: string;
   if (receiving) {
     // 收的过程中标签不变，只换说明文字；进度条是整本书的
@@ -270,25 +313,26 @@ function BookItem({ id, item, transfer, entry }: { id: string; item?: SessionIte
     // 原声每章收完都会导入一下，这时仍显示第几章，不闪成「放上书架」
     detail =
       transfer.uploading === 'audio'
-        ? `原声 ${audioStep(item, transfer.audioDone)}`
+        ? `${item?.kind === 'audio' ? '' : '原声 '}${audioStep(item, transfer.audioDone)}`
         : transfer.importing
           ? '正在放上书架'
-          : transfer.uploading === 'book'
-            ? `正在接收${item?.bytes ? ` · 共 ${mb(item.bytes)}` : ''}`
-            : '等待下一个文件';
+          : '正在接收';
   } else if (entry) {
     const { result, book } = entry;
     const onlyAudio = result.status === 'audio';
-    [label, color] = onlyAudio ? ['原声', t.accent] : result.status === 'updated' ? ['已更新', t.success] : ['新书', t.accent];
-    detail = onlyAudio
-      ? `补齐 ${entry.audioChapters} 章原声`
-      : [
-          result.status === 'updated' ? (item?.detail ?? null) : book && `${book.chapterCount} 章`,
-          result.status === 'updated' ? '进度保留' : book && categoryLabel(book.category),
-          entry.audioChapters > 0 ? `${entry.audioChapters} 章原声` : null,
-        ]
-          .filter(Boolean)
-          .join(' · ');
+    [label, color] = onlyAudio ? ['原声', t.accent] : result.status === 'updated' ? ['已更新', updatedTag(t)[0]] : ['新书', t.accent];
+    tint = result.status === 'updated' && !onlyAudio ? updatedTag(t)[1] : undefined;
+    detail = [
+      ...(onlyAudio
+        ? [`补齐 ${entry.audioChapters} 章原声`]
+        : [
+            result.status === 'updated' ? (item?.detail ?? null) : book && `${book.chapterCount} 章`,
+            result.status === 'updated' ? '进度保留' : book && categoryLabel(book.category),
+          ]),
+      item?.bytes ? mb(item.bytes) : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
   } else {
     [label, color] = item ? kindTag(t, item) : ['接收中', t.accent];
     detail = item?.detail ?? '';
@@ -302,17 +346,19 @@ function BookItem({ id, item, transfer, entry }: { id: string; item?: SessionIte
           {title}
         </Text>
         <View style={styles.row6}>
-          <Tag label={label} color={color} />
-          <Text style={{ color: t.fg3, fontSize: 12, flexShrink: 1 }} numberOfLines={1}>
+          <Tag label={label} color={color} tint={tint} />
+          <Text style={{ color: t.fg3, fontSize: 12, flexShrink: 1, flexGrow: 1 }} numberOfLines={1}>
             {detail}
           </Text>
+          {receiving && <Bytes transfer={transfer} total={item?.bytes} />}
         </View>
         {entry?.result.warnings.map((w) => (
           <Text key={w} style={{ color: t.warn, fontSize: 12 }}>
             {w}
           </Text>
         ))}
-        {receiving && <Progress ratio={transfer.ratio} />}
+        {/* 上传时 JS 线程忙着收文件和导入，动画会跟不上数字；进度本身更新得很密，直接设值 */}
+        {receiving && <ProgressBar value={transfer.ratio} animate={false} track={`${t.accent}1F`} fill={t.accent} />}
       </View>
       {openable && <ChevronRight size={16} color={t.fg4} />}
     </Pressable>
@@ -346,6 +392,9 @@ function OtherRow({ e }: { e: Exclude<Entry, { type: 'book' }> }) {
     </View>
   );
 }
+
+/** 「8.1 / 13.1 MB」左边那个数：和总量同一单位，不带单位 */
+const mbOf = (bytes: number, total: number) => (total < 1024 * 1024 ? `${Math.round(bytes / 1024)}` : (bytes / 1024 / 1024).toFixed(1));
 
 const mb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 
@@ -387,11 +436,21 @@ function ConfirmSheet({ s }: { s: ReceiveState }) {
               const [label, color] = kindLabel(t, item);
               return (
                 <View key={item.id} style={[styles.sheetItem, i > 0 && { borderTopWidth: 1, borderTopColor: t.hairline }]}>
-                  <ItemCover id={item.id} title={item.title} item={item} width={26} />
-                  <Text style={{ flex: 1, color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text style={{ color, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+                  <ItemCover id={item.id} title={item.title} item={item} width={34} />
+                  <View style={styles.sheetInfo}>
+                    <View style={styles.row8}>
+                      <Text style={{ flex: 1, color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                      <Tag label={label} color={color} weight="600" />
+                    </View>
+                    {item.subtitle ? (
+                      <Text style={{ color: t.fg2, fontSize: 12 }} numberOfLines={1}>
+                        {item.subtitle}
+                      </Text>
+                    ) : null}
+                    <SheetMeta item={item} />
+                  </View>
                 </View>
               );
             })}
@@ -435,7 +494,12 @@ const styles = StyleSheet.create({
   sheetHead: { alignItems: 'center', gap: 6, paddingTop: 6 },
   sheetIcon: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   sheetList: { maxHeight: 300, flexShrink: 1, borderRadius: 18, paddingVertical: 4, overflow: 'hidden' },
-  sheetItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 9 },
+  sheetItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
+  sheetInfo: { flex: 1, gap: 3 },
+  sheetMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'nowrap', overflow: 'hidden' },
+  sheetMetaText: { fontSize: 11 },
+  row3: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  row4: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   sheetButtons: { flexDirection: 'row', gap: 12 },
   reject: { flex: 1, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
 });

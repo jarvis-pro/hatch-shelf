@@ -21,14 +21,17 @@ export async function phoneState(entries: LibEntry[], key: string, hint: string 
   const onPhone = new Set(books.map((b) => b.id));
 
   const audioMissing: Record<string, number> = {};
+  const audioMissingBytes: Record<string, number> = {};
   await Promise.all(
     entries
       .filter((e) => e.audio && e.manifest)
       .map(async (e) => {
         const id = e.manifest!.id;
         const device = onPhone.has(id) ? await phone.audio(id) : null;
-        const n = missingChapters(e.audio!, device).length;
-        if (n) audioMissing[id] = n;
+        const chapters = missingChapters(e.audio!, device);
+        if (!chapters.length) return;
+        audioMissing[id] = chapters.length;
+        audioMissingBytes[id] = audioBytes(path.join(e.dir, LIBRARY_AUDIO_DIR), e.audio!, chapters);
       }),
   );
 
@@ -38,7 +41,7 @@ export async function phoneState(entries: LibEntry[], key: string, hint: string 
     const local = entry ? readNotes(entry.dir) : null;
     if (entry && (local === null || !sameNotes(local, n.markdown))) notes[n.id] = n.count;
   }
-  return { state: { status: 'online', addr: found.addr, device: found.device, books, audioMissing, notes }, phone };
+  return { state: { status: 'online', addr: found.addr, device: found.device, books, audioMissing, audioMissingBytes, notes }, phone };
 }
 
 interface Step {

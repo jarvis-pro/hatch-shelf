@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pushable, statusOf, type LibBook, type PhoneState } from './types';
+import { pushable, pushBytes, statusOf, type LibBook, type PhoneState } from './types';
 
 const book = (over: Partial<LibBook> = {}): LibBook => ({
   id: 'b1',
@@ -25,6 +25,7 @@ const online = (over: Partial<Extract<PhoneState, { status: 'online' }>> = {}): 
   device: 'iPhone',
   books: [],
   audioMissing: {},
+  audioMissingBytes: {},
   notes: {},
   ...over,
 });
@@ -56,5 +57,13 @@ describe('书的状态', () => {
     const phone = online({ books: [{ id: 'b1', title: '书', updated: null, hash: 'h1' }], audioMissing: { b1: 2 } });
     expect(statusOf(book({ audio: 3 }), phone)).toBe('synced');
     expect(pushable(book({ audio: 3 }), phone)).toBe(true);
+  });
+
+  it('推送大小：书的包加上手机缺的原声，只补原声的书不算包', () => {
+    const audio = { audioMissing: { b1: 2 }, audioMissingBytes: { b1: 5000 } };
+    expect(pushBytes(book(), online(audio))).toBe(5100);
+    const synced = online({ books: [{ id: 'b1', title: '书', updated: null, hash: 'h1' }], ...audio });
+    expect(pushBytes(book(), synced)).toBe(5000);
+    expect(pushBytes(book(), online())).toBe(100);
   });
 });

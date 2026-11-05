@@ -39,6 +39,8 @@ export type PhoneState =
       books: DeviceBook[];
       /** 有原声的书在手机上还缺几章（不在手机上的书算全部） */
       audioMissing: Record<string, number>;
+      /** 这些缺的原声章节加起来的大小（mp3 文件） */
+      audioMissingBytes: Record<string, number>;
       /** 手机上有、且和书库里 notes.md 不一样的笔记：高亮条数 */
       notes: Record<string, number>;
     }
@@ -59,6 +61,14 @@ export function statusOf(b: LibBook, phone: PhoneState | null): BookStatus {
 export function pushable(b: LibBook, phone: PhoneState | null): boolean {
   const s = statusOf(b, phone);
   return s === 'new' || s === 'update' || (s === 'synced' && phone?.status === 'online' && (phone.audioMissing[b.id] ?? 0) > 0);
+}
+
+/** 推这本书实际要传多少字节：新书和有更新的传书的包，再加上手机缺的原声；只补原声的书不再传包 */
+export function pushBytes(b: LibBook, phone: PhoneState | null): number {
+  const s = statusOf(b, phone);
+  const zip = s === 'new' || s === 'update' ? b.bytes : 0;
+  const audio = phone?.status === 'online' ? (phone.audioMissingBytes[b.id] ?? 0) : 0;
+  return zip + audio;
 }
 
 /** 一次推送的进度（服务端维护，网页轮询） */

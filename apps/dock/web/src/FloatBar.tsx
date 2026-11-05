@@ -1,5 +1,5 @@
 import { Archive, Download, LoaderCircle, Send, Smartphone, Square } from 'lucide-react';
-import type { Job, LibBook, PhoneState } from '../../shared/types';
+import { pushBytes, type Job, type LibBook, type PhoneState } from '../../shared/types';
 import { mb } from './api';
 
 /**
@@ -82,7 +82,7 @@ export function FloatBar({
 
   if (!online) return null;
 
-  const bytes = chosen.reduce((n, b) => n + (b.bytes || 0), 0);
+  const bytes = chosen.reduce((n, b) => n + pushBytes(b, phone), 0);
   const noteBooks = Object.keys(phone.notes).length;
   return (
     <Bar>

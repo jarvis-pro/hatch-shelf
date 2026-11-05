@@ -69077,7 +69077,7 @@
                       "id": "CGuyO",
                       "name": "t",
                       "fill": "#4B5060",
-                      "content": "以封面墙按分组列出书库里的每一本书，和手机比对后的状态写在封面角标上；点封面勾选，从底部浮条一次推送",
+                      "content": "以封面墙按分组列出书库里的每一本书，和手机比对后的状态写在左上角标上，书库里录好原声的书右上角标「原声」（与手机书架一致）；点封面勾选，从底部浮条一次推送",
                       "fontFamily": "Noto Sans SC",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -70380,6 +70380,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "atAzv",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "Pydj3",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "GHzHw",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -70645,6 +70694,55 @@
                                                       "icon": "check",
                                                       "library": "lucide",
                                                       "fill": "#FFFFFF"
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "JKTY7",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "BvdS5",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "xF2Nv",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
                                                     }
                                                   ]
                                                 }
@@ -70937,6 +71035,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "bo0fQ",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "qCIy8",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "uU6RK",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -71039,6 +71186,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "oQCkI",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "EGHvQ",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "f8dPIu",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -71257,6 +71453,55 @@
                                                       "fill": "#FFFFFF"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "e8NUt",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "iSjIG",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "NuHN8",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -71461,6 +71706,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "nhAiS",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "vb7q6",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "JyHGH",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -73020,6 +73314,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "I7MPa",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "Qiwzt",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "EnRAT",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -73285,6 +73628,55 @@
                                                       "icon": "check",
                                                       "library": "lucide",
                                                       "fill": "#FFFFFF"
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "QQ8Zo",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "N2JSOn",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "K30b5",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
                                                     }
                                                   ]
                                                 }
@@ -73577,6 +73969,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "IthO9",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "gvBiL",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "LjCD5",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -73679,6 +74120,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "xBtmX",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "BfC0G",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "hr3u1",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -73897,6 +74387,55 @@
                                                       "fill": "#FFFFFF"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "UONZi",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "dokwB",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "k9BH9",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -74101,6 +74640,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "DQHTZ",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "wLh2M",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "uTipd",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -81220,6 +81808,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "xOxaa",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "QLnhJ",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "mDI5n",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -81485,6 +82122,55 @@
                                                       "icon": "check",
                                                       "library": "lucide",
                                                       "fill": "#FFFFFF"
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "h2Bml",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "vXbn4",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "HW7LT",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
                                                     }
                                                   ]
                                                 }
@@ -81777,6 +82463,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "EwUf3",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "H9FAb",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "S9p5SX",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -81879,6 +82614,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "aup9U",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "Y4NfRq",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "PwXdI",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -82097,6 +82881,55 @@
                                                       "fill": "#FFFFFF"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "G6un2",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "j9vIc",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "PM5i9",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -82301,6 +83134,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "GPmU0",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "OeGvS",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "y697gY",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -83819,6 +84701,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "VrfxA",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "ZtcQk",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "HQ86F",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -84173,6 +85104,55 @@
                                                       ]
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "teT61",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "VjOAx",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "VQ9L8",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -84463,6 +85443,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "GLhX1",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "Z8zH6",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "PiKYO",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -84565,6 +85594,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "CaZK4",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "cW2Xm",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "w7PGdc",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -84785,6 +85863,55 @@
                                                       "fontWeight": "600"
                                                     }
                                                   ]
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "YCUH3",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "GsMvG",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "hSEAw",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -84989,6 +86116,55 @@
                                                   "strokeWidth": 1.5,
                                                   "justifyContent": "center",
                                                   "alignItems": "center"
+                                                },
+                                                {
+                                                  "type": "frame",
+                                                  "id": "a42Lc",
+                                                  "layoutPosition": "absolute",
+                                                  "x": 88,
+                                                  "y": 8,
+                                                  "name": "Audio Badge",
+                                                  "height": 20,
+                                                  "fill": "#2F6BFF",
+                                                  "cornerRadius": 10,
+                                                  "effect": {
+                                                    "type": "shadow",
+                                                    "shadowType": "outer",
+                                                    "color": "#2F6BFF59",
+                                                    "offset": {
+                                                      "x": 0,
+                                                      "y": 3
+                                                    },
+                                                    "blur": 4
+                                                  },
+                                                  "gap": 3,
+                                                  "padding": [
+                                                    0,
+                                                    7
+                                                  ],
+                                                  "alignItems": "center",
+                                                  "children": [
+                                                    {
+                                                      "type": "icon",
+                                                      "id": "PFuYH",
+                                                      "name": "audio-lines",
+                                                      "width": 11,
+                                                      "height": 11,
+                                                      "icon": "audio-lines",
+                                                      "library": "lucide",
+                                                      "fill": "#FFFFFF"
+                                                    },
+                                                    {
+                                                      "type": "text",
+                                                      "id": "c7cqd",
+                                                      "name": "t",
+                                                      "fill": "#FFFFFF",
+                                                      "content": "原声",
+                                                      "fontFamily": "Noto Sans SC",
+                                                      "fontSize": 10,
+                                                      "fontWeight": "600"
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },

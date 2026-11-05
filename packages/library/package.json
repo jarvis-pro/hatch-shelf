@@ -23,5 +23,9 @@
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
-  }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "description": "依赖 Node 的书库逻辑（找书、校验、打包、切段、原声）和 shelf-pack 命令行"
 }

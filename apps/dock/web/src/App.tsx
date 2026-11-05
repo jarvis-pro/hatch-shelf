@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { pushable, statusOf, type Job, type LibBook, type LibraryResponse, type PhoneState } from '../../shared/types';
-import { api, saved } from './api';
+import { api, saved, shortPath, type DockInfo } from './api';
 import { Books, type Filter } from './Books';
 import { ConnectModal } from './ConnectModal';
 import { FirstRun } from './FirstRun';
@@ -23,7 +23,7 @@ export interface Notice {
  */
 export function App() {
   const [libPath, setLibPath] = useState(() => saved.get('library'));
-  const [info, setInfo] = useState<{ name: string; scheme: string; subnets: string[] } | null>(null);
+  const [info, setInfo] = useState<DockInfo | null>(null);
   const [library, setLibrary] = useState<LibraryResponse | null>(null);
   const [libError, setLibError] = useState<string | null>(null);
   const [phone, setPhone] = useState<PhoneState | null>(null);
@@ -176,11 +176,34 @@ export function App() {
     setSelected(new Set());
   };
 
+  // 顶栏「更换」：直接弹系统的选择文件夹对话框，选中能读到书的文件夹才切过去
+  const changeLibrary = async () => {
+    if (!info?.canPick) {
+      setLibPath(null);
+      setLibrary(null);
+      return;
+    }
+    try {
+      const { path } = await api.pickFolder(libPath);
+      if (!path || path === libPath) return;
+      const r = await api.check(path);
+      if (!r.ok) setNotice({ text: r.error, tone: 'error' });
+      else if (r.books === 0) setNotice({ text: '这个文件夹里没有找到书（需要 book.yaml）', tone: 'error' });
+      else {
+        chooseLibrary(path);
+        setLibrary(null);
+        setNotice({ text: `已切换书库：${r.books} 本书`, tone: 'ok' });
+      }
+    } catch (e) {
+      setNotice({ text: (e as Error).message, tone: 'error' });
+    }
+  };
+
   if (!libPath || (libError && !library)) {
     return (
       <Shell>
         <TopBar info={info} libPath={null} phone={null} paired={!!pairKey} onChangeLibrary={null} onConnect={null} />
-        <FirstRun initial={libPath ?? ''} error={libError} onDone={chooseLibrary} />
+        <FirstRun info={info} initial={libPath ?? ''} error={libError} onDone={chooseLibrary} />
       </Shell>
     );
   }
@@ -200,13 +223,10 @@ export function App() {
     <Shell>
       <TopBar
         info={info}
-        libPath={libPath}
+        libPath={shortPath(libPath, info?.home)}
         phone={phone}
         paired={!!pairKey}
-        onChangeLibrary={() => {
-          setLibPath(null);
-          setLibrary(null);
-        }}
+        onChangeLibrary={() => void changeLibrary()}
         onConnect={() => setConnecting(true)}
       />
       <main className="main">

@@ -50,8 +50,19 @@ async function call<T>(method: 'GET' | 'POST', path: string, body?: unknown): Pr
   return data;
 }
 
+export interface DockInfo {
+  name: string;
+  scheme: string;
+  subnets: string[];
+  home: string;
+  /** 能不能弹系统的选择文件夹对话框（只有 macOS） */
+  canPick: boolean;
+}
+
 export const api = {
-  info: () => call<{ name: string; scheme: string; subnets: string[] }>('GET', '/api/info'),
+  info: () => call<DockInfo>('GET', '/api/info'),
+  /** 弹出系统的选择文件夹对话框；取消时 path 为 null */
+  pickFolder: (from: string | null) => call<{ path: string | null }>('POST', '/api/pick-folder', { from }),
   check: (lib: string) =>
     call<{ ok: true; booksDir: string; books: number; groups: number } | { ok: false; error: string }>('GET', `/api/check?lib=${encodeURIComponent(lib)}`),
   library: () => call<LibraryResponse>('GET', '/api/library'),
@@ -65,5 +76,8 @@ export const api = {
 
 export const coverUrl = (id: string, mtime: number) => `/api/cover?id=${encodeURIComponent(id)}&v=${Math.round(mtime)}`;
 export const qrUrl = (text: string) => `/api/qr?text=${encodeURIComponent(text)}`;
+
+/** 显示路径时把家目录写成 ~ */
+export const shortPath = (p: string, home: string | undefined) => (home && (p === home || p.startsWith(`${home}/`)) ? `~${p.slice(home.length)}` : p);
 
 export const mb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);

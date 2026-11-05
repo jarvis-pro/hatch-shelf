@@ -926,3 +926,49 @@ button.primary.big {
 .notice.error {
   background: var(--danger);
 }
+
+/* 书库文件夹选择：整行可点，弹出系统的选择文件夹对话框 */
+.folder-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 6px 0 14px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #1e2a5a1f;
+  color: var(--fg3);
+  text-align: left;
+}
+.folder-picker:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.folder-picker.chosen {
+  color: var(--accent);
+}
+.folder-picker > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.folder-picker .mono {
+  color: var(--fg);
+  font-size: 13px;
+}
+.folder-picker .choose {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+.folder-picker:disabled {
+  opacity: 1;
+  cursor: progress;
+}

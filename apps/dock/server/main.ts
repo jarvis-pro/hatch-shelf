@@ -1,5 +1,5 @@
 import { execFile, execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import { PAIR_KEY_RE } from '@shelf/spec';
 import QRCode from 'qrcode';
 import type { LibraryResponse } from '../shared/types';
 import { DOCK_PORT } from './config';
-import { bookDirOf, booksDirOf, scanLibrary, type LibEntry } from './library';
+import { bookDirOf, booksDirOf, expandHome, scanLibrary, type LibEntry } from './library';
 import { subnets } from './phone';
 import { backup, currentJob, phoneState, pullNotes, startPush, stopJob } from './sync';
 
@@ -30,6 +30,36 @@ function computerName() {
   return os.hostname().replace(/\.local$/, '');
 }
 const name = computerName();
+
+/** 只有 macOS 能弹系统的选择文件夹对话框；其他平台网页上改为手填路径 */
+const canPick = process.platform === 'darwin';
+
+const PICK_SCRIPT = [
+  'on run argv',
+  'try',
+  'set p to choose folder with prompt "选择书库文件夹（hatch-shelf-library 或其中的 books）" default location (POSIX file (item 1 of argv))',
+  'on error number -128',
+  'return ""',
+  'end try',
+  'return POSIX path of p',
+  'end run',
+];
+
+/**
+ * 浏览器拿不到文件夹的真实路径（showDirectoryPicker 只给句柄），所以由本机服务弹系统对话框。
+ * 用户取消时返回 null
+ */
+function pickFolder(from: string | null): Promise<string | null> {
+  const isDir = (p: string) => existsSync(p) && statSync(p).isDirectory();
+  const start = from && isDir(expandHome(from)) ? expandHome(from) : path.join(os.homedir(), 'Documents');
+  return new Promise((resolve, reject) => {
+    execFile('osascript', [...PICK_SCRIPT.flatMap((l) => ['-e', l]), start], { timeout: 10 * 60_000 }, (err, stdout) => {
+      if (err) return reject(new Error(`打不开选择文件夹的对话框：${err.message}`));
+      const picked = stdout.trim().replace(/\/$/, '');
+      resolve(picked || null);
+    });
+  });
+}
 
 /** 只认本机地址：防止别的网页通过 DNS 重绑定借浏览器调用这里的接口 */
 const allowedHosts = new Set([DOCK_PORT, DOCK_PORT + 1].flatMap((p) => [`127.0.0.1:${p}`, `localhost:${p}`]));
@@ -90,7 +120,7 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
   const route = `${req.method} ${url.pathname}`;
   switch (route) {
     case 'GET /api/info':
-      return json(res, 200, { name, scheme, subnets: subnets() });
+      return json(res, 200, { name, scheme, subnets: subnets(), home: os.homedir(), canPick });
 
     case 'GET /api/library': {
       const { booksDir, entries } = library(req);
@@ -137,6 +167,13 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
 
     case 'POST /api/backup':
       return json(res, 200, await backup(pairKey(req), phoneAddr(req)));
+
+    case 'POST /api/pick-folder': {
+      if (!canPick) throw new HttpError(501, '这个系统上不能弹出选择文件夹的对话框，请手动填写路径');
+      const body = (await readBody(req)) as { from?: unknown };
+      const picked = await pickFolder(typeof body.from === 'string' ? body.from : null);
+      return json(res, 200, { path: picked });
+    }
 
     case 'GET /api/qr': {
       const text = url.searchParams.get('text') ?? '';

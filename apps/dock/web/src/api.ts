@@ -1,7 +1,7 @@
 import type { Job, LibraryResponse, PhoneState } from '../../shared/types';
 
 /** 浏览器里记住的东西：书库路径、配对密钥、手机地址都只在 localStorage，服务端不落盘 */
-const KEYS = { library: 'dock.library', pairKey: 'dock.pairKey', phone: 'dock.phone', view: 'dock.view' } as const;
+const KEYS = { library: 'dock.library', pairKey: 'dock.pairKey', phone: 'dock.phone', phoneName: 'dock.phoneName', view: 'dock.view' } as const;
 
 export const saved = {
   get(k: keyof typeof KEYS): string | null {
@@ -43,8 +43,8 @@ function headers(): Record<string, string> {
   return h;
 }
 
-async function call<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
-  const res = await fetch(path, { method, headers: headers(), body: body === undefined ? undefined : JSON.stringify(body) });
+async function call<T>(method: 'GET' | 'POST', path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(path, { method, headers: headers(), body: body === undefined ? undefined : JSON.stringify(body), signal });
   const data = (await res.json().catch(() => ({}))) as T & { error?: string };
   if (!res.ok) throw new Error(data.error ?? `请求失败（${res.status}）`);
   return data;
@@ -67,9 +67,13 @@ export const api = {
     call<{ ok: true; booksDir: string; books: number; groups: number } | { ok: false; error: string }>('GET', `/api/check?lib=${encodeURIComponent(lib)}`),
   library: () => call<LibraryResponse>('GET', '/api/library'),
   phone: () => call<PhoneState>('GET', '/api/phone'),
+  /** 挂着等手机结束接收（最长约 25 秒），见 README 第 5.2 节 */
+  watch: (signal: AbortSignal) => call<{ receiving: boolean }>('GET', '/api/phone/watch', undefined, signal),
   push: (ids: string[]) => call<Job>('POST', '/api/push', { ids }),
   job: () => call<Job | null>('GET', '/api/job'),
   stop: () => call<unknown>('POST', '/api/job/stop', {}),
+  /** 断开连接：手机结束接收模式 */
+  disconnect: () => call<unknown>('POST', '/api/disconnect', {}),
   notes: () => call<{ written: number; count: number; total: number }>('POST', '/api/notes', {}),
   backup: () => call<{ exportedAt: number; progress: unknown[]; highlights: unknown[] }>('POST', '/api/backup', {}),
 };

@@ -6,7 +6,7 @@ import { getBook, type BookRow } from '@/db/queries';
 import type { ImportResult } from '@/import/pipeline';
 import { notifyLibraryChanged } from '@/library/events';
 import { startLanServer, type LanServer, type LanSession, type ReceivingUpload } from '@/server/lan-server';
-import { loadComputers, saveComputer, type Computer } from './computers';
+import { loadComputers, removeComputer, saveComputer, type Computer } from './computers';
 
 /**
  * 接收模式（README 第 5.2 节）：从书架「+」或扫码进入，开着局域网服务等 Dock 推送。
@@ -149,6 +149,12 @@ function listen() {
         });
       }),
     onSessionLog: (log) => set({ entries: [...state.entries, { type: 'log', log }] }),
+    // Dock 上点了「断开连接」：同一时间只连一台手机，断开就是解除配对，下次要重新扫码
+    onBye: (key) => {
+      computers = computers.filter((c) => c.key !== key);
+      void removeComputer(key);
+      stopReceiving();
+    },
     onSessionEnd: () => {
       if (state.phase !== 'receiving') return;
       set({ phase: 'done', countdown: DONE_SECONDS, current: null });

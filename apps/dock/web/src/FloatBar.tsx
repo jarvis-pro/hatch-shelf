@@ -1,10 +1,10 @@
-import { Archive, Check, CircleAlert, Download, LoaderCircle, Send, Smartphone, Square, X } from 'lucide-react';
+import { Archive, Download, LoaderCircle, Send, Smartphone, Square } from 'lucide-react';
 import type { Job, LibBook, PhoneState } from '../../shared/types';
 import { mb } from './api';
 
 /**
  * 底部深色浮条：平时放「拉取笔记」「备份阅读数据」和推送；
- * 推送请求发出后等手机确认，确认后显示总进度和「停止」，结束后给出汇总。
+ * 推送请求发出后等手机确认，确认后显示总进度和「停止」。结束后的结果用 Toast 显示，浮条直接回到平时的样子。
  */
 export function FloatBar({
   phone,
@@ -13,7 +13,6 @@ export function FloatBar({
   busy,
   onPush,
   onStop,
-  onDismiss,
   onNotes,
   onBackup,
 }: {
@@ -23,7 +22,6 @@ export function FloatBar({
   busy: 'notes' | 'backup' | null;
   onPush(): void;
   onStop(): void;
-  onDismiss(): void;
   onNotes(): void;
   onBackup(): void;
 }) {
@@ -77,28 +75,6 @@ export function FloatBar({
         <button className="stop" onClick={onStop}>
           <Square size={12} fill="currentColor" />
           停止
-        </button>
-      </Bar>
-    );
-  }
-
-  if (job) {
-    const done = job.items.filter((i) => i.state === 'done').length;
-    const failed = job.items.filter((i) => i.state === 'failed').length;
-    const [icon, text] =
-      job.state === 'done'
-        ? [<Check key="i" size={17} />, failed ? `推送完成：${done} 本成功，${failed} 本失败` : `推送完成 · ${done} 本已在手机上`]
-        : job.state === 'rejected'
-          ? [<X key="i" size={17} />, '手机上拒绝了这次推送']
-          : job.state === 'stopped'
-            ? [<Square key="i" size={15} />, `已停止：推完了 ${done} 本`]
-            : [<CircleAlert key="i" size={17} />, `推送中断：${job.error ?? '未知错误'}`];
-    return (
-      <Bar>
-        <span className={`ic ${job.state === 'done' && !failed ? 'ok' : 'bad'}`}>{icon}</span>
-        <b>{text}</b>
-        <button className="ghost" onClick={onDismiss}>
-          知道了
         </button>
       </Bar>
     );

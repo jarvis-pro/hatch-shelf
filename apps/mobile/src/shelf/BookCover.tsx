@@ -21,6 +21,8 @@ type CoverBook = Pick<BookRow, 'id' | 'title' | 'subtitle' | 'category'>;
 
 interface Props {
   book: CoverBook;
+  /** 直接给出封面图（如推送请求里的缩略图）；不给时读书目录下的 cover.png */
+  uri?: string;
   width: number;
   /** 圆角，默认按宽度取 */
   radius?: number;
@@ -37,11 +39,12 @@ interface Props {
 export const COVER_RATIO = 428 / 300;
 
 /** 有 cover.png 用图片，否则按「书架文库」版式生成文字封面 */
-export function BookCover({ book, width, radius, elevation = 1, style, children, ref }: Props) {
+export function BookCover({ book, uri, width, radius, elevation = 1, style, children, ref }: Props) {
   const t = useTheme();
   // 在 PressScale 里时，按下会让阴影收紧并上移，像封面被按得贴近了书架
   const pressed = useContext(PressContext);
-  const cover = useCoverUri(book.id);
+  const local = useCoverUri(book.id);
+  const cover = uri ?? local;
   const height = Math.round(width * COVER_RATIO);
   const r = radius ?? (width >= 150 ? 14 : width >= 100 ? 12 : width >= 50 ? 8 : 4);
   const blur = elevation === 2 ? 22 : 12;

@@ -196,6 +196,140 @@ b {
 .dot.warn {
   background: var(--danger);
 }
+/* 顶栏的手机菜单：连上时点手机胶囊弹出 */
+.phone-anchor {
+  position: relative;
+}
+.pill.phone.open {
+  border-color: #2f6bff59;
+}
+.phone-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 15;
+  width: 280px;
+  padding: 6px;
+  border-radius: 18px;
+  background: #fffffff2;
+  border: 1px solid var(--glass-stroke);
+  box-shadow: 0 18px 40px #1e2a5a24;
+  backdrop-filter: blur(20px);
+}
+.pm-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+.pm-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex: none;
+}
+.pm-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.pm-text b {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pm-text > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--fg3);
+  font-size: 12px;
+}
+.pm-text .dot {
+  width: 6px;
+  height: 6px;
+  box-shadow: none;
+}
+.pm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+}
+.pm-item:hover:not(:disabled) {
+  background: var(--fill);
+}
+.pm-item.danger {
+  color: var(--danger);
+}
+.pm-item:disabled {
+  opacity: 0.6;
+}
+.pm-head + .pm-item {
+  margin-top: 4px;
+}
+.phone-menu.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+}
+.pm-icon.danger {
+  background: #e5484d14;
+  color: var(--danger);
+  margin-bottom: 4px;
+}
+.pm-title {
+  font-size: 14px;
+}
+.pm-desc {
+  margin: 0;
+  color: var(--fg3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pm-buttons {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+}
+.pm-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: 17px;
+  background: #1e2a5a0d;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 600;
+}
+.pm-btn.danger {
+  background: var(--danger);
+  color: #fff;
+}
+.pm-btn:disabled {
+  opacity: 0.6;
+}
+.pm-foot {
+  margin: 4px 10px 6px;
+  color: var(--fg3);
+  font-size: 11px;
+  line-height: 1.5;
+}
 @keyframes breathe {
   50% {
     opacity: 0.35;
@@ -1018,20 +1152,80 @@ button.primary.big {
   font-size: 12px;
 }
 
-.notice {
+.toast {
   position: fixed;
   left: 50%;
-  top: 24px;
-  transform: translateX(-50%);
+  top: 72px;
   z-index: 20;
-  padding: 10px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 360px;
+  max-width: calc(100vw - 48px);
+  padding: 12px 16px 12px 14px;
   border-radius: 12px;
-  background: #111318;
-  color: #fff;
-  box-shadow: 0 10px 28px #11131840;
+  border-left: 4px solid var(--ok);
+  background: #fff;
+  box-shadow: 0 6px 20px #1e2a5a1f;
+  color: var(--fg);
+  font-size: 13px;
+  transform: translateX(-50%);
+  animation: toast-in 220ms cubic-bezier(0.215, 0.61, 0.355, 1);
 }
-.notice.error {
-  background: var(--danger);
+.toast.error {
+  border-left-color: var(--danger);
+}
+.toast.info {
+  border-left-color: var(--accent);
+}
+.toast.leaving {
+  opacity: 0;
+  transform: translate(-50%, -12px);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+/* 图标和第一行文字（13px、行高 19）对齐 */
+.toast-ic {
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: 19px;
+  color: var(--ok);
+}
+.toast.error .toast-ic {
+  color: var(--danger);
+}
+.toast.info .toast-ic {
+  color: var(--accent);
+}
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.toast-text b {
+  font-weight: 600;
+  line-height: 19px;
+}
+.toast-text span {
+  color: var(--fg2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast.leaving {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* 书库文件夹选择：整行可点，弹出系统的选择文件夹对话框 */

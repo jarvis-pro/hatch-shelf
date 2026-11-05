@@ -6,10 +6,12 @@ import {
   MAX_PACKAGE_BYTES,
   PROTOCOL_VERSION,
   SLUG_RE,
+  WATCH_MS,
   type DeviceBook,
   type SessionLog,
   type SessionRequest,
 } from '@shelf/spec';
+import { requireOptionalNativeModule } from 'expo';
 import { Directory, File, Paths } from 'expo-file-system';
 import { strToU8 } from 'fflate';
 import TcpSocket from 'react-native-tcp-socket';
@@ -46,6 +48,8 @@ export interface LanServerEvents {
   onSessionRequest(key: string, request: SessionRequest, cancelled: Promise<void>): Promise<boolean>;
   onSessionLog(log: SessionLog): void;
   onSessionEnd(): void;
+  /** Dock 上点了「断开连接」：删掉这台电脑的配对，结束接收模式 */
+  onBye(key: string): void;
   /**
    * 上传中的进度（ratio 0–1，到 1 后进入导入）和上传的文件名（收到文件字段的头部后才有）；
    * 同一个连接用同一个 key，结束时传 null
@@ -69,6 +73,18 @@ const MAX_BODY_BYTES = MAX_PACKAGE_BYTES + 1024 * 1024;
 
 const uploadDir = new Directory(Paths.cache, 'lan-upload');
 
+/**
+ * 告诉 Dock 的手机名字。iOS 16 起读用户起的名字（「某某的 iPhone」）要 Apple 审批的权限，
+ * 拿不到时 deviceName 只是「iPhone」，这时用机型名（如「iPhone 16 Pro」）
+ */
+function deviceName() {
+  // 直接读 expo-device 的原生常量：还没按新依赖重新构建的 dev client 里没有这个模块，回退成「iPhone」而不是启动就报错
+  const device = requireOptionalNativeModule<{ deviceName?: string | null; modelName?: string | null }>('ExpoDevice');
+  const name = device?.deviceName?.trim();
+  if (name && !/^(iPhone|iPad|iPod touch)$/i.test(name)) return name;
+  return device?.modelName ?? name ?? 'iPhone';
+}
+
 const AUTH_ERROR = jsonResponse(401, { ok: false, error: '这台电脑还没有和手机配对，请重新扫码' });
 
 /**
@@ -77,6 +93,7 @@ const AUTH_ERROR = jsonResponse(401, { ok: false, error: '这台电脑还没有�
  *
  * GET  /ping             认出书巢（不需要密钥）
  * GET  /hello            校验密钥，返回手机名字
+ * GET  /watch            挂着直到手机结束接收（或 WATCH_MS 后），让 Dock 即时知道
  * GET  /books            手机上的书和内容指纹
  * GET  /audio/<id>       这本书的原声清单
  * GET  /notes            每本有高亮的书导出的笔记 Markdown
@@ -84,10 +101,13 @@ const AUTH_ERROR = jsonResponse(401, { ok: false, error: '这台电脑还没有�
  * POST /session/request  请求推送，挂起直到手机确认或拒绝
  * POST /session/log      记一行（拉了笔记、做了备份）
  * POST /session/end      这次推送结束
+ * POST /bye              Dock 断开连接：手机删掉这台电脑的配对，结束接收模式
  * POST /upload           multipart/form-data，字段 file
  */
 export function startLanServer(events: LanServerEvents): LanServer {
   let stopped = false;
+  let onStopped = () => {};
+  const stoppedSignal = new Promise<void>((resolve) => (onStopped = resolve));
   // 导入串行执行，避免两个上传同时写同一本书
   let queue: Promise<unknown> = Promise.resolve();
 
@@ -98,10 +118,19 @@ export function startLanServer(events: LanServerEvents): LanServer {
 
     const key = bearerKey(req.headers.authorization);
     if (!key || !events.isPaired(key)) return AUTH_ERROR;
+
+    // 不算「有动作」：Dock 一直挂着它，算的话空闲 5 分钟自动结束就永远不会发生
+    if (req.method === 'GET' && req.path === '/watch') {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([stoppedSignal, closed, new Promise<void>((resolve) => (timer = setTimeout(resolve, WATCH_MS)))]);
+      clearTimeout(timer);
+      return jsonResponse(200, { ok: true, receiving: !stopped });
+    }
+
     events.onActivity(key);
 
     if (req.method === 'GET' && req.path === '/hello') {
-      return jsonResponse(200, { ok: true, device: 'iPhone' });
+      return jsonResponse(200, { ok: true, device: deviceName() });
     }
 
     if (req.method === 'GET' && req.path.startsWith('/audio/')) {
@@ -154,6 +183,13 @@ export function startLanServer(events: LanServerEvents): LanServer {
         events.session.set(null);
         events.onSessionEnd();
       }
+      return jsonResponse(200, { ok: true });
+    }
+
+    if (req.method === 'POST' && req.path === '/bye') {
+      if (session?.key === key) events.session.set(null);
+      // 先回复再结束，免得 Dock 等不到响应
+      setTimeout(() => events.onBye(key), 0);
       return jsonResponse(200, { ok: true });
     }
 
@@ -239,6 +275,8 @@ export function startLanServer(events: LanServerEvents): LanServer {
     stop() {
       if (stopped) return;
       stopped = true;
+      // 先让挂着的 /watch 回复「结束了」，再关监听（已建立的连接不受 close 影响）
+      onStopped();
       server.close();
     },
   };

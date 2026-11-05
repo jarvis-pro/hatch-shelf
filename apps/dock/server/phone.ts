@@ -3,6 +3,7 @@ import os from 'node:os';
 import {
   LAN_PORT,
   PROTOCOL_VERSION,
+  WATCH_MS,
   type AudioManifest,
   type DeviceBook,
   type PingResponse,
@@ -154,6 +155,25 @@ export class Phone {
   }
   log = (log: SessionLog) => this.post('/session/log', log).catch(() => undefined);
   end = () => this.post('/session/end', {}).catch(() => undefined);
+  /**
+   * 挂着等手机结束接收：手机结束时立即返回 false，WATCH_MS 内没变化返回 true。
+   * 连接断了（手机被挂起、网络掉了）也当作结束；signal 是网页那头断开时取消
+   */
+  async watch(signal: AbortSignal): Promise<boolean> {
+    try {
+      const res = await fetch(this.url('/watch'), {
+        headers: { Authorization: `Bearer ${this.key}` },
+        signal: AbortSignal.any([signal, AbortSignal.timeout(WATCH_MS + 10_000)]),
+      });
+      const body = (await res.json()) as { ok?: boolean; receiving?: boolean };
+      return body.ok === true && body.receiving === true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** 断开连接：手机结束接收模式。手机已经关了接收也算断开 */
+  bye = () => this.post('/bye', {}).catch(() => undefined);
 
   /** 上传一个包；onProgress 报告已发出的比例 */
   async upload(fileName: string, data: Uint8Array, onProgress: (ratio: number) => void, signal: AbortSignal) {

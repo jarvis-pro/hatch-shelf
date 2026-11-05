@@ -8,7 +8,7 @@ import QRCode from 'qrcode';
 import type { LibraryResponse } from '../shared/types';
 import { DOCK_PORT } from './config';
 import { bookDirOf, booksDirOf, expandHome, scanLibrary, type LibEntry } from './library';
-import { subnets } from './phone';
+import { Phone, subnets } from './phone';
 import { backup, currentJob, phoneState, pullNotes, startPush, stopJob } from './sync';
 
 /**
@@ -161,6 +161,22 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
     case 'POST /api/job/stop':
       stopJob();
       return json(res, 200, { ok: true });
+
+    case 'GET /api/phone/watch': {
+      // 网页关掉或切走时 res 先关闭，跟着取消发往手机的请求
+      const ac = new AbortController();
+      res.on('close', () => ac.abort());
+      const receiving = await new Phone(phoneAddr(req), pairKey(req)).watch(ac.signal);
+      if (ac.signal.aborted) return;
+      return json(res, 200, { receiving });
+    }
+
+    case 'POST /api/disconnect': {
+      // 正在推送时先停下，再让手机结束接收
+      stopJob();
+      await new Phone(phoneAddr(req), pairKey(req)).bye();
+      return json(res, 200, { ok: true });
+    }
 
     case 'POST /api/notes':
       return json(res, 200, await pullNotes(library(req).entries, pairKey(req), phoneAddr(req)));

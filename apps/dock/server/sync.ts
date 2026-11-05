@@ -5,6 +5,7 @@ import { audioPackageName, LIBRARY_AUDIO_DIR, MAX_PACKAGE_BYTES, sameChapterAudi
 import type { Job, JobItem, PhoneState } from '../shared/types';
 import { readNotes, type LibEntry } from './library';
 import { findPhone, Phone, PhoneError } from './phone';
+import { coverThumb } from './thumb';
 
 /** 本地原声里手机上还没有（或不一样）的章节 */
 function missingChapters(local: AudioManifest, device: AudioManifest | null): string[] {
@@ -45,6 +46,8 @@ interface Step {
   /** 先推书（新书 / 有更新），再按章推原声 */
   zip: Uint8Array | null;
   audio: { dir: string; manifest: AudioManifest; chapters: string[] } | null;
+  /** 新书的封面缩略图，只放进推送请求，不放进网页轮询的进度 */
+  cover?: string;
 }
 
 const audioBytes = (dir: string, m: AudioManifest, chapters: string[]) =>
@@ -73,10 +76,13 @@ async function plan(phone: Phone, entries: LibEntry[], ids: string[]): Promise<S
     const detail = [kind === 'new' ? `${e.manifest.chapters.length} 章` : kind === 'update' ? '内容有更新' : '', chapters.length ? `补 ${chapters.length} 章原声` : '']
       .filter(Boolean)
       .join(' · ');
+    // 手机上还没有的书带上分类和封面缩略图，确认框里才画得出封面
+    const look = kind === 'new' ? { subtitle: e.manifest.subtitle, category: e.manifest.category } : {};
     steps.push({
-      item: { id, title: e.manifest.title, kind, detail, state: 'queued', bytes: (zip?.length ?? 0) + aBytes, sent: 0 },
+      item: { id, title: e.manifest.title, kind, detail, audioChapters: chapters.length, ...look, state: 'queued', bytes: (zip?.length ?? 0) + aBytes, sent: 0 },
       zip,
       audio: e.audio && chapters.length ? { dir: audioDir, manifest: e.audio, chapters } : null,
+      cover: kind === 'new' ? await coverThumb(e.dir) : undefined,
     });
   }
   return steps;
@@ -104,7 +110,7 @@ export async function startPush(entries: LibEntry[], key: string, addr: string, 
 }
 
 async function run(phone: Phone, steps: Step[], j: Job, signal: AbortSignal) {
-  const items = steps.map(({ item: { id, title, kind, detail } }) => ({ id, title, kind, detail }));
+  const items = steps.map(({ item: { id, title, kind, detail, audioChapters, subtitle, category }, cover }) => ({ id, title, kind, detail, audioChapters, subtitle, category, cover }));
   try {
     const accepted = await phone.request({ items, bytes: steps.reduce((n, s) => n + s.item.bytes, 0) }, signal);
     if (!accepted) {

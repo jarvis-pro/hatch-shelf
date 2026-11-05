@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bearerKey, isSessionLog, isSessionRequest, pairUrl, parsePairing } from './transfer';
+import { bearerKey, COVER_THUMB_MAX, isSessionLog, isSessionRequest, pairUrl, parsePairing } from './transfer';
 
 const KEY = 'Zk3n9QwErTyUiOpAsDfGhJ';
 
@@ -40,6 +40,11 @@ describe('请求校验', () => {
     expect(isSessionRequest({ items: [item], bytes: 10 })).toBe(true);
     expect(isSessionRequest({ items: [], bytes: 0 })).toBe(false);
     expect(isSessionRequest({ items: [{ ...item, kind: 'x' }], bytes: 0 })).toBe(false);
+    expect(isSessionRequest({ items: [{ ...item, category: '技术/前端', cover: 'data:image/jpeg;base64,/9j/4AAQ' }], bytes: 10 })).toBe(true);
+    // 缩略图只收 data URI，不能是外链，也不能太大
+    expect(isSessionRequest({ items: [{ ...item, cover: 'https://example.com/a.png' }], bytes: 10 })).toBe(false);
+    expect(isSessionRequest({ items: [{ ...item, cover: `data:image/jpeg;base64,${'A'.repeat(COVER_THUMB_MAX)}` }], bytes: 10 })).toBe(false);
+    expect(isSessionRequest({ items: [{ ...item, audioChapters: '4' }], bytes: 10 })).toBe(false);
     expect(isSessionLog({ kind: 'notes', detail: '11 条' })).toBe(true);
     expect(isSessionLog({ kind: 'other', detail: '' })).toBe(false);
   });

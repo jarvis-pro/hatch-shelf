@@ -1,11 +1,11 @@
 import type { SessionItem } from '@shelf/spec';
 import { router } from 'expo-router';
-import { BookDown, ChevronDown, ChevronRight, CircleAlert, DatabaseBackup, Highlighter, Laptop, Power, RotateCcw, Timer, type LucideIcon } from 'lucide-react-native';
+import { BookDown, ChevronDown, ChevronRight, CircleAlert, DatabaseBackup, Highlighter, Laptop, Power, RotateCcw, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, type BookRow } from '@/db/queries';
-import { answerRequest, IDLE_MS, progressOf, startReceiving, stopReceiving, useReceive, type Entry, type ReceiveState } from '@/receive/store';
+import { answerRequest, progressOf, startReceiving, stopReceiving, useReceive, type Entry, type ReceiveState } from '@/receive/store';
 import { openBook } from '@/shelf/actions';
 import { BookCover, COVER_RATIO } from '@/shelf/BookCover';
 import { categoryLabel } from '@/shelf/categories';
@@ -38,7 +38,7 @@ export default function ReceiveScreen() {
   const books = s.entries.filter((e) => e.type === 'book');
   const status =
     s.phase === 'confirm'
-      ? '电脑请求推送'
+      ? '已连接 · 收到推送请求'
       : s.phase === 'receiving'
         ? `正在接收 · 第 ${index} / ${total} 本`
         : s.phase === 'done'
@@ -53,7 +53,7 @@ export default function ReceiveScreen() {
     <View style={styles.flex}>
       <Backdrop />
       {/* 接收页是卡片式弹出，顶部不在状态栏下面，不用让出安全区 */}
-      <View style={[styles.content, { paddingTop: 16, paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.content, { paddingTop: 16, paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.header}>
           <GlassButton icon={ChevronDown} label="收起" onPress={() => router.back()} />
           <Text style={{ color: t.fg, fontSize: 17, fontWeight: '700' }}>从电脑接收</Text>
@@ -71,7 +71,7 @@ export default function ReceiveScreen() {
           )}
         </View>
 
-        <Hero status={status} height={s.phase === 'done' ? 96 : s.phase === 'receiving' ? 150 : 220} live={!off} />
+        <Hero status={status} live={!off} />
 
         <Glass radius={24} style={styles.card}>
           <View style={styles.cardHead}>
@@ -101,33 +101,17 @@ export default function ReceiveScreen() {
           )}
         </Glass>
 
-        {s.phase === 'done' ? (
-          <View style={{ gap: 10 }}>
-            <PrimaryButton label="完成" onPress={stopReceiving} />
-            <Text style={[styles.foot, { color: t.fg3 }]}>{s.countdown} 秒后自动结束接收</Text>
-          </View>
-        ) : (
-          <View style={[styles.row6, { justifyContent: 'center' }]}>
-            <Timer size={12} color={t.fg3} />
-            <Text style={[styles.foot, { color: t.fg3 }]}>屏幕保持常亮 · {IDLE_MS / 60000} 分钟没有动作会自动结束</Text>
-          </View>
-        )}
+        {s.phase === 'done' && <PrimaryButton label="完成" onPress={stopReceiving} />}
       </View>
       <ConfirmSheet s={s} />
     </View>
   );
 }
 
-/** 头图：接收中逐步收窄，给列表让出位置 */
-function Hero({ status, height, live }: { status: string; height: number; live: boolean }) {
+function Hero({ status, live }: { status: string; live: boolean }) {
   const t = useTheme();
-  const h = useState(() => new Animated.Value(height))[0];
-  useEffect(() => {
-    if (isReduceMotion()) return h.setValue(height);
-    Animated.spring(h, { toValue: height, damping: 20, stiffness: 180, useNativeDriver: false }).start();
-  }, [h, height]);
   return (
-    <Animated.View style={[styles.hero, { height, borderColor: t.glassStroke }]}>
+    <View style={[styles.hero, { borderColor: t.glassStroke }]}>
       <TransferArt live={live} />
       <Glass radius={17} shadow={false} strong style={styles.status}>
         <CrossFade value={status} style={styles.row6}>
@@ -135,7 +119,7 @@ function Hero({ status, height, live }: { status: string; height: number; live: 
           <Text style={{ color: live ? t.successText : t.fg2, fontSize: 12, fontWeight: '600' }}>{status}</Text>
         </CrossFade>
       </Glass>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -194,8 +178,11 @@ function Summary({ s }: { s: ReceiveState }) {
 
 const ITEM_COVER = 44;
 
-/** 书的封面：手机上还没有这本书时画一个带书名首字的占位 */
-function ItemCover({ id, title, width = ITEM_COVER }: { id: string; title: string; width?: number }) {
+/**
+ * 书的封面：手机上已有这本书时用本地封面；还没有时用推送请求带来的缩略图，
+ * 没有缩略图（书库里没画封面）时按分类画文字封面，和书架上一致
+ */
+function ItemCover({ id, title, item, width = ITEM_COVER }: { id: string; title: string; item?: SessionItem | null; width?: number }) {
   const t = useTheme();
   const [book, setBook] = useState<BookRow | null | undefined>(undefined);
   useEffect(() => {
@@ -205,12 +192,12 @@ function ItemCover({ id, title, width = ITEM_COVER }: { id: string; title: strin
       alive = false;
     };
   }, [id]);
-  if (book) return <BookCover book={book} width={width} radius={6} />;
-  return (
-    <View style={[styles.placeholder, { width, height: Math.round(width * COVER_RATIO), backgroundColor: t.accentSoft }]} accessibilityLabel={title}>
-      <BookDown size={Math.round(width / 2.2)} color={t.accent} />
-    </View>
-  );
+  const radius = width >= 40 ? 6 : 4;
+  if (book) return <BookCover book={book} width={width} radius={radius} />;
+  // 还在查本地有没有这本书：先占住位置，免得封面闪一下
+  if (book === undefined) return <View style={[styles.placeholder, { width, height: Math.round(width * COVER_RATIO), borderRadius: radius, backgroundColor: t.fill }]} />;
+  const look = { id, title, subtitle: item?.subtitle ?? null, category: item?.category ?? null };
+  return <BookCover book={look} uri={item?.cover} width={width} radius={radius} />;
 }
 
 function IconTile({ icon: Icon, color, tint }: { icon: LucideIcon; color: string; tint: string }) {
@@ -229,29 +216,46 @@ function Tag({ label, color }: { label: string; color: string }) {
   );
 }
 
+/** 接收中那一行的标签 */
+const kindTag = (t: Theme, i: SessionItem): [string, string] =>
+  i.kind === 'new' ? ['新书', t.accent] : i.kind === 'update' ? ['更新', t.success] : ['原声', t.accent];
+
+/** 确认框右侧的说明：新书 / 有更新 / 补 N 章原声 */
 const kindLabel = (t: Theme, i: SessionItem): [string, string] =>
-  i.kind === 'new' ? ['新书', t.accent] : i.kind === 'update' ? ['更新', t.teal] : ['原声', t.highlight];
+  i.kind === 'new' ? ['新书', t.accent] : i.kind === 'update' ? ['有更新', t.updated] : [i.audioChapters ? `补 ${i.audioChapters} 章原声` : '补原声', t.highlight];
+
+/** 原声按章一个包传：已经收了 done 章，正在传下一章 */
+const audioStep = (item: SessionItem | null | undefined, done: number) =>
+  item?.audioChapters ? `第 ${Math.min(done + 1, item.audioChapters)} / ${item.audioChapters} 章` : '原声';
+
+function Progress({ ratio }: { ratio: number }) {
+  const t = useTheme();
+  return (
+    <View style={styles.row8}>
+      <ProgressBar value={ratio} track={`${t.accent}1F`} fill={t.accent} style={styles.flex} />
+      <Text style={{ color: t.fg3, fontSize: 11, fontVariant: ['tabular-nums'] }}>{Math.round(ratio * 100)}%</Text>
+    </View>
+  );
+}
 
 function Uploading({ current }: { current: NonNullable<ReceiveState['current']> }) {
   const t = useTheme();
   const item = current.item;
   const audio = /\.audio\./.test(current.name ?? '');
   const title = item?.title ?? current.name ?? '正在接收…';
+  const detail = current.ratio >= 1 ? '正在放上书架' : audio ? audioStep(item, 0) : item?.detail;
   return (
     <View style={[styles.item, { borderTopColor: t.hairline }]}>
-      {item ? <ItemCover id={item.id} title={item.title} /> : <IconTile icon={BookDown} color={t.accent} tint={t.accentSoft} />}
+      {item ? <ItemCover id={item.id} title={item.title} item={item} /> : <IconTile icon={BookDown} color={t.accent} tint={t.accentSoft} />}
       <View style={styles.itemText}>
         <Text style={{ color: t.fg, fontSize: 15, fontWeight: '600' }} numberOfLines={1}>
           {title}
         </Text>
         <View style={styles.row6}>
-          {item && <Tag label={audio ? '原声' : kindLabel(t, item)[0]} color={audio ? t.highlight : kindLabel(t, item)[1]} />}
-          <Text style={{ color: t.fg3, fontSize: 12 }}>{current.ratio >= 1 ? '正在放上书架' : item?.detail}</Text>
+          {item && <Tag label={audio ? '原声' : kindTag(t, item)[0]} color={audio ? t.accent : kindTag(t, item)[1]} />}
+          <Text style={{ color: t.fg3, fontSize: 12 }}>{detail}</Text>
         </View>
-        <View style={styles.row8}>
-          <ProgressBar value={current.ratio} track={t.track} fill={t.accent} style={styles.flex} />
-          <Text style={{ color: t.fg3, fontSize: 11, fontVariant: ['tabular-nums'] }}>{Math.round(current.ratio * 100)}%</Text>
-        </View>
+        <Progress ratio={current.ratio} />
       </View>
     </View>
   );
@@ -288,15 +292,17 @@ function EntryRow({ e, plan, current }: { e: Entry; plan: SessionItem[]; current
   const { result, book } = e;
   const item = plan.find((i) => i.id === e.bookId);
   const onlyAudio = result.status === 'audio';
-  const [label, color] = onlyAudio ? ['原声', t.highlight] : result.status === 'updated' ? ['已更新', t.teal] : ['新书', t.accent];
-  const detail = onlyAudio
+  const [label, color] = current || onlyAudio ? ['原声', t.accent] : result.status === 'updated' ? ['已更新', t.success] : ['新书', t.accent];
+  const detail = current
+    ? audioStep(item, e.audioChapters)
+    : onlyAudio
     ? `补齐 ${e.audioChapters} 章原声`
     : result.status === 'updated'
       ? [item?.detail, '进度保留'].filter(Boolean).join(' · ')
       : [book && `${book.chapterCount} 章`, book && categoryLabel(book.category)].filter(Boolean).join(' · ');
   return (
     <Pressable onPress={() => openBook(e.bookId)} style={[styles.item, { borderTopColor: t.hairline }]}>
-      <ItemCover id={e.bookId} title={result.title} />
+      <ItemCover id={e.bookId} title={result.title} item={item} />
       <View style={styles.itemText}>
         <Text style={{ color: t.fg, fontSize: 15, fontWeight: '600' }} numberOfLines={1}>
           {result.title}
@@ -305,7 +311,7 @@ function EntryRow({ e, plan, current }: { e: Entry; plan: SessionItem[]; current
           <Tag label={label} color={color} />
           <Text style={{ color: t.fg3, fontSize: 12, flexShrink: 1 }} numberOfLines={1}>
             {detail}
-            {!onlyAudio && e.audioChapters > 0 ? ` · ${e.audioChapters} 章原声` : ''}
+            {!current && !onlyAudio && e.audioChapters > 0 ? ` · ${e.audioChapters} 章原声` : ''}
           </Text>
         </View>
         {result.warnings.map((w) => (
@@ -313,14 +319,9 @@ function EntryRow({ e, plan, current }: { e: Entry; plan: SessionItem[]; current
             {w}
           </Text>
         ))}
-        {current && (
-          <View style={styles.row8}>
-            <ProgressBar value={current.ratio} track={t.track} fill={t.highlight} style={styles.flex} />
-            <Text style={{ color: t.fg3, fontSize: 11 }}>正在接收原声</Text>
-          </View>
-        )}
+        {current && <Progress ratio={current.ratio} />}
       </View>
-      <ChevronRight size={16} color={t.fg4} />
+      {!current && <ChevronRight size={16} color={t.fg4} />}
     </Pressable>
   );
 }
@@ -345,38 +346,36 @@ function ConfirmSheet({ s }: { s: ReceiveState }) {
       <Animated.View
         style={[
           styles.sheet,
-          { backgroundColor: t.dark ? '#16181FF5' : '#FFFFFFF5', paddingBottom: insets.bottom + 12 },
+          { backgroundColor: t.dark ? '#16181FF5' : '#FFFFFF', paddingBottom: Math.max(insets.bottom, 16) },
           { transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) }] },
         ]}
       >
-        <View style={[styles.sheetIcon, { backgroundColor: t.accentSoft }]}>
-          <Laptop size={24} color={t.accent} />
+        <View style={[styles.grabber, { backgroundColor: t.dark ? '#FFFFFF33' : '#1E2A5A26' }]} />
+        <View style={styles.sheetHead}>
+          <View style={[styles.sheetIcon, { backgroundColor: t.accentSoft }]}>
+            <Laptop size={24} color={t.accent} />
+          </View>
+          <Text style={{ color: t.fg, fontSize: 18, fontWeight: '700', textAlign: 'center' }}>
+            {req.peer?.name ?? '电脑'} 想推送 {req.items.length} 本书
+          </Text>
+          <Text style={{ color: t.fg3, fontSize: 13, textAlign: 'center' }}>约 {mb(req.bytes)} · 收到后直接放上书架</Text>
         </View>
-        <Text style={{ color: t.fg, fontSize: 19, fontWeight: '700', textAlign: 'center' }}>
-          {req.peer?.name ?? '电脑'} 想推送 {req.items.length} 本书
-        </Text>
-        <Text style={{ color: t.fg3, fontSize: 13, textAlign: 'center' }}>约 {mb(req.bytes)} · 传完后自动放上书架</Text>
-        <Glass radius={18} shadow={false} style={styles.sheetList}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={[styles.sheetList, { backgroundColor: t.dark ? '#FFFFFF0A' : '#1E2A5A08' }]}>
+          <ScrollView>
             {req.items.map((item, i) => {
               const [label, color] = kindLabel(t, item);
               return (
                 <View key={item.id} style={[styles.sheetItem, i > 0 && { borderTopWidth: 1, borderTopColor: t.hairline }]}>
-                  <ItemCover id={item.id} title={item.title} width={28} />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={{ color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <Text style={{ color: t.fg3, fontSize: 12 }} numberOfLines={1}>
-                      {item.detail}
-                    </Text>
-                  </View>
+                  <ItemCover id={item.id} title={item.title} item={item} width={26} />
+                  <Text style={{ flex: 1, color: t.fg, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
+                    {item.title}
+                  </Text>
                   <Text style={{ color, fontSize: 12, fontWeight: '600' }}>{label}</Text>
                 </View>
               );
             })}
           </ScrollView>
-        </Glass>
+        </View>
         <View style={styles.sheetButtons}>
           <Pressable onPress={() => answerRequest(false)} style={[styles.reject, { backgroundColor: t.fill }]}>
             <Text style={{ color: t.fg, fontSize: 16, fontWeight: '600' }}>拒绝</Text>
@@ -392,9 +391,9 @@ function ConfirmSheet({ s }: { s: ReceiveState }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, gap: 18 },
+  content: { flex: 1, paddingHorizontal: 20, gap: 20 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  hero: { borderRadius: 28, overflow: 'hidden', borderWidth: 1 },
+  hero: { height: 150, borderRadius: 28, overflow: 'hidden', borderWidth: 1 },
   status: { position: 'absolute', left: 14, bottom: 14, paddingHorizontal: 12, height: 34, justifyContent: 'center' },
   dot: { width: 8, height: 8, borderRadius: 4 },
   row6: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -410,11 +409,12 @@ const styles = StyleSheet.create({
   iconTile: { width: ITEM_COVER, height: ITEM_COVER, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   placeholder: { borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   tag: { paddingHorizontal: 6, height: 20, borderRadius: 6, justifyContent: 'center' },
-  foot: { fontSize: 12, textAlign: 'center' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 28, paddingHorizontal: 20, gap: 10, maxHeight: '82%' },
-  sheetIcon: { width: 52, height: 52, borderRadius: 16, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  sheetList: { marginTop: 8, maxHeight: 300, flexShrink: 1 },
-  sheetItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 9 },
-  sheetButtons: { flexDirection: 'row', gap: 12, marginTop: 10 },
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 8, paddingHorizontal: 20, gap: 20, maxHeight: '82%' },
+  grabber: { width: 36, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: -8 },
+  sheetHead: { alignItems: 'center', gap: 6, paddingTop: 6 },
+  sheetIcon: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  sheetList: { maxHeight: 300, flexShrink: 1, borderRadius: 18, paddingVertical: 4, overflow: 'hidden' },
+  sheetItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 9 },
+  sheetButtons: { flexDirection: 'row', gap: 12 },
   reject: { flex: 1, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
 });

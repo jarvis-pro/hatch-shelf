@@ -49,6 +49,18 @@ export interface HelloResponse {
   device: string;
 }
 
+/**
+ * GET /watch：Dock 连上后一直挂着的请求，手机结束接收时立即返回 `receiving: false`，
+ * 否则 WATCH_MS 后返回 `receiving: true`，Dock 再挂下一次。这样手机上点「结束」后 Dock 马上知道
+ */
+export interface WatchResponse {
+  ok: true;
+  receiving: boolean;
+}
+
+/** /watch 最长挂多久 */
+export const WATCH_MS = 25_000;
+
 /** GET /books 的一项 */
 export interface DeviceBook {
   id: string;
@@ -64,9 +76,23 @@ export interface SessionItem {
   title: string;
   /** new 新书 / update 书有变化 / audio 只补原声 */
   kind: 'new' | 'update' | 'audio';
-  /** 如「改了 3 章」「补 4 章原声」，确认框和接收页上显示 */
+  /** 如「12 章」「内容有更新 · 补 4 章原声」，接收页上显示 */
   detail: string;
+  /** 这次要推的原声章数（按章一个包），接收页据此显示「第几 / 共几章」 */
+  audioChapters?: number;
+  /** 手机上还没有这本书时，确认框和接收页用这些画封面 */
+  subtitle?: string;
+  category?: string;
+  /** 封面缩略图 `data:image/jpeg;base64,…`，不超过 COVER_THUMB_MAX；没有时画文字封面 */
+  cover?: string;
 }
+
+/** 推送请求里单张封面缩略图 data URI 的长度上限 */
+export const COVER_THUMB_MAX = 64 * 1024;
+
+const optString = (v: unknown) => v === undefined || typeof v === 'string';
+const isThumb = (v: unknown) =>
+  v === undefined || (typeof v === 'string' && v.length <= COVER_THUMB_MAX && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(v));
 
 /**
  * POST /session/request：Dock 每次推送前先问手机。请求会一直挂着，等手机上点「开始接收」或「拒绝」后才返回
@@ -95,7 +121,17 @@ export function isSessionRequest(v: unknown): v is SessionRequest {
     Array.isArray(r.items) &&
     r.items.length > 0 &&
     typeof r.bytes === 'number' &&
-    r.items.every((i) => typeof i?.id === 'string' && typeof i.title === 'string' && KINDS.has(i.kind) && typeof i.detail === 'string')
+    r.items.every(
+      (i) =>
+        typeof i?.id === 'string' &&
+        typeof i.title === 'string' &&
+        KINDS.has(i.kind) &&
+        typeof i.detail === 'string' &&
+        (i.audioChapters === undefined || typeof i.audioChapters === 'number') &&
+        optString(i.subtitle) &&
+        optString(i.category) &&
+        isThumb(i.cover),
+    )
   );
 }
 

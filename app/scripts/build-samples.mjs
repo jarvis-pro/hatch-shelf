@@ -1,12 +1,12 @@
-// 把 books/ 下的示例书生成成 src/samples.generated.ts，首次启动时写入设备的 books/。
-// 这样不需要解压库，books/ 目录本身也不会进安装包。
+// 把 samples/ 下的示例书生成成 src/samples.generated.ts，首次启动时写入设备的 books/。
+// 这样不需要解压库。其余的书在单独的内容仓库 hatch-shelf-library 里，不随 App 发布。
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const SAMPLE_IDS = ['shelf-guide', 'markdown-cheatsheet'];
 const TEXT_EXT = new Set(['.md', '.yaml', '.yml', '.svg']);
 
-const booksRoot = path.resolve(import.meta.dirname, '../../books');
+const booksRoot = path.resolve(import.meta.dirname, '../samples');
 const outFile = path.resolve(import.meta.dirname, '../src/samples.generated.ts');
 
 function walk(dir, prefix = '') {

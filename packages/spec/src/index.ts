@@ -7,3 +7,4 @@ export * from './import';
 export * from './lint';
 export * from './links';
 export * from './audio';
+export * from './library';

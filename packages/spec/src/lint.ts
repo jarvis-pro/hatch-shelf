@@ -1,3 +1,4 @@
+import { bookPath, isLibraryOnly, UUID_RE } from './library';
 import { lintLinks, headingAnchors, type ChapterAnchors } from './links';
 import { resolveBook } from './manifest';
 import { scanMarkdown } from './markdown';
@@ -77,6 +78,14 @@ export function bookAnchors(dirName: string, files: LintFile[]): { id: string; c
 export interface LintOptions {
   /** 另一本书的章节锚点，书不存在时返回 null，无从判断时返回 undefined；不传时跨书链接和 next 都按不存在处理 */
   resolveBook?(id: string): ChapterAnchors | null | undefined;
+  /**
+   * 书在书库里时传：书目录相对书库 books/ 的路径（用 / 分隔），和按路径找书的函数。
+   * 传了就按书库的约定检查：目录等于 bookPath()、id 是 UUID、跨书链接和 next 按路径写
+   */
+  library?: {
+    relPath: string;
+    resolvePath(path: string): ChapterAnchors | null | undefined;
+  };
 }
 
 /**
@@ -86,19 +95,26 @@ export interface LintOptions {
 export function lintBook(dirName: string, files: LintFile[], opts: LintOptions = {}): LintResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  files = files.filter((f) => !isLibraryOnly(f.path));
   const rootMd = files.filter((f) => !f.path.includes('/') && f.path.endsWith('.md'));
   const yaml = files.find((f) => f.path === 'book.yaml');
 
   const resolved = resolveBook({ dirName, yamlText: yaml?.text, mdFiles: rootMd.map((f) => f.path) });
   if (!resolved.ok) return { chapters: [], errors: resolved.errors, warnings };
+  const library = opts.library;
 
   const { manifest, chapters } = resolved;
   if (!yaml) errors.push('缺少 book.yaml');
-  else if (manifest.id !== dirName) errors.push(`book.yaml 中的 id（${manifest.id}）与目录名（${dirName}）不一致`);
+  else if (library) {
+    if (!UUID_RE.test(manifest.id)) errors.push(`书库里的书 id 用小写 UUID（shelf-pack new 会生成）：${manifest.id}`);
+    if (library.relPath.normalize('NFC') !== bookPath(manifest)) {
+      errors.push(`目录应为 books/${bookPath(manifest)}（分组/书名），实际是 books/${library.relPath}`);
+    }
+  }
 
   for (const f of manifest.chapters) if (!chapters.includes(f)) errors.push(`chapters 中列出的文件不存在：${f}`);
   for (const f of rootMd) if (!manifest.chapters.includes(f.path)) warnings.push(`未列入 chapters，不会被导入：${f.path}`);
-  for (const f of rootMd) if (!CHAPTER_FILE_RE.test(f.path)) errors.push(`文件名只能使用 [a-z0-9-]：${f.path}`);
+  for (const f of rootMd) if (!CHAPTER_FILE_RE.test(f.path)) errors.push(`章节文件名不能有空白和 / \\ : * ? " < > | # %：${f.path}`);
 
   const resolveOther = opts.resolveBook ?? (() => null);
   let total = 0;
@@ -111,8 +127,13 @@ export function lintBook(dirName: string, files: LintFile[], opts: LintOptions =
   }
   if (total > MAX_PACKAGE_BYTES) errors.push(`整本书超过 ${MAX_PACKAGE_BYTES / 1024 / 1024} MB`);
 
-  for (const { id } of manifest.next ?? []) {
-    if (id === manifest.id) errors.push('next 不能推荐本书自己');
+  for (const { id, book } of manifest.next ?? []) {
+    if (library) {
+      if (book === undefined) errors.push(`书库里的 next 按路径写（book: 分组/书名）：${id}`);
+      else if (book.normalize('NFC') === library.relPath.normalize('NFC')) errors.push('next 不能推荐本书自己');
+      else if (library.resolvePath(book) === null) errors.push(`next 推荐的书不存在：${book}`);
+    } else if (id === undefined) errors.push(`book: ${book} 只能在书库里用，单独的书写 id`);
+    else if (id === manifest.id) errors.push('next 不能推荐本书自己');
     else if (resolveOther(id) === null) errors.push(`next 推荐的书不存在：${id}`);
   }
 
@@ -121,7 +142,7 @@ export function lintBook(dirName: string, files: LintFile[], opts: LintOptions =
   for (const ch of chapters) {
     const text = files.find((f) => f.path === ch)?.text ?? '';
     const r = lintChapter(ch, text, assets);
-    errors.push(...r.errors, ...lintLinks(ch, text, self, resolveOther));
+    errors.push(...r.errors, ...lintLinks(ch, text, self, resolveOther, library?.resolvePath));
     warnings.push(...r.warnings);
   }
 

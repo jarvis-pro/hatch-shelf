@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bookAnchors, collectLinks, headingAnchors, lintBook, parseBookLink } from './index';
+import { bookAnchors, collectLinks, deviceLinks, deviceNext, headingAnchors, lintBook, parseBookLink, parseLibraryLink, rewriteLinks } from './index';
 
 describe('parseBookLink', () => {
   it('recognizes anchors, chapters, other books and external urls', () => {
@@ -70,5 +70,34 @@ describe('lintBook links', () => {
   it('skips cross-book links when there is no library to check against', () => {
     const r = lintBook('me', files, { resolveBook: () => undefined });
     expect(r.errors.filter((e) => e.includes('../'))).toEqual(['01-x.md:5 无法识别的链接（跨书请写成 ../<book-id>/<章节>.md#小节）：assets/a.svg']);
+  });
+});
+
+describe('library links', () => {
+  it('decodes chinese chapter names as the reader sees them', () => {
+    expect(parseBookLink('02-%E5%B9%B6%E5%8F%91.md#%E5%B0%8F%E8%8A%82')).toEqual({ kind: 'chapter', file: '02-并发.md', anchor: '小节' });
+    expect(parseBookLink('../a1/03-通道.md')).toEqual({ kind: 'book', bookId: 'a1', file: '03-通道.md', anchor: undefined });
+  });
+
+  it('parses path links and translates them for the device', () => {
+    expect(parseLibraryLink('../../人工智能/RAG 与知识系统/05-评估.md#召回')).toEqual({
+      path: '人工智能/RAG 与知识系统',
+      file: '05-评估.md',
+      anchor: '召回',
+    });
+    expect(parseLibraryLink('../../人工智能/RAG 与知识系统/')).toMatchObject({ path: '人工智能/RAG 与知识系统', file: undefined });
+    expect(parseLibraryLink('../rag/')).toBeNull();
+    const md = '见 [评估](<../../人工智能/RAG 与知识系统/05-评估.md#召回>) 和 `[x](<../../a/b/>)`\n```md\n[y](<../../人工智能/RAG 与知识系统/>)\n```';
+    const ids = (p: string) => (p === '人工智能/RAG 与知识系统' ? 'u1' : null);
+    expect(deviceLinks(md, ids)).toBe(md.replace('<../../人工智能/RAG 与知识系统/05-评估.md#召回>', '../u1/05-评估.md#召回'));
+    expect(collectLinks('[a](<../../x y/z/>)')).toEqual([{ line: 1, href: '../../x y/z/' }]);
+    expect(rewriteLinks('[a](01.md "t")', () => '../../新 组/书/')).toBe('[a](<../../新 组/书/> "t")');
+  });
+
+  it('translates next books written as paths', () => {
+    const yaml = 'id: a\nnext:\n  - book: 人工智能/RAG 与知识系统\n    reason: 接着读\n  - book: "技术/没有"\n';
+    expect(deviceNext(yaml, (p) => (p === '人工智能/RAG 与知识系统' ? 'u1' : null))).toBe(
+      'id: a\nnext:\n  - id: u1\n    reason: 接着读\n  - book: "技术/没有"\n',
+    );
   });
 });

@@ -13,7 +13,8 @@ export async function loadNextReads(bookId: string): Promise<NextRead[]> {
   const yaml = new File(bookDir(bookId), 'book.yaml');
   if (!yaml.exists) return [];
   const parsed = parseBookYaml(await yaml.text());
-  const next = parsed.ok ? (parsed.manifest.next ?? []) : [];
+  // 书库里的 next 写的是路径（book:），打包推送时已换成 id；没有 id 的项（直接拷进来的书库原稿）跳过
+  const next = (parsed.ok ? (parsed.manifest.next ?? []) : []).flatMap(({ id, reason }) => (id ? [{ id, reason }] : []));
   if (next.length === 0) return [];
   const progress = await listBookProgress();
   const reads = await Promise.all(

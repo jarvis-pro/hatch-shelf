@@ -19,9 +19,10 @@ describe('parseBookYaml', () => {
   });
 
   it('rejects bad ids and chapter names', () => {
-    const r = parseBookYaml('id: Go_Book\ntitle: x\nchapters: [Intro.md]');
+    const r = parseBookYaml('id: Go_Book\ntitle: x\nchapters: [01 intro.md]');
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors).toHaveLength(2);
+    expect(parseBookYaml('id: go\ntitle: x\nchapters: [01-为什么需要-Agent.md]').ok).toBe(true);
   });
 
   it('accepts next books with an optional reason and rejects duplicates', () => {

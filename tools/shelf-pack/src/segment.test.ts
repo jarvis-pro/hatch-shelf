@@ -6,7 +6,11 @@ import { describe, expect, it } from 'vitest';
 import { findBooks, lint, readBook } from './books';
 import { segmentChapter } from './segment';
 
-const booksRoot = path.resolve(import.meta.dirname, '../../../books');
+// 默认只测 App 自带的示例书；设了 SHELF_LIBRARY（书库仓库，相对代码仓库根目录，如 ../hatch-shelf-library）就测整个书库
+const repoRoot = path.resolve(import.meta.dirname, '../../..');
+const booksRoot = process.env.SHELF_LIBRARY
+  ? path.join(path.resolve(repoRoot, process.env.SHELF_LIBRARY), 'books')
+  : path.join(repoRoot, 'app/samples');
 
 const validBooks = findBooks(booksRoot)
   .map(readBook)

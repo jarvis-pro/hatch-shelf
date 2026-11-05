@@ -30,7 +30,7 @@ describe('requestText', () => {
 });
 
 describe('planAudio', () => {
-  const book = readBook(path.resolve(import.meta.dirname, '../../../app/samples/markdown-cheatsheet'));
+  const book = readBook(path.resolve(import.meta.dirname, '../../../apps/mobile/samples/markdown-cheatsheet'));
   const meta = lint(book).manifest!;
   const voice = { provider: 'fish' as const, id: 'v1' };
 
@@ -76,7 +76,7 @@ describe('planAudio', () => {
 
 describe('buildChapterPackage', () => {
   it('builds a package the app accepts, with only that chapter', () => {
-    const book = readBook(path.resolve(import.meta.dirname, '../../../app/samples/markdown-cheatsheet'));
+    const book = readBook(path.resolve(import.meta.dirname, '../../../apps/mobile/samples/markdown-cheatsheet'));
     const meta = lint(book).manifest!;
     const plan = planAudio(book, meta, { provider: 'fish', id: 'v1' }, DEFAULT_PARAMS);
     const dir = mkdtempSync(path.join(tmpdir(), 'shelf-audio-'));

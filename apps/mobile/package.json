@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "@shelf/mobile",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
@@ -41,7 +41,7 @@
     "vitest": "^5.0.5"
   },
   "scripts": {
-    "build:reader": "pnpm --filter @shelf/reader-web build",
+    "build:reader": "node ../../packages/reader/build.mjs assets/reader/index.html",
     "build:samples": "node scripts/build-samples.mjs",
     "build:assets": "pnpm build:reader && pnpm build:samples",
     "start": "pnpm build:assets && expo start --dev-client",

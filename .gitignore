@@ -5,8 +5,8 @@ dist/
 
 # Expo
 .expo/
-app/ios/
-app/android/
+apps/mobile/ios/
+apps/mobile/android/
 *.jks
 *.p8
 *.p12
@@ -16,9 +16,9 @@ app/android/
 # 本地构建产物
 *.zip
 
-# 构建产物（pnpm app build:reader / build:samples 生成）
-app/assets/reader/
-app/src/samples.generated.ts
+# 构建产物（pnpm mobile build:reader / build:samples 生成）
+apps/mobile/assets/reader/
+apps/mobile/src/samples.generated.ts
 
 # shelf-pack backup 拉下来的阅读数据备份（个人数据，不入库）
 backups/

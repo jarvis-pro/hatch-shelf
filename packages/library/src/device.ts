@@ -51,7 +51,7 @@ export async function pullDeviceNotes(to: string, pin: string): Promise<DeviceNo
   return body.notes as DeviceNotes[];
 }
 
-/** 备份内容由 App 定义和校验（app/src/backup/format.ts），CLI 只负责原样存取 */
+/** 备份内容由 App 定义和校验（apps/mobile/src/backup/format.ts），CLI 只负责原样存取 */
 export interface DeviceBackup {
   exportedAt: number;
   progress: { book_id: string }[];

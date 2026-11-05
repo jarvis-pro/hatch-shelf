@@ -3,10 +3,10 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "app": "pnpm --filter app",
+    "mobile": "pnpm --filter @shelf/mobile",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "shelf-pack": "tsx tools/shelf-pack/src/cli.ts",
-    "lint": "pnpm --filter app lint"
+    "shelf-pack": "tsx packages/library/src/cli.ts",
+    "lint": "pnpm --filter @shelf/mobile lint"
   }
 }

@@ -10,7 +10,7 @@ import type {
   ReaderPosition,
   ReaderTheme,
   ToReader,
-} from '../../src/reader/bridge';
+} from '../../../apps/mobile/src/reader/bridge';
 
 declare global {
   interface Window {

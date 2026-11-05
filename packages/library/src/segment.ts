@@ -1,8 +1,8 @@
 /**
- * 在 Node 里按阅读器的规则切朗读段落（README 第 8.1 节）：渲染和切段直接复用 reader-web 的源码，
+ * 在 Node 里按阅读器的规则切朗读段落（README 第 8.1 节）：渲染和切段直接复用 @shelf/reader 的源码，
  * DOM 由 happy-dom 提供。录音按这里的段落一段一个文件，手机上听书时逐段对上。
  */
-import { segmentMarkdown } from '@shelf/reader-web/segment';
+import { segmentMarkdown } from '@shelf/reader/segment';
 import { Window } from 'happy-dom';
 
 export function segmentChapter(markdown: string): string[] {

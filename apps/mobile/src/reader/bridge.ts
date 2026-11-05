@@ -1,6 +1,6 @@
 /**
  * RN ↔ 阅读器 WebView 的 postMessage 协议。
- * 两端都只通过这里的类型收发消息（reader-web 以 type-only 方式引用本文件）；
+ * 两端都只通过这里的类型收发消息（packages/reader 以 type-only 方式引用本文件）；
  * 新增消息时同步修改两端。
  */
 

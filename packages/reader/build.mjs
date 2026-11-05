@@ -6,7 +6,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 
 const here = import.meta.dirname;
-const outFile = path.resolve(here, '../assets/reader/index.html');
+// 输出位置由调用方给出（App 的 build:reader 传 assets/reader/index.html），不传时写到本包的 dist/
+const outFile = path.resolve(process.argv[2] ?? path.join(here, 'dist/index.html'));
 const require = createRequire(import.meta.url);
 
 const { outputFiles } = await build({

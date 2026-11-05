@@ -7,7 +7,7 @@ import katexModule from '@vscode/markdown-it-katex';
 import hljs from 'highlight.js/lib/common';
 import MarkdownIt, { type Env, type Token } from 'markdown-it';
 import { calloutPlugin } from './callouts';
-import type { TocItem } from '../../src/reader/bridge';
+import type { TocItem } from '../../../apps/mobile/src/reader/bridge';
 
 export const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);

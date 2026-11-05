@@ -10,7 +10,7 @@ import { findBook, findBooks, groupByCategory, lint, moveBook, newBook, NO_CATEG
 const repoRoot = path.resolve(import.meta.dirname, '../../..');
 const booksRoot = process.env.SHELF_LIBRARY
   ? path.join(path.resolve(repoRoot, process.env.SHELF_LIBRARY), 'books')
-  : path.join(repoRoot, 'app/samples');
+  : path.join(repoRoot, 'apps/mobile/samples');
 
 // 只取能通过 check 的书：书库里可能有正在写、还不完整的书，它们不该让测试失败
 const validBooks = findBooks(booksRoot)

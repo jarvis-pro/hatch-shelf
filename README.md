@@ -52,13 +52,13 @@ hatch-shelf/
 ├── README.md
 ├── AGENTS.md              # 代码侧规范（开发 App / CLI 时 agent 读取）
 ├── pnpm-workspace.yaml
-├── app/                   # Expo App（Metro 根目录在此）
-│   ├── samples/           # 随安装包发布的 2 本示例书，也是测试用的书
-│   └── reader-web/        # @shelf/reader-web：阅读器网页，打包成单个 HTML 放进 App
+├── apps/
+│   └── mobile/            # @shelf/mobile：书巢 iOS App（Expo，Metro 根目录在此）
+│       └── samples/       # 随安装包发布的 2 本示例书，也是测试用的书
 ├── packages/
-│   └── spec/              # @shelf/spec：book.yaml 的 zod schema + TS 类型，App 与 CLI 共用
-├── tools/
-│   └── shelf-pack/        # CLI：校验 → 打包 → 局域网推送
+│   ├── spec/              # @shelf/spec：book.yaml 的 zod schema + TS 类型，App 与 CLI 共用
+│   ├── reader/            # @shelf/reader：阅读器网页，打包成单个 HTML 放进 App
+│   └── library/           # @shelf/library：依赖 Node 的书库逻辑 + shelf-pack 命令行
 └── design/                # App 的 UI 设计稿（pen.dev），不进安装包
     ├── 设计稿.pen
     ├── covers/ images/    # 设计稿引用的图（UI 插图、书封）；书封的原稿在书库的 封面.pen
@@ -169,11 +169,11 @@ next:                         # 可选，读完后接着读的书，最多 3 本
 
 响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`；`/upload` 成功时还带 `status`（`added` / `updated`）、`title`、`chapters`（章节数）、`cover`（是否有封面）和 `warnings`。
 
-**上传页**：`app/src/server/upload-page.ts`，设计稿见「传书网页 · 电脑浏览器」。整页内联，背景插图和 App 图标以 data URI 放在 `upload-images.ts`，不加载任何外部资源；整个页面都可以松手上传，多个文件串行上传。一次 PIN 错误后，排队中的文件不再发送，避免把 5 次错误次数用完。
+**上传页**：`apps/mobile/src/server/upload-page.ts`，设计稿见「传书网页 · 电脑浏览器」。整页内联，背景插图和 App 图标以 data URI 放在 `upload-images.ts`，不加载任何外部资源；整个页面都可以松手上传，多个文件串行上传。一次 PIN 错误后，排队中的文件不再发送，避免把 5 次错误次数用完。
 
 **限制**：单个文件不超过 50 MB；PIN 连续错误 5 次后，本次服务失效。
 
-**实现**：HTTP 解析在 `app/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；会响应 curl 上传大文件时的 `Expect: 100-continue`。上传的文件落成临时文件后交给第 6 节的导入管线，多个上传串行导入；接收过程中按 5% 粒度上报上传进度。服务运行期间保持屏幕常亮。
+**实现**：HTTP 解析在 `apps/mobile/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；会响应 curl 上传大文件时的 `Expect: 100-continue`。上传的文件落成临时文件后交给第 6 节的导入管线，多个上传串行导入；接收过程中按 5% 粒度上报上传进度。服务运行期间保持屏幕常亮。
 
 ### 5.3 “文件” App 可见（可选，M4 之后）
 
@@ -185,7 +185,7 @@ next:                         # 可选，读完后接着读的书，最多 3 本
 
 所有通道走同一条管线：
 
-实现：判断与转换在 `@shelf/spec` 的 `prepareImport()`（纯函数，App 与 CLI 共用），落盘与索引在 `app/src/import/pipeline.ts`。
+实现：判断与转换在 `@shelf/spec` 的 `prepareImport()`（纯函数，App 与 CLI 共用），落盘与索引在 `apps/mobile/src/import/pipeline.ts`。
 
 1. 文件落到 `inbox/<uuid>/`
 2. 安全校验
@@ -224,7 +224,7 @@ documentDirectory/
 
 `last_read_at` 由 `progress` 推导；重建索引时从 `progress` 回填。
 
-**备份**：不可重建的三类数据（progress、highlights、settings 里的外观与阅读设置）可以导出成一个 JSON（`app/src/backup/`）。两条路：设置页「备份阅读进度与笔记」经分享面板存到「文件」或 AirDrop，「从备份恢复」从「文件」选回来；或者传书开启时在电脑上 `shelf-pack backup` / `restore`。恢复是合并：本机没有的写入，两边都有的保留 `updated_at` 较新的一份，所以不会冲掉备份之后的新记录（备份之后删掉的高亮会被恢复回来）。书的原文不在备份里，换机后重新推书，进度和高亮按书 id 与章节文件名挂回去。
+**备份**：不可重建的三类数据（progress、highlights、settings 里的外观与阅读设置）可以导出成一个 JSON（`apps/mobile/src/backup/`）。两条路：设置页「备份阅读进度与笔记」经分享面板存到「文件」或 AirDrop，「从备份恢复」从「文件」选回来；或者传书开启时在电脑上 `shelf-pack backup` / `restore`。恢复是合并：本机没有的写入，两边都有的保留 `updated_at` 较新的一份，所以不会冲掉备份之后的新记录（备份之后删掉的高亮会被恢复回来）。书的原文不在备份里，换机后重新推书，进度和高亮按书 id 与章节文件名挂回去。
 
 ---
 
@@ -232,11 +232,11 @@ documentDirectory/
 
 **界面**
 
-- 视觉稿是 `design/设计稿.pen` 的「晨雾玻璃」：磨砂玻璃卡片、顶部晨雾配图、色彩只来自封面；设计 token 在 `app/src/ui/theme.ts`，亮色取自设计稿，暗色按同一结构压暗
+- 视觉稿是 `design/设计稿.pen` 的「晨雾玻璃」：磨砂玻璃卡片、顶部晨雾配图、色彩只来自封面；设计 token 在 `apps/mobile/src/ui/theme.ts`，亮色取自设计稿，暗色按同一结构压暗
 - 底部玻璃 Tab：书架 / 笔记 / 传书 / 设置。外观（亮色 / 暗色 / 跟随系统）在设置页切换，对整个 App 和阅读器生效
 - 冷启动先显示与书架同底色的原生纯色启动图，数据就绪后直接淡入书架（200ms）。开场封面只在安装后第一次启动时播放：封面淡入、停留到数据加载完，再与书架交叉淡化；轻点可跳过
 - 轻动效遵循设计稿「轻动效」：位移 ≤ 12pt、缩放 ≥ 0.96，系统开启「减弱动态效果」时降级为短淡入淡出；阅读页内不放环境动效
-- 进书和切章不显示加载指示（设计稿「进书 · 版式占位与显影」）：阅读器渲染完成（`rendered`）前，由 `app/src/reader/PagePlaceholder.tsx` 按 `reader-web` 的 CSS 版式画出章号、章标题和静止的淡墨行，渲染完成后原地淡出 240ms；从章节中间继续时不画标题。改了阅读器的正文边距、字号比例后要同步改占位
+- 进书和切章不显示加载指示（设计稿「进书 · 版式占位与显影」）：阅读器渲染完成（`rendered`）前，由 `apps/mobile/src/reader/PagePlaceholder.tsx` 按 `packages/reader` 的 CSS 版式画出章号、章标题和静止的淡墨行，渲染完成后原地淡出 240ms；从章节中间继续时不画标题。改了阅读器的正文边距、字号比例后要同步改占位
 - 界面不放阅读时长、连续天数之类的统计
 
 **书架**
@@ -245,7 +245,7 @@ documentDirectory/
 - 封面左下角显示进度：读完显示 ✓，读过显示百分比。书的进度按「已读章节数 + 当前章节滚动比例」估算
 - 封面是书库 `design/封面.pen` 里的原稿导出（600×856），复古丝网印刷风插图 + 每本一个主色，底部统一署名「Jarvis」；没有封面时，按「书架文库」版式用标题、副标题和分类色自动生成文字封面，署名相同
 - 点按书籍直接进入阅读页，回到上次读到的位置；「继续阅读」卡片也一样
-- 长按书籍进入书籍详情（原来的长按预览和详情页合并为一页，设计稿「v11 · 书籍详情」与「长按 · 进详情过场」）：按下封面缩到 0.96 并略压暗，满 300ms 中等触感；封面抬到 1.15 倍、书架模糊变淡，随后用弹簧（阻尼比 0.85）飞到详情页的大封面，返回时飞回书架上此刻的位置（`app/src/ui/CoverFlight.tsx`）。300ms 内松手按点按处理，按住时滑动则取消
+- 长按书籍进入书籍详情（原来的长按预览和详情页合并为一页，设计稿「v11 · 书籍详情」与「长按 · 进详情过场」）：按下封面缩到 0.96 并略压暗，满 300ms 中等触感；封面抬到 1.15 倍、书架模糊变淡，随后用弹簧（阻尼比 0.85）飞到详情页的大封面，返回时飞回书架上此刻的位置（`apps/mobile/src/ui/CoverFlight.tsx`）。300ms 内松手按点按处理，按住时滑动则取消
 - 书籍详情以封面为主：封面宽取屏幕宽减 60 与可用高度中较小者，左上角返回、右上角「···」（导出笔记、从书架删除）；封面下方是横向滑动的章节卡，默认滚到在读的一章（在读卡加宽并显示本章进度，读过的变淡打勾），没读过的书第一张写「从这里开始」；底部「继续阅读 / 开始阅读 / 重新阅读」和「笔记」。「全部」从底部弹出完整目录，分类、难度、更新日期和导入提示也写在这里；删除确认里有笔记时先提供「先导出笔记」
 - 书架标题旁显示书的总数，各系列标题旁显示该系列的本数
 
@@ -264,21 +264,21 @@ documentDirectory/
 - 主题跟随 App 外观，阅读页不单独设主题；字号（14–24，六档）和行距（紧凑 / 适中 / 宽松）可调
 - 代码块：默认横向滚动，可切换为自动换行；提供一键复制
 - 宽表格放在可横向滚动的容器里；图片支持点击放大
-- 提示块：GitHub 风格的 `> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]` 渲染成带图标和中文标题（注意 / 提示 / 重要 / 警告 / 当心）的彩色卡片，颜色取自阅读器现有的主题变量，亮色暗色各一套；实现是 `app/reader-web/src/callouts.ts` 里的 markdown-it 插件，其余引用块照旧
+- 提示块：GitHub 风格的 `> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]` 渲染成带图标和中文标题（注意 / 提示 / 重要 / 警告 / 当心）的彩色卡片，颜色取自阅读器现有的主题变量，亮色暗色各一套；实现是 `packages/reader/src/callouts.ts` 里的 markdown-it 插件，其余引用块照旧
 - Mermaid：左右方向的流程图比屏幕宽时自动改成上下方向重新渲染；其余过宽的图缩到屏幕宽，不支持点按放大
 - 阅读页只有两颗悬浮按钮：左上角返回，右上角「···」；目录、本章查找、本书笔记、阅读设置、听书都收在「···」菜单里。不提供上一章 / 下一章，换章走目录，底部不放任何东西（听书时的播放面板除外），正文铺满到屏幕底
-- 接着读：最后一章正文之后，按本书 `book.yaml` 的 `next` 列出推荐的书（封面、书名、一句理由），点按与跨书链接一样在当前页之上打开那本书。已读完（`FINISHED_RATIO`）的书不再列出；书架上没有的书显示虚线封面和「需要先导入」，点按弹出同样的提示。卡片在 `#content` 之外，不参与高亮、搜索和目录；阅读进度按正文计算，卡片高度不计入，滚到正文末尾即为读完。App 打开最后一章时读取 book.yaml（`app/src/reader/next-reads.ts`），不进 SQLite
+- 接着读：最后一章正文之后，按本书 `book.yaml` 的 `next` 列出推荐的书（封面、书名、一句理由），点按与跨书链接一样在当前页之上打开那本书。已读完（`FINISHED_RATIO`）的书不再列出；书架上没有的书显示虚线封面和「需要先导入」，点按弹出同样的提示。卡片在 `#content` 之外，不参与高亮、搜索和目录；阅读进度按正文计算，卡片高度不计入，滚到正文末尾即为读完。App 打开最后一章时读取 book.yaml（`apps/mobile/src/reader/next-reads.ts`），不进 SQLite
 - 本章查找：查找时顶部换成查找栏，在当前章节里不区分大小写地标亮全部匹配（复用搜索跳转的 `mark.find-hit`，与高亮 `mark.hl` 可互相嵌套），显示「第 i / n 处」，上一处 / 下一处首尾循环；匹配可跨加粗、链接等行内格式，不跨段落，不查公式和 Mermaid 图。点「完成」或换章即清除标亮
 - 链接：`#锚点` 在页内滚动；`03-x.md#锚点` 切到本书对应章节；`../<id>/…` 在当前阅读页之上打开另一本书的对应章节和小节（只写书 id 时打开到上次读到的位置），返回即回到原书，目标书未导入时给出提示；`http(s)` 链接交给系统打开
-- RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
+- RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `apps/mobile/src/reader/bridge.ts`
 - 高亮与笔记：长按选中文字，系统菜单里选「高亮」「笔记」或「存疑」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记、标为 / 取消存疑或删除。存疑用于标出读者认为可能有错的地方：橙色底加波浪线，可以附一句说明；导出时单独放在最前面的「存疑」一节，供 agent 修订时优先核实（见书库的 `AGENTS.md`「读者笔记」）。「笔记」Tab 按书列出有高亮的书，阅读页「···」菜单里的「本书笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到书库里那本书目录下的 `notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
-- 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
+- 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`packages/reader/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
 - 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
-- 书籍管理（设置 →「书库」→ 书籍管理，设计稿「书籍管理」）：专为批量删除。按系列分组，页面常驻勾选态，分类标题可整类勾选，右上角「全选」；选中后底部升起「删除 N 本 · 释放 X」，确认框里有笔记时先提供逐本「先导出笔记」。顶部圆环显示各系列占用：每本书的大小（`books/<id>/` 递归）异步统计，统计中一段彗星弧绕轨道旋转，每统计完一个系列对应色段扫入，图例、分组和每行的数字同步出现。结果按内容指纹缓存在 settings 的 `bookSizes`，下次进入直接显示，只补算新导入或更新过的书（`app/src/library/sizes.ts`）
+- 书籍管理（设置 →「书库」→ 书籍管理，设计稿「书籍管理」）：专为批量删除。按系列分组，页面常驻勾选态，分类标题可整类勾选，右上角「全选」；选中后底部升起「删除 N 本 · 释放 X」，确认框里有笔记时先提供逐本「先导出笔记」。顶部圆环显示各系列占用：每本书的大小（`books/<id>/` 递归）异步统计，统计中一段彗星弧绕轨道旋转，每统计完一个系列对应色段扫入，图例、分组和每行的数字同步出现。结果按内容指纹缓存在 settings 的 `bookSizes`，下次进入直接显示，只补算新导入或更新过的书（`apps/mobile/src/library/sizes.ts`）
 - 章节更新标记：读过的章节在书更新后内容变了，目录、详情页的章节卡和完整目录显示橙色的「已更新」，详情页目录标题旁写「N 章更新」；打开这一章即清除。依据是 `progress.seen_hash` 与 `chapters.hash` 不同，没读过的章节不标。升级到带这两个字段的版本后，第一次全量重建索引（`INDEX_VERSION` 2）会按当时的内容补上旧进度的 seen_hash
-- 听书：「···」菜单里的「听书」用系统语音（`expo-speech`，即 AVSpeechSynthesizer）从视口里第一段开始读，读完一章自动接下一章，直到全书读完，完全在本机运行。段落由阅读器切好（规则在 `app/reader-web/src/segment.ts`，`tts.ts` 负责收集和标记）：代码块、表格、Mermaid 和块级公式不朗读，只念一句「此处有代码，略过」之类的提示；行内公式短的念 TeX 原文，长的念「公式」。开始听书时连后面各章一起切好（渲染进 `<template>` 只取文本，编号与显示出来后一致），存在 RN 侧，App 在后台、WebView 被冻结时也能换章。一章一次排进系统朗读队列，本章最后一段开始时排进下一章，章与章之间不留空。每段开始时阅读器标出这一段，段落离开视口时滚到屏幕上方三分之一处，手动滚动后 5 秒内不跟随。读到下一章时记下进度；阅读页在前台就跟过去，在后台则等回到前台再加载那一章并滚到正在读的段落。朗读时屏幕底部升起整块播放面板（听书不要求沉浸，正文底部多留出面板的高度）：章节名、定时停止和停止；段落进度「第 N 段 · 共 M 段」，拖动进度条松手后跳到那一段（不显示剩余时间）；iOS 26 默认的全屏右滑返回会和进度条抢手势，听书时阅读页只保留左边缘右滑返回；语速（0.8 / 1 / 1.25 / 1.5 倍，记住上次的选择）、上一段 / 暂停或继续 / 下一段、语音。跳段时暂停中也直接开始读，阅读器总是滚到那一段。手动滚到正在读的段落离开屏幕后不再自动跟随，面板顶部出现「从这里读」，点一下重新切段、从屏幕上第一段接着读；滚回朗读位置后这一行收起。点面板上的语音打开「朗读语音」面板：默认「自动」，也可按普通话 / 台湾国语 / 粤语挑设备上的系统语音（标出增强 / 高音质），选中后从当前段落用新语音接着读，并记住选择；选中的语音被删掉时退回自动；App 回到前台时重新读取语音列表，在系统设置里下载完切回来就能选。定时停止：不定时（默认）/ 读完本章 / 15 / 30 / 60 分钟，到点后读完当前这一段再停；面板上只显示选了哪一档，不倒数剩余时间；每次听书重新开始都回到不定时。音频会话由 `expo-audio` 设为 playback 并开启 `UIBackgroundModes: audio`，静音键打开、锁屏或切到后台都能接着读；全书读完、手动换章或离开阅读页即停。锁屏和控制中心显示「正在播放」（章节名、书名、cover.png），锁屏的播放 / 暂停、上一首 / 下一首和耳机线控、AirPods 都能用：上一首 / 下一首按段落跳，本章最后一段再往后跳到下一章开头；不给时长，锁屏不显示进度条。来电等打断时暂停，打断结束后接着读；耳机拔出时暂停，不改用扬声器外放。这部分由本地原生模块 `app/modules/now-playing`（MPNowPlayingInfoCenter + MPRemoteCommandCenter）完成，改了要重新 `pnpm app ios`。自动时选设备上音质最好的普通话语音（高音质 > 增强 > 默认，前两种在 设置 → 辅助功能 → 朗读内容 → 声音 里下载；expo-speech 把 premium 也报成 Default，音质从 identifier 判断）
-- 阅读器网页（`app/reader-web/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
-- 示例书在构建时由 `app/scripts/build-samples.mjs` 生成成 TS 模块，首次启动时写入 `books/`，删除后不会再出现
+- 听书：「···」菜单里的「听书」用系统语音（`expo-speech`，即 AVSpeechSynthesizer）从视口里第一段开始读，读完一章自动接下一章，直到全书读完，完全在本机运行。段落由阅读器切好（规则在 `packages/reader/src/segment.ts`，`tts.ts` 负责收集和标记）：代码块、表格、Mermaid 和块级公式不朗读，只念一句「此处有代码，略过」之类的提示；行内公式短的念 TeX 原文，长的念「公式」。开始听书时连后面各章一起切好（渲染进 `<template>` 只取文本，编号与显示出来后一致），存在 RN 侧，App 在后台、WebView 被冻结时也能换章。一章一次排进系统朗读队列，本章最后一段开始时排进下一章，章与章之间不留空。每段开始时阅读器标出这一段，段落离开视口时滚到屏幕上方三分之一处，手动滚动后 5 秒内不跟随。读到下一章时记下进度；阅读页在前台就跟过去，在后台则等回到前台再加载那一章并滚到正在读的段落。朗读时屏幕底部升起整块播放面板（听书不要求沉浸，正文底部多留出面板的高度）：章节名、定时停止和停止；段落进度「第 N 段 · 共 M 段」，拖动进度条松手后跳到那一段（不显示剩余时间）；iOS 26 默认的全屏右滑返回会和进度条抢手势，听书时阅读页只保留左边缘右滑返回；语速（0.8 / 1 / 1.25 / 1.5 倍，记住上次的选择）、上一段 / 暂停或继续 / 下一段、语音。跳段时暂停中也直接开始读，阅读器总是滚到那一段。手动滚到正在读的段落离开屏幕后不再自动跟随，面板顶部出现「从这里读」，点一下重新切段、从屏幕上第一段接着读；滚回朗读位置后这一行收起。点面板上的语音打开「朗读语音」面板：默认「自动」，也可按普通话 / 台湾国语 / 粤语挑设备上的系统语音（标出增强 / 高音质），选中后从当前段落用新语音接着读，并记住选择；选中的语音被删掉时退回自动；App 回到前台时重新读取语音列表，在系统设置里下载完切回来就能选。定时停止：不定时（默认）/ 读完本章 / 15 / 30 / 60 分钟，到点后读完当前这一段再停；面板上只显示选了哪一档，不倒数剩余时间；每次听书重新开始都回到不定时。音频会话由 `expo-audio` 设为 playback 并开启 `UIBackgroundModes: audio`，静音键打开、锁屏或切到后台都能接着读；全书读完、手动换章或离开阅读页即停。锁屏和控制中心显示「正在播放」（章节名、书名、cover.png），锁屏的播放 / 暂停、上一首 / 下一首和耳机线控、AirPods 都能用：上一首 / 下一首按段落跳，本章最后一段再往后跳到下一章开头；不给时长，锁屏不显示进度条。来电等打断时暂停，打断结束后接着读；耳机拔出时暂停，不改用扬声器外放。这部分由本地原生模块 `apps/mobile/modules/now-playing`（MPNowPlayingInfoCenter + MPRemoteCommandCenter）完成，改了要重新 `pnpm mobile ios`。自动时选设备上音质最好的普通话语音（高音质 > 增强 > 默认，前两种在 设置 → 辅助功能 → 朗读内容 → 声音 里下载；expo-speech 把 premium 也报成 Default，音质从 identifier 判断）
+- 阅读器网页（`packages/reader/`）用 esbuild 打成单个 HTML（JS、CSS、KaTeX 字体全部内联，带禁止网络请求的 CSP），作为资源文件随 App 发布；启动时拷到 `documentDirectory/reader/`，WebView 以 `file://` 加载并获得整个 `documentDirectory` 的读权限，书里的相对路径图片因此可以直接显示
+- 示例书在构建时由 `apps/mobile/scripts/build-samples.mjs` 生成成 TS 模块，首次启动时写入 `books/`，删除后不会再出现
 
 ### 8.1 预生成录音（方案，未实现）
 
@@ -288,7 +288,7 @@ documentDirectory/
 
 听书本来就是一段一段读的（`ttsBlocks` 切出的段落），录音按完全相同的段落生成，播放时「读第 i 段」就是「播第 i 段的文件」，高亮、跳段、进度不需要任何时间戳。
 
-- 切段只有一份实现（已完成）：markdown-it 配置在 `app/reader-web/src/render.ts`，切段规则在 `segment.ts`，两者都不依赖页面状态。`shelf-pack` 的 `src/segment.ts` 在 happy-dom 里跑同一份代码，得到与手机上完全相同的段落文字；`segment.test.ts` 默认对 `app/samples/` 的示例书、设了 `SHELF_LIBRARY` 时对整个书库里每本能通过 check 的书分别走阅读器（`collectBlocks`）和 CLI 两条路径，段落必须逐条相同。happy-dom 每章新开一个窗口、用完关掉，关掉的窗口要等事件循环空闲才释放，整库连续同步切会耗尽内存
+- 切段只有一份实现（已完成）：markdown-it 配置在 `packages/reader/src/render.ts`，切段规则在 `segment.ts`，两者都不依赖页面状态。`shelf-pack` 的 `src/segment.ts` 在 happy-dom 里跑同一份代码，得到与手机上完全相同的段落文字；`segment.test.ts` 默认对 `apps/mobile/samples/` 的示例书、设了 `SHELF_LIBRARY` 时对整个书库里每本能通过 check 的书分别走阅读器（`collectBlocks`）和 CLI 两条路径，段落必须逐条相同。happy-dom 每章新开一个窗口、用完关掉，关掉的窗口要等事件循环空闲才释放，整库连续同步切会耗尽内存
 - 指纹用 `@shelf/spec` 的 `textHash`（与内容指纹同一套 64 位 FNV-1a，App 和 CLI 都能算，不依赖 Node 的 crypto）：段落的 key 是 `textHash(段落文字)`，只看文字；录音文件名是 `textHash(合成用文字 + 音色 + 参数)`，如 `3f2a9c…（16 位）.mp3`。超过单次上限（免费版 500 字符，CLI 按 450 切）的段落按句切成多个文件，清单里记成一个数组，顺序播放
 - S2 会把方括号当成语气标签（如 `[whisper]`），合成时正文里的 `[` `]` 换成全角 `【` `】`；段落 key 仍按原文算
 - 「此处有代码，略过。」这类重复的提示只生成一次，指纹相同自然复用
@@ -318,13 +318,13 @@ books/<分组>/<书名>/audio/  # 书库里和 assets/ 并列，mp3 走 Git LFS�
 
 **播放**
 
-- 播放引擎接口在 `app/src/reader/engines.ts`（排一段、暂停、继续、停止、段落开始 / 结束回调）：系统语音一份（`expo-speech`），原声一份（`expo-audio` 的 `AudioPlaylist`）；队列、换章、定时、跳段、锁屏控制仍在 `speech.ts` 里只写一次
+- 播放引擎接口在 `apps/mobile/src/reader/engines.ts`（排一段、暂停、继续、停止、段落开始 / 结束回调）：系统语音一份（`expo-speech`），原声一份（`expo-audio` 的 `AudioPlaylist`）；队列、换章、定时、跳段、锁屏控制仍在 `speech.ts` 里只写一次
 - 原声把所有段落的录音排进同一个 `AudioPlaylist`（底层是 AVQueuePlayer），段与段、同为原声的章与章之间无缝衔接；下一章换了引擎时两边队列不相通，等本章最后一段读完再开始下一章
 - 录音放在 `documentDirectory/audio/<id>/`（`audioDir()`），开始读一章时用 `chapterAudio()` 对段落，并确认文件都在
 - **以章为单位选引擎**：开始读一章时，本章每一段的指纹都能在清单里找到才用录音，否则这一章整章用系统语音，不在一章中间换声音。面板上的语音名显示实际在用的那一个
 - 后台时没有声音的间隙里 App 可能被挂起：同一个播放列表内不会有间隙，原声 ↔ 系统语音换章的那一下要在真机锁屏下验证
 - 语速沿用 0.8 / 1 / 1.25 / 1.5 档，原声直接改 `playbackRate`，不从段首重读（AVPlayerItem 默认保持音调变速）
-- 锁屏和控制中心仍由 `app/modules/now-playing` 负责；`expo-audio` 播放器不开启它自己的锁屏控制（`setActiveForLockScreen`），要先确认两者不会互相覆盖「正在播放」信息
+- 锁屏和控制中心仍由 `apps/mobile/modules/now-playing` 负责；`expo-audio` 播放器不开启它自己的锁屏控制（`setActiveForLockScreen`），要先确认两者不会互相覆盖「正在播放」信息
 - 界面上统一叫「原声」，不显示音色名：一套书库只用一个固定音色，用户只需要知道这一章能不能用原声
 - 「朗读语音」面板：本书有原声时在「自动」下面多一项「原声」，副标题只写本章是否支持（「本章支持」/「本章暂不支持」）；「自动」在本章支持原声时优先用原声，否则用音质最好的普通话语音
 - 播放面板只有右下角的语音按钮不同：用原声时显示波形图标和「原声」；本章不支持、退回系统语音时，标题下方多一行提示「本章暂不支持原声，先用系统语音读」，不弹窗、不打断
@@ -371,10 +371,10 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>       # 按章推送录音；
 | 解压 | fflate（纯 JS，`@shelf/spec` 内使用） |
 | 局域网服务 | react-native-tcp-socket + 自己实现的最小 HTTP 解析（只支持上表中的接口） |
 | 渲染 | react-native-webview + 本地打包的 reader bundle |
-| 听书 | expo-speech（系统语音）+ expo-audio（只用来设置音频会话）+ 本地 Expo 模块 `app/modules/now-playing`（锁屏「正在播放」和远程控制） |
+| 听书 | expo-speech（系统语音）+ expo-audio（只用来设置音频会话）+ 本地 Expo 模块 `apps/mobile/modules/now-playing`（锁屏「正在播放」和远程控制） |
 | 界面 | expo-blur（磨砂玻璃）、expo-linear-gradient、react-native-svg + lucide-react-native（图标）、expo-haptics；动效用 RN 自带的 Animated |
 | 校验 | zod（`@shelf/spec`） |
-| CLI | Node + TypeScript（`tools/shelf-pack`） |
+| CLI | Node + TypeScript（`packages/library`） |
 
 ---
 
@@ -398,7 +398,7 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手�
 
 在本仓库根目录以 `pnpm shelf-pack <命令>` 运行。书库默认是本仓库旁边的 `../hatch-shelf-library`，与当前目录无关；环境变量 `SHELF_LIBRARY`（相对本仓库根目录）可以指到别处。书库是纯数据仓库，里面没有 `package.json`，在书库里工作时用 `pnpm --dir ../hatch-shelf shelf-pack …`。
 
-- `<book>` 写书名、书名的一部分（不分大小写）、`分组/书名`、id 或目录都可以（`findBook()`），部分匹配到多本时报错并列出来；`<target>` 还可以是书库里的分组名或任意目录，递归找出里面的书（`resolveTarget()`）。本仓库自己只剩 `app/samples/` 两本示例书，`check app/samples` 校验它们
+- `<book>` 写书名、书名的一部分（不分大小写）、`分组/书名`、id 或目录都可以（`findBook()`），部分匹配到多本时报错并列出来；`<target>` 还可以是书库里的分组名或任意目录，递归找出里面的书（`resolveTarget()`）。本仓库自己只剩 `apps/mobile/samples/` 两本示例书，`check apps/mobile/samples` 校验它们
 
 - `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下，以及链接指向的章节、小节是否存在。书库里的书（上层有名为 `books` 的目录）还要满足书库约定：目录等于 `<分组>/<书名>`、id 是 UUID、跨书链接和 `next` 按路径写并指向书库里存在的书；书库外的书（示例书、单独拷出来的书）按手机写法 `../<id>/` 在同级目录里找，找不到时跳过。规则在 `@shelf/spec` 的 `lintBook()` / `lintLinks()`
 - `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名，不带 `audio/` 和 `notes.md`；书库里的跨书链接和 `next` 换成 id 写法
@@ -430,7 +430,8 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手�
 |---|---|---|
 | 内容分发 | 不做热更新，纯单机 + AirDrop / 局域网 | OTA 会把内容与 runtimeVersion 绑死，只能全量下发，EAS 在国内连通性差；单机方案零后端 |
 | 渲染方式 | WebView 而非 RN 原生 Markdown 组件 | 原生组件对代码高亮、公式、Mermaid、宽表格的支持弱 |
-| 仓库 | 代码仓库 `hatch-shelf`（公开）+ 书库 `hatch-shelf-library`（私有、纯数据），两者放在同一父目录；shelf-pack 留在本仓库，默认找旁边的书库，不发布 npm 包 | 起初单仓库够用；书写到近百本、又有了 4 GB 原声后，内容提交过半、历史里内容占九成，录音没处备份。书库独立后可以私有、用 LFS 管录音、单独给写书的 agent 一套规范。示例书随安装包发布，算代码，留在 `app/samples/`；shelf-pack 的每个部分都在和 App 对接（导入格式、阅读器切段、局域网接口、链接写法），放在本仓库才能和 App、spec 一起改、一起测；书库里不放 package.json，只有数据和写书规范。spec 改动偶尔要两边各提交一次，可以接受 |
+| 仓库 | 代码仓库 `hatch-shelf`（公开）+ 书库 `hatch-shelf-library`（私有、纯数据），两者放在同一父目录；shelf-pack 留在本仓库，默认找旁边的书库，不发布 npm 包 | 起初单仓库够用；书写到近百本、又有了 4 GB 原声后，内容提交过半、历史里内容占九成，录音没处备份。书库独立后可以私有、用 LFS 管录音、单独给写书的 agent 一套规范。示例书随安装包发布，算代码，留在 `apps/mobile/samples/`；shelf-pack 的每个部分都在和 App 对接（导入格式、阅读器切段、局域网接口、链接写法），放在本仓库才能和 App、spec 一起改、一起测；书库里不放 package.json，只有数据和写书规范。spec 改动偶尔要两边各提交一次，可以接受 |
+| 目录结构 | 应用放 `apps/`（`mobile`，之后加电脑端 `dock`），共用代码放 `packages/`（`spec`、`reader`、`library`）；原来的 `app/`、`app/reader-web/`、`tools/shelf-pack/` 按此搬家，Bundle ID、显示名和 `expo.name` 不变 | 要加一个电脑端应用后，`app/` 这个名字分不清是哪一端，阅读器网页挂在 App 目录下、CLI 单独放在 `tools/` 也说明不了它们是共用的包。按「应用 / 共用包」两层分开，书库逻辑抽成 `@shelf/library` 后，电脑端和写书命令都能直接调用 |
 | 书库目录 | `books/<分组>/<书名>/`（分组是 category 第一段），章节文件用中文名，id 用 UUID，原声和笔记放进书目录；跨书链接和 next 在书库里按路径写，打包时翻译成 id | 近百本书平铺成英文 id 不便浏览，起语义化 id 也要花心思、改书名后还会名不副实。人只看目录和中文文件名，UUID 只给机器用；跨书引用按路径写，在编辑器里能点通，改书名用 `shelf-pack mv` 一并改写。子分类大多只有一两本书，不建目录。迁移时手机上的旧数据不保留，重新推书 |
 | 数据源 | 文件即真相，SQLite 只做索引 | 索引可重建；以后加任何同步通道，阅读器都不用改 |
 | 局域网方向 | 手机做服务端，电脑做客户端 | 与常见的“WiFi 传书”习惯一致，CLI 可以直接 curl / push |
@@ -466,14 +467,14 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手�
 
 ## 13. 发布到 TestFlight
 
-开发版和正式版分开：`app/app.config.js` 默认生成开发版（Bundle ID `com.jarvis.shelf.dev`、桌面名「书巢 Dev」、URL scheme `shelf-dev`），和 TestFlight 装的正式版在同一台手机上并存，各有各的书和数据；只有 `pnpm app testflight` 设 `APP_VARIANT=production`，用 `app.json` 里的正式值。`expo run:ios` 在 `ios/` 已存在时不会重新生成工程，所以 `pnpm app ios` 先跑一次 `expo prebuild`，把 `ios/` 切回开发版，打完 TestFlight 再装开发版也不会覆盖正式版。
+开发版和正式版分开：`apps/mobile/app.config.js` 默认生成开发版（Bundle ID `com.jarvis.shelf.dev`、桌面名「书巢 Dev」、URL scheme `shelf-dev`），和 TestFlight 装的正式版在同一台手机上并存，各有各的书和数据；只有 `pnpm mobile testflight` 设 `APP_VARIANT=production`，用 `app.json` 里的正式值。`expo run:ios` 在 `ios/` 已存在时不会重新生成工程，所以 `pnpm mobile ios` 先跑一次 `expo prebuild`，把 `ios/` 切回开发版，打完 TestFlight 再装开发版也不会覆盖正式版。
 
 一次性准备：在 App Store Connect 用 Bundle ID `com.jarvis.shelf` 建好 App；Xcode 的 Settings → Accounts 登录开发者账号（脚本用它签名和上传）。
 
 ```bash
-pnpm app testflight                  # 版本号升 patch → build:assets → prebuild → archive → 上传 → 提交、打 tag 并推送
-pnpm app testflight --version 1.1.0  # 指定新版本号（升 minor / major 时用）
-pnpm app testflight --no-upload      # 只导出 .ipa 到 app/ios/build/export，不改版本号
+pnpm mobile testflight                  # 版本号升 patch → build:assets → prebuild → archive → 上传 → 提交、打 tag 并推送
+pnpm mobile testflight --version 1.1.0  # 指定新版本号（升 minor / major 时用）
+pnpm mobile testflight --no-upload      # 只导出 .ipa 到 apps/mobile/ios/build/export，不改版本号
 ```
 
 - 只维护 `app.json` 的 `expo.version` 一个号：每次上传都是新版本，脚本自动升 patch（或用 `--version` 指定），失败时恢复原值；上传成功后脚本自动单独提交 `app.json`（`chore(release): v<版本>`）并打同名 tag `v<版本>`，不带上工作区的其他改动，再用 `git push --follow-tags` 把这个提交和 tag 推到远端（当前分支需要已设上游；推送失败时提交和 tag 留在本地，按提示手动推）；`git log --oneline --decorate` 或 `git tag` 即可看到各版本节点

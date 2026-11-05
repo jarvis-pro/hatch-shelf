@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import path from 'node:path';
-import { assignHeadingIds, kicker, md, type RenderEnv } from '@shelf/reader-web/render';
-import { collectBlocks } from '@shelf/reader-web/tts';
+import { assignHeadingIds, kicker, md, type RenderEnv } from '@shelf/reader/render';
+import { collectBlocks } from '@shelf/reader/tts';
 import { describe, expect, it } from 'vitest';
 import { findBooks, lint, readBook } from './books';
 import { segmentChapter } from './segment';
@@ -10,7 +10,7 @@ import { segmentChapter } from './segment';
 const repoRoot = path.resolve(import.meta.dirname, '../../..');
 const booksRoot = process.env.SHELF_LIBRARY
   ? path.join(path.resolve(repoRoot, process.env.SHELF_LIBRARY), 'books')
-  : path.join(repoRoot, 'app/samples');
+  : path.join(repoRoot, 'apps/mobile/samples');
 
 const validBooks = findBooks(booksRoot)
   .map(readBook)

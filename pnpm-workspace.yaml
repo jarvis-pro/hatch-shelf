@@ -1,5 +1,3 @@
 packages:
-  - app
-  - app/reader-web
+  - apps/*
   - packages/*
-  - tools/*

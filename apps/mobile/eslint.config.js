@@ -6,7 +6,7 @@ const tseslint = require('typescript-eslint');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', 'ios/*', 'android/*', 'reader-web/*', 'assets/*', 'src/samples.generated.ts', '.expo/*'],
+    ignores: ['dist/*', 'ios/*', 'android/*', 'assets/*', 'src/samples.generated.ts', '.expo/*'],
   },
   {
     files: ['src/**/*.{ts,tsx}'],

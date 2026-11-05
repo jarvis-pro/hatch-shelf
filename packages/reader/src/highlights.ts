@@ -1,4 +1,4 @@
-import type { HighlightMark, Quote } from '../../src/reader/bridge';
+import type { HighlightMark, Quote } from '../../../apps/mobile/src/reader/bridge';
 
 const CONTEXT = 32;
 const MAX_QUOTE = 2000;

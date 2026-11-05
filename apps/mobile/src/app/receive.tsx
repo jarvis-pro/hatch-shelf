@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBook, type BookRow } from '@/db/queries';
-import { answerRequest, progressOf, startReceiving, stopReceiving, useReceive, type Entry, type ReceiveState } from '@/receive/store';
+import { answerRequest, progressOf, startReceiving, stopReceiving, useReceive, type BookTransfer, type Entry, type ReceiveState } from '@/receive/store';
 import { openBook } from '@/shelf/actions';
 import { BookCover, COVER_RATIO } from '@/shelf/BookCover';
 import { categoryLabel } from '@/shelf/categories';
@@ -88,15 +88,17 @@ export default function ReceiveScreen() {
           {s.phase === 'done' && <Summary s={s} />}
           {off && s.error ? (
             <Failed error={s.error} />
-          ) : s.entries.length === 0 && !s.current ? (
+          ) : s.entries.length === 0 && Object.keys(s.books).length === 0 ? (
             <Empty />
           ) : (
             <ScrollView style={styles.flex} showsVerticalScrollIndicator={false}>
-              {/* 已经收到的书再传原声时，进度显示在那本书的行里，不另起一行 */}
-              {s.current && !s.entries.some((e) => e.type === 'book' && e.bookId === s.current?.item?.id) && <Uploading current={s.current} />}
-              {[...s.entries].reverse().map((e, i) => (
-                <EntryRow key={i} e={e} plan={s.plan} current={e.type === 'book' && s.current?.item?.id === e.bookId ? s.current : null} />
-              ))}
+              {rowsOf(s).map((r) =>
+                r.type === 'book' ? (
+                  <BookItem key={r.key} id={r.id} item={s.plan.find((i) => i.id === r.id)} transfer={s.books[r.id]} entry={r.entry} />
+                ) : (
+                  <OtherRow key={r.key} e={r.entry} />
+                ),
+              )}
             </ScrollView>
           )}
         </Glass>
@@ -238,30 +240,86 @@ function Progress({ ratio }: { ratio: number }) {
   );
 }
 
-function Uploading({ current }: { current: NonNullable<ReceiveState['current']> }) {
+type Row =
+  | { type: 'book'; key: string; id: string; entry?: Extract<Entry, { type: 'book' }> }
+  | { type: 'other'; key: string; entry: Exclude<Entry, { type: 'book' }> };
+
+/**
+ * 列表的行：一本书只有一行（书和每章原声合在一起），key 固定是书的 id，
+ * 书放上书架前后都是同一行、不会重建；还没放上书架的书排在最上面
+ */
+function rowsOf(s: ReceiveState): Row[] {
+  const placed = new Set(s.entries.flatMap((e) => (e.type === 'book' ? [e.bookId] : [])));
+  const pending: Row[] = s.plan.filter((i) => s.books[i.id] && !placed.has(i.id)).map((i) => ({ type: 'book', key: `book:${i.id}`, id: i.id }));
+  const rest: Row[] = [...s.entries].reverse().map((e, i) =>
+    e.type === 'book' ? { type: 'book', key: `book:${e.bookId}`, id: e.bookId, entry: e } : { type: 'other', key: `other:${s.entries.length - i}`, entry: e },
+  );
+  return [...pending, ...rest];
+}
+
+function BookItem({ id, item, transfer, entry }: { id: string; item?: SessionItem; transfer?: BookTransfer; entry?: Extract<Entry, { type: 'book' }> }) {
   const t = useTheme();
-  const item = current.item;
-  const audio = /\.audio\./.test(current.name ?? '');
-  const title = item?.title ?? current.name ?? '正在接收…';
-  const detail = current.ratio >= 1 ? '正在放上书架' : audio ? audioStep(item, 0) : item?.detail;
+  const receiving = transfer !== undefined && !transfer.done;
+  const title = entry?.result.title ?? item?.title ?? id;
+  let label: string;
+  let color: string;
+  let detail: string;
+  if (receiving) {
+    // 收的过程中标签不变，只换说明文字；进度条是整本书的
+    [label, color] = item ? kindTag(t, item) : ['接收中', t.accent];
+    // 原声每章收完都会导入一下，这时仍显示第几章，不闪成「放上书架」
+    detail =
+      transfer.uploading === 'audio'
+        ? `原声 ${audioStep(item, transfer.audioDone)}`
+        : transfer.importing
+          ? '正在放上书架'
+          : transfer.uploading === 'book'
+            ? `正在接收${item?.bytes ? ` · 共 ${mb(item.bytes)}` : ''}`
+            : '等待下一个文件';
+  } else if (entry) {
+    const { result, book } = entry;
+    const onlyAudio = result.status === 'audio';
+    [label, color] = onlyAudio ? ['原声', t.accent] : result.status === 'updated' ? ['已更新', t.success] : ['新书', t.accent];
+    detail = onlyAudio
+      ? `补齐 ${entry.audioChapters} 章原声`
+      : [
+          result.status === 'updated' ? (item?.detail ?? null) : book && `${book.chapterCount} 章`,
+          result.status === 'updated' ? '进度保留' : book && categoryLabel(book.category),
+          entry.audioChapters > 0 ? `${entry.audioChapters} 章原声` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+  } else {
+    [label, color] = item ? kindTag(t, item) : ['接收中', t.accent];
+    detail = item?.detail ?? '';
+  }
+  const openable = !!entry && !receiving;
   return (
-    <View style={[styles.item, { borderTopColor: t.hairline }]}>
-      {item ? <ItemCover id={item.id} title={item.title} item={item} /> : <IconTile icon={BookDown} color={t.accent} tint={t.accentSoft} />}
+    <Pressable onPress={openable ? () => openBook(id) : undefined} disabled={!openable} style={[styles.item, { borderTopColor: t.hairline }]}>
+      <ItemCover id={id} title={title} item={item} />
       <View style={styles.itemText}>
         <Text style={{ color: t.fg, fontSize: 15, fontWeight: '600' }} numberOfLines={1}>
           {title}
         </Text>
         <View style={styles.row6}>
-          {item && <Tag label={audio ? '原声' : kindTag(t, item)[0]} color={audio ? t.accent : kindTag(t, item)[1]} />}
-          <Text style={{ color: t.fg3, fontSize: 12 }}>{detail}</Text>
+          <Tag label={label} color={color} />
+          <Text style={{ color: t.fg3, fontSize: 12, flexShrink: 1 }} numberOfLines={1}>
+            {detail}
+          </Text>
         </View>
-        <Progress ratio={current.ratio} />
+        {entry?.result.warnings.map((w) => (
+          <Text key={w} style={{ color: t.warn, fontSize: 12 }}>
+            {w}
+          </Text>
+        ))}
+        {receiving && <Progress ratio={transfer.ratio} />}
       </View>
-    </View>
+      {openable && <ChevronRight size={16} color={t.fg4} />}
+    </Pressable>
   );
 }
 
-function EntryRow({ e, plan, current }: { e: Entry; plan: SessionItem[]; current: ReceiveState['current'] }) {
+function OtherRow({ e }: { e: Exclude<Entry, { type: 'book' }> }) {
   const t = useTheme();
   if (e.type === 'log') {
     return (
@@ -274,55 +332,18 @@ function EntryRow({ e, plan, current }: { e: Entry; plan: SessionItem[]; current
       </View>
     );
   }
-  if (e.type === 'failed') {
-    return (
-      <View style={[styles.item, { borderTopColor: t.hairline }]}>
-        <IconTile icon={CircleAlert} color={t.danger} tint={`${t.danger}14`} />
-        <View style={styles.itemText}>
-          <Text style={{ color: t.fg, fontSize: 15, fontWeight: '600' }} numberOfLines={1}>
-            {e.fileName}
-          </Text>
-          <Text style={{ color: t.warn, fontSize: 12 }} numberOfLines={2}>
-            没有导入：{e.error}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-  const { result, book } = e;
-  const item = plan.find((i) => i.id === e.bookId);
-  const onlyAudio = result.status === 'audio';
-  const [label, color] = current || onlyAudio ? ['原声', t.accent] : result.status === 'updated' ? ['已更新', t.success] : ['新书', t.accent];
-  const detail = current
-    ? audioStep(item, e.audioChapters)
-    : onlyAudio
-    ? `补齐 ${e.audioChapters} 章原声`
-    : result.status === 'updated'
-      ? [item?.detail, '进度保留'].filter(Boolean).join(' · ')
-      : [book && `${book.chapterCount} 章`, book && categoryLabel(book.category)].filter(Boolean).join(' · ');
   return (
-    <Pressable onPress={() => openBook(e.bookId)} style={[styles.item, { borderTopColor: t.hairline }]}>
-      <ItemCover id={e.bookId} title={result.title} item={item} />
+    <View style={[styles.item, { borderTopColor: t.hairline }]}>
+      <IconTile icon={CircleAlert} color={t.danger} tint={`${t.danger}14`} />
       <View style={styles.itemText}>
         <Text style={{ color: t.fg, fontSize: 15, fontWeight: '600' }} numberOfLines={1}>
-          {result.title}
+          {e.fileName}
         </Text>
-        <View style={styles.row6}>
-          <Tag label={label} color={color} />
-          <Text style={{ color: t.fg3, fontSize: 12, flexShrink: 1 }} numberOfLines={1}>
-            {detail}
-            {!current && !onlyAudio && e.audioChapters > 0 ? ` · ${e.audioChapters} 章原声` : ''}
-          </Text>
-        </View>
-        {result.warnings.map((w) => (
-          <Text key={w} style={{ color: t.warn, fontSize: 12 }}>
-            {w}
-          </Text>
-        ))}
-        {current && <Progress ratio={current.ratio} />}
+        <Text style={{ color: t.warn, fontSize: 12 }} numberOfLines={2}>
+          没有导入：{e.error}
+        </Text>
       </View>
-      {!current && <ChevronRight size={16} color={t.fg4} />}
-    </Pressable>
+    </View>
   );
 }
 

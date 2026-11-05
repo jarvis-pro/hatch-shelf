@@ -83796,7 +83796,7 @@
                               "width": "fill_container",
                               "gap": 12,
                               "padding": [
-                                9,
+                                12,
                                 16
                               ],
                               "alignItems": "center",
@@ -83805,8 +83805,8 @@
                                   "type": "frame",
                                   "id": "u9JFj",
                                   "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
+                                  "width": 34,
+                                  "height": 47,
                                   "fill": {
                                     "type": "image",
                                     "enabled": true,
@@ -83831,26 +83831,160 @@
                                   }
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "pTzQX",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
+                                  "type": "frame",
+                                  "id": "no48V",
+                                  "name": "Info",
                                   "width": "fill_container",
-                                  "content": "出海实务",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "qWJWq",
-                                  "name": "Tag",
-                                  "fill": "#2F6BFF",
-                                  "content": "新书",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
+                                  "layout": "vertical",
+                                  "gap": 3,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "ru9JZ",
+                                      "name": "Title Row",
+                                      "width": "fill_container",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "zvo8E",
+                                          "name": "t",
+                                          "fill": "#111318",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "出海实务",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 14,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "IrH9i",
+                                          "name": "Tag",
+                                          "fill": "#2F6BFF14",
+                                          "cornerRadius": 6,
+                                          "padding": [
+                                            2,
+                                            6
+                                          ],
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "Z14yGj",
+                                              "name": "t",
+                                              "fill": "#2F6BFF",
+                                              "content": "新书",
+                                              "fontFamily": "Noto Sans SC",
+                                              "fontSize": 11,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "lVMCq",
+                                      "name": "Subtitle",
+                                      "fill": "#5B6170",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "海外主体、收款、上架、隐私、云与税汇…",
+                                      "fontFamily": "Noto Sans SC",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "lbdWo",
+                                      "name": "Meta",
+                                      "gap": 4,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "KiDLH",
+                                          "name": "Category",
+                                          "fill": "#8C92A0",
+                                          "content": "财税合规",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "Nb6u4",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "l9uvC",
+                                          "name": "Chapters",
+                                          "fill": "#8C92A0",
+                                          "content": "8 章",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "g5ksI",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "icon",
+                                          "id": "RwncI",
+                                          "name": "headphones",
+                                          "width": 11,
+                                          "height": 11,
+                                          "icon": "headphones",
+                                          "library": "lucide",
+                                          "fill": "#8C92A0"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "VAm34",
+                                          "name": "Audio",
+                                          "fill": "#8C92A0",
+                                          "content": "含原声",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "PnD1W",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "Y1ZAW",
+                                          "name": "Size",
+                                          "fill": "#8C92A0",
+                                          "content": "41 MB",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
                             },
@@ -83865,7 +83999,7 @@
                               },
                               "gap": 12,
                               "padding": [
-                                9,
+                                12,
                                 16
                               ],
                               "alignItems": "center",
@@ -83874,8 +84008,8 @@
                                   "type": "frame",
                                   "id": "RFq0v",
                                   "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
+                                  "width": 34,
+                                  "height": 47,
                                   "fill": {
                                     "type": "image",
                                     "enabled": true,
@@ -83900,26 +84034,160 @@
                                   }
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "hodI9",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
+                                  "type": "frame",
+                                  "id": "TqNjI",
+                                  "name": "Info",
                                   "width": "fill_container",
-                                  "content": "Agent 原理与设计",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "i3TxK",
-                                  "name": "Tag",
-                                  "fill": "#2F6BFF",
-                                  "content": "新书",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
+                                  "layout": "vertical",
+                                  "gap": 3,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "Ma7nI",
+                                      "name": "Title Row",
+                                      "width": "fill_container",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "vajMo",
+                                          "name": "t",
+                                          "fill": "#111318",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "Agent 原理与设计",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 14,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "r1jJm",
+                                          "name": "Tag",
+                                          "fill": "#2F6BFF14",
+                                          "cornerRadius": 6,
+                                          "padding": [
+                                            2,
+                                            6
+                                          ],
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "wLKj8",
+                                              "name": "t",
+                                              "fill": "#2F6BFF",
+                                              "content": "新书",
+                                              "fontFamily": "Noto Sans SC",
+                                              "fontSize": 11,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "zgEsU",
+                                      "name": "Subtitle",
+                                      "fill": "#5B6170",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "从 agent loop 到失败模式，Agent 系列的总纲",
+                                      "fontFamily": "Noto Sans SC",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "PSVbB",
+                                      "name": "Meta",
+                                      "gap": 4,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "I97Po",
+                                          "name": "Meta 0",
+                                          "fill": "#8C92A0",
+                                          "content": "Agent",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "qX5us",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "v4MtHN",
+                                          "name": "Meta 1",
+                                          "fill": "#8C92A0",
+                                          "content": "10 章",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "ukRBj",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "icon",
+                                          "id": "fgRwI",
+                                          "name": "headphones",
+                                          "width": 11,
+                                          "height": 11,
+                                          "icon": "headphones",
+                                          "library": "lucide",
+                                          "fill": "#8C92A0"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "cmLnR",
+                                          "name": "Meta 2",
+                                          "fill": "#8C92A0",
+                                          "content": "含原声",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "VrYmK",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "c41Qw",
+                                          "name": "Meta 3",
+                                          "fill": "#8C92A0",
+                                          "content": "38 MB",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
                             },
@@ -83934,7 +84202,7 @@
                               },
                               "gap": 12,
                               "padding": [
-                                9,
+                                12,
                                 16
                               ],
                               "alignItems": "center",
@@ -83943,8 +84211,8 @@
                                   "type": "frame",
                                   "id": "yMa3H",
                                   "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
+                                  "width": 34,
+                                  "height": 47,
                                   "fill": {
                                     "type": "image",
                                     "enabled": true,
@@ -83969,26 +84237,130 @@
                                   }
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "QUndE",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
+                                  "type": "frame",
+                                  "id": "op7Bh",
+                                  "name": "Info",
                                   "width": "fill_container",
-                                  "content": "上下文工程",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "c5ba8h",
-                                  "name": "Tag",
-                                  "fill": "#B26A00",
-                                  "content": "更新 3 章",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
+                                  "layout": "vertical",
+                                  "gap": 3,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "VRLAY",
+                                      "name": "Title Row",
+                                      "width": "fill_container",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Us0pe",
+                                          "name": "t",
+                                          "fill": "#111318",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "上下文工程",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 14,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "QjUlx",
+                                          "name": "Tag",
+                                          "fill": "#B26A0014",
+                                          "cornerRadius": 6,
+                                          "padding": [
+                                            2,
+                                            6
+                                          ],
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "c7Ga8j",
+                                              "name": "t",
+                                              "fill": "#B26A00",
+                                              "content": "更新 3 章",
+                                              "fontFamily": "Noto Sans SC",
+                                              "fontSize": 11,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "f2VWe",
+                                      "name": "Subtitle",
+                                      "fill": "#5B6170",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "让 agent 每一步都只看到该看的：提示词、记…",
+                                      "fontFamily": "Noto Sans SC",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "blyvR",
+                                      "name": "Meta",
+                                      "gap": 4,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "s0gu9",
+                                          "name": "Meta 0",
+                                          "fill": "#8C92A0",
+                                          "content": "Agent",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "F2HCTp",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "f7cYOA",
+                                          "name": "Meta 1",
+                                          "fill": "#8C92A0",
+                                          "content": "改了 3 章",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "HrRCk",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "h2LwZq",
+                                          "name": "Meta 2",
+                                          "fill": "#8C92A0",
+                                          "content": "1.2 MB",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
                             },
@@ -84003,7 +84375,7 @@
                               },
                               "gap": 12,
                               "padding": [
-                                9,
+                                12,
                                 16
                               ],
                               "alignItems": "center",
@@ -84012,8 +84384,8 @@
                                   "type": "frame",
                                   "id": "Bs3tm",
                                   "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
+                                  "width": 34,
+                                  "height": 47,
                                   "fill": {
                                     "type": "image",
                                     "enabled": true,
@@ -84038,371 +84410,140 @@
                                   }
                                 },
                                 {
-                                  "type": "text",
-                                  "id": "KziiH",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "编码 Agent 实战",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "Rb79I",
-                                  "name": "Tag",
-                                  "fill": "#7C4DFF",
-                                  "content": "补 4 章原声",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "BjGaq",
-                              "name": "Item 获客与增长",
-                              "width": "fill_container",
-                              "stroke": "#1E2A5A0F",
-                              "strokeWidth": {
-                                "top": 1
-                              },
-                              "gap": 12,
-                              "padding": [
-                                9,
-                                16
-                              ],
-                              "alignItems": "center",
-                              "children": [
-                                {
                                   "type": "frame",
-                                  "id": "mi4ZG",
-                                  "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
-                                  "fill": {
-                                    "type": "image",
-                                    "enabled": true,
-                                    "url": "covers/growth-marketing.png",
-                                    "mode": "cover"
-                                  },
-                                  "cornerRadius": [
-                                    2,
-                                    4,
-                                    4,
-                                    2
-                                  ],
-                                  "effect": {
-                                    "type": "shadow",
-                                    "shadowType": "outer",
-                                    "color": "#1E2A5A26",
-                                    "offset": {
-                                      "x": 0,
-                                      "y": 2
-                                    },
-                                    "blur": 6
-                                  }
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "uKAM2",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
+                                  "id": "PXRZU",
+                                  "name": "Info",
                                   "width": "fill_container",
-                                  "content": "获客与增长",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "cZvED",
-                                  "name": "Tag",
-                                  "fill": "#2F6BFF",
-                                  "content": "新书",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "xuDWC",
-                              "name": "Item 大模型原理进阶",
-                              "width": "fill_container",
-                              "stroke": "#1E2A5A0F",
-                              "strokeWidth": {
-                                "top": 1
-                              },
-                              "gap": 12,
-                              "padding": [
-                                9,
-                                16
-                              ],
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "lWi7l",
-                                  "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
-                                  "fill": {
-                                    "type": "image",
-                                    "enabled": true,
-                                    "url": "covers/llm-deep-dive.png",
-                                    "mode": "cover"
-                                  },
-                                  "cornerRadius": [
-                                    2,
-                                    4,
-                                    4,
-                                    2
-                                  ],
-                                  "effect": {
-                                    "type": "shadow",
-                                    "shadowType": "outer",
-                                    "color": "#1E2A5A26",
-                                    "offset": {
-                                      "x": 0,
-                                      "y": 2
+                                  "layout": "vertical",
+                                  "gap": 3,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "O7cTxw",
+                                      "name": "Title Row",
+                                      "width": "fill_container",
+                                      "gap": 8,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Gj2xr",
+                                          "name": "t",
+                                          "fill": "#111318",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "编码 Agent 实战",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 14,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "EGSdP",
+                                          "name": "Tag",
+                                          "fill": "#7C4DFF14",
+                                          "cornerRadius": 6,
+                                          "padding": [
+                                            2,
+                                            6
+                                          ],
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "vtqZv",
+                                              "name": "t",
+                                              "fill": "#7C4DFF",
+                                              "content": "补 4 章原声",
+                                              "fontFamily": "Noto Sans SC",
+                                              "fontSize": 11,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
-                                    "blur": 6
-                                  }
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "IvPEj",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "大模型原理进阶",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "Af7LQ",
-                                  "name": "Tag",
-                                  "fill": "#B26A00",
-                                  "content": "更新 2 章",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "E3efJC",
-                              "name": "Item 文案与内容",
-                              "width": "fill_container",
-                              "stroke": "#1E2A5A0F",
-                              "strokeWidth": {
-                                "top": 1
-                              },
-                              "gap": 12,
-                              "padding": [
-                                9,
-                                16
-                              ],
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "B7iFP",
-                                  "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
-                                  "fill": {
-                                    "type": "image",
-                                    "enabled": true,
-                                    "url": "covers/copywriting-content.png",
-                                    "mode": "cover"
-                                  },
-                                  "cornerRadius": [
-                                    2,
-                                    4,
-                                    4,
-                                    2
-                                  ],
-                                  "effect": {
-                                    "type": "shadow",
-                                    "shadowType": "outer",
-                                    "color": "#1E2A5A26",
-                                    "offset": {
-                                      "x": 0,
-                                      "y": 2
+                                    {
+                                      "type": "text",
+                                      "id": "V39CFH",
+                                      "name": "Subtitle",
+                                      "fill": "#5B6170",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "以 Claude Code 为例：写规矩、设闸门、派活…",
+                                      "fontFamily": "Noto Sans SC",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
                                     },
-                                    "blur": 6
-                                  }
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "d9M6W4",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "文案与内容",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "W05h0",
-                                  "name": "Tag",
-                                  "fill": "#2F6BFF",
-                                  "content": "新书",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "W3p1u",
-                              "name": "Item LLMOps 实践",
-                              "width": "fill_container",
-                              "stroke": "#1E2A5A0F",
-                              "strokeWidth": {
-                                "top": 1
-                              },
-                              "gap": 12,
-                              "padding": [
-                                9,
-                                16
-                              ],
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "XVfD9",
-                                  "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
-                                  "fill": {
-                                    "type": "image",
-                                    "enabled": true,
-                                    "url": "covers/llmops.png",
-                                    "mode": "cover"
-                                  },
-                                  "cornerRadius": [
-                                    2,
-                                    4,
-                                    4,
-                                    2
-                                  ],
-                                  "effect": {
-                                    "type": "shadow",
-                                    "shadowType": "outer",
-                                    "color": "#1E2A5A26",
-                                    "offset": {
-                                      "x": 0,
-                                      "y": 2
-                                    },
-                                    "blur": 6
-                                  }
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "tySwl",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "LLMOps 实践",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "zuOMz",
-                                  "name": "Tag",
-                                  "fill": "#2F6BFF",
-                                  "content": "新书",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "h4aA0S",
-                              "name": "Item Python 与 AI",
-                              "width": "fill_container",
-                              "stroke": "#1E2A5A0F",
-                              "strokeWidth": {
-                                "top": 1
-                              },
-                              "gap": 12,
-                              "padding": [
-                                9,
-                                16
-                              ],
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "Rsiwm",
-                                  "name": "Cover",
-                                  "width": 26,
-                                  "height": 36,
-                                  "fill": {
-                                    "type": "image",
-                                    "enabled": true,
-                                    "url": "covers/python-for-ai.png",
-                                    "mode": "cover"
-                                  },
-                                  "cornerRadius": [
-                                    2,
-                                    4,
-                                    4,
-                                    2
-                                  ],
-                                  "effect": {
-                                    "type": "shadow",
-                                    "shadowType": "outer",
-                                    "color": "#1E2A5A26",
-                                    "offset": {
-                                      "x": 0,
-                                      "y": 2
-                                    },
-                                    "blur": 6
-                                  }
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "LHXqI",
-                                  "name": "t",
-                                  "fill": "#111318",
-                                  "textGrowth": "fixed-width",
-                                  "width": "fill_container",
-                                  "content": "Python 与 AI",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 14,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "FO68b",
-                                  "name": "Tag",
-                                  "fill": "#2F6BFF",
-                                  "content": "新书",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "600"
+                                    {
+                                      "type": "frame",
+                                      "id": "DFIEU",
+                                      "name": "Meta",
+                                      "gap": 4,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "oRgUL",
+                                          "name": "Meta 0",
+                                          "fill": "#8C92A0",
+                                          "content": "Agent",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "HMvdI",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "icon",
+                                          "id": "HzshL",
+                                          "name": "headphones",
+                                          "width": 11,
+                                          "height": 11,
+                                          "icon": "headphones",
+                                          "library": "lucide",
+                                          "fill": "#8C92A0"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "L55Z9s",
+                                          "name": "Meta 1",
+                                          "fill": "#8C92A0",
+                                          "content": "4 章原声",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "njO7S",
+                                          "name": "dot",
+                                          "fill": "#8C92A0",
+                                          "content": "·",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "rYQJ9",
+                                          "name": "Meta 2",
+                                          "fill": "#8C92A0",
+                                          "content": "13.1 MB",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
                             },
@@ -84445,7 +84586,7 @@
                               "name": "Scroll indicator",
                               "fill": "#1E2A5A33",
                               "width": 3,
-                              "height": 150
+                              "height": 110
                             }
                           ]
                         },
@@ -84987,43 +85128,83 @@
                                       "type": "frame",
                                       "id": "d4pOO",
                                       "name": "Meta",
+                                      "width": "fill_container",
                                       "gap": 6,
+                                      "justifyContent": "space_between",
                                       "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "frame",
-                                          "id": "AtjPP",
-                                          "name": "Badge",
-                                          "height": 20,
-                                          "fill": "#2F6BFF14",
-                                          "cornerRadius": 6,
-                                          "padding": [
-                                            0,
-                                            6
-                                          ],
+                                          "id": "aOPqv",
+                                          "name": "L",
+                                          "gap": 6,
                                           "alignItems": "center",
                                           "children": [
                                             {
+                                              "type": "frame",
+                                              "id": "AtjPP",
+                                              "name": "Badge",
+                                              "height": 20,
+                                              "fill": "#2F6BFF14",
+                                              "cornerRadius": 6,
+                                              "padding": [
+                                                0,
+                                                6
+                                              ],
+                                              "alignItems": "center",
+                                              "children": [
+                                                {
+                                                  "type": "text",
+                                                  "id": "qnOKW",
+                                                  "name": "t",
+                                                  "fill": "#2F6BFF",
+                                                  "content": "原声",
+                                                  "fontFamily": "Noto Sans SC",
+                                                  "fontSize": 11,
+                                                  "fontWeight": "700"
+                                                }
+                                              ]
+                                            },
+                                            {
                                               "type": "text",
-                                              "id": "qnOKW",
+                                              "id": "C3wIb",
                                               "name": "t",
-                                              "fill": "#2F6BFF",
-                                              "content": "原声",
+                                              "fill": "#8C92A0",
+                                              "content": "第 3 / 4 章",
                                               "fontFamily": "Noto Sans SC",
-                                              "fontSize": 11,
-                                              "fontWeight": "700"
+                                              "fontSize": 12,
+                                              "fontWeight": "normal"
                                             }
                                           ]
                                         },
                                         {
-                                          "type": "text",
-                                          "id": "C3wIb",
-                                          "name": "t",
-                                          "fill": "#8C92A0",
-                                          "content": "第 3 / 4 章",
-                                          "fontFamily": "Noto Sans SC",
-                                          "fontSize": 12,
-                                          "fontWeight": "normal"
+                                          "type": "frame",
+                                          "id": "si5UA",
+                                          "name": "Bytes",
+                                          "gap": 4,
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "sWIBs",
+                                              "name": "Size",
+                                              "fill": "#8C92A0",
+                                              "content": "8.1 / 13.1 MB",
+                                              "fontFamily": "Inter",
+                                              "fontSize": 11,
+                                              "fontWeight": "normal"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "pPI4j",
+                                              "name": "Pct",
+                                              "fill": "#2F6BFF",
+                                              "content": "62%",
+                                              "fontFamily": "Inter",
+                                              "fontSize": 11,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
                                         }
                                       ]
                                     },
@@ -85048,22 +85229,12 @@
                                               "type": "frame",
                                               "id": "Tw7ss",
                                               "name": "Fill",
-                                              "width": 112,
+                                              "width": 159,
                                               "height": 4,
                                               "fill": "#2F6BFF",
                                               "cornerRadius": 2
                                             }
                                           ]
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "Z7uh2",
-                                          "name": "t",
-                                          "fill": "#8C92A0",
-                                          "content": "62%",
-                                          "fontFamily": "Inter",
-                                          "fontSize": 11,
-                                          "fontWeight": "normal"
                                         }
                                       ]
                                     }
@@ -85171,7 +85342,7 @@
                                           "id": "vzdeE",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "9 章 · 人工智能",
+                                          "content": "10 章 · 人工智能 · 38 MB",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 12,
                                           "fontWeight": "normal"
@@ -85292,7 +85463,7 @@
                                           "id": "CNNNf",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "改了 3 章 · 进度保留",
+                                          "content": "改了 3 章 · 进度保留 · 1.2 MB",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 12,
                                           "fontWeight": "normal"
@@ -85955,7 +86126,7 @@
                                           "id": "F8yUYO",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "8 章 · 一人公司",
+                                          "content": "8 章 · 一人公司 · 41 MB",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 12,
                                           "fontWeight": "normal"
@@ -86076,7 +86247,7 @@
                                           "id": "g0jPnT",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "补齐 4 章原声",
+                                          "content": "补齐 4 章原声 · 13.1 MB",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 12,
                                           "fontWeight": "normal"
@@ -86197,7 +86368,7 @@
                                           "id": "JdtBr",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "9 章 · 人工智能",
+                                          "content": "10 章 · 人工智能 · 38 MB",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 12,
                                           "fontWeight": "normal"
@@ -86318,7 +86489,7 @@
                                           "id": "axRHF",
                                           "name": "t",
                                           "fill": "#8C92A0",
-                                          "content": "改了 3 章 · 进度保留",
+                                          "content": "改了 3 章 · 进度保留 · 1.2 MB",
                                           "fontFamily": "Noto Sans SC",
                                           "fontSize": 12,
                                           "fontWeight": "normal"

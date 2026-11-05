@@ -51,17 +51,18 @@ function Pill({ s, visible }: { s: ReceiveState; visible: boolean }) {
   }, [visible, v]);
   if (!shown) return null;
 
-  const { index, total } = progressOf(s);
+  const { index, total, ratio } = progressOf(s);
+  const item = s.plan.find((i) => i.id === s.active);
+  const book = s.active ? s.books[s.active] : undefined;
   const [title, sub] =
     s.phase === 'receiving'
-      ? [`接收中 · 第 ${index} / ${total} 本`, s.current?.item ? `${s.current.item.title}${/\.audio\./.test(s.current.name ?? '') ? ' · 原声' : ''}` : '等下一本']
+      ? [`接收中 · 第 ${index} / ${total} 本`, item && book && !book.done ? `${item.title}${book.uploading === 'audio' ? ' · 原声' : ''}` : '等下一本']
       : s.phase === 'done'
         ? ['接收完成', `${s.countdown} 秒后结束`]
         : s.phase === 'confirm'
           ? ['电脑请求推送', '点开确认']
           : ['接收中 · 等待推送', s.peer?.name ?? '在 Dock 里勾选书后推送'];
-  // 进度环：已收完的本数加上当前这本的上传进度
-  const ratio = s.phase === 'done' ? 1 : total ? Math.min(1, (index - 1 + (s.current?.ratio ?? 0)) / total) : 0;
+  // 进度环：已收完的本数加上正在收的那本的整体进度，一本书的原声一章章传时不会回退
   const r = (RING - STROKE) / 2;
   const c = 2 * Math.PI * r;
 

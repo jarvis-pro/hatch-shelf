@@ -62,6 +62,8 @@ export interface LanServerEvents {
 export interface ReceivingUpload {
   ratio: number;
   name?: string;
+  /** 这次上传的总字节数（Content-Length） */
+  total: number;
 }
 
 export interface LanServer {
@@ -245,7 +247,7 @@ export function startLanServer(events: LanServerEvents): LanServer {
       const ratio = Math.floor((p.received / p.total) * 20) / 20;
       if (ratio === reported && !found) return;
       reported = ratio;
-      events.onReceiving(key, { ratio, name });
+      events.onReceiving(key, { ratio, name, total: p.total });
     };
 
     socket.on('data', (chunk) => {

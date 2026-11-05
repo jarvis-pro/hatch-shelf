@@ -80,6 +80,8 @@ export interface SessionItem {
   detail: string;
   /** 这次要推的原声章数（按章一个包），接收页据此显示「第几 / 共几章」 */
   audioChapters?: number;
+  /** 这本书这次要传的总字节数（书的包 + 原声），接收页据此把整本书算成一条进度 */
+  bytes?: number;
   /** 手机上还没有这本书时，确认框和接收页用这些画封面 */
   subtitle?: string;
   category?: string;
@@ -128,6 +130,7 @@ export function isSessionRequest(v: unknown): v is SessionRequest {
         KINDS.has(i.kind) &&
         typeof i.detail === 'string' &&
         (i.audioChapters === undefined || typeof i.audioChapters === 'number') &&
+        (i.bytes === undefined || typeof i.bytes === 'number') &&
         optString(i.subtitle) &&
         optString(i.category) &&
         isThumb(i.cover),

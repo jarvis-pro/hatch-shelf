@@ -113,7 +113,17 @@ export async function startPush(entries: LibEntry[], key: string, addr: string, 
 }
 
 async function run(phone: Phone, steps: Step[], j: Job, signal: AbortSignal) {
-  const items = steps.map(({ item: { id, title, kind, detail, audioChapters, subtitle, category }, cover }) => ({ id, title, kind, detail, audioChapters, subtitle, category, cover }));
+  const items = steps.map(({ item: { id, title, kind, detail, audioChapters, bytes, subtitle, category }, cover }) => ({
+    id,
+    title,
+    kind,
+    detail,
+    audioChapters,
+    bytes,
+    subtitle,
+    category,
+    cover,
+  }));
   try {
     const accepted = await phone.request({ items, bytes: steps.reduce((n, s) => n + s.item.bytes, 0) }, signal);
     if (!accepted) {

@@ -20,7 +20,7 @@ apps/mobile/android/
 apps/mobile/assets/reader/
 apps/mobile/src/samples.generated.ts
 
-# shelf-pack backup 拉下来的阅读数据备份（个人数据，不入库）
+# 以前 shelf-pack backup 拉下来的阅读数据备份（个人数据，不入库）
 backups/
 
 # shelf-pack audio 生成的原声录音（体积大，不入库）

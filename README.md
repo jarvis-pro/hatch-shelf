@@ -27,10 +27,10 @@
 ## 2. 整体架构
 
 ```
-[任意 AI Agent] → 书库 books/ → [shelf-pack CLI] ─┬─ AirDrop / 分享 (.zip/.md)
-                                                  └─ 局域网 HTTP 上传
+[任意 AI Agent] → 书库 books/ ─┬─ [Dock 网页] ── 局域网推送 ──┐
+                               └─ AirDrop / 分享 (.zip/.md) ──┤
                                                          ↓
-                                     App: inbox/ → 校验 → books/ → SQLite 索引
+                                App: inbox/ → 校验 → books/ → SQLite 索引
                                                          ↓
                                                      离线阅读
 ```
@@ -53,8 +53,9 @@ hatch-shelf/
 ├── AGENTS.md              # 代码侧规范（开发 App / CLI 时 agent 读取）
 ├── pnpm-workspace.yaml
 ├── apps/
-│   └── mobile/            # @shelf/mobile：书巢 iOS App（Expo，Metro 根目录在此）
-│       └── samples/       # 随安装包发布的 2 本示例书，也是测试用的书
+│   ├── mobile/            # @shelf/mobile：书巢 iOS App（Expo，Metro 根目录在此）
+│   │   └── samples/       # 随安装包发布的 2 本示例书，也是测试用的书
+│   └── dock/              # @shelf/dock：电脑端控制台，本地 Node 服务 + 网页，读书库、和手机比对、推送
 ├── packages/
 │   ├── spec/              # @shelf/spec：book.yaml 的 zod schema + TS 类型，App 与 CLI 共用
 │   ├── reader/            # @shelf/reader：阅读器网页，打包成单个 HTML 放进 App
@@ -145,35 +146,47 @@ next:                         # 可选，读完后接着读的书，最多 3 本
 - 选择“用书巢打开”后，文件进入导入管线
 - 书架右上角的“导入”可以从“文件” App 里选一个 zip / md，走同一条管线
 
-### 5.2 局域网传书
+### 5.2 局域网推送：Dock 与接收模式
 
-- 「传书」Tab 默认不开启，点「开启传书」才启动 HTTP 服务，点右上角「停止」才关闭；切到其他 Tab 时服务继续运行，Tab 栏的「传书」图标上显示绿色状态点
-- App 进入后台时 iOS 会挂起服务（无法在后台接收），回到前台时用同一个 PIN 重新监听，电脑端不用重新输入
-- 「本次接收」列表每本书显示封面、新书 / 已更新标签、章节数和分类，点击打开书；导入失败的文件显示原因
-- 页面显示访问地址 `http://<设备IP>:8080` 和一个 4 位随机 PIN，每次开启重新生成
-- 首次使用会触发“本地网络”权限弹窗，需要配置 `NSLocalNetworkUsageDescription`
-- 第一版不做 Bonjour 自动发现，手动输入 IP
+电脑上运行 Dock（`pnpm dock`，`apps/dock`），在浏览器里打开 `http://localhost:5170`：左侧按状态、分组筛选，右侧以封面墙列出书库里的每一本书，和手机比对后的状态写在封面角标上；点封面勾选，从底部浮条一次推送。手机上进入「接收模式」，只负责确认推送、看着书进来。设计稿见「Dock · 电脑端控制台」和「书巢 · 接收模式（配合 Dock）」。
 
-**接口**
+**配对**：第一次在 Dock 里点「连接手机」，弹出二维码，内容是 `shelf://pair?k=<密钥>&name=<电脑名>`（开发版 App 的 scheme 是 `shelf-dev`，启动时 `SHELF_APP=dev pnpm dock`）。用 iPhone 系统相机扫码会拉起书巢；书架「+ → 从电脑接收」在还没配对时也会进 App 内的扫码页（`expo-camera`）。密钥是 Dock 随机生成的 16 字节，扫码后两边长期保存：手机存在 settings 的 `pairedComputers`（不进阅读数据备份），设置页「电脑」里可以取消配对；Dock 存在浏览器的 localStorage。之后每次只要在手机上打开接收，Dock 就会自己连上。
+
+**发现**：手机仍只做服务端，不主动发请求。Dock 先试上次连上的地址和 127.0.0.1（模拟器），再并发扫描本机所在 /24 网段的 `:8080/ping`，找到回应的书巢后用密钥调 `/hello` 确认。
+
+**接收模式**（`apps/mobile/src/receive/`）：
+- 入口是书架「+」菜单的「从电脑接收」、空书架的按钮，或扫码。进入即开始监听，不再有单独的「开启」
+- 状态放在模块里（`store.ts`），不属于某个页面：接收页（`app/receive.tsx`，可下滑收起）收起后服务继续运行，App 根部的 `ReceiveHost` 在所有页面顶部挂一个胶囊显示进度，点它回到接收页、点 × 结束；胶囊和接收页互斥。接收期间屏幕常亮
+- Dock 每次推送先发 `/session/request`，手机上从底部升起确认框，列出要推的书和预计大小；点「开始接收」才传输，点「拒绝」Dock 回到列表。不在接收页时自动打开接收页。同一时间只接受一次推送，传输期间新的请求返回 409
+- 收到的书逐本列在接收页，同一本书的书本身和原声合成一行；Dock 拉笔记、做备份也记一行。Dock 推完发 `/session/end`，接收页显示汇总（新书 / 更新 / 原声章数），8 秒后自动结束；5 分钟没有任何请求也自动结束
+- App 进入后台时 iOS 会挂起服务，回到前台时重新监听，进行中的推送状态保留
+
+**Dock**（`apps/dock`）：
+- `server/` 是只监听 127.0.0.1:5170 的 Node 服务，提供网页和 `/api`；只认本机的 Host，非 GET 请求还要校验 Origin，防止别的网页借浏览器调用。书库路径、配对密钥、手机地址都存在浏览器的 localStorage，随请求头带给服务端，服务端不落盘
+- 书库路径没有默认值，首次打开填写，实时检查能找到几本书。给书库仓库根目录或其中的 `books/` 都行
+- 每本书的状态：校验未通过（`lintBook()` 报错，不能勾选，点开看错误）、新书、有更新（内容指纹不同）、已同步；另外标出手机上缺几章原声、手机上有几条还没写回书库的笔记。书库里没有、手机上有的书列在「仅手机有」，只显示不删除
+- 推送：服务端按手机当前的状态重新算一遍每本书要传什么（书的 zip、缺的原声章节），发确认请求，确认后串行上传，网页每 400ms 轮询进度。封面上原地显示进度，底部浮条显示总进度和「停止」
+- 「拉取笔记」把手机上的笔记写到书库各书目录的 `notes.md`，只差导出日期的不重写；「备份阅读数据」把手机上的备份 JSON 直接下载到浏览器
+- 书库扫描按书目录的最近修改时间缓存打包结果，96 本书首次约 2 秒，之后不到 0.3 秒
+
+**接口**（手机端，协议类型在 `@shelf/spec` 的 `transfer.ts`，除 `/ping` 外都要带 `Authorization: Bearer <密钥>`）
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET | `/` | 内置的拖拽上传页面（HTML 打包在 App 内） |
-| POST | `/upload` | `multipart/form-data`，字段 `file`；请求头 `X-Pin`（浏览器页面通过表单字段传递） |
-| GET | `/books` | 返回本地已有书籍的 id、标题、更新时间和内容指纹 `hash`（CLI 据此判断是否需要推送）；同样需要 `X-Pin` |
-| GET | `/cover/<id>` | 书的 `cover.png`，上传页在导入成功后用来显示封面；需要 `X-Pin`，没有封面时 404 |
-| GET | `/notes` | 每本有高亮的书的笔记：`{ id, title, count, markdown }`，`markdown` 与分享导出的 `<id>.notes.md` 相同；需要 `X-Pin` |
-| GET | `/backup` | 阅读数据备份（见第 7 节），`{ ok, backup }`；需要 `X-Pin` |
-| POST | `/restore` | 请求体是备份 JSON，合并进本机，返回 `{ ok, message, summary }`；需要 `X-Pin` |
-| GET | `/ping` | 不需要 PIN；上传页每 3 秒请求一次，连续两次失败就提示连接已断开 |
+| GET | `/ping` | 不需要密钥；返回 `{ ok, app: 'shelf', protocol }`，Dock 扫网段时用它认出书巢、判断协议版本 |
+| GET | `/hello` | 校验密钥，返回手机名字；密钥不对时 401 |
+| GET | `/books` | 本地书籍的 id、标题、更新时间和内容指纹 `hash` |
+| GET | `/audio/<id>` | 这本书在手机上的原声清单，Dock 据此只推缺的章节 |
+| GET | `/notes` | 每本有高亮的书的笔记：`{ id, title, count, markdown }`，`markdown` 与分享导出的 `<id>.notes.md` 相同 |
+| GET | `/backup` | 阅读数据备份（见第 7 节） |
+| POST | `/session/request` | `{ items, bytes }`，挂起直到手机上确认或拒绝，返回 `{ ok, accepted }` |
+| POST | `/session/log` | `{ kind: 'notes' \| 'backup', detail }`，接收页记一行 |
+| POST | `/session/end` | 这次推送结束 |
+| POST | `/upload` | `multipart/form-data`，字段 `file`；只在确认过的推送里接受，成功时返回 `status`（`added` / `updated` / `audio`）、`title`、`chapters` 和 `warnings` |
 
-响应统一为 JSON：`{ ok: boolean, bookId?: string, error?: string }`；`/upload` 成功时还带 `status`（`added` / `updated`）、`title`、`chapters`（章节数）、`cover`（是否有封面）和 `warnings`。
+**限制**：单个文件不超过 50 MB（原声按章分包）。
 
-**上传页**：`apps/mobile/src/server/upload-page.ts`，设计稿见「传书网页 · 电脑浏览器」。整页内联，背景插图和 App 图标以 data URI 放在 `upload-images.ts`，不加载任何外部资源；整个页面都可以松手上传，多个文件串行上传。一次 PIN 错误后，排队中的文件不再发送，避免把 5 次错误次数用完。
-
-**限制**：单个文件不超过 50 MB；PIN 连续错误 5 次后，本次服务失效。
-
-**实现**：HTTP 解析在 `apps/mobile/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；会响应 curl 上传大文件时的 `Expect: 100-continue`。上传的文件落成临时文件后交给第 6 节的导入管线，多个上传串行导入；接收过程中按 5% 粒度上报上传进度。服务运行期间保持屏幕常亮。
+**实现**：HTTP 解析在 `apps/mobile/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；Dock 用 `node:http` 自己拼 multipart，保证有 Content-Length，并按发出的字节报告上传进度。上传的文件落成临时文件后交给第 6 节的导入管线，多个上传串行导入。
 
 ### 5.3 “文件” App 可见（可选，M4 之后）
 
@@ -224,7 +237,7 @@ documentDirectory/
 
 `last_read_at` 由 `progress` 推导；重建索引时从 `progress` 回填。
 
-**备份**：不可重建的三类数据（progress、highlights、settings 里的外观与阅读设置）可以导出成一个 JSON（`apps/mobile/src/backup/`）。两条路：设置页「备份阅读进度与笔记」经分享面板存到「文件」或 AirDrop，「从备份恢复」从「文件」选回来；或者传书开启时在电脑上 `shelf-pack backup` / `restore`。恢复是合并：本机没有的写入，两边都有的保留 `updated_at` 较新的一份，所以不会冲掉备份之后的新记录（备份之后删掉的高亮会被恢复回来）。书的原文不在备份里，换机后重新推书，进度和高亮按书 id 与章节文件名挂回去。
+**备份**：不可重建的三类数据（progress、highlights、settings 里的外观与阅读设置）可以导出成一个 JSON（`apps/mobile/src/backup/`）。两条路：设置页「备份阅读进度与笔记」经分享面板存到「文件」或 AirDrop，「从备份恢复」从「文件」选回来；或者在 Dock 里点「备份阅读数据」下载到电脑。恢复是合并：本机没有的写入，两边都有的保留 `updated_at` 较新的一份，所以不会冲掉备份之后的新记录（备份之后删掉的高亮会被恢复回来）。书的原文不在备份里，换机后重新推书，进度和高亮按书 id 与章节文件名挂回去。
 
 ---
 
@@ -233,7 +246,7 @@ documentDirectory/
 **界面**
 
 - 视觉稿是 `design/设计稿.pen` 的「晨雾玻璃」：磨砂玻璃卡片、顶部晨雾配图、色彩只来自封面；设计 token 在 `apps/mobile/src/ui/theme.ts`，亮色取自设计稿，暗色按同一结构压暗
-- 底部玻璃 Tab：书架 / 笔记 / 传书 / 设置。外观（亮色 / 暗色 / 跟随系统）在设置页切换，对整个 App 和阅读器生效
+- 底部玻璃 Tab：书架 / 笔记 / 设置（传书改为书架「+」里的接收模式，见 5.2）。外观（亮色 / 暗色 / 跟随系统）在设置页切换，对整个 App 和阅读器生效
 - 冷启动先显示与书架同底色的原生纯色启动图，数据就绪后直接淡入书架（200ms）。开场封面只在安装后第一次启动时播放：封面淡入、停留到数据加载完，再与书架交叉淡化；轻点可跳过
 - 轻动效遵循设计稿「轻动效」：位移 ≤ 12pt、缩放 ≥ 0.96，系统开启「减弱动态效果」时降级为短淡入淡出；阅读页内不放环境动效
 - 进书和切章不显示加载指示（设计稿「进书 · 版式占位与显影」）：阅读器渲染完成（`rendered`）前，由 `apps/mobile/src/reader/PagePlaceholder.tsx` 按 `packages/reader` 的 CSS 版式画出章号、章标题和静止的淡墨行，渲染完成后原地淡出 240ms；从章节中间继续时不画标题。改了阅读器的正文边距、字号比例后要同步改占位
@@ -335,7 +348,6 @@ books/<分组>/<书名>/audio/  # 书库里和 assets/ 并列，mp3 走 Git LFS�
 
 ```bash
 shelf-pack audio <book> [--voice <id>] [--speed 1] [--only 01,02] [-j 3] [--dry]   # 生成或增量更新书目录下的 audio/
-shelf-pack push-audio <book> --to <ip> --pin <pin>       # 按章推送录音；设备上已有且清单相同的章节跳过
 ```
 
 - 密钥从钥匙串读取（`security find-generic-password -s fish-audio -w`），也可用环境变量 `FISH_API_KEY`，不进仓库
@@ -349,7 +361,7 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>       # 按章推送录音；
 2. `shelf-pack audio` 生成一本书（先用 `deepseek-harness`），在电脑上抽听（命令已完成）
 3. App 播放引擎接口 + 录音引擎，先只支持前台播放，确认高亮、跳段、语速（已完成，模拟器里验证了高亮跟随、跳段、暂停、切换语音、本章不支持时退回系统语音，以及系统语音章 → 原声章的自动换章）
 4. 真机验证锁屏、后台连续播放、耳机线控、来电打断，以及与 `now-playing` 模块的共存
-5. 音频包导入与 `push-audio`（已完成；模拟器里验证了从「文件」导入两章、合并清单、书籍管理的原声标签和删除本书原声。`push-audio` 走局域网，模拟器的 8080 端口当时被电脑上的其他程序占用，没有实测）
+5. 音频包导入与按章推送（已完成，推送现在由 Dock 完成；模拟器里验证了从「文件」导入两章、合并清单、书籍管理的原声标签和删除本书原声。Dock 推送原声已在模拟器上实测）
 
 **未决问题**
 
@@ -378,33 +390,28 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>       # 按章推送录音；
 
 ---
 
-## 10. shelf-pack CLI
+## 10. shelf-pack CLI 与 Dock
 
 ```bash
 shelf-pack new   <分类> <书名>                # 新建一本书：生成 UUID，建好 books/<分组>/<书名>/、book.yaml 和第一章
 shelf-pack mv    <book> [--title t] [--category c]   # 改书名或分类：移动目录，改写书库里指向它的链接和 next
 shelf-pack check [target]                     # 按 spec 校验；不传就是整个书库
 shelf-pack ls    [target]                     # 按 category 分组列出书名、章数、更新日期、有无原声
-shelf-pack pack  <book> [-o out.zip]          # 校验后打包成 zip
-shelf-pack push  <target> --to <ip> --pin <pin> [--changed]  # 打包并通过局域网上传；--changed 只推有变化的
-shelf-pack pull-notes --to <ip> --pin <pin>   # 拉取手机上的全部笔记，写到书库里各书目录的 notes.md
-shelf-pack backup  [dir] --to <ip> --pin <pin>  # 备份阅读数据，默认写到本仓库的 backups/（不入库）
-shelf-pack restore <file> --to <ip> --pin <pin> # 把备份合并回手机
 shelf-pack audio <book> [--only 01,02] [--dry]  # 生成原声录音到书目录下的 audio/（见 8.1）
-shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手机上已有且相同的章节跳过
 ```
 
-理想流程：agent 写完一本书 → `shelf-pack push <书名> --to ... --pin ...` → 手机上直接可读。
+shelf-pack 只管写书：新建、改名、校验、列出、生成原声，给 agent 用。推书、拉笔记、备份都在 Dock 的网页里做（见 5.2）。理想流程：agent 写完一本书并 `check` 通过 → 在 Dock 里勾选、推送 → 手机上确认后直接可读。
+
+命令行和 Dock 共用 `@shelf/library`（`packages/library`）：找书、读书、校验、打包、原声包都在这里，`cli.ts` 只是一层命令行外壳。
 
 在本仓库根目录以 `pnpm shelf-pack <命令>` 运行。书库默认是本仓库旁边的 `../hatch-shelf-library`，与当前目录无关；环境变量 `SHELF_LIBRARY`（相对本仓库根目录）可以指到别处。书库是纯数据仓库，里面没有 `package.json`，在书库里工作时用 `pnpm --dir ../hatch-shelf shelf-pack …`。
 
 - `<book>` 写书名、书名的一部分（不分大小写）、`分组/书名`、id 或目录都可以（`findBook()`），部分匹配到多本时报错并列出来；`<target>` 还可以是书库里的分组名或任意目录，递归找出里面的书（`resolveTarget()`）。本仓库自己只剩 `apps/mobile/samples/` 两本示例书，`check apps/mobile/samples` 校验它们
 
 - `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下，以及链接指向的章节、小节是否存在。书库里的书（上层有名为 `books` 的目录）还要满足书库约定：目录等于 `<分组>/<书名>`、id 是 UUID、跨书链接和 `next` 按路径写并指向书库里存在的书；书库外的书（示例书、单独拷出来的书）按手机写法 `../<id>/` 在同级目录里找，找不到时跳过。规则在 `@shelf/spec` 的 `lintBook()` / `lintLinks()`
-- `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名，不带 `audio/` 和 `notes.md`；书库里的跨书链接和 `next` 换成 id 写法
-- `push --changed` 比较内容指纹：`@shelf/spec` 的 `prepareImport()` 对将要写入设备的全部文件算出 `hash`，App 导入时存到书目录下的 `.content-hash` 并进入索引，`/books` 返回它；CLI 用同一个函数解开自己打的 zip 得到指纹，相同则跳过。设备上没有指纹的书（早期导入的、示例书）总是推送
-- PIN 错误时立即停止，避免连续失败把手机上的服务锁掉
-- `pull-notes` 与 `push` 方向相反：一次传书会话里先拉笔记、修订书，再 `push --changed`。和本地文件只差导出日期时不重写，避免每次拉取都产生 diff；手机上已没有高亮的书不会删除本地笔记文件
+- `packBook()` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名，不带 `audio/` 和 `notes.md`；书库里的跨书链接和 `next` 换成 id 写法
+- 「有更新」比较内容指纹：`@shelf/spec` 的 `prepareImport()` 对将要写入设备的全部文件算出 `hash`，App 导入时存到书目录下的 `.content-hash` 并进入索引，`/books` 返回它；Dock 用同一个函数解开自己打的 zip 得到指纹，相同即已同步。设备上没有指纹的书（早期导入的、示例书）总当作有更新
+- 拉笔记和推书方向相反：可以先拉笔记、让 agent 据此修订书，再推送有变化的书。和本地文件只差导出日期时不重写，避免每次拉取都产生 diff；手机上已没有高亮的书不会删除本地笔记文件
 
 ---
 
@@ -420,6 +427,7 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手�
 | **M5 加固** | ESLint `no-floating-promises`；`push --changed` 改为按内容指纹判断 | 漏写 await 无法通过 lint；改内容不改日期也能推送 |
 | **M6 搜索** | FTS5 trigram 全文搜索，结果跳到小节并标亮 | 能搜到任意一本书里的句子并跳过去 |
 | **M7 笔记** | 高亮、笔记、笔记页、导出回仓库 | 书更新后高亮仍在原位；导出的笔记能被 agent 读到 |
+| **M8 Dock** | 电脑端控制台 + 手机接收模式，扫码配对取代 IP 和 PIN | 不填 IP 和 PIN，在网页里勾选就能推到手机，手机确认后可读 |
 | **后续** | “文件” App 可见 | — |
 
 ---
@@ -434,7 +442,7 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手�
 | 目录结构 | 应用放 `apps/`（`mobile`，之后加电脑端 `dock`），共用代码放 `packages/`（`spec`、`reader`、`library`）；原来的 `app/`、`app/reader-web/`、`tools/shelf-pack/` 按此搬家，Bundle ID、显示名和 `expo.name` 不变 | 要加一个电脑端应用后，`app/` 这个名字分不清是哪一端，阅读器网页挂在 App 目录下、CLI 单独放在 `tools/` 也说明不了它们是共用的包。按「应用 / 共用包」两层分开，书库逻辑抽成 `@shelf/library` 后，电脑端和写书命令都能直接调用 |
 | 书库目录 | `books/<分组>/<书名>/`（分组是 category 第一段），章节文件用中文名，id 用 UUID，原声和笔记放进书目录；跨书链接和 next 在书库里按路径写，打包时翻译成 id | 近百本书平铺成英文 id 不便浏览，起语义化 id 也要花心思、改书名后还会名不副实。人只看目录和中文文件名，UUID 只给机器用；跨书引用按路径写，在编辑器里能点通，改书名用 `shelf-pack mv` 一并改写。子分类大多只有一两本书，不建目录。迁移时手机上的旧数据不保留，重新推书 |
 | 数据源 | 文件即真相，SQLite 只做索引 | 索引可重建；以后加任何同步通道，阅读器都不用改 |
-| 局域网方向 | 手机做服务端，电脑做客户端 | 与常见的“WiFi 传书”习惯一致，CLI 可以直接 curl / push |
+| 局域网方向 | 手机做服务端，电脑做客户端 | App 不主动发起网络请求；电脑一侧（现在是 Dock）找到手机后推送 |
 | 阅读器加载方式 | 单文件 HTML 资源 → 拷到 documentDirectory → `file://` 加载 | 用 `source={{ html }}` 时页面拿不到本地文件读权限，图片只能转 base64；放在 documentDirectory 下与 books/ 同源最简单 |
 | Markdown 在哪渲染 | WebView 内（RN 只传原文） | 渲染库只打包一份；RN 侧不需要 DOM 环境 |
 | 宽图表 | 竖屏下自动转向 + 缩到屏幕宽 + 点按全屏看原图，不做横屏 | App 锁定竖屏；横向滚动看不到全貌，转成上下方向后多数流程图正好放得下，其余缩小看全貌、点开看细节 |
@@ -443,7 +451,10 @@ shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手�
 | 高亮定位 | 原文 + 前后文，而非字符偏移或 DOM 路径 | 书会被 AI 反复修订；偏移和 DOM 路径一改就失效，原文 + 前后文在小改动后仍能找回 |
 | 搜索分词 | FTS5 trigram，短查询退回 LIKE | 不需要中文分词词典；trigram 要求至少 3 个字符，个人书库规模下 LIKE 扫描足够快 |
 | 阅读主题 | 跟随 App 外观，去掉护眼主题 | 设计稿要求阅读页与整个 App 一致；外观集中在设置页切换，阅读设置只留字号、行距和代码换行 |
-| 传书开关 | 完全手动：进入 Tab 不自动开启，离开 Tab 也不自动关闭，只由「开启传书」/「停止」控制 | 切过去就开会在无意中暴露端口；离开即关则在传书途中切去看书就断了，不好用。改为手动开关，用 Tab 栏状态点提醒服务开着 |
+| 推书入口 | 电脑上用 Dock 网页（本地 Node 服务 + 浏览器），去掉 shelf-pack 的 push / pull-notes / backup / restore / pack / push-audio 和手机自带的上传网页；手机上去掉「传书」Tab，改为书架「+」进入的接收模式 | 原来每次都要在手机上开传书、抄 IP 和 4 位 PIN，再把它们填进每一条命令；一次完整同步要跑好几条命令，还看不出书库和手机差在哪。Dock 读本地书库、和手机逐本比对，状态一目了然、勾选即推；传书一年用不了几次，不值得占一个 Tab。写书的命令（new / mv / check / ls / audio）留给 agent |
+| 配对 | Dock 生成密钥做成二维码，手机扫码后长期保存，取代每次重新生成的 PIN；Dock 扫描 /24 网段找手机，不用 Bonjour | 扫一次永久有效，不用再输入任何东西；4 位 PIN 能被枚举，所以以前要锁定计数，128 位密钥不需要。扫网段不新增原生依赖，家用网络一次不到 4 秒 |
+| 推送确认 | Dock 每次推送都要先在手机上点「开始接收」，接收结束后自动关闭服务（推送完 8 秒、空闲 5 分钟） | 手机上能看到要来什么、可以拒绝；服务不再需要手动停止，也不会忘了关 |
+| Dock 的存储 | 书库路径、配对密钥、手机地址都存在浏览器 localStorage，书库路径没有默认值 | 服务端保持无状态，换个浏览器就是一套新设置；只监听 127.0.0.1 并校验 Host / Origin |
 | 动效实现 | RN Animated，不引入 Reanimated | 设计稿的动效都是淡入、位移、弹簧这类简单动画，Animated 的原生驱动足够；少一个原生依赖 |
 | 解压库 | fflate 而非 react-native-zip-archive | 纯 JS，少一个原生依赖；解压前就能逐条检查路径与大小；App 与 CLI 共用同一份导入逻辑，并能在 Node 里测试。50 MB 上限内整包读入内存可以接受 |
 | 发布方式 | 本地 xcodebuild archive 后直接上传 TestFlight，不用 EAS Build / Submit | EAS 在国内连通性差；签名交给 Xcode 自动管理，`ios/` 仍然只由 prebuild 生成 |

@@ -9,6 +9,7 @@ import { bootstrap } from '@/library/bootstrap';
 import { notifyLibraryChanged } from '@/library/events';
 import { syncIndex } from '@/library/index-books';
 import { NoteComposerHost } from '@/notes/NoteComposer';
+import { ReceiveHost } from '@/receive/ReceiveHost';
 import { CoverFlightHost, FLIGHT_MS } from '@/ui/CoverFlight';
 import { EASE_OUT_CUBIC, isReduceMotion } from '@/ui/motion';
 import { Splash } from '@/ui/Splash';
@@ -95,9 +96,14 @@ function AppStack() {
         <Stack.Screen name="read/[id]" options={{ contentStyle: { backgroundColor: t.paper } }} />
         {/* 封面飞行时页面本身只做淡入淡出 */}
         <Stack.Screen name="book/[id]" options={{ animation: 'fade', animationDuration: isReduceMotion() ? 200 : FLIGHT_MS }} />
+        {/* 接收页是可以下滑收起的卡片：收起后接收继续，顶部胶囊接着显示进度 */}
+        <Stack.Screen name="receive" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="pair" options={{ animation: 'none' }} />
       </Stack>
       <NoteComposerHost />
       <CoverFlightHost />
+      <ReceiveHost />
     </>
   );
 }

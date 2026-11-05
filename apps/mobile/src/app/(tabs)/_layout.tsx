@@ -11,7 +11,6 @@ export default function TabsLayout() {
       <Tabs tabBar={() => null} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: t.bg } }}>
         <Tabs.Screen name="index" />
         <Tabs.Screen name="notes" />
-        <Tabs.Screen name="transfer" />
         <Tabs.Screen name="settings" />
       </Tabs>
       <TabBar />

@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react-native';
-import { Fragment } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useRef } from 'react';
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Glass } from './glass';
 import { useTheme } from './theme';
 
@@ -29,8 +29,15 @@ export function Menu({
   onClose(): void;
 }) {
   const t = useTheme();
+  // 菜单项要等菜单完全收起再执行：菜单还在淡出时弹出另一个模态页（如接收页），iOS 会忽略那次弹出
+  const pending = useRef<(() => void) | null>(null);
+  const runPending = () => {
+    const run = pending.current;
+    pending.current = null;
+    run?.();
+  };
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} onDismiss={runPending}>
       <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: t.dark ? '#00000040' : '#1E2A5A14' }]} onPress={onClose} />
       <Glass radius={18} strong style={[styles.menu, { top, bottom }]}>
         {items.map((item, i) => {
@@ -43,8 +50,10 @@ export function Menu({
               <Pressable
                 style={({ pressed }) => [styles.item, item.detail !== undefined && styles.tall, pressed && { backgroundColor: t.fill }]}
                 onPress={() => {
+                  pending.current = item.onPress;
                   onClose();
-                  item.onPress();
+                  // onDismiss 只在 iOS 上有
+                  if (Platform.OS !== 'ios') runPending();
                 }}
               >
                 <View style={{ gap: 2 }}>

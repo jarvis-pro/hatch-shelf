@@ -1,7 +1,7 @@
-import { router } from 'expo-router';
-import { ArrowDownToLine, FolderInput } from 'lucide-react-native';
+import { FolderInput, Laptop } from 'lucide-react-native';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { pickAndImport } from '@/import/incoming';
+import { openReceive } from '@/receive/open';
 import { Glass } from '@/ui/glass';
 import { FadeInUp, PressScale } from '@/ui/motion';
 import { useTheme } from '@/ui/theme';
@@ -16,7 +16,7 @@ export function EmptyShelf() {
       <View style={styles.text}>
         <Text style={[styles.title, { color: t.fg }]}>书架还是空的</Text>
         <Text style={[styles.body, { color: t.fg2 }]}>
-          在电脑上用 AirDrop 发送 .zip 或 .md，{'\n'}或者在「传书」页从浏览器上传。
+          在电脑上用 AirDrop 发送 .zip 或 .md，{'\n'}或者从电脑上的 Dock 推送过来。
         </Text>
       </View>
       <View style={styles.buttons}>
@@ -26,9 +26,9 @@ export function EmptyShelf() {
             <Text style={[styles.label, { color: t.fg }]}>从文件导入</Text>
           </Glass>
         </PressScale>
-        <PressScale onPress={() => router.navigate('/transfer')} style={[styles.button, { backgroundColor: t.accent }]}>
-          <ArrowDownToLine size={16} color="#fff" />
-          <Text style={[styles.label, { color: '#fff' }]}>打开传书</Text>
+        <PressScale onPress={() => void openReceive()} style={[styles.button, { backgroundColor: t.accent }]}>
+          <Laptop size={16} color="#fff" />
+          <Text style={[styles.label, { color: '#fff' }]}>从电脑接收</Text>
         </PressScale>
       </View>
     </FadeInUp>

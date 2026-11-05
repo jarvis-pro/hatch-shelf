@@ -5,7 +5,9 @@ import {
   DatabaseBackup,
   FolderInput,
   Info,
+  Laptop,
   LibraryBig,
+  QrCode,
   RefreshCcw,
   ShieldCheck,
   SunMoon,
@@ -21,6 +23,8 @@ import { pickAndRestore, shareBackup } from '@/backup/store';
 import { listBooks } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
 import { rebuildIndex } from '@/library/index-books';
+import { loadComputers, removeComputer, type Computer } from '@/receive/computers';
+import { reloadComputers } from '@/receive/store';
 import { SettingsSheet } from '@/reader/SettingsSheet';
 import { lineHeightLabel, loadReaderPrefs, onReaderPrefsChange, saveReaderPrefs, type ReaderPrefs } from '@/reader/theme';
 import { Backdrop } from '@/ui/Backdrop';
@@ -37,12 +41,28 @@ export default function SettingsTab() {
   const [sheet, setSheet] = useState(false);
   const [rebuilding, setRebuilding] = useState(false);
   const [bookCount, setBookCount] = useState<number | null>(null);
+  const [computers, setComputers] = useState<Computer[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       void listBooks().then((books) => setBookCount(books.length));
+      void loadComputers().then(setComputers);
     }, []),
   );
+
+  const unpair = (c: Computer) =>
+    Alert.alert(`取消与「${c.name}」的配对？`, '之后这台电脑要重新扫码才能推送', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '取消配对',
+        style: 'destructive',
+        onPress: () =>
+          void removeComputer(c.key)
+            .then(reloadComputers)
+            .then(loadComputers)
+            .then(setComputers),
+      },
+    ]);
 
   useEffect(() => {
     void loadReaderPrefs().then(setPrefs);
@@ -115,6 +135,13 @@ export default function SettingsTab() {
           <Row icon={RefreshCcw} label="重建索引" onPress={rebuilding ? undefined : () => void rebuild()}>
             {rebuilding && <ActivityIndicator size="small" color={t.fg3} />}
           </Row>
+        </Group>
+
+        <Group title="电脑">
+          {computers.map((c) => (
+            <Row key={c.key} icon={Laptop} label={c.name} value={`${new Date(c.pairedAt).getMonth() + 1}月${new Date(c.pairedAt).getDate()}日配对`} onPress={() => unpair(c)} />
+          ))}
+          <Row icon={QrCode} label="配对新电脑" onPress={() => router.push('/scan')} />
         </Group>
 
         <Group title="阅读数据">

@@ -1,16 +1,24 @@
-import { MAX_PACKAGE_BYTES, SLUG_RE } from '@shelf/spec';
+import {
+  bearerKey,
+  isSessionLog,
+  isSessionRequest,
+  LAN_PORT,
+  MAX_PACKAGE_BYTES,
+  PROTOCOL_VERSION,
+  SLUG_RE,
+  type DeviceBook,
+  type SessionLog,
+  type SessionRequest,
+} from '@shelf/spec';
 import { Directory, File, Paths } from 'expo-file-system';
 import { strToU8 } from 'fflate';
 import TcpSocket from 'react-native-tcp-socket';
-import { describeRestore, parseBackup } from '@/backup/format';
-import { exportBackup, restoreBackup } from '@/backup/store';
+import { exportBackup } from '@/backup/store';
 import { getBook, listBooks } from '@/db/queries';
 import { importFile, type ImportResult } from '@/import/pipeline';
 import { loadAudioManifest } from '@/library/audio';
-import { bookDir } from '@/lib/paths';
 import { bookNotesMarkdown, listNotesSummary } from '@/notes/store';
 import {
-  buildResponse,
   CONTINUE_RESPONSE,
   jsonResponse,
   parseMultipart,
@@ -19,21 +27,31 @@ import {
   textOf,
   type HttpRequest,
 } from './http';
-import { UPLOAD_PAGE } from './upload-page';
 
-export const LAN_PORT = 8080;
-export const MAX_PIN_FAILURES = 5;
+export { LAN_PORT };
+
+/** 正在等手机确认或已确认的那次推送；放在服务外面，回到前台重新监听时不丢 */
+export interface LanSession {
+  key: string;
+  accepted: boolean;
+}
 
 export interface LanServerEvents {
-  onListening(): void;
+  session: { get(): LanSession | null; set(s: LanSession | null): void };
+  /** 这个密钥是否属于已配对的电脑 */
+  isPaired(key: string): boolean;
+  /** 已配对的电脑发来任何请求（用来重置空闲计时） */
+  onActivity(key: string): void;
+  /** Dock 请求推送：返回 true 表示手机上点了「开始接收」；Dock 中途断开时 cancelled 被调用 */
+  onSessionRequest(key: string, request: SessionRequest, cancelled: Promise<void>): Promise<boolean>;
+  onSessionLog(log: SessionLog): void;
+  onSessionEnd(): void;
   /**
    * 上传中的进度（ratio 0–1，到 1 后进入导入）和上传的文件名（收到文件字段的头部后才有）；
    * 同一个连接用同一个 key，结束时传 null
    */
-  onReceiving?(key: number, upload: ReceivingUpload | null): void;
+  onReceiving(key: number, upload: ReceivingUpload | null): void;
   onUpload(result: ImportResult): void;
-  /** PIN 连续错误达到上限，服务已自动关闭 */
-  onLocked(): void;
   onError(message: string): void;
 }
 
@@ -51,82 +69,53 @@ const MAX_BODY_BYTES = MAX_PACKAGE_BYTES + 1024 * 1024;
 
 const uploadDir = new Directory(Paths.cache, 'lan-upload');
 
+const AUTH_ERROR = jsonResponse(401, { ok: false, error: '这台电脑还没有和手机配对，请重新扫码' });
+
 /**
- * 传书页面的 HTTP 服务（README 第 5.2 节）。由传书页手动开启和停止。
+ * 接收模式的 HTTP 服务（README 第 5.2 节），协议定义在 @shelf/spec 的 transfer.ts。
+ * 除 /ping 外都要带配对密钥 `Authorization: Bearer <key>`；/upload 只在手机确认了一次推送之后才接受。
  *
- * GET  /        上传页面
- * POST /upload  multipart/form-data，字段 file；PIN 放在 X-Pin 请求头或表单字段 pin
- * GET  /books   本地已有书籍（需要 X-Pin）
- * GET  /audio/<id>  这本书在手机上的原声清单（需要 X-Pin），shelf-pack push-audio 据此跳过已有的章节
- * GET  /cover/<id>  书的封面 cover.png（需要 X-Pin），上传页用来在导入后显示封面
- * GET  /notes   每本有高亮的书导出的笔记 Markdown（需要 X-Pin），shelf-pack pull-notes 用来放回仓库的 notes/
- * GET  /backup  阅读数据备份 JSON（需要 X-Pin），shelf-pack backup 用来存到电脑
- * POST /restore 请求体是备份 JSON（需要 X-Pin），合并进本机，shelf-pack restore 使用
- * GET  /ping    不需要 PIN，上传页据此判断服务是否还在
+ * GET  /ping             认出书巢（不需要密钥）
+ * GET  /hello            校验密钥，返回手机名字
+ * GET  /books            手机上的书和内容指纹
+ * GET  /audio/<id>       这本书的原声清单
+ * GET  /notes            每本有高亮的书导出的笔记 Markdown
+ * GET  /backup           阅读数据备份 JSON
+ * POST /session/request  请求推送，挂起直到手机确认或拒绝
+ * POST /session/log      记一行（拉了笔记、做了备份）
+ * POST /session/end      这次推送结束
+ * POST /upload           multipart/form-data，字段 file
  */
-export function startLanServer(pin: string, events: LanServerEvents): LanServer {
-  let failures = 0;
+export function startLanServer(events: LanServerEvents): LanServer {
   let stopped = false;
   // 导入串行执行，避免两个上传同时写同一本书
   let queue: Promise<unknown> = Promise.resolve();
 
-  /** 校验 PIN；错误次数达到上限时关闭服务 */
-  const checkPin = (given: string | undefined) => {
-    if (given === pin) {
-      failures = 0;
-      return true;
-    }
-    failures += 1;
-    if (failures >= MAX_PIN_FAILURES) {
-      setTimeout(() => {
-        stop();
-        events.onLocked();
-      }, 100);
-    }
-    return false;
-  };
-
-  const pinError = () =>
-    jsonResponse(failures >= MAX_PIN_FAILURES ? 403 : 401, {
-      ok: false,
-      error: failures >= MAX_PIN_FAILURES ? 'PIN 错误次数过多，本次服务已关闭' : 'PIN 错误',
-    });
-
-  async function handle(req: HttpRequest): Promise<Uint8Array> {
-    if (req.method === 'GET' && req.path === '/') {
-      return buildResponse(200, 'text/html; charset=utf-8', UPLOAD_PAGE);
-    }
-
+  async function handle(req: HttpRequest, closed: Promise<void>): Promise<Uint8Array> {
     if (req.method === 'GET' && req.path === '/ping') {
-      return jsonResponse(200, { ok: true });
+      return jsonResponse(200, { ok: true, app: 'shelf', protocol: PROTOCOL_VERSION });
     }
 
-    if (req.method === 'GET' && req.path.startsWith('/cover/')) {
-      if (!checkPin(req.headers['x-pin'])) return pinError();
-      const id = req.path.slice('/cover/'.length);
-      const cover = SLUG_RE.test(id) ? new File(bookDir(id), 'cover.png') : null;
-      if (!cover?.exists) return jsonResponse(404, { ok: false, error: '这本书没有封面' });
-      return buildResponse(200, 'image/png', await cover.bytes());
+    const key = bearerKey(req.headers.authorization);
+    if (!key || !events.isPaired(key)) return AUTH_ERROR;
+    events.onActivity(key);
+
+    if (req.method === 'GET' && req.path === '/hello') {
+      return jsonResponse(200, { ok: true, device: 'iPhone' });
     }
 
     if (req.method === 'GET' && req.path.startsWith('/audio/')) {
-      if (!checkPin(req.headers['x-pin'])) return pinError();
       const id = req.path.slice('/audio/'.length);
       const manifest = SLUG_RE.test(id) ? await loadAudioManifest(id) : null;
       return jsonResponse(200, { ok: true, manifest });
     }
 
     if (req.method === 'GET' && req.path === '/books') {
-      if (!checkPin(req.headers['x-pin'])) return pinError();
-      const books = await listBooks();
-      return jsonResponse(200, {
-        ok: true,
-        books: books.map((b) => ({ id: b.id, title: b.title, updated: b.updatedAt, hash: b.contentHash })),
-      });
+      const books: DeviceBook[] = (await listBooks()).map((b) => ({ id: b.id, title: b.title, updated: b.updatedAt, hash: b.contentHash }));
+      return jsonResponse(200, { ok: true, books });
     }
 
     if (req.method === 'GET' && req.path === '/notes') {
-      if (!checkPin(req.headers['x-pin'])) return pinError();
       const notes = [];
       for (const { bookId } of await listNotesSummary()) {
         const n = await bookNotesMarkdown(bookId);
@@ -136,24 +125,42 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
     }
 
     if (req.method === 'GET' && req.path === '/backup') {
-      if (!checkPin(req.headers['x-pin'])) return pinError();
       return jsonResponse(200, { ok: true, backup: await exportBackup() });
     }
 
-    if (req.method === 'POST' && req.path === '/restore') {
-      if (!checkPin(req.headers['x-pin'])) return pinError();
-      const parsed = parseBackup(textOf(req.body));
-      if (!parsed.ok) return jsonResponse(422, { ok: false, error: parsed.error });
-      const plan = await restoreBackup(parsed.backup);
-      return jsonResponse(200, { ok: true, message: describeRestore(plan), summary: plan.summary });
+    const session = events.session.get();
+    if (req.method === 'POST' && req.path === '/session/request') {
+      const body = parseJson(req.body);
+      if (!isSessionRequest(body)) return jsonResponse(400, { ok: false, error: '推送请求格式不对' });
+      // 同一台电脑上一次推送没收尾（Dock 被关掉）时，新的请求直接接替它
+      if (session?.key === key && session.accepted) events.onSessionEnd();
+      else if (session) return jsonResponse(409, { ok: false, error: '手机正在接收另一次推送' });
+      events.session.set({ key, accepted: false });
+      const accepted = await events.onSessionRequest(key, body, closed).catch(() => false);
+      if (stopped) return jsonResponse(503, { ok: false, error: '手机已结束接收' });
+      events.session.set(accepted ? { key, accepted: true } : null);
+      return jsonResponse(200, { ok: true, accepted });
+    }
+
+    if (req.method === 'POST' && req.path === '/session/log') {
+      const body = parseJson(req.body);
+      if (!isSessionLog(body)) return jsonResponse(400, { ok: false, error: '格式不对' });
+      events.onSessionLog(body);
+      return jsonResponse(200, { ok: true });
+    }
+
+    if (req.method === 'POST' && req.path === '/session/end') {
+      if (session?.key === key) {
+        events.session.set(null);
+        events.onSessionEnd();
+      }
+      return jsonResponse(200, { ok: true });
     }
 
     if (req.method === 'POST' && req.path === '/upload') {
+      if (session?.key !== key || !session.accepted) return jsonResponse(409, { ok: false, error: '请先在手机上确认这次推送' });
       const parts = parseMultipart(req.body, req.headers['content-type']);
       if (!parts) return jsonResponse(400, { ok: false, error: '请使用 multipart/form-data 上传' });
-      const formPin = parts.find((p) => p.name === 'pin' && p.filename === undefined);
-      if (!checkPin(req.headers['x-pin'] ?? (formPin && textOf(formPin.data)))) return pinError();
-
       const file = parts.find((p) => p.name === 'file' && p.filename);
       if (!file) return jsonResponse(400, { ok: false, error: '缺少 file 字段' });
 
@@ -172,14 +179,10 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
         status: result.status,
         title: result.title,
         chapters: book?.chapterCount ?? 0,
-        cover: new File(bookDir(result.bookId), 'cover.png').exists,
         warnings: result.warnings,
       });
     }
 
-    if (['/', '/ping', '/books', '/notes', '/backup', '/restore', '/upload'].includes(req.path) || req.path.startsWith('/cover/') || req.path.startsWith('/audio/')) {
-      return jsonResponse(405, { ok: false, error: '不支持的请求方法' });
-    }
     return jsonResponse(404, { ok: false, error: '没有这个接口' });
   }
 
@@ -190,9 +193,12 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
     let done = false;
     let reported = -1;
     let name: string | undefined;
+    let onClosed = () => {};
+    const closed = new Promise<void>((resolve) => (onClosed = resolve));
     const reply = (bytes: Uint8Array) => {
+      if (done) return;
       done = true;
-      if (reported >= 0) events.onReceiving?.(key, null);
+      if (reported >= 0) events.onReceiving(key, null);
       socket.end(bytes);
     };
     /** 每 5% 报一次上传进度；认出文件名时也报一次 */
@@ -203,7 +209,7 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       const ratio = Math.floor((p.received / p.total) * 20) / 20;
       if (ratio === reported && !found) return;
       reported = ratio;
-      events.onReceiving?.(key, { ratio, name });
+      events.onReceiving(key, { ratio, name });
     };
 
     socket.on('data', (chunk) => {
@@ -214,25 +220,36 @@ export function startLanServer(pin: string, events: LanServerEvents): LanServer 
       if (r.type === 'continue') socket.write(CONTINUE_RESPONSE);
       else if (r.type === 'error') reply(jsonResponse(r.status, { ok: false, error: r.message }));
       else if (r.type === 'complete') {
-        handle(r.request).then(reply, (e: Error) => reply(jsonResponse(500, { ok: false, error: e.message })));
+        handle(r.request, closed).then(reply, (e: Error) => reply(jsonResponse(500, { ok: false, error: e.message })));
       }
     });
     socket.on('error', () => socket.destroy());
-    // 浏览器中途断开时也要清掉进度
+    // 电脑中途断开时清掉进度；挂着的推送请求也随之取消
     socket.on('close', () => {
-      if (!done && reported >= 0) events.onReceiving?.(key, null);
+      onClosed();
+      if (!done && reported >= 0) events.onReceiving(key, null);
+      done = true;
     });
   });
 
   server.on('error', (e) => events.onError(e.message));
-  server.listen({ port: LAN_PORT, host: '0.0.0.0', reuseAddress: true }, () => events.onListening());
+  server.listen({ port: LAN_PORT, host: '0.0.0.0', reuseAddress: true });
 
-  function stop() {
-    if (stopped) return;
-    stopped = true;
-    server.close();
+  return {
+    stop() {
+      if (stopped) return;
+      stopped = true;
+      server.close();
+    },
+  };
+}
+
+function parseJson(body: Uint8Array): unknown {
+  try {
+    return JSON.parse(textOf(body));
+  } catch {
+    return null;
   }
-  return { stop };
 }
 
 /** 把上传内容落成临时文件，交给统一的导入管线 */

@@ -1,11 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { ChevronRight, Plus, Search } from 'lucide-react-native';
+import { ChevronRight, FolderDown, Laptop, Plus, Search } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getChapters, listBookProgress, listBooks, type BookProgress, type BookRow } from '@/db/queries';
 import { pickAndImport } from '@/import/incoming';
+import { openReceive } from '@/receive/open';
 import { booksWithAudio } from '@/library/audio';
 import { useLibraryChanged } from '@/library/events';
 import { AudioBadge } from '@/shelf/AudioBadge';
@@ -17,6 +18,7 @@ import { ShelfBook } from '@/shelf/ShelfBook';
 import { Backdrop } from '@/ui/Backdrop';
 import { useCoverHidden } from '@/ui/CoverFlight';
 import { Glass, GlassButton } from '@/ui/glass';
+import { Menu } from '@/ui/Menu';
 import { FadeInUp, PressScale, ProgressBar, useFirstEntry } from '@/ui/motion';
 import { PageHeader } from '@/ui/PageHeader';
 import { TAB_BAR_SPACE } from '@/ui/TabBar';
@@ -37,6 +39,7 @@ export default function ShelfScreen() {
   const [books, setBooks] = useState<BookRow[] | null>(null);
   const [progress, setProgress] = useState<Map<string, BookProgress>>(new Map());
   const [recent, setRecent] = useState<ContinueInfo | null>(null);
+  const [addMenu, setAddMenu] = useState(false);
   /** 有原声的书 */
   const [audio, setAudio] = useState<Set<string>>(new Set());
   const playProgress = useFirstEntry('shelf-progress');
@@ -80,7 +83,7 @@ export default function ShelfScreen() {
         books?.length !== 0 && (
           <>
             <GlassButton icon={Search} label="搜索" onPress={() => router.push('/search')} />
-            <GlassButton icon={Plus} label="从文件导入" onPress={() => void pickAndImport()} />
+            <GlassButton icon={Plus} label="加书" onPress={() => setAddMenu(true)} />
           </>
         )
       }
@@ -96,6 +99,15 @@ export default function ShelfScreen() {
       >
         {header}
         {books?.length === 0 && <EmptyShelf />}
+        <Menu
+          visible={addMenu}
+          top={insets.top + 60}
+          onClose={() => setAddMenu(false)}
+          items={[
+            { label: '从电脑接收', detail: '在 Dock 里勾选后推送', icon: Laptop, onPress: () => void openReceive() },
+            { label: '从「文件」导入', detail: '选一个 .zip 或 .md', icon: FolderDown, onPress: () => void pickAndImport() },
+          ]}
+        />
         {recent && (
           <FadeInUp index={0}>
             <ContinueCard info={recent} animate={playProgress} audio={audio.has(recent.book.id)} />

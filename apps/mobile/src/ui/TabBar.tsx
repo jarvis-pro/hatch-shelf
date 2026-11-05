@@ -1,10 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname, type Href } from 'expo-router';
-import { ArrowDownToLine, LibraryBig, NotebookPen, Settings2, type LucideIcon } from 'lucide-react-native';
+import { LibraryBig, NotebookPen, Settings2, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLanRunning } from '@/server/lan-status';
 import { Glass } from './glass';
 import { isReduceMotion } from './motion';
 import { useTheme } from './theme';
@@ -12,7 +11,6 @@ import { useTheme } from './theme';
 const TABS: { href: Href & string; label: string; icon: LucideIcon }[] = [
   { href: '/', label: '书架', icon: LibraryBig },
   { href: '/notes', label: '笔记', icon: NotebookPen },
-  { href: '/transfer', label: '传书', icon: ArrowDownToLine },
   { href: '/settings', label: '设置', icon: Settings2 },
 ];
 
@@ -226,8 +224,6 @@ export function TabBar() {
   const insets = useSafeAreaInsets();
   const [width, setWidth] = useState(0);
   const tabWidth = width / TABS.length;
-  // 传书服务开启后一直运行到手动停止，在其他页面也要能看出它开着
-  const lanRunning = useLanRunning();
 
   const [bold, setBold] = useState<number[]>([index]);
   const [v] = useState(makeValues);
@@ -266,9 +262,7 @@ export function TabBar() {
               <Animated.View style={[piece, styles.capR, { width: CAP, transform: [{ translateX: rightX }, { scale: hScale }] }]} />
             </Animated.View>
           )}
-          {TABS.map((tab, i) => {
-            const live = tab.href === '/transfer' && lanRunning;
-            return (
+          {TABS.map((tab, i) => (
               <Pressable
                 key={tab.href}
                 style={styles.tab}
@@ -279,20 +273,17 @@ export function TabBar() {
                 }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: i === index }}
-                accessibilityLabel={live ? `${tab.label}，服务运行中` : tab.label}
+                accessibilityLabel={tab.label}
               >
                 <View style={styles.icon}>
                   <tab.icon size={20} color={t.fg3} strokeWidth={1.8} />
                   <Animated.View style={[StyleSheet.absoluteFill, { opacity: cover[i] }]}>
                     <tab.icon size={20} color={t.accent} strokeWidth={2.2} />
                   </Animated.View>
-                  {/* 右上角的绿色状态点：传书服务正在运行 */}
-                  {live && <View style={[styles.live, { backgroundColor: t.success, borderColor: t.bg }]} />}
                 </View>
                 <Animated.Text style={{ color: colors[i], fontSize: 12, fontWeight: bold.includes(i) ? '600' : '400' }}>{tab.label}</Animated.Text>
               </Pressable>
-            );
-          })}
+          ))}
         </View>
       </Glass>
     </View>
@@ -307,5 +298,4 @@ const styles = StyleSheet.create({
   capR: { borderTopRightRadius: CAP, borderBottomRightRadius: CAP },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
   icon: { width: 20, height: 20 },
-  live: { position: 'absolute', top: -2, right: -4, width: 9, height: 9, borderRadius: 4.5, borderWidth: 1.5 },
 });

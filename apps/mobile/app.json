@@ -82,6 +82,14 @@
         }
       ],
       [
+        "expo-camera",
+        {
+          "cameraPermission": "扫描电脑上 Dock 显示的二维码，与电脑配对",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#EEF0F5",

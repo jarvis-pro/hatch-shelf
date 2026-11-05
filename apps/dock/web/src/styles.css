@@ -957,6 +957,9 @@ button.primary.big {
   color: var(--fg);
   font-size: 13px;
 }
+.folder-picker .mono.placeholder {
+  color: var(--fg4);
+}
 .folder-picker .choose {
   display: flex;
   align-items: center;

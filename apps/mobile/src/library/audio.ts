@@ -85,13 +85,3 @@ export function deleteAudio(bookId: string, notify = true) {
   if (dir.exists) dir.delete();
   if (notify) notifyLibraryChanged();
 }
-
-/** 有原声的书各自录音的大小（书籍管理页把它算进书和分组的合计） */
-export function audioSizes(bookIds: string[]): Map<string, number> {
-  const out = new Map<string, number>();
-  for (const id of bookIds) {
-    const bytes = audioBytes(id);
-    if (bytes > 0) out.set(id, bytes);
-  }
-  return out;
-}

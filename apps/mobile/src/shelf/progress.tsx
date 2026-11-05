@@ -7,10 +7,14 @@ import { useTheme } from '@/ui/theme';
 
 export const percent = (p: BookProgress) => `${Math.round(p.ratio * 100)}%`;
 
+/** 「已读完」「读到 40%」「刚开始」「未开始」 */
+export function readState(p: BookProgress | undefined) {
+  return !p ? '未开始' : p.finished ? '已读完' : p.ratio < 0.01 ? '刚开始' : `读到 ${percent(p)}`;
+}
+
 /** 「12 章 · 已读完」「10 章 · 读到 40%」「16 章 · 未开始」 */
 export function bookMeta(book: Pick<BookRow, 'chapterCount'>, p: BookProgress | undefined) {
-  const state = !p ? '未开始' : p.finished ? '已读完' : p.ratio < 0.01 ? '刚开始' : `读到 ${percent(p)}`;
-  return `${book.chapterCount} 章 · ${state}`;
+  return `${book.chapterCount} 章 · ${readState(p)}`;
 }
 
 interface BadgeProps {

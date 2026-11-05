@@ -1,37 +1,52 @@
+import { getInfoAsync } from 'expo-file-system/legacy';
 import { getSetting, setSetting, type BookRow } from '@/db/queries';
-import { bookDir } from '@/lib/paths';
+import { audioDir, bookDir } from '@/lib/paths';
 import { reconcileSizes, type SizeCache } from './size-format';
 
 const KEY = 'bookSizes';
 
-/** 一本书在磁盘上的大小（books/<id>/ 下全部文件，递归） */
-function measure(id: string): number {
-  const dir = bookDir(id);
-  return dir.exists ? (dir.info().size ?? 0) : 0;
+/**
+ * 目录（递归）在磁盘上的大小，不存在为 0。
+ * 用 legacy 的 getInfoAsync：遍历在原生后台队列里做，不占 JS 线程；
+ * 新 API 的 Directory.info().size 是同步调用，书大、录音多时会把整个页面卡住
+ */
+async function dirBytes(uri: string): Promise<number> {
+  const info = await getInfoAsync(uri);
+  return info.exists ? info.size : 0;
 }
 
-/** 缓存里仍然有效的大小，进入书籍管理页时先用它们立刻显示 */
+/** 缓存里的大小，进入书籍管理页时先用它们立刻显示：书按内容指纹判断是否有效，原声总是先用缓存再静默刷新 */
 export async function cachedSizes(books: BookRow[]) {
   return reconcileSizes(books, await getSetting<SizeCache>(KEY, {}));
 }
 
 /**
- * 统计 ids 里每本书的大小，每算完一本回调一次。原生统计是同步调用，
- * 每本之间让出一次事件循环，页面动画和点按不会被卡住。结束后把全部结果写回缓存（顺带清掉已删除的书）。
+ * 按 order 的顺序逐本统计：missing 里的书重新统计书的大小，原声每本都重新统计（录音更新不改书的指纹）。
+ * 每算完一本回调一次；结束后把全部结果写回缓存（顺带清掉已删除的书）。
  */
-export async function measureSizes(books: BookRow[], ids: string[], known: Map<string, number>, onSize: (id: string, bytes: number) => void, signal: { cancelled: boolean }) {
-  const sizes = new Map(known);
-  for (const id of ids) {
-    await new Promise((r) => setTimeout(r, 0));
+export async function measureSizes(
+  books: BookRow[],
+  order: string[],
+  cached: { known: Map<string, number>; audio: Map<string, number>; missing: string[] },
+  onSize: (id: string, bytes: number, audio: number) => void,
+  signal: { cancelled: boolean },
+) {
+  const sizes = new Map(cached.known);
+  const audio = new Map(cached.audio);
+  const missing = new Set(cached.missing);
+  for (const id of order) {
+    const bytes = missing.has(id) ? await dirBytes(bookDir(id).uri) : sizes.get(id);
+    const audioBytes = await dirBytes(audioDir(id).uri);
     if (signal.cancelled) return;
-    const bytes = measure(id);
+    if (bytes === undefined) continue;
     sizes.set(id, bytes);
-    onSize(id, bytes);
+    audio.set(id, audioBytes);
+    onSize(id, bytes, audioBytes);
   }
   const cache: SizeCache = {};
   for (const b of books) {
     const bytes = sizes.get(b.id);
-    if (bytes !== undefined) cache[b.id] = { hash: b.contentHash, bytes };
+    if (bytes !== undefined) cache[b.id] = { hash: b.contentHash, bytes, audio: audio.get(b.id) };
   }
   await setSetting(KEY, cache);
 }

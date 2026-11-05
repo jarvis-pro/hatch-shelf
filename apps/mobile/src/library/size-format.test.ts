@@ -24,8 +24,19 @@ describe('reconcileSizes', () => {
       { id: 'b', contentHash: 'h2' },
       { id: 'c', contentHash: null },
     ];
-    const { known, missing } = reconcileSizes(books, { a: { hash: 'h1', bytes: 100 }, b: { hash: 'old', bytes: 200 }, gone: { hash: 'x', bytes: 1 } });
+    const { known, audio, missing } = reconcileSizes(books, {
+      a: { hash: 'h1', bytes: 100, audio: 30 },
+      b: { hash: 'old', bytes: 200, audio: 0 },
+      gone: { hash: 'x', bytes: 1, audio: 0 },
+    });
     expect([...known]).toEqual([['a', 100]]);
+    expect([...audio]).toEqual([['a', 30]]);
     expect(missing).toEqual(['b', 'c']);
+  });
+
+  it('旧版缓存没有原声大小，按需要重新统计处理', () => {
+    const { known, missing } = reconcileSizes([{ id: 'a', contentHash: 'h1' }], { a: { hash: 'h1', bytes: 100 } });
+    expect(known.size).toBe(0);
+    expect(missing).toEqual(['a']);
   });
 });

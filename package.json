@@ -7,6 +7,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "shelf-pack": "tsx packages/library/src/cli.ts",
-    "lint": "pnpm --filter @shelf/mobile lint"
+    "lint": "pnpm --filter @shelf/mobile lint",
+    "dock": "pnpm --filter @shelf/dock start"
   }
 }

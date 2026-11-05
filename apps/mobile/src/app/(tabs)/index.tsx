@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { ChevronRight, FolderDown, Laptop, Plus, Search } from 'lucide-react-native';
+import { ChevronRight, FolderDown, Plus, ScanQrCode, Search } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -102,9 +102,10 @@ export default function ShelfScreen() {
         <Menu
           visible={addMenu}
           top={insets.top + 60}
+          leading
           onClose={() => setAddMenu(false)}
           items={[
-            { label: '从电脑接收', detail: '在 Dock 里勾选后推送', icon: Laptop, onPress: () => void openReceive() },
+            { label: '从电脑接收', detail: '扫一扫电脑上 Dock 的二维码', icon: ScanQrCode, primary: true, onPress: () => void openReceive() },
             { label: '从「文件」导入', detail: '选一个 .zip 或 .md', icon: FolderDown, onPress: () => void pickAndImport() },
           ]}
         />

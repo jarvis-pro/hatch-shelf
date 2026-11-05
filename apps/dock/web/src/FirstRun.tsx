@@ -59,10 +59,8 @@ export function FirstRun({ info, initial, error, onDone }: { info: DockInfo | nu
           {canPick ? (
             <button type="button" className={`folder-picker ${path ? 'chosen' : ''}`} onClick={() => void pick()} disabled={picking}>
               {path ? <FolderOpen size={16} /> : <Folder size={16} />}
-              {/* 没选时用路径格式的占位，顺带提示该选哪一层文件夹 */}
-              <span className={path ? 'mono' : 'mono placeholder'}>
-                {picking ? '在弹出的对话框里选择文件夹…' : path ? shortPath(path, info?.home) : '~/Documents/hatch-shelf-library'}
-              </span>
+              {/* 没选时用路径格式的占位，顺带提示该选哪一层文件夹；对话框开着时文字不变，只有右边按钮转圈 */}
+              <span className={path ? 'mono' : 'mono placeholder'}>{path ? shortPath(path, info?.home) : '~/Documents/hatch-shelf-library'}</span>
               <span className="choose">{picking ? <LoaderCircle size={14} className="spin" /> : path ? '更换…' : '选择文件夹…'}</span>
             </button>
           ) : (

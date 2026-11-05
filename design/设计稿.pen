@@ -68931,17 +68931,12 @@
                                       "id": "A1JvD",
                                       "name": "t",
                                       "fill": "#111318",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
                                       "content": "~/Documents/works/hatch/hatch-shelf-library",
                                       "fontFamily": "JetBrains Mono",
                                       "fontSize": 12,
                                       "fontWeight": "normal"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "AB7LS",
-                                      "name": "sp",
-                                      "width": "fill_container",
-                                      "height": 1
                                     },
                                     {
                                       "type": "frame",
@@ -69042,35 +69037,6 @@
                                   "icon": "arrow-right",
                                   "library": "lucide",
                                   "fill": "#FFFFFF"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "c76vd",
-                              "name": "Foot",
-                              "gap": 6,
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "icon",
-                                  "id": "ev1O1",
-                                  "name": "lock",
-                                  "width": 12,
-                                  "height": 12,
-                                  "icon": "lock",
-                                  "library": "lucide",
-                                  "fill": "#8C92A0"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "y3I51",
-                                  "name": "t",
-                                  "fill": "#8C92A0",
-                                  "content": "路径只保存在这个浏览器里，Dock 只监听本机 127.0.0.1",
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12,
-                                  "fontWeight": "normal"
                                 }
                               ]
                             }

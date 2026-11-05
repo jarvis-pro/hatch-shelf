@@ -454,6 +454,32 @@ b {
 .badge.gray {
   background: var(--fg3);
 }
+.audio {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  background: var(--accent);
+  box-shadow: 0 3px 4px #2f6bff59;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+/* 列表视图没有封面角标，原声标在书名后面 */
+.audio-inline {
+  display: none;
+  margin-left: 6px;
+  vertical-align: -2px;
+  color: var(--accent);
+}
+.list .audio-inline {
+  display: inline;
+}
 .notes {
   position: absolute;
   left: 8px;
@@ -570,6 +596,7 @@ b {
   outline-width: 2px;
 }
 .list .badge,
+.list .audio,
 .list .notes,
 .list .progress {
   display: none;

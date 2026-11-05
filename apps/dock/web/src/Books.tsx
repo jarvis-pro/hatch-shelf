@@ -1,4 +1,4 @@
-import { Check, Highlighter, LayoutGrid, List, Search, X } from 'lucide-react';
+import { AudioLines, Check, Highlighter, LayoutGrid, List, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { pushable, statusOf, type Job, type JobItem, type LibBook, type PhoneState } from '../../shared/types';
 import { coverUrl, mb, saved } from './api';
@@ -230,6 +230,13 @@ function Tile({
             {badge[1]}
           </span>
         )}
+        {/* 右上角「原声」：书库里录好了原声的书，和手机书架上的角标一致 */}
+        {b.audio > 0 && (
+          <span className="audio" title={`书库里录好了 ${b.audio} 章原声`}>
+            <AudioLines size={11} strokeWidth={2.4} />
+            原声
+          </span>
+        )}
         {notes > 0 && !(pushing && item?.state === 'uploading') && (
           <span className="notes" title="手机上有书库里还没有的笔记，点「拉取笔记」写回书库">
             <Highlighter size={11} />+{notes} 条笔记
@@ -251,7 +258,10 @@ function Tile({
         )}
       </div>
       <div className="text">
-        <b title={b.relPath}>{b.title}</b>
+        <b title={b.relPath}>
+          {b.title}
+          {b.audio > 0 && <AudioLines className="audio-inline" size={13} strokeWidth={2.4} aria-label="有原声" />}
+        </b>
         <span className={sub[0]}>{sub[1]}</span>
       </div>
     </div>

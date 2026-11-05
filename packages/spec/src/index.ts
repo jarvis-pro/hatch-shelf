@@ -9,3 +9,4 @@ export * from './links';
 export * from './audio';
 export * from './library';
 export * from './transfer';
+export * from './cover';

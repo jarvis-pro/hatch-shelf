@@ -411,13 +411,96 @@ b {
   border-radius: 3px 6px 6px 3px;
   box-shadow: 0 6px 14px #1e2a5a33;
 }
-.cover.placeholder {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(160deg, #e3e8f8, #d5dcf0);
-  color: var(--accent);
-  font-size: 40px;
+/* 图片封面加载出来之前先给一层底色，不是一片白 */
+img.cover {
+  background: #e4e7ef;
+}
+/* 文字封面：尺寸按封面宽度换算，N 像素（以 300 宽为基准）= N/3 cqw */
+.cover-wrap {
+  container-type: inline-size;
+}
+.text-cover {
+  overflow: hidden;
+  background: #f3eee4;
+  box-shadow: 0 6px 14px #1e2a5a33, inset 0 0 0 1px #ffffff66;
+}
+.tc-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3.333cqw;
+  padding: 8.667cqw 8cqw 0;
+}
+.tc-series {
+  color: var(--c);
+  font-size: 3.333cqw;
+  font-weight: 600;
+  letter-spacing: 0.667cqw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #1a1a1a;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
+  font-size: 11.333cqw;
+  line-height: 14cqw;
   font-weight: 700;
+}
+.tc-sub {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #4a4640;
+  font-size: 4cqw;
+}
+.tc-block {
+  position: absolute;
+  left: 8cqw;
+  right: 8cqw;
+  top: 63.333cqw;
+  bottom: 18.667cqw;
+  display: flex;
+  border-radius: 2px;
+  background: var(--c);
+  opacity: 0.9;
+}
+.tc-block i {
+  flex: 1;
+  margin: 3.333cqw;
+  border: 1px solid #f3eee466;
+}
+.tc-imprint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10.667cqw;
+  display: flex;
+  align-items: center;
+  padding: 0 8cqw;
+  background: var(--c);
+  color: #f3eee4;
+  font-family: 'Snell Roundhand', cursive;
+  font-size: 6cqw;
+}
+.tc-imprint i {
+  width: 3.333cqw;
+  height: 3.333cqw;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #f3eee4;
+}
+/* 缩略图（列表视图）字太小，只留版式 */
+@container (max-width: 89px) {
+  .tc-head,
+  .tc-imprint span {
+    display: none;
+  }
 }
 .badge {
   position: absolute;
@@ -613,9 +696,6 @@ b {
 }
 .list .tile {
   padding-left: 34px;
-}
-.list .cover.placeholder {
-  font-size: 16px;
 }
 
 /* 底部浮条 */

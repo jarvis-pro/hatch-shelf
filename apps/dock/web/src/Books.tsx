@@ -2,6 +2,7 @@ import { AudioLines, Check, Highlighter, LayoutGrid, List, Search, X } from 'luc
 import { useState } from 'react';
 import { pushable, statusOf, type Job, type JobItem, type LibBook, type PhoneState } from '../../shared/types';
 import { coverUrl, mb, saved } from './api';
+import { TextCover } from './TextCover';
 
 export type StatusFilter = 'all' | 'changed' | 'new' | 'error' | 'phoneOnly';
 
@@ -99,7 +100,7 @@ export function Books({
               {phoneOnly.map((d) => (
                 <div key={d.id} className="tile">
                   <div className="cover-wrap">
-                    <div className="cover placeholder">{d.title.slice(0, 1)}</div>
+                    <TextCover id={d.id} title={d.title} />
                     <span className="badge gray">
                       <i />
                       仅手机有
@@ -223,7 +224,11 @@ function Tile({
   return (
     <div className={`tile ${s === 'error' ? 'disabled' : ''} ${can || s === 'error' ? 'clickable' : ''}`} onClick={onPress}>
       <div className={`cover-wrap ${on || (pushing && item?.state !== 'done') ? 'selected' : ''} ${pushing ? 'locked' : ''}`}>
-        {b.cover ? <img className="cover" src={coverUrl(b.id, b.mtime)} alt="" loading="lazy" /> : <div className="cover placeholder">{b.title.slice(0, 1)}</div>}
+        {b.cover ? (
+          <img className="cover" src={coverUrl(b.id, b.mtime)} alt="" loading="lazy" />
+        ) : (
+          <TextCover id={b.id} title={b.title} subtitle={b.subtitle} category={b.category} />
+        )}
         {badge && (
           <span className={`badge ${badge[0]}`}>
             {badge[0] === 'ok' ? <Check size={11} strokeWidth={3} /> : <i />}

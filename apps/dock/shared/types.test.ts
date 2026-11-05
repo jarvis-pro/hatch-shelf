@@ -4,6 +4,8 @@ import { pushable, statusOf, type LibBook, type PhoneState } from './types';
 const book = (over: Partial<LibBook> = {}): LibBook => ({
   id: 'b1',
   title: '书',
+  subtitle: null,
+  category: '分组',
   relPath: '分组/书',
   group: '分组',
   chapters: 3,

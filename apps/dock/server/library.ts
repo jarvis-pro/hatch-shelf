@@ -82,6 +82,8 @@ function readEntry(dir: string, booksDir: string, mtime: number): LibEntry {
     info: {
       id: m?.id ?? path.basename(dir),
       title: m?.title ?? path.basename(dir),
+      subtitle: m?.subtitle ?? null,
+      category: m?.category ?? null,
       relPath,
       group: m?.category?.split('/')[0] ?? (relPath.includes('/') ? relPath.split('/')[0] : NO_GROUP),
       chapters: m?.chapters.length ?? 0,

@@ -6,6 +6,9 @@ export interface LibBook {
   /** book.yaml 里的 id；读不出来时用目录名，这时 errors 不为空 */
   id: string;
   title: string;
+  subtitle: string | null;
+  /** book.yaml 的 category；没有封面时文字封面按它取色、显示系列名 */
+  category: string | null;
   /** 相对 books/ 的路径 */
   relPath: string;
   /** category 的第一段，书架和 Dock 都按它分组 */

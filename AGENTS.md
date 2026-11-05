@@ -3,7 +3,7 @@
 个人自用的 iOS 离线 Markdown 书架。设计文档见 `README.md`，动手前先读与当前任务相关的章节；
 架构或决策有变时同步更新 README（尤其是第 12 节决策记录）。
 
-在 `books/` 下写书的规则见 `books/AGENTS.md`，与代码无关的任务不需要读本文件。
+书、封面原稿、原声录音和阅读笔记在相邻的书库仓库 `../hatch-shelf-library`（私有、纯数据，没有 package.json），写书规则见那里的 `AGENTS.md`。shelf-pack 默认就操作那个书库（环境变量 `SHELF_LIBRARY` 可改）。
 
 ## 仓库结构
 
@@ -13,9 +13,8 @@
 | `app/reader-web/` | `@shelf/reader-web`：WebView 里运行的阅读器（markdown-it + highlight.js + KaTeX + Mermaid），`build.mjs` 打成 `app/assets/reader/index.html` |
 | `packages/spec/` | `@shelf/spec`：book.yaml 的 zod schema、容错解析、导入安全规则。App 与 CLI 共用，**不得依赖 Node 或 RN 专有 API** |
 | `tools/shelf-pack/` | Node CLI：check / pack / push |
-| `books/` | 书籍内容，不进安装包 |
-| `notes/` | 从手机导出的阅读笔记，供修订书时参考 |
-| `design/` | UI 设计稿 `设计稿.pen`（只能用 pen.dev / Pencil MCP 读写）；图片放 `covers/` `images/` `splash/` 子目录，按书 id 或用途命名，不放在根目录 |
+| `app/samples/` | 随安装包发布的 2 本示例书（shelf-guide、markdown-cheatsheet），也是 shelf-pack 测试用的书 |
+| `design/` | App 的 UI 设计稿 `设计稿.pen`（只能用 pen.dev / Pencil MCP 读写）；图片放 `covers/` `images/` `splash/` 子目录，不放在根目录。封面原稿在书库仓库的 `封面.pen`，改封面去那边 |
 
 ## 原则
 
@@ -36,7 +35,7 @@
 - `ios/` `android/` 由 `expo prebuild` 生成，不入库、不手改；原生配置写在 `app.json` 或 config plugin 中
 - 用到原生模块，必须使用 dev client（`pnpm app ios`），不能用 Expo Go；新增原生依赖后要重新构建
 - 不使用 EAS Update（见 README 决策记录）
-- 改了 `reader-web/` 或 `books/` 里的示例书后要重新 `pnpm app build:assets`；改了 `metro.config.js` 要重启 Metro
+- 改了 `reader-web/` 或 `app/samples/` 里的示例书后要重新 `pnpm app build:assets`；改了 `metro.config.js` 要重启 Metro
 
 ## 命令
 
@@ -48,8 +47,9 @@ pnpm app build:assets        # 重新生成阅读器 HTML 和示例书模块（�
 pnpm typecheck               # 全仓类型检查
 pnpm test                    # 全仓测试
 pnpm lint                    # App 的 ESLint（含 no-floating-promises）
-pnpm shelf-pack check books/   # 校验全部书；pack / push 见 README 第 10 节
-pnpm shelf-pack ls             # 按分类列出全部书（id ↔ 中文书名）
+pnpm shelf-pack check               # 校验整个书库；check app/samples 校验示例书
+pnpm shelf-pack ls                  # 按分类列出书库里的书；其他命令（new / mv / audio / push …）见 README 第 10 节
+SHELF_LIBRARY=../hatch-shelf-library pnpm --filter shelf-pack test   # 改了切段、校验、打包规则后对整个书库跑一遍
 pnpm app testflight          # 构建 Release 并上传 TestFlight（见 README 第 13 节）
 ```
 

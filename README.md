@@ -14,7 +14,7 @@
 
 - 把 AI 产出的技术类、知识类内容组织成“书”，在手机上获得舒适的离线阅读体验
 - 导入路径尽量短：AI 写完 → 一条命令或一次 AirDrop → 手机上可读
-- 内容格式不绑定任何 AI 服务，任意 agent 遵守 `books/AGENTS.md` 即可写书
+- 内容格式不绑定任何 AI 服务，任意 agent 遵守书库仓库的 `AGENTS.md` 即可写书
 
 **非目标（当前阶段）**
 
@@ -27,7 +27,7 @@
 ## 2. 整体架构
 
 ```
-[任意 AI Agent] → books/<id>/ → [shelf-pack CLI] ─┬─ AirDrop / 分享 (.zip/.md)
+[任意 AI Agent] → 书库 books/ → [shelf-pack CLI] ─┬─ AirDrop / 分享 (.zip/.md)
                                                   └─ 局域网 HTTP 上传
                                                          ↓
                                      App: inbox/ → 校验 → books/ → SQLite 索引
@@ -45,33 +45,34 @@
 
 ## 3. 仓库结构
 
-单仓库，pnpm workspace。
+两个仓库放在同一个父目录下：本仓库（代码，公开，pnpm workspace）和书库 `hatch-shelf-library`（内容，私有）。
 
 ```
 hatch-shelf/
 ├── README.md
 ├── AGENTS.md              # 代码侧规范（开发 App / CLI 时 agent 读取）
 ├── pnpm-workspace.yaml
-├── app/                   # Expo App（Metro 根目录在此，books/ 不会进安装包）
+├── app/                   # Expo App（Metro 根目录在此）
+│   ├── samples/           # 随安装包发布的 2 本示例书，也是测试用的书
 │   └── reader-web/        # @shelf/reader-web：阅读器网页，打包成单个 HTML 放进 App
 ├── packages/
 │   └── spec/              # @shelf/spec：book.yaml 的 zod schema + TS 类型，App 与 CLI 共用
 ├── tools/
 │   └── shelf-pack/        # CLI：校验 → 打包 → 局域网推送
-├── notes/                 # 从手机导出的阅读笔记 <book-id>.notes.md
-├── design/                # UI 设计稿（pen.dev），不进安装包
-│   ├── 设计稿.pen
-│   ├── covers/            # 书封，按 <book-id>.png 命名
-│   ├── images/            # 插画、图标等，按用途命名
-│   └── splash/            # 启动流程画面
-└── books/
-    ├── AGENTS.md          # 写书规范（agent 在此目录写书时读取）
-    └── <book-id>/
+└── design/                # App 的 UI 设计稿（pen.dev），不进安装包
+    ├── 设计稿.pen
+    ├── covers/ images/    # 设计稿引用的图（UI 插图、书封）；书封的原稿在书库的 封面.pen
+    └── splash/            # 启动流程画面
+
+hatch-shelf-library/       # 纯数据仓库：没有代码和依赖，命令都在本仓库运行
+├── AGENTS.md              # 写书规范和书库命令（CLAUDE.md 指向它）
+├── books/<分组>/<书名>/    # 一本书：book.yaml、中文名的章节、assets/、audio/（原声，Git LFS）、notes.md（阅读笔记）
+└── design/                # 封面设计稿 封面.pen + images/ 插画原图
 ```
 
-**提交约定**：内容提交使用 `content:` 前缀，代码提交使用 Conventional Commits（`feat:` / `fix:` / `chore:` …）。查看代码历史时用 `git log -- app/ packages/ tools/` 过滤。
+**提交约定**：代码提交使用 Conventional Commits（`feat:` / `fix:` / `chore:` …）；书库里内容提交使用 `content:` 前缀。
 
-**以后拆仓的条件**：内容需要单独公开、改由其他机器或 agent 专职写书，或者内容体积开始拖慢 clone。届时用 `git subtree split -P books` 带着历史拆出去。如果图片变多，对 `books/**/assets/**` 开启 Git LFS。
+**为什么拆成两个仓库**：书写到近百本后，内容提交占了一半以上，git 历史里书和封面原图约 160 MB、代码只有 4 MB；原声录音有 4 GB，只放在本机没有备份。拆开后书库可以设为私有、用 Git LFS 管录音，代码仓库保持轻量。拆分时用 `git filter-repo` 带着历史导出了 `books/`、`notes/` 和封面原图，本仓库没有改写历史。
 
 ---
 
@@ -80,18 +81,23 @@ hatch-shelf/
 ### 4.1 目录结构
 
 ```
-books/go-concurrency/
+books/技术/Go 并发编程实战/      # 书库里：books/<分组>/<书名>/，分组是 category 的第一段
 ├── book.yaml
-├── cover.png          # 可选；缺省时 App 自动生成文字封面
-├── 01-goroutine.md
+├── cover.png                # 可选；缺省时 App 自动生成文字封面
+├── 01-goroutine-是什么.md    # 章节文件名可以用中文，不能有空白和 / \ : * ? " < > | # %
 ├── 02-channel.md
-└── assets/            # 本书的全部图片
+├── assets/                  # 本书的全部图片
+├── audio/                   # 只在书库里：原声（8.1），不进书包
+└── notes.md                 # 只在书库里：从手机导出的阅读笔记
 ```
+
+- **书库给人看，手机给机器用**。书库里目录是 `<分组>/<书名>`（书名里的 `/` `\` `:` 换成全角），跨书引用按路径写；手机上书平铺在 `books/<id>/`。`shelf-pack pack` / `push` 打包时翻译一次（`@shelf/spec` 的 `deviceLinks()` / `deviceNext()`），App 和阅读器只认手机上的写法
+- 书库里的 id 是 UUID（`shelf-pack new` 生成），只给机器用，永远不改；改书名、换分类用 `shelf-pack mv`。App 只要求 id 是 `[a-z0-9-]`，App 自带的示例书仍用 `shelf-guide` 这样的 id
 
 ### 4.2 book.yaml
 
 ```yaml
-id: go-concurrency            # 必填，全局唯一，[a-z0-9-]；同 id 再次导入即为更新
+id: 3f2a9c1e-7b4d-4c2a-9f1e-0a1b2c3d4e5f   # 必填，[a-z0-9-]，书库里用 UUID；同 id 再次导入即为更新
 title: Go 并发编程实战          # 必填
 subtitle: 从 goroutine 到调度器  # 可选
 category: 技术/Go             # 可选，书架分组，用 / 分层
@@ -100,25 +106,25 @@ level: intermediate           # 可选：beginner | intermediate | advanced
 created: 2026-11-02           # 可选
 updated: 2026-11-02           # 可选
 chapters:                     # 必填，显式排序
-  - 01-goroutine.md
+  - 01-goroutine-是什么.md
   - 02-channel.md
 next:                         # 可选，读完后接着读的书，最多 3 本
-  - id: go-runtime            # 书 id；check 校验它是同级目录里已有的书
+  - book: 技术/Go 运行时        # 书库里写路径，打包时换成 id: <那本书的 id>；App 只认 id
     reason: 接着看调度器怎么安排 goroutine   # 可选，一句话（≤ 60 字），缺省时用那本书的副标题
 ```
 
 `next` 是阅读路线的一部分，跟着书走而不是写死在 App 里：80 多本书的 `next` 按 `reading-map` 的阅读路线写，新书加入路线时只改 book.yaml。
 
-### 4.3 写书硬规则（同步写入 books/AGENTS.md）
+### 4.3 写书硬规则（同步写入书库的 AGENTS.md）
 
 - 每章一个 `.md` 文件，以唯一的 H1 作为章标题
 - 图片只能引用 `assets/` 下的相对路径，**禁止远程图片**（离线时无法显示）
-- 章节与书之间的引用写成相对链接：`03-x.md#锚点`（本书）、`../<book-id>/03-x.md#锚点`（另一本书），解析规则是 `@shelf/spec` 的 `parseBookLink()`
-- 图表用 Mermaid（流程、结构类）或 `assets/` 下的 SVG（数据图、坐标图、示意图），**禁止在代码块里用字符画图**；SVG 的底板、尺寸、字体、配色规范见 `books/AGENTS.md`「配图」
+- 章节与书之间的引用写成相对链接：`03-x.md#锚点`（本书）；另一本书在书库里写 `<../../<分组>/<书名>/03-x.md#锚点>`，打包后是手机上的 `../<id>/03-x.md#锚点`。解析规则是 `@shelf/spec` 的 `parseLibraryLink()` / `parseBookLink()`
+- 图表用 Mermaid（流程、结构类）或 `assets/` 下的 SVG（数据图、坐标图、示意图），**禁止在代码块里用字符画图**；SVG 的底板、尺寸、字体、配色规范见书库的 `AGENTS.md`「配图」
 - 代码块必须标注语言
 - 数学公式使用 KaTeX 语法（`$...$` / `$$...$$`）
-- 文件名只使用 `[a-z0-9-]` 和 `.md`
-- 法规、财税、版本敏感的内容加 `> [!WARNING]` 提示块，写明以官方最新规定为准；提示块的写法见 `books/AGENTS.md`
+- 章节文件名用两位序号加标题，可以用中文（`01-为什么需要-RAG.md`），不能有空白和 `/ \\ : * ? " < > | # %`；图片文件名仍用 `[a-z0-9-]`
+- 法规、财税、版本敏感的内容加 `> [!WARNING]` 提示块，写明以官方最新规定为准；提示块的写法见书库的 `AGENTS.md`
 
 ### 4.4 容错
 
@@ -237,7 +243,7 @@ documentDirectory/
 
 - 按 `category` 的第一段分系列，原样显示为系列名（如 `人工智能/Agent` 归入「人工智能」），App 不维护映射；系列按其中最早导入的书排序，未分类最后。每组横向滚动，「全部」进入该系列的网格；顶部放“继续阅读”卡片（最近读过、还没读完的一本）
 - 封面左下角显示进度：读完显示 ✓，读过显示百分比。书的进度按「已读章节数 + 当前章节滚动比例」估算
-- 封面是 `design/设计稿.pen` 里的原稿导出（600×856），复古丝网印刷风插图 + 每本一个主色，底部统一署名「Jarvis」；没有封面时，按「书架文库」版式用标题、副标题和分类色自动生成文字封面，署名相同
+- 封面是书库 `design/封面.pen` 里的原稿导出（600×856），复古丝网印刷风插图 + 每本一个主色，底部统一署名「Jarvis」；没有封面时，按「书架文库」版式用标题、副标题和分类色自动生成文字封面，署名相同
 - 点按书籍直接进入阅读页，回到上次读到的位置；「继续阅读」卡片也一样
 - 长按书籍进入书籍详情（原来的长按预览和详情页合并为一页，设计稿「v11 · 书籍详情」与「长按 · 进详情过场」）：按下封面缩到 0.96 并略压暗，满 300ms 中等触感；封面抬到 1.15 倍、书架模糊变淡，随后用弹簧（阻尼比 0.85）飞到详情页的大封面，返回时飞回书架上此刻的位置（`app/src/ui/CoverFlight.tsx`）。300ms 内松手按点按处理，按住时滑动则取消
 - 书籍详情以封面为主：封面宽取屏幕宽减 60 与可用高度中较小者，左上角返回、右上角「···」（导出笔记、从书架删除）；封面下方是横向滑动的章节卡，默认滚到在读的一章（在读卡加宽并显示本章进度，读过的变淡打勾），没读过的书第一张写「从这里开始」；底部「继续阅读 / 开始阅读 / 重新阅读」和「笔记」。「全部」从底部弹出完整目录，分类、难度、更新日期和导入提示也写在这里；删除确认里有笔记时先提供「先导出笔记」
@@ -265,7 +271,7 @@ documentDirectory/
 - 本章查找：查找时顶部换成查找栏，在当前章节里不区分大小写地标亮全部匹配（复用搜索跳转的 `mark.find-hit`，与高亮 `mark.hl` 可互相嵌套），显示「第 i / n 处」，上一处 / 下一处首尾循环；匹配可跨加粗、链接等行内格式，不跨段落，不查公式和 Mermaid 图。点「完成」或换章即清除标亮
 - 链接：`#锚点` 在页内滚动；`03-x.md#锚点` 切到本书对应章节；`../<id>/…` 在当前阅读页之上打开另一本书的对应章节和小节（只写书 id 时打开到上次读到的位置），返回即回到原书，目标书未导入时给出提示；`http(s)` 链接交给系统打开
 - RN 与 WebView 之间通过 `postMessage` 通信，协议类型定义在 `app/src/reader/bridge.ts`
-- 高亮与笔记：长按选中文字，系统菜单里选「高亮」「笔记」或「存疑」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记、标为 / 取消存疑或删除。存疑用于标出读者认为可能有错的地方：橙色底加波浪线，可以附一句说明；导出时单独放在最前面的「存疑」一节，供 agent 修订时优先核实（见 `books/AGENTS.md`「读者笔记」）。「笔记」Tab 按书列出有高亮的书，阅读页「···」菜单里的「本书笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到仓库的 `notes/<id>.notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
+- 高亮与笔记：长按选中文字，系统菜单里选「高亮」「笔记」或「存疑」，笔记在浮于键盘上方的面板里输入；点已有高亮可编辑笔记、标为 / 取消存疑或删除。存疑用于标出读者认为可能有错的地方：橙色底加波浪线，可以附一句说明；导出时单独放在最前面的「存疑」一节，供 agent 修订时优先核实（见书库的 `AGENTS.md`「读者笔记」）。「笔记」Tab 按书列出有高亮的书，阅读页「···」菜单里的「本书笔记」列出整本书的高亮，点一条跳回原文；可导出为 Markdown，经分享面板 AirDrop 回电脑，放到书库里那本书目录下的 `notes.md`；也可以在传书开启时用 `shelf-pack pull-notes` 一次拉回全部笔记
 - 高亮定位不记字符偏移，而是记原文 + 前后各 32 字 + 所在小节锚点；重新打开或书更新后，在正文里找所有出现原文的位置，取前后文最吻合的一处（`app/reader-web/src/highlights.ts`）。原文被改掉的高亮仍在笔记页里，只是在正文中不再显示
 - 书更新时高亮保留；删除书时连同阅读进度、高亮一起删除（确认框会提示先导出）
 - 书籍管理（设置 →「书库」→ 书籍管理，设计稿「书籍管理」）：专为批量删除。按系列分组，页面常驻勾选态，分类标题可整类勾选，右上角「全选」；选中后底部升起「删除 N 本 · 释放 X」，确认框里有笔记时先提供逐本「先导出笔记」。顶部圆环显示各系列占用：每本书的大小（`books/<id>/` 递归）异步统计，统计中一段彗星弧绕轨道旋转，每统计完一个系列对应色段扫入，图例、分组和每行的数字同步出现。结果按内容指纹缓存在 settings 的 `bookSizes`，下次进入直接显示，只补算新导入或更新过的书（`app/src/library/sizes.ts`）
@@ -282,7 +288,7 @@ documentDirectory/
 
 听书本来就是一段一段读的（`ttsBlocks` 切出的段落），录音按完全相同的段落生成，播放时「读第 i 段」就是「播第 i 段的文件」，高亮、跳段、进度不需要任何时间戳。
 
-- 切段只有一份实现（已完成）：markdown-it 配置在 `app/reader-web/src/render.ts`，切段规则在 `segment.ts`，两者都不依赖页面状态。`shelf-pack` 的 `src/segment.ts` 在 happy-dom 里跑同一份代码，得到与手机上完全相同的段落文字；`segment.test.ts` 对 `books/` 里每本能通过 check 的书分别走阅读器（`collectBlocks`）和 CLI 两条路径，段落必须逐条相同。happy-dom 每章新开一个窗口、用完关掉，关掉的窗口要等事件循环空闲才释放，整库连续同步切会耗尽内存
+- 切段只有一份实现（已完成）：markdown-it 配置在 `app/reader-web/src/render.ts`，切段规则在 `segment.ts`，两者都不依赖页面状态。`shelf-pack` 的 `src/segment.ts` 在 happy-dom 里跑同一份代码，得到与手机上完全相同的段落文字；`segment.test.ts` 默认对 `app/samples/` 的示例书、设了 `SHELF_LIBRARY` 时对整个书库里每本能通过 check 的书分别走阅读器（`collectBlocks`）和 CLI 两条路径，段落必须逐条相同。happy-dom 每章新开一个窗口、用完关掉，关掉的窗口要等事件循环空闲才释放，整库连续同步切会耗尽内存
 - 指纹用 `@shelf/spec` 的 `textHash`（与内容指纹同一套 64 位 FNV-1a，App 和 CLI 都能算，不依赖 Node 的 crypto）：段落的 key 是 `textHash(段落文字)`，只看文字；录音文件名是 `textHash(合成用文字 + 音色 + 参数)`，如 `3f2a9c…（16 位）.mp3`。超过单次上限（免费版 500 字符，CLI 按 450 切）的段落按句切成多个文件，清单里记成一个数组，顺序播放
 - S2 会把方括号当成语气标签（如 `[whisper]`），合成时正文里的 `[` `]` 换成全角 `【` `】`；段落 key 仍按原文算
 - 「此处有代码，略过。」这类重复的提示只生成一次，指纹相同自然复用
@@ -290,12 +296,12 @@ documentDirectory/
 **音频包**
 
 ```text
-audio/<book-id>/            # 仓库根目录，不入库（与 backups/ 一样写进 .gitignore）
+books/<分组>/<书名>/audio/  # 书库里和 assets/ 并列，mp3 走 Git LFS；打包推书时不带
 ├── manifest.json           # { version: 1, bookId, voice: { provider, id, name }, params, chapters: { "<章节文件>": [{ key, files: [指纹…] }, …] } }
 └── <指纹>.mp3              # 64 kbps 单声道；deepseek-harness 4.2 万字（按段落去掉代码、表格后）约 1.8 小时
 ```
 
-- 不放进 `books/`：音频体积是原文的几百倍，仓库是公开的，也不该让每次修订都带上二进制 diff
+- 放在书库里书的目录下：改书名、换分类时跟着书走；音频体积是原文的几百倍，`pack` 跳过 `audio/`（`isLibraryOnly()`），不随书打包，另走按章的音频包推送。mp3 用 Git LFS 管理（GitHub 免费 10 GB 存储，全库约 4 GB），清单 `manifest.json` 仍是普通文本。清单只按章节文件名和段落指纹对应，书库改目录、改章节文件名时改写清单即可，录音不用重新生成
 - 清单的 schema 和匹配函数 `chapterAudio()` 在 `@shelf/spec` 的 `audio.ts`：本章段落数相同、每段 key 都逐条相同才返回各段的录音文件
 - 清单只收录音全部齐全的章节；中断（Ctrl-C）时也先写清单，App 不会拿到缺文件的章
 - 增量生成：修订书后重新运行，只有文字变了的段落指纹会变，只补生成这些段落；清单里不再引用的文件清理掉
@@ -328,8 +334,8 @@ audio/<book-id>/            # 仓库根目录，不入库（与 backups/ 一样�
 **CLI**
 
 ```bash
-shelf-pack audio <book-dir> [--voice <id>] [--speed 1] [--only 01,02] [-j 3] [--dry]   # 生成或增量更新 audio/<id>/
-shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送录音；设备上已有且清单相同的章节跳过
+shelf-pack audio <book> [--voice <id>] [--speed 1] [--only 01,02] [-j 3] [--dry]   # 生成或增量更新书目录下的 audio/
+shelf-pack push-audio <book> --to <ip> --pin <pin>       # 按章推送录音；设备上已有且清单相同的章节跳过
 ```
 
 - 密钥从钥匙串读取（`security find-generic-password -s fish-audio -w`），也可用环境变量 `FISH_API_KEY`，不进仓库
@@ -375,24 +381,27 @@ shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送录音；
 ## 10. shelf-pack CLI
 
 ```bash
-shelf-pack check <book-dir|books/>            # 按 spec 校验，检查远程图片、缺失章节等
-shelf-pack ls    [books/]                     # 按 category 分组列出 id、章数、更新日期、书名
-shelf-pack pack  <book-dir> [-o out.zip]      # 校验后打包成 zip
-shelf-pack push  <book-dir> --to <ip> --pin <pin>   # 打包并通过局域网上传
-shelf-pack push  books/ --to <ip> --pin <pin> --changed  # 对比设备上的 /books，只推送有变化的书
-shelf-pack pull-notes [notes/] --to <ip> --pin <pin>     # 拉取手机上的全部笔记，写成 notes/<id>.notes.md
-shelf-pack backup  [backups/] --to <ip> --pin <pin>      # 备份阅读数据，写成 backups/shelf-backup-<日期>.json（不入库）
-shelf-pack restore <file> --to <ip> --pin <pin>          # 把备份合并回手机
-shelf-pack audio <book-dir> [--only 01,02] [--dry]       # 生成原声录音到 audio/<id>/（见 8.1，不入库）
-shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送原声，手机上已有且相同的章节跳过
+shelf-pack new   <分类> <书名>                # 新建一本书：生成 UUID，建好 books/<分组>/<书名>/、book.yaml 和第一章
+shelf-pack mv    <book> [--title t] [--category c]   # 改书名或分类：移动目录，改写书库里指向它的链接和 next
+shelf-pack check [target]                     # 按 spec 校验；不传就是整个书库
+shelf-pack ls    [target]                     # 按 category 分组列出书名、章数、更新日期、有无原声
+shelf-pack pack  <book> [-o out.zip]          # 校验后打包成 zip
+shelf-pack push  <target> --to <ip> --pin <pin> [--changed]  # 打包并通过局域网上传；--changed 只推有变化的
+shelf-pack pull-notes --to <ip> --pin <pin>   # 拉取手机上的全部笔记，写到书库里各书目录的 notes.md
+shelf-pack backup  [dir] --to <ip> --pin <pin>  # 备份阅读数据，默认写到本仓库的 backups/（不入库）
+shelf-pack restore <file> --to <ip> --pin <pin> # 把备份合并回手机
+shelf-pack audio <book> [--only 01,02] [--dry]  # 生成原声录音到书目录下的 audio/（见 8.1）
+shelf-pack push-audio <book> --to <ip> --pin <pin>  # 按章推送原声，手机上已有且相同的章节跳过
 ```
 
-理想流程：agent 写完一本书 → `shelf-pack push books/<id> --to ... --pin ...` → 手机上直接可读。
+理想流程：agent 写完一本书 → `shelf-pack push <书名> --to ... --pin ...` → 手机上直接可读。
 
-在仓库根目录以 `pnpm shelf-pack <命令>` 运行。
+在本仓库根目录以 `pnpm shelf-pack <命令>` 运行。书库默认是本仓库旁边的 `../hatch-shelf-library`，与当前目录无关；环境变量 `SHELF_LIBRARY`（相对本仓库根目录）可以指到别处。书库是纯数据仓库，里面没有 `package.json`，在书库里工作时用 `pnpm --dir ../hatch-shelf shelf-pack …`。
 
-- `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、id 与目录名不一致、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下，以及链接指向的章节、小节是否存在（跨书链接按同级目录 `../<id>/` 查找目标书；单独拷出来、旁边没有其他书的一本书跳过跨书链接检查）。规则在 `@shelf/spec` 的 `lintBook()` / `lintLinks()`
-- `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名
+- `<book>` 写书名、书名的一部分（不分大小写）、`分组/书名`、id 或目录都可以（`findBook()`），部分匹配到多本时报错并列出来；`<target>` 还可以是书库里的分组名或任意目录，递归找出里面的书（`resolveTarget()`）。本仓库自己只剩 `app/samples/` 两本示例书，`check app/samples` 校验它们
+
+- `check` 比 App 导入更严格：导入时会被跳过或兜底的情况（缺少 `book.yaml`、缺失章节、未列入 `chapters` 的 `.md`）在这里都会报出来；另外检查每章唯一 H1、代码块语言、远程图片、图片是否存在于 `assets/` 下，以及链接指向的章节、小节是否存在。书库里的书（上层有名为 `books` 的目录）还要满足书库约定：目录等于 `<分组>/<书名>`、id 是 UUID、跨书链接和 `next` 按路径写并指向书库里存在的书；书库外的书（示例书、单独拷出来的书）按手机写法 `../<id>/` 在同级目录里找，找不到时跳过。规则在 `@shelf/spec` 的 `lintBook()` / `lintLinks()`
+- `pack` / `push` 打出的 zip 把文件放在 `<id>/` 下，只包含允许的扩展名，不带 `audio/` 和 `notes.md`；书库里的跨书链接和 `next` 换成 id 写法
 - `push --changed` 比较内容指纹：`@shelf/spec` 的 `prepareImport()` 对将要写入设备的全部文件算出 `hash`，App 导入时存到书目录下的 `.content-hash` 并进入索引，`/books` 返回它；CLI 用同一个函数解开自己打的 zip 得到指纹，相同则跳过。设备上没有指纹的书（早期导入的、示例书）总是推送
 - PIN 错误时立即停止，避免连续失败把手机上的服务锁掉
 - `pull-notes` 与 `push` 方向相反：一次传书会话里先拉笔记、修订书，再 `push --changed`。和本地文件只差导出日期时不重写，避免每次拉取都产生 diff；手机上已没有高亮的书不会删除本地笔记文件
@@ -421,7 +430,8 @@ shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送原声，
 |---|---|---|
 | 内容分发 | 不做热更新，纯单机 + AirDrop / 局域网 | OTA 会把内容与 runtimeVersion 绑死，只能全量下发，EAS 在国内连通性差；单机方案零后端 |
 | 渲染方式 | WebView 而非 RN 原生 Markdown 组件 | 原生组件对代码高亮、公式、Mermaid、宽表格的支持弱 |
-| 仓库 | 单仓库，`books/` 放在顶层 | 个人项目，用分层的 AGENTS.md 隔离上下文即可；拆仓成本低，需要时再拆 |
+| 仓库 | 代码仓库 `hatch-shelf`（公开）+ 书库 `hatch-shelf-library`（私有、纯数据），两者放在同一父目录；shelf-pack 留在本仓库，默认找旁边的书库，不发布 npm 包 | 起初单仓库够用；书写到近百本、又有了 4 GB 原声后，内容提交过半、历史里内容占九成，录音没处备份。书库独立后可以私有、用 LFS 管录音、单独给写书的 agent 一套规范。示例书随安装包发布，算代码，留在 `app/samples/`；shelf-pack 的每个部分都在和 App 对接（导入格式、阅读器切段、局域网接口、链接写法），放在本仓库才能和 App、spec 一起改、一起测；书库里不放 package.json，只有数据和写书规范。spec 改动偶尔要两边各提交一次，可以接受 |
+| 书库目录 | `books/<分组>/<书名>/`（分组是 category 第一段），章节文件用中文名，id 用 UUID，原声和笔记放进书目录；跨书链接和 next 在书库里按路径写，打包时翻译成 id | 近百本书平铺成英文 id 不便浏览，起语义化 id 也要花心思、改书名后还会名不副实。人只看目录和中文文件名，UUID 只给机器用；跨书引用按路径写，在编辑器里能点通，改书名用 `shelf-pack mv` 一并改写。子分类大多只有一两本书，不建目录。迁移时手机上的旧数据不保留，重新推书 |
 | 数据源 | 文件即真相，SQLite 只做索引 | 索引可重建；以后加任何同步通道，阅读器都不用改 |
 | 局域网方向 | 手机做服务端，电脑做客户端 | 与常见的“WiFi 传书”习惯一致，CLI 可以直接 curl / push |
 | 阅读器加载方式 | 单文件 HTML 资源 → 拷到 documentDirectory → `file://` 加载 | 用 `source={{ html }}` 时页面拿不到本地文件读权限，图片只能转 base64；放在 documentDirectory 下与 books/ 同源最简单 |
@@ -439,7 +449,7 @@ shelf-pack push-audio <book-id> --to <ip> --pin <pin>    # 按章推送原声，
 | 版本号与构建号 | 只维护 `expo.version`，每次上传升 patch，构建号不设、用 Expo 默认的 1 | 苹果只要求同一版本下构建号不重复，每次都升版本，构建号恒为 1 就够；两个号分开递增容易忘。早先让构建号取与 version 相同的值，没有必要，改回默认。个人自用不需要同一版本多次上传，一次一版最简单 |
 | 书架分组 | 分组名就是 `category` 的第一段，直接写中文；顺序按系列里最早导入的书 | 分组名写死在 App 里时，新增系列要改代码、重新出包，违背「内容跟着书走」；导入时间在重建索引时保留，顺序稳定，不需要额外配置 |
 | 阅读数据备份 | 手动导出 JSON + 合并式恢复，不做自动同步 | App 不联网，iCloud 同步要引入原生能力和冲突处理；进度和高亮都带 `updated_at`，按「较新者胜」合并足够个人使用。备份是个人数据，`backups/` 不入库 |
-| 跨书链接 | 用文件系统式的相对路径 `../<id>/<章节>.md#锚点`，不用自定义 scheme | 在仓库里、GitHub 和编辑器预览中都是能点通的真实路径；与 App 里 `books/<id>/` 的目录结构一致，`check` 按同级目录即可校验 |
+| 跨书链接 | 手机上用文件系统式的相对路径 `../<id>/<章节>.md#锚点`，不用自定义 scheme；书库里写 `../../<分组>/<书名>/<章节>.md#锚点`，打包时换成前者 | 与 App 里 `books/<id>/` 的目录结构一致，阅读器按相对路径就能解析；书库里的写法则与书库的真实目录一致，在 GitHub 和编辑器里能点通 |
 | App 名称 | 显示名「书巢」，内部名保留 `Shelf` | 取陆游《书巢记》里堆满书的书房，也呼应 hatch（孵化）：书在电脑上写成，再落进手机里的巢。「书架」仍作为首页 Tab 的名字；`expo.name` 决定 prebuild 的工程名和 TestFlight 脚本的 scheme，不随之改动 |
 | 冷启动 | 不全量重建索引，开场封面只播一次 | 每次启动都读遍全部章节重建全文索引，书越多开屏越久；索引存在 SQLite 里，导入时已按书更新，冷启动只做不读正文的增删对账，结构变化时靠 `INDEX_VERSION` 触发一次全量重建。开场封面每次都播会让「打开就读」变慢 |
 | 阅读页换章 | 去掉底部上一章 / 下一章，换章只走目录；目录、本书笔记、阅读设置收进「···」菜单 | 底部导航常驻会挡住正文，阅读时几乎只在读完一章时用一次；顶部三颗按钮也让阅读页显得像工具页。只留返回和「···」，正文铺满全屏 |

@@ -68583,7 +68583,7 @@
                       "id": "wFjxG",
                       "name": "t",
                       "fill": "#4B5060",
-                      "content": "没有默认路径；填写后存进这个浏览器的 localStorage，之后打开直接进入书籍列表",
+                      "content": "没有默认路径；点整行弹出系统的选择文件夹对话框（浏览器拿不到真实路径，由本机服务弹出），选中后存进 localStorage",
                       "fontFamily": "Noto Sans SC",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -68870,7 +68870,7 @@
                                   "fill": "#4B5060",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "填写书库仓库的本地路径，Dock 会读取里面 books/ 下的每一本书，连上手机后逐本比对。",
+                                  "content": "选择书库仓库所在的文件夹，Dock 会读取里面 books/ 下的每一本书，连上手机后逐本比对。",
                                   "lineHeight": 1.6,
                                   "fontFamily": "Noto Sans SC",
                                   "fontSize": 14,
@@ -68891,7 +68891,7 @@
                                   "id": "v52w0",
                                   "name": "t",
                                   "fill": "#4B5060",
-                                  "content": "书库路径",
+                                  "content": "书库文件夹",
                                   "fontFamily": "Noto Sans SC",
                                   "fontSize": 12,
                                   "fontWeight": "600"
@@ -68899,21 +68899,18 @@
                                 {
                                   "type": "frame",
                                   "id": "f11bkv",
-                                  "name": "Input",
+                                  "name": "Folder Picker",
                                   "width": "fill_container",
                                   "height": 46,
                                   "fill": "#FFFFFF",
                                   "cornerRadius": 12,
-                                  "stroke": "#2F6BFF",
-                                  "strokeWidth": 1.5,
+                                  "stroke": "#1E2A5A1F",
+                                  "strokeWidth": 1,
                                   "strokeAlignment": "inner",
-                                  "effect": {
-                                    "type": "shadow",
-                                    "shadowType": "outer",
-                                    "color": "#2F6BFF26"
-                                  },
                                   "gap": 10,
                                   "padding": [
+                                    0,
+                                    6,
                                     0,
                                     14
                                   ],
@@ -68921,13 +68918,13 @@
                                   "children": [
                                     {
                                       "type": "icon",
-                                      "id": "GDsvD",
-                                      "name": "folder",
+                                      "id": "i34HrG",
+                                      "name": "folder-open",
                                       "width": 16,
                                       "height": 16,
-                                      "icon": "folder",
+                                      "icon": "folder-open",
                                       "library": "lucide",
-                                      "fill": "#8C92A0"
+                                      "fill": "#2F6BFF"
                                     },
                                     {
                                       "type": "text",
@@ -68936,16 +68933,40 @@
                                       "fill": "#111318",
                                       "content": "~/Documents/works/hatch/hatch-shelf-library",
                                       "fontFamily": "JetBrains Mono",
-                                      "fontSize": 13,
+                                      "fontSize": 12,
                                       "fontWeight": "normal"
                                     },
                                     {
-                                      "type": "rectangle",
-                                      "id": "apBUY",
-                                      "name": "Caret",
-                                      "fill": "#2F6BFF",
-                                      "width": 1.5,
-                                      "height": 18
+                                      "type": "frame",
+                                      "id": "AB7LS",
+                                      "name": "sp",
+                                      "width": "fill_container",
+                                      "height": 1
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "XvpzM",
+                                      "name": "Choose",
+                                      "height": 34,
+                                      "fill": "#2F6BFF14",
+                                      "cornerRadius": 9,
+                                      "padding": [
+                                        0,
+                                        14
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "CxisY",
+                                          "name": "t",
+                                          "fill": "#2F6BFF",
+                                          "content": "更换…",
+                                          "fontFamily": "Noto Sans SC",
+                                          "fontSize": 13,
+                                          "fontWeight": "600"
+                                        }
+                                      ]
                                     }
                                   ]
                                 },

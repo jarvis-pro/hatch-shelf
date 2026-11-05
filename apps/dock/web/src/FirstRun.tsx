@@ -1,4 +1,4 @@
-import { ArrowRight, CircleAlert, CircleCheck, Folder, FolderOpen, LibraryBig, LoaderCircle, Lock } from 'lucide-react';
+import { ArrowRight, CircleAlert, CircleCheck, Folder, FolderOpen, LibraryBig, LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api, shortPath, type DockInfo } from './api';
 
@@ -6,7 +6,7 @@ type Check = { ok: true; books: number; groups: number } | { ok: false; error: s
 
 /**
  * 首次打开（设计稿 ①）：用系统的选择文件夹对话框选书库，选完立即检查能不能找到书。
- * 路径只存在这个浏览器里。只有不能弹对话框的系统才退回手填路径。
+ * 只有不能弹对话框的系统才退回手填路径。
  */
 export function FirstRun({ info, initial, error, onDone }: { info: DockInfo | null; initial: string; error: string | null; onDone(path: string): void }) {
   const [path, setPath] = useState(initial);
@@ -86,10 +86,6 @@ export function FirstRun({ info, initial, error, onDone }: { info: DockInfo | nu
           打开书库
           <ArrowRight size={16} />
         </button>
-        <span className="foot dim">
-          <Lock size={12} />
-          路径只保存在这个浏览器里，Dock 只监听本机 127.0.0.1
-        </span>
       </form>
     </div>
   );

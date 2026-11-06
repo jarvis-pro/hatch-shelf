@@ -21,9 +21,11 @@ import { importFile, type ImportResult } from '@/import/pipeline';
 import { loadAudioManifest } from '@/library/audio';
 import { bookNotesMarkdown, listNotesSummary } from '@/notes/store';
 import {
+  base64ByteLength,
+  base64ToBytes,
   CONTINUE_RESPONSE,
   jsonResponse,
-  parseMultipart,
+  locateMultipartFile,
   peekMultipartFilename,
   RequestParser,
   textOf,
@@ -195,42 +197,58 @@ export function startLanServer(events: LanServerEvents): LanServer {
       return jsonResponse(200, { ok: true });
     }
 
+    // 带正文的上传走 receiveUpload，到这里的是空正文
     if (req.method === 'POST' && req.path === '/upload') {
-      if (session?.key !== key || !session.accepted) return jsonResponse(409, { ok: false, error: '请先在手机上确认这次推送' });
-      const parts = parseMultipart(req.body, req.headers['content-type']);
-      if (!parts) return jsonResponse(400, { ok: false, error: '请使用 multipart/form-data 上传' });
-      const file = parts.find((p) => p.name === 'file' && p.filename);
-      if (!file) return jsonResponse(400, { ok: false, error: '缺少 file 字段' });
-
-      const task = queue.then(() => importUpload(file.filename!, file.data));
-      queue = task.catch(() => undefined);
-      const result = await task;
-      events.onUpload(result);
-      if (!result.ok) return jsonResponse(422, { ok: false, error: result.error });
-      if (result.status === 'audio') {
-        return jsonResponse(200, { ok: true, bookId: result.bookId, status: 'audio', title: result.title, chapters: result.chapters, total: result.total });
-      }
-      const book = await getBook(result.bookId);
-      return jsonResponse(200, {
-        ok: true,
-        bookId: result.bookId,
-        status: result.status,
-        title: result.title,
-        chapters: book?.chapterCount ?? 0,
-        warnings: result.warnings,
-      });
+      return uploadRefusal(key) ?? jsonResponse(400, { ok: false, error: '请使用 multipart/form-data 上传' });
     }
 
     return jsonResponse(404, { ok: false, error: '没有这个接口' });
   }
 
+  /** 上传要先配对、再由手机确认这次推送；可以上传时返回 null */
+  function uploadRefusal(key: string): Uint8Array | null {
+    if (!events.isPaired(key)) return AUTH_ERROR;
+    const session = events.session.get();
+    if (session?.key !== key || !session.accepted) return jsonResponse(409, { ok: false, error: '请先在手机上确认这次推送' });
+    return null;
+  }
+
+  /** 正文已经整个写到磁盘：取出文件字段，排队交给导入管线 */
+  async function receiveUpload(req: Omit<HttpRequest, 'body'>, body: UploadBody): Promise<Uint8Array> {
+    const key = bearerKey(req.headers.authorization);
+    if (!key) return AUTH_ERROR;
+    const refused = uploadRefusal(key);
+    if (refused) return refused;
+    events.onActivity(key);
+
+    const task = queue.then(() => importUpload(body, req.headers['content-type']));
+    queue = task.catch(() => undefined);
+    const result = await task;
+    if (!result) return jsonResponse(400, { ok: false, error: '请使用 multipart/form-data 上传，并带上 file 字段' });
+    events.onUpload(result);
+    if (!result.ok) return jsonResponse(422, { ok: false, error: result.error });
+    if (result.status === 'audio') {
+      return jsonResponse(200, { ok: true, bookId: result.bookId, status: 'audio', title: result.title, chapters: result.chapters, total: result.total });
+    }
+    const book = await getBook(result.bookId);
+    return jsonResponse(200, {
+      ok: true,
+      bookId: result.bookId,
+      status: result.status,
+      title: result.title,
+      chapters: book?.chapterCount ?? 0,
+      warnings: result.warnings,
+    });
+  }
+
   let connections = 0;
   const server = TcpSocket.createServer((socket) => {
-    const parser = new RequestParser(MAX_BODY_BYTES);
+    const parser = new RequestParser(MAX_BODY_BYTES, (r) => r.method === 'POST' && r.path === '/upload');
     const key = ++connections;
     let done = false;
     let reported = -1;
     let name: string | undefined;
+    let upload: { request: Omit<HttpRequest, 'body'>; body: UploadBody } | null = null;
     let onClosed = () => {};
     const closed = new Promise<void>((resolve) => (onClosed = resolve));
     const reply = (bytes: Uint8Array) => {
@@ -239,33 +257,57 @@ export function startLanServer(events: LanServerEvents): LanServer {
       if (reported >= 0) events.onReceiving(key, null);
       socket.end(bytes);
     };
+    const fail = (e: Error) => reply(jsonResponse(500, { ok: false, error: e.message }));
+
     /** 每 5% 报一次上传进度；认出文件名时也报一次 */
     const report = () => {
-      const p = parser.progress;
-      if (!p || p.method !== 'POST' || p.path !== '/upload' || p.total === 0) return;
-      const found = name === undefined && (name = peekMultipartFilename(p.body.subarray(0, 16 * 1024), p.headers['content-type']));
-      const ratio = Math.floor((p.received / p.total) * 20) / 20;
+      if (!upload) return;
+      const { request, body } = upload;
+      const found = name === undefined && (name = peekMultipartFilename(body.head, request.headers['content-type']));
+      const ratio = Math.floor((body.received / body.total) * 20) / 20;
       if (ratio === reported && !found) return;
       reported = ratio;
-      events.onReceiving(key, { ratio, name, total: p.total });
+      events.onReceiving(key, { ratio, name, total: body.total });
     };
 
-    socket.on('data', (chunk) => {
+    const receive = (chunk: string | Uint8Array) => {
       if (done) return;
-      const bytes = typeof chunk === 'string' ? strToU8(chunk) : new Uint8Array(chunk);
-      const r = parser.push(bytes);
-      report();
+      if (upload) {
+        upload.body.push(chunk);
+        report();
+        if (upload.body.complete) {
+          // 收完就不再算「接收中」：之后多出来的字节交给已结束的解析器忽略掉，断开时也不去删正在导入的文件
+          const { request, body } = upload;
+          upload = null;
+          receiveUpload(request, body)
+            .then(reply, fail)
+            .finally(() => body.dispose());
+        }
+        return;
+      }
+      const r = parser.push(typeof chunk === 'string' ? base64ToBytes(chunk) : chunk);
       if (r.type === 'continue') socket.write(CONTINUE_RESPONSE);
       else if (r.type === 'error') reply(jsonResponse(r.status, { ok: false, error: r.message }));
-      else if (r.type === 'complete') {
-        handle(r.request, closed).then(reply, (e: Error) => reply(jsonResponse(500, { ok: false, error: e.message })));
+      else if (r.type === 'complete') handle(r.request, closed).then(reply, fail);
+      else if (r.type === 'stream') {
+        // 没配对或没确认推送的上传照样收完（直接回错误会让电脑那头写到一半断开、看不到原因），只是不写盘
+        const authKey = bearerKey(r.request.headers.authorization);
+        const body = new UploadBody(r.length, !authKey || uploadRefusal(authKey) !== null);
+        upload = { request: r.request, body };
+        if (r.expectContinue) socket.write(CONTINUE_RESPONSE);
+        if (r.rest.length > 0 || r.length === 0) receive(r.rest);
+        else report();
       }
-    });
+    };
+
+    // 正文直接拿原生发来的 base64 交给原生解码写盘；接不上内部字段时退回普通的 data 事件
+    if (!onRawData(socket, receive)) socket.on('data', (chunk) => receive(typeof chunk === 'string' ? strToU8(chunk) : new Uint8Array(chunk)));
     socket.on('error', () => socket.destroy());
     // 电脑中途断开时清掉进度；挂着的推送请求也随之取消
     socket.on('close', () => {
       onClosed();
       if (!done && reported >= 0) events.onReceiving(key, null);
+      if (!done) upload?.body.dispose();
       done = true;
     });
   });
@@ -292,18 +334,123 @@ function parseJson(body: Uint8Array): unknown {
   }
 }
 
-/** 把上传内容落成临时文件，交给统一的导入管线 */
-async function importUpload(filename: string, data: Uint8Array): Promise<ImportResult> {
+/** react-native-tcp-socket 的 Socket 内部字段（6.x） */
+interface RawSocket {
+  _id: number;
+  _eventEmitter: { addListener(event: 'data', listener: (evt: { id: number; data: string }) => void): { remove(): void } };
+  _dataListener?: { remove(): void };
+}
+
+/**
+ * 原生把每个 TCP 分片编成 base64 发给 JS，库再在 JS 里解码成 Buffer：几十 MB 的上传全在 JS 线程上解码，
+ * 传输时 Tab 栏这类逐帧在 JS 里算的动画会一直掉帧。换掉库的 data 监听，直接拿 base64 字符串，
+ * 正文原样交给原生解码写盘。库的内部结构对不上时返回 false
+ */
+function onRawData(socket: unknown, listener: (b64: string) => void): boolean {
+  const raw = socket as Partial<RawSocket>;
+  if (typeof raw._id !== 'number' || !raw._eventEmitter || !raw._dataListener) return false;
+  const id = raw._id;
+  raw._dataListener.remove();
+  // 库在断开时会 remove 掉 _dataListener，换成这个之后照样能清理
+  raw._dataListener = raw._eventEmitter.addListener('data', (evt) => {
+    if (evt.id === id) listener(evt.data);
+  });
+  return true;
+}
+
+/** 正文开头留在 JS 里的部分：找文件名、定位文件字段用 */
+const HEAD_BYTES = 16 * 1024;
+/** 读回正文结尾的长度：要盖住结尾的 `\r\n--boundary--\r\n` */
+const TAIL_BYTES = 1024;
+
+/**
+ * 一次上传的正文：分片按到达顺序追加写到临时文件（base64 由原生解码），JS 里只留开头 HEAD_BYTES。
+ * discard 时只计数不写盘（这次上传反正会被拒绝）
+ */
+class UploadBody {
+  readonly dir = new Directory(uploadDir, `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`);
+  readonly file = new File(this.dir, 'body');
+  head = new Uint8Array(0);
+  received = 0;
+  private writing: Promise<void> = Promise.resolve();
+  private error: Error | null = null;
+
+  constructor(
+    readonly total: number,
+    private readonly discard: boolean,
+  ) {
+    if (discard) return;
+    this.dir.create({ intermediates: true });
+    this.file.create();
+  }
+
+  get complete() {
+    return this.received >= this.total;
+  }
+
+  push(chunk: string | Uint8Array) {
+    this.received += typeof chunk === 'string' ? base64ByteLength(chunk) : chunk.length;
+    if (this.head.length < HEAD_BYTES) {
+      const need = HEAD_BYTES - this.head.length;
+      // 只解开头需要的那一段：base64 每 4 个字符对应 3 个字节
+      const bytes = typeof chunk === 'string' ? base64ToBytes(chunk.slice(0, Math.ceil(need / 3) * 4)) : chunk;
+      const head = new Uint8Array(this.head.length + Math.min(need, bytes.length));
+      head.set(this.head);
+      head.set(bytes.subarray(0, need), this.head.length);
+      this.head = head;
+    }
+    if (this.discard) return;
+    // 一个接一个写，保证顺序；写失败后的分片直接丢掉，finish 时报错
+    this.writing = this.writing
+      .then(() => {
+        if (this.error) return;
+        return typeof chunk === 'string' ? this.file.write(chunk, { encoding: 'base64', append: true }) : this.file.write(chunk, { append: true });
+      })
+      .catch((e: Error) => {
+        this.error ??= e;
+      });
+  }
+
+  /** 等全部写完；写盘出错时抛出 */
+  async finish() {
+    await this.writing;
+    if (this.error) throw this.error;
+  }
+
+  /** 删掉临时文件（等还在排队的写入结束） */
+  dispose() {
+    void this.writing.then(() => {
+      if (this.dir.exists) this.dir.delete();
+    });
+  }
+}
+
+/**
+ * 从写好的正文里取出文件字段，落成带原文件名的临时文件，交给统一的导入管线。
+ * 正文不是 multipart 或找不到文件字段时返回 null
+ */
+async function importUpload(body: UploadBody, contentType: string | undefined): Promise<ImportResult | null> {
+  await body.finish();
+  const size = body.file.size;
+  const handle = body.file.open();
+  let data: Uint8Array;
+  let filename: string;
+  try {
+    const tailOffset = Math.max(0, size - TAIL_BYTES);
+    handle.offset = tailOffset;
+    const tail = await handle.readBytes(size - tailOffset);
+    const part = locateMultipartFile(body.head, tail, tailOffset, contentType);
+    if (!part || part.name !== 'file') return null;
+    handle.offset = part.start;
+    data = await handle.readBytes(part.end - part.start);
+    filename = part.filename;
+  } finally {
+    handle.close();
+  }
   // 只取文件名部分；保留原名是因为没有 book.yaml 时书的 id 和标题取自文件名
   const safeName = filename.replace(/^.*[\\/]/, '').replace(/[\u0000-\u001f]/g, '') || 'upload.zip';
-  const dir = new Directory(uploadDir, `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`);
-  dir.create({ intermediates: true });
-  try {
-    const file = new File(dir, safeName);
-    file.create();
-    file.writeSync(data);
-    return await importFile(file.uri);
-  } finally {
-    if (dir.exists) dir.delete();
-  }
+  const file = new File(body.dir, safeName === 'body' ? 'body.zip' : safeName);
+  file.create();
+  await file.write(data);
+  return importFile(file.uri);
 }

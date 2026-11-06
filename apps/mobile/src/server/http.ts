@@ -19,6 +19,11 @@ export type ParseResult =
   /** 头部刚收完且带 `Expect: 100-continue`（curl 上传大文件时会发），需要先回 100 */
   | { type: 'continue' }
   | { type: 'complete'; request: HttpRequest }
+  /**
+   * 请求头收完、正文交给调用方自己接收（构造时 streamBody 返回 true 的请求）：解析器不再分配正文缓冲。
+   * rest 是和请求头一起收到的那部分正文；expectContinue 时调用方要先回 100
+   */
+  | { type: 'stream'; request: Omit<HttpRequest, 'body'>; length: number; rest: Uint8Array; expectContinue: boolean }
   | { type: 'error'; status: number; message: string };
 
 const MAX_HEADER_BYTES = 16 * 1024;
@@ -47,7 +52,11 @@ export class RequestParser {
   private received = 0;
   private finished = false;
 
-  constructor(private readonly maxBodyBytes: number) {}
+  constructor(
+    private readonly maxBodyBytes: number,
+    /** 返回 true 的请求不由解析器收正文（大文件上传直接写盘，不在 JS 里攒） */
+    private readonly streamBody?: (req: Omit<HttpRequest, 'body'>) => boolean,
+  ) {}
 
   /** 请求头解析完之后的接收进度，用于传书页面显示上传进度；body 是已收到的部分 */
   get progress(): (Omit<HttpRequest, 'body'> & { body: Uint8Array; received: number; total: number }) | null {
@@ -88,11 +97,17 @@ export class RequestParser {
     if (!Number.isInteger(length) || length < 0) return this.fail(400, 'Content-Length 无效');
     if (length > this.maxBodyBytes) return this.fail(413, '文件过大');
 
-    this.body = new Uint8Array(length);
     const rest = merged.subarray(end + CRLFCRLF.length);
     this.head = new Uint8Array(0);
+    const expectContinue = headers.expect?.toLowerCase() === '100-continue';
+    if (length > 0 && this.streamBody?.(this.req)) {
+      this.finished = true;
+      return { type: 'stream', request: this.req, length, rest: rest.slice(0, length), expectContinue };
+    }
+
+    this.body = new Uint8Array(length);
     const result = this.pushBody(rest);
-    if (result.type === 'incomplete' && headers.expect?.toLowerCase() === '100-continue') {
+    if (result.type === 'incomplete' && expectContinue) {
       return { type: 'continue' };
     }
     return result;
@@ -151,6 +166,35 @@ export function jsonResponse(status: number, data: unknown) {
   return buildResponse(status, 'application/json; charset=utf-8', JSON.stringify(data));
 }
 
+// ---------- base64 ----------
+
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const B64_INDEX = new Uint8Array(128);
+for (let i = 0; i < B64.length; i++) B64_INDEX[B64.charCodeAt(i)] = i;
+
+/** base64 解出的字节数（不解码） */
+export function base64ByteLength(b64: string): number {
+  const pad = b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0;
+  return (b64.length / 4) * 3 - pad;
+}
+
+/** 解 base64；只用在请求头那一两个分片上，正文由原生直接解码写盘 */
+export function base64ToBytes(b64: string): Uint8Array {
+  const out = new Uint8Array(base64ByteLength(b64));
+  let o = 0;
+  for (let i = 0; i < b64.length; i += 4) {
+    const n =
+      (B64_INDEX[b64.charCodeAt(i)] << 18) |
+      (B64_INDEX[b64.charCodeAt(i + 1)] << 12) |
+      (B64_INDEX[b64.charCodeAt(i + 2)] << 6) |
+      B64_INDEX[b64.charCodeAt(i + 3)];
+    if (o < out.length) out[o++] = n >> 16;
+    if (o < out.length) out[o++] = (n >> 8) & 255;
+    if (o < out.length) out[o++] = n & 255;
+  }
+  return out;
+}
+
 // ---------- multipart/form-data ----------
 
 export interface FormPart {
@@ -159,10 +203,14 @@ export interface FormPart {
   data: Uint8Array;
 }
 
-export function parseMultipart(body: Uint8Array, contentType: string | undefined): FormPart[] | null {
+function boundaryOf(contentType: string | undefined): Uint8Array | null {
   const m = /multipart\/form-data;.*boundary=(?:"([^"]+)"|([^;\s]+))/i.exec(contentType ?? '');
-  if (!m) return null;
-  const delimiter = encoder.encode(`--${m[1] ?? m[2]}`);
+  return m ? encoder.encode(`--${m[1] ?? m[2]}`) : null;
+}
+
+export function parseMultipart(body: Uint8Array, contentType: string | undefined): FormPart[] | null {
+  const delimiter = boundaryOf(contentType);
+  if (!delimiter) return null;
   const parts: FormPart[] = [];
 
   let pos = indexOfBytes(body, delimiter);
@@ -199,19 +247,48 @@ function partHeader(head: string): { name?: string; filename?: string } {
  * 传书页据此在上传过程中就显示是哪本书。找不到（还没收到那部分）返回 undefined。
  */
 export function peekMultipartFilename(head: Uint8Array, contentType: string | undefined): string | undefined {
-  const m = /multipart\/form-data;.*boundary=(?:"([^"]+)"|([^;\s]+))/i.exec(contentType ?? '');
-  if (!m) return undefined;
-  const delimiter = encoder.encode(`--${m[1] ?? m[2]}`);
+  return findFilePart(head, contentType)?.filename;
+}
+
+/** 在正文开头找第一个带文件名的字段：字段名、文件名和数据起点 */
+function findFilePart(head: Uint8Array, contentType: string | undefined): { name: string; filename: string; start: number } | undefined {
+  const delimiter = boundaryOf(contentType);
+  if (!delimiter) return undefined;
   let pos = indexOfBytes(head, delimiter);
   while (pos >= 0) {
     pos += delimiter.length + 2;
     const headEnd = indexOfBytes(head, CRLFCRLF, pos);
     if (headEnd < 0) return undefined;
-    const { filename } = partHeader(decoder.decode(head.subarray(pos, headEnd)));
-    if (filename) return filename;
+    const { name, filename } = partHeader(decoder.decode(head.subarray(pos, headEnd)));
+    if (name !== undefined && filename) return { name, filename, start: headEnd + 4 };
     pos = indexOfBytes(head, delimiter, headEnd + 4);
   }
   return undefined;
+}
+
+/**
+ * 已经写到磁盘上的 multipart 正文里，文件字段的位置：只看开头（head）和结尾（tail，从 tailOffset 起），
+ * 不把几十 MB 的正文读进 JS 逐字节扫。要求文件字段是最后一个字段（Dock 和 `curl -F` 单文件上传都是），
+ * 数据到结尾的 `\r\n--boundary--` 为止
+ */
+export function locateMultipartFile(
+  head: Uint8Array,
+  tail: Uint8Array,
+  tailOffset: number,
+  contentType: string | undefined,
+): { name: string; filename: string; start: number; end: number } | null {
+  const delimiter = boundaryOf(contentType);
+  const part = findFilePart(head, contentType);
+  if (!delimiter || !part) return null;
+  const closing = new Uint8Array(delimiter.length + 4);
+  closing.set([13, 10]);
+  closing.set(delimiter, 2);
+  closing.set([45, 45], delimiter.length + 2);
+  let at = -1;
+  for (let i = indexOfBytes(tail, closing); i >= 0; i = indexOfBytes(tail, closing, i + 1)) at = i;
+  if (at < 0) return null;
+  const end = tailOffset + at;
+  return end >= part.start ? { name: part.name, filename: part.filename, start: part.start, end } : null;
 }
 
 export const textOf = (bytes: Uint8Array) => decoder.decode(bytes);

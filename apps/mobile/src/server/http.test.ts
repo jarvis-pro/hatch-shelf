@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseMultipart, peekMultipartFilename, RequestParser, textOf } from './http';
+import { base64ByteLength, base64ToBytes, locateMultipartFile, parseMultipart, peekMultipartFilename, RequestParser, textOf } from './http';
 
 const enc = (s: string) => new TextEncoder().encode(s);
 
@@ -83,5 +83,63 @@ describe('peekMultipartFilename', () => {
   it('returns undefined until the file part header has arrived', () => {
     expect(peekMultipartFilename(body.subarray(0, 60), ct)).toBeUndefined();
     expect(peekMultipartFilename(body, 'text/plain')).toBeUndefined();
+  });
+});
+
+describe('streamed upload body', () => {
+  it('hands the body over after the headers instead of buffering it', () => {
+    const p = new RequestParser(100, (r) => r.path === '/upload');
+    const r = p.push(enc('POST /upload HTTP/1.1\r\nContent-Length: 11\r\nExpect: 100-continue\r\n\r\nhello'));
+    expect(r).toMatchObject({ type: 'stream', length: 11, expectContinue: true, request: { method: 'POST', path: '/upload' } });
+    if (r.type === 'stream') expect(textOf(r.rest)).toBe('hello');
+    // 正文归调用方，解析器不再处理
+    expect(p.push(enc(' world'))).toEqual({ type: 'incomplete' });
+  });
+
+  it('still buffers requests the caller does not stream', () => {
+    const r = new RequestParser(100, (req) => req.path === '/upload').push(enc('POST /session/end HTTP/1.1\r\nContent-Length: 2\r\n\r\n{}'));
+    expect(r).toMatchObject({ type: 'complete' });
+  });
+});
+
+describe('base64', () => {
+  it('decodes and counts bytes, with and without padding', () => {
+    const cases = [
+      ['', ''],
+      ['a', 'YQ=='],
+      ['ab', 'YWI='],
+      ['abc', 'YWJj'],
+      ['hello world', 'aGVsbG8gd29ybGQ='],
+      ['\u4e66\u5de2', '5Lmm5bei'],
+    ];
+    for (const [s, b64] of cases) {
+      expect(base64ByteLength(b64)).toBe(enc(s).length);
+      expect(textOf(base64ToBytes(b64))).toBe(s);
+    }
+  });
+});
+
+describe('locateMultipartFile', () => {
+  const type = 'multipart/form-data; boundary=XyZ';
+  const payload = 'x'.repeat(3000);
+  const body = enc(multipart('XyZ', [{ name: 'file', filename: 'book.zip', body: payload }]));
+
+  it('finds the file field from just the head and the tail', () => {
+    const tailOffset = body.length - 100;
+    const part = locateMultipartFile(body.subarray(0, 200), body.subarray(tailOffset), tailOffset, type);
+    expect(part).toMatchObject({ name: 'file', filename: 'book.zip' });
+    expect(textOf(body.subarray(part!.start, part!.end))).toBe(payload);
+  });
+
+  it('works when the tail covers the whole body', () => {
+    const small = enc(multipart('XyZ', [{ name: 'file', filename: 'a.md', body: '# hi' }]));
+    const part = locateMultipartFile(small, small, 0, type);
+    expect(textOf(small.subarray(part!.start, part!.end))).toBe('# hi');
+  });
+
+  it('returns null without a closing boundary or a file field', () => {
+    expect(locateMultipartFile(body.subarray(0, 200), enc('no end here'), body.length - 11, type)).toBeNull();
+    const noFile = enc(multipart('XyZ', [{ name: 'note', body: 'hi' }]));
+    expect(locateMultipartFile(noFile, noFile, 0, type)).toBeNull();
   });
 });

@@ -194,7 +194,7 @@ next:                         # 可选，读完后接着读的书，最多 3 本
 
 **限制**：单个文件不超过 50 MB（原声按章分包）。
 
-**实现**：HTTP 解析在 `apps/mobile/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；Dock 用 `node:http` 自己拼 multipart，保证有 Content-Length，并按发出的字节报告上传进度。上传的文件落成临时文件后交给第 6 节的导入管线，多个上传串行导入。
+**实现**：HTTP 解析在 `apps/mobile/src/server/http.ts`（纯函数，Node 中测试），只支持带 `Content-Length` 的请求，每个连接处理一个请求后关闭；Dock 用 `node:http` 自己拼 multipart，保证有 Content-Length，并按发出的字节报告上传进度。上传的正文不在 JS 里解码：直接拿 react-native-tcp-socket 从原生发来的 base64 分片，按顺序交给 expo-file-system 由原生解码、追加写到临时文件，JS 里只留开头 16 KB 用来认文件名；收完后读开头和结尾定位 `file` 字段（它必须是最后一个字段），取出成带原文件名的临时文件交给第 6 节的导入管线，多个上传串行导入。这样传几十 MB 的原声时 JS 线程基本空闲，Tab 栏这类逐帧在 JS 里算的动画不会掉帧。
 
 ### 5.3 “文件” App 可见（可选，M4 之后）
 

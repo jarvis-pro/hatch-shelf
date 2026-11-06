@@ -10,7 +10,7 @@ import { writeBookAtomically } from './fs';
 export async function seedSamples() {
   if (await getSetting('samplesSeeded', false)) return;
   for (const book of SAMPLE_BOOKS) {
-    if (!bookDir(book.id).exists) writeBookAtomically(book.id, book.files);
+    if (!bookDir(book.id).exists) await writeBookAtomically(book.id, book.files);
   }
   await setSetting('samplesSeeded', true);
 }

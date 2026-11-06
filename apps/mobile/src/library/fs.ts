@@ -18,7 +18,7 @@ export const HASH_FILE = '.content-hash';
  * 替换要两次改名：先把旧目录挪成 .old-<id>，再把新目录改成 <id>。两次改名之间 books/<id>/ 短暂不存在，
  * 如果 App 恰好在这时被杀，下次启动由 recoverInterruptedWrites 把 .old-<id> 改回来，书不会丢。
  */
-export function writeBookAtomically(id: string, files: BookFile[], hash?: string) {
+export async function writeBookAtomically(id: string, files: BookFile[], hash?: string) {
   if (!booksDir.exists) booksDir.create({ intermediates: true });
   const tmp = new Directory(booksDir, `${TMP_PREFIX}${id}`);
   if (tmp.exists) tmp.delete();
@@ -26,15 +26,15 @@ export function writeBookAtomically(id: string, files: BookFile[], hash?: string
   for (const f of files) {
     const file = new File(tmp, f.path);
     file.create({ intermediates: true, overwrite: true });
-    // SDK 58 起 write() 是异步的；必须同步写完，下面的 rename 才不会抢在写入之前
-    if (f.bytes !== undefined) file.writeSync(f.bytes);
-    else if (f.base64 !== undefined) file.writeSync(f.base64, { encoding: 'base64' });
-    else file.writeSync(f.text ?? '');
+    // 异步写（在原生后台线程，不占 JS 线程），逐个等写完，下面的 rename 才不会抢在写入之前
+    if (f.bytes !== undefined) await file.write(f.bytes);
+    else if (f.base64 !== undefined) await file.write(f.base64, { encoding: 'base64' });
+    else await file.write(f.text ?? '');
   }
   if (hash) {
     const h = new File(tmp, HASH_FILE);
     h.create();
-    h.writeSync(hash);
+    await h.write(hash);
   }
 
   const target = bookDir(id);

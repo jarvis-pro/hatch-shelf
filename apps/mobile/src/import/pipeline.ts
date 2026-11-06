@@ -40,7 +40,7 @@ async function importFileNow(uri: string): Promise<ImportResult> {
 
     staging.create({ intermediates: true });
     const staged = new File(staging, 'package');
-    source.copySync(staged);
+    await source.copy(staged);
 
     const lower = fileName.toLowerCase();
     let input: ImportInput;
@@ -56,7 +56,7 @@ async function importFileNow(uri: string): Promise<ImportResult> {
     if (!prepared.ok) return fail(prepared.error);
 
     const existed = bookDir(prepared.id).exists;
-    writeBookAtomically(prepared.id, prepared.files, prepared.hash);
+    await writeBookAtomically(prepared.id, prepared.files, prepared.hash);
     await cleanStaleProgress(prepared.id, prepared.manifest.chapters);
     await reindexBook(prepared.id);
     notifyLibraryChanged();
@@ -83,7 +83,7 @@ async function importAudio(bytes: Uint8Array, fail: (error: string) => ImportRes
   if (!prepared.ok) return fail(prepared.error);
   const book = await getBook(prepared.bookId);
   if (!book) return fail(`书架上还没有「${prepared.bookId}」，先导入书再传原声`);
-  const merged = writeAudioPackage(prepared, await loadAudioManifest(prepared.bookId));
+  const merged = await writeAudioPackage(prepared, await loadAudioManifest(prepared.bookId));
   return {
     ok: true,
     status: 'audio',

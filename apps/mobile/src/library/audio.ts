@@ -48,7 +48,7 @@ export function audioBytes(bookId: string): number {
  * 写入一个音频包：先写录音，最后写合并后的清单，中途被杀也不会出现清单引用了却不存在的文件；
  * 写完删掉清单不再引用的录音（换了音色、章节重新生成过）。返回合并后的清单
  */
-export function writeAudioPackage(prepared: Extract<PreparedAudio, { ok: true }>, existing: AudioManifest | null): AudioManifest {
+export async function writeAudioPackage(prepared: Extract<PreparedAudio, { ok: true }>, existing: AudioManifest | null): Promise<AudioManifest> {
   const { bookId } = prepared;
   if (!bookDir(bookId).exists) throw new Error('书架上还没有这本书，先导入书再传原声');
   const dir = audioDir(bookId);
@@ -59,13 +59,14 @@ export function writeAudioPackage(prepared: Extract<PreparedAudio, { ok: true }>
     // 文件名就是内容指纹，已有的不必重写
     if (f.exists && f.size === bytes.length) continue;
     f.create({ overwrite: true });
-    f.writeSync(bytes);
+    // 录音动辄几 MB，异步写不占 JS 线程；逐个等写完，清单才会最后落盘
+    await f.write(bytes);
   }
 
   const merged = mergeAudioManifest(existing, prepared.manifest);
   const tmp = new File(dir, `${AUDIO_MANIFEST}.tmp`);
   tmp.create({ overwrite: true });
-  tmp.writeSync(JSON.stringify(merged));
+  await tmp.write(JSON.stringify(merged));
   const target = new File(dir, AUDIO_MANIFEST);
   if (target.exists) target.delete();
   // SDK 58 的 move() 是异步的，这里要同步换上，后面的清理才不会抢在它之前

@@ -19,6 +19,7 @@ import {
   findBooks,
   groupByCategory,
   libraryBooks,
+  libraryRoot,
   lint,
   moveBook,
   newBook,
@@ -26,6 +27,7 @@ import {
   resolveTarget,
   type LocalBook,
 } from './books';
+import { lintConventions, readConventions, CONVENTIONS_FILE, type Conventions } from './conventions';
 import { segmentChapter } from './segment';
 
 const c = {
@@ -35,9 +37,10 @@ const c = {
   dim: (s: string) => `\x1b[2m${s}\x1b[0m`,
 };
 
-/** 校验并打印问题；有错误时返回 null */
-function checkBook(book: LocalBook, quiet = false) {
+/** 校验并打印问题；有错误时返回 null。传了 conventions 就再按书库约定检查（check --strict） */
+function checkBook(book: LocalBook, quiet = false, conventions?: Conventions) {
   const r = lint(book);
+  if (conventions && r.manifest) r.errors.push(...lintConventions(book, r.manifest.chapters, (r.manifest.category ?? '').split('/')[0], conventions));
   const label = r.manifest ? `${bookLabel(book, r)}  ${c.dim(r.manifest.title)}` : bookLabel(book);
   if (r.errors.length) console.log(`${c.red('✗')} ${label}`);
   else if (!quiet || r.warnings.length) console.log(`${c.green('✓')} ${label}`);
@@ -60,10 +63,23 @@ const shownPath = (p: string) => {
 program
   .command('check')
   .argument('[target]', '一本书、书库里的分组名或任意目录；不传就校验整个书库')
+  .option('--strict', `再按书库根目录 ${CONVENTIONS_FILE} 的约定检查：禁用词、章末必备小节，以及字符画`)
   .description('按写书规范校验')
-  .action((target?: string) => {
+  .action((target: string | undefined, opts: { strict?: boolean }) => {
     const books = findBooks(resolveTarget(target));
-    const failed = books.map((d) => checkBook(readBook(d))).filter((r) => !r).length;
+    const conventionsOf = (dir: string): Conventions | undefined => {
+      if (!opts.strict) return undefined;
+      const root = libraryRoot(dir);
+      const conv = root ? readConventions(path.dirname(root)) : null;
+      return conv ?? { banned: [], chapterEndings: {} };
+    };
+    if (opts.strict) {
+      const root = libraryRoot(books[0] ?? '.');
+      if (!root || !readConventions(path.dirname(root))) {
+        console.log(c.yellow(`没有找到书库根目录的 ${CONVENTIONS_FILE}，--strict 只多查字符画`));
+      }
+    }
+    const failed = books.map((d) => checkBook(readBook(d), false, conventionsOf(d))).filter((r) => !r).length;
     console.log(failed ? c.red(`\n${failed} / ${books.length} 本书有错误`) : c.green(`\n${books.length} 本书全部通过`));
     process.exitCode = failed ? 1 : 0;
   });

@@ -403,7 +403,7 @@ shelf-pack audio <book> [--voice <id>] [--speed 1] [--only 01,02] [-j 3] [--dry]
 ```bash
 shelf-pack new   <分类> <书名>                # 新建一本书：生成 UUID，建好 books/<分组>/<书名>/、book.yaml 和第一章
 shelf-pack mv    <book> [--title t] [--category c]   # 改书名或分类：移动目录，改写书库里指向它的链接和 next
-shelf-pack check [target]                     # 按 spec 校验；不传就是整个书库
+shelf-pack check [target] [--strict]          # 按 spec 校验；不传就是整个书库。--strict 再按书库根目录 lint.yaml 查禁用词、章末小节和字符画
 shelf-pack ls    [target]                     # 按 category 分组列出书名、章数、更新日期、有无原声
 shelf-pack audio <book> [--only 01,02] [--dry]  # 生成原声录音到书目录下的 audio/（见 8.1）
 ```
@@ -412,7 +412,7 @@ shelf-pack 只管写书：新建、改名、校验、列出、生成原声，给
 
 命令行和 Dock 共用 `@shelf/library`（`packages/library`）：找书、读书、校验、打包、原声包都在这里，`cli.ts` 只是一层命令行外壳。
 
-在本仓库根目录以 `pnpm shelf-pack <命令>` 运行。书库默认是本仓库旁边的 `../hatch-shelf-library`，与当前目录无关；环境变量 `SHELF_LIBRARY`（相对本仓库根目录）可以指到别处。书库是纯数据仓库，里面没有 `package.json`，在书库里工作时用 `pnpm --dir ../hatch-shelf shelf-pack …`。
+在本仓库根目录以 `pnpm shelf-pack <命令>` 运行。书库默认是本仓库旁边的 `../hatch-shelf-library`，与当前目录无关；环境变量 `SHELF_LIBRARY`（相对本仓库根目录）可以指到别处。书库是纯数据仓库，里面没有 `package.json`，在书库里工作时用 `(cd ../hatch-shelf && pnpm shelf-pack …)`：要在本仓库目录里运行 pnpm 才会用 `packageManager` 锁定的版本，`pnpm --dir` 会用全局的 pnpm，版本不符时报错，绕过版本检查则会让新版 pnpm 重装 `node_modules`。
 
 - `<book>` 写书名、书名的一部分（不分大小写）、`分组/书名`、id 或目录都可以（`findBook()`），部分匹配到多本时报错并列出来；`<target>` 还可以是书库里的分组名或任意目录，递归找出里面的书（`resolveTarget()`）。本仓库自己只剩 `apps/mobile/samples/` 两本示例书，`check apps/mobile/samples` 校验它们
 

@@ -50,7 +50,7 @@ pnpm typecheck               # 全仓类型检查
 pnpm test                    # 全仓测试
 pnpm lint                    # App 的 ESLint（含 no-floating-promises）
 pnpm dock                    # 构建并启动 Dock，浏览器打开 http://localhost:5170；配对开发版 App 时用 SHELF_APP=dev pnpm dock
-pnpm shelf-pack check               # 校验整个书库；check apps/mobile/samples 校验示例书
+pnpm shelf-pack check               # 校验整个书库；check apps/mobile/samples 校验示例书；--strict 再按书库的 lint.yaml 查写作约定
 pnpm shelf-pack ls                  # 按分类列出书库里的书；其他命令（new / mv / audio）见 README 第 10 节；推书、拉笔记、备份用 Dock
 SHELF_LIBRARY=../hatch-shelf-library pnpm --filter @shelf/library test   # 改了切段、校验、打包规则后对整个书库跑一遍
 pnpm mobile testflight       # 构建 Release 并上传 TestFlight（见 README 第 13 节）
